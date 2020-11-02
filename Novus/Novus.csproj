@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Authors>Read Stanton (Decimation)</Authors>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SimpleCore">
+      <HintPath>..\..\..\RiderProjects\SimpleCore\SimpleCore\bin\Release\netcoreapp3.1\SimpleCore.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

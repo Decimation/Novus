@@ -5,7 +5,7 @@ using Novus.Win32;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus
+namespace Novus.Memory
 {
 	public static class Allocator
 	{

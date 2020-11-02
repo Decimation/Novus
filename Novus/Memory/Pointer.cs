@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 
 #pragma warning disable 8603, 8653
 
-namespace Novus
+namespace Novus.Memory
 {
 	/// <summary>
 	///     <para>Represents a native pointer. Equals the size of <see cref="P:System.IntPtr.Size" />.</para>

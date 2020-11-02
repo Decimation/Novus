@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using Novus.Memory;
 
 // ReSharper disable UnusedMember.Global
 

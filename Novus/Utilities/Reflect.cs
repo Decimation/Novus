@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Linq;
 using System.Reflection;
+using Novus.Memory;
 
 // ReSharper disable UnusedTypeParameter
 // ReSharper disable UnusedMember.Global

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Novus
 {
@@ -12,6 +13,21 @@ namespace Novus
 		public static bool IsNil<T>(T value)
 		{
 			return EqualityComparer<T>.Default.Equals(value, default);
+		}
+
+		public static bool IsStruct<T>(T value)
+		{
+			return value.GetType().IsValueType;
+		}
+
+		public static bool IsArray<T>(T value)
+		{
+			return value is Array;
+		}
+
+		public static bool IsString<T>(T value)
+		{
+			return value is string;
 		}
 	}
 }

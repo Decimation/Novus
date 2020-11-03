@@ -15,9 +15,6 @@
 
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="Functions">
       <HintPath>Native\Functions.dll</HintPath>
     </Reference>

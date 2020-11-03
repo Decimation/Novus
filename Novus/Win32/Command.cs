@@ -24,9 +24,11 @@ namespace Novus.Win32
 		/// <returns>Created command prompt process</returns>
 		public static Process Shell(string cmd)
 		{
+			// https://stackoverflow.com/questions/5519328/executing-batch-file-in-c-sharp
+
 			var startInfo = new ProcessStartInfo
 			{
-				FileName               = "cmd.exe",
+				FileName               = NativeInterop.CMD_EXE,
 				Arguments              = $"/C {cmd}",
 				RedirectStandardOutput = true,
 				RedirectStandardError  = true,
@@ -45,6 +47,8 @@ namespace Novus.Win32
 
 		public static string[] ReadAllLines(StreamReader stream)
 		{
+			// todo: move to SimpleCore [Streams] class?
+
 			var list = new List<string>();
 
 			while (!stream.EndOfStream) {

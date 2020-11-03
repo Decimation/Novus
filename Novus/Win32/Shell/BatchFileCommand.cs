@@ -54,7 +54,7 @@ namespace Novus.Win32.Shell
 			var startInfo = new ProcessStartInfo
 			{
 				WindowStyle     = ProcessWindowStyle.Hidden,
-				FileName        = "cmd.exe",
+				FileName        = NativeInterop.CMD_EXE,
 				Arguments       = "/C \"" + fileName + "\"",
 				Verb            = "runas",
 				UseShellExecute = true

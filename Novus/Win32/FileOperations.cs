@@ -45,7 +45,7 @@ namespace Novus.Win32
 
 			//Clean up file path so it can be navigated OK
 			filePath = Path.GetFullPath(filePath);
-			Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+			Process.Start(NativeInterop.EXPLORER_EXE, $"/select,\"{filePath}\"");
 			return true;
 		}
 

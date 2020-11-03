@@ -52,7 +52,7 @@ namespace Novus.CoreClr.Meta
 
 		public override int GetHashCode()
 		{
-			return Native.INVALID;
+			return NativeInterop.INVALID;
 		}
 
 		public static bool operator ==(StandardClrStructure<TClr> left, StandardClrStructure<TClr> right) =>

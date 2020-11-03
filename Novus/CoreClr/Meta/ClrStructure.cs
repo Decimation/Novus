@@ -71,7 +71,7 @@ namespace Novus.CoreClr.Meta
 
 		public override int GetHashCode()
 		{
-			return Native.INVALID;
+			return NativeInterop.INVALID;
 		}
 
 		public static bool operator ==(ClrStructure<TClr> left, ClrStructure<TClr> right) =>

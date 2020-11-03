@@ -71,7 +71,7 @@ namespace Novus.Memory
 		public static readonly Pointer<byte> Nullptr = null;
 
 		/// <summary>
-		///     Root abstraction of <see cref="Native.ReadProcessMemory" />
+		///     Root abstraction of <see cref="NativeInterop.ReadProcessMemory" />
 		/// </summary>
 		/// <param name="proc"><see cref="Process" /> whose memory is being read</param>
 		/// <param name="baseAddr">Address within the specified process from which to read</param>
@@ -79,11 +79,11 @@ namespace Novus.Memory
 		/// <param name="cb">Number of bytes to read</param>
 		public static void ReadProcessMemory(Process proc, Pointer<byte> baseAddr, Pointer<byte> buffer, int cb)
 		{
-			var h = Native.OpenProcess(proc);
+			var h = NativeInterop.OpenProcess(proc);
 
-			bool ok = Native.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out int numBytesRead);
+			bool ok = NativeInterop.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out int numBytesRead);
 
-			Native.CloseHandle(h);
+			NativeInterop.CloseHandle(h);
 		}
 
 		public static T ReadProcessMemory<T>(Process proc, Pointer<byte> baseAddr)
@@ -117,18 +117,18 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		///     Root abstraction of <see cref="Native.WriteProcessMemory" />
+		///     Root abstraction of <see cref="NativeInterop.WriteProcessMemory" />
 		/// </summary>
 		public static void WriteProcessMemory(Process proc, Pointer<byte> ptrBase, Pointer<byte> ptrBuffer, int dwSize)
 		{
-			var hProc = Native.OpenProcess(proc);
+			var hProc = NativeInterop.OpenProcess(proc);
 
 
-			bool ok = Native.WriteProcessMemory(hProc, ptrBase.Address, ptrBuffer.Address,
+			bool ok = NativeInterop.WriteProcessMemory(hProc, ptrBase.Address, ptrBuffer.Address,
 				dwSize, out int numberOfBytesWritten);
 
 
-			Native.CloseHandle(hProc);
+			NativeInterop.CloseHandle(hProc);
 		}
 
 		public static void WriteProcessMemory(Process proc, Pointer<byte> ptrBase, byte[] value)
@@ -216,7 +216,7 @@ namespace Novus.Memory
 					return mt.NativeSize;
 
 				case SizeOfOptions.Managed:
-					return mt.HasLayout ? mt.LayoutInfo.ManagedSize : Native.INVALID;
+					return mt.HasLayout ? mt.LayoutInfo.ManagedSize : NativeInterop.INVALID;
 
 				case SizeOfOptions.Intrinsic:
 					return SizeOf<T>();
@@ -262,7 +262,7 @@ namespace Novus.Memory
 			}
 
 
-			return Native.INVALID;
+			return NativeInterop.INVALID;
 		}
 
 		/// <summary>
@@ -314,7 +314,7 @@ namespace Novus.Memory
 			Guard.Assert(!Inspector.IsStruct(value));
 
 			if (Inspector.IsNil(value)) {
-				return Native.INVALID;
+				return NativeInterop.INVALID;
 			}
 
 			// By manually reading the MethodTable*, we can calculate the size correctly if the reference

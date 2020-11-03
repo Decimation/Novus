@@ -159,7 +159,7 @@ namespace Novus
 				case CorElementType.CModOpt:
 				case CorElementType.Internal:
 				case CorElementType.MVar:
-					return Native.INVALID;
+					return NativeInterop.INVALID;
 
 				case CorElementType.TypedByRef:
 					return IntPtr.Size * 2;

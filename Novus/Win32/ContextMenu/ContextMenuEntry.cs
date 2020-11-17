@@ -8,9 +8,9 @@ namespace Novus.Win32.ContextMenu
 {
 	public class ContextMenuEntry
 	{
-		public ContextMenuKey Base { get; init; }
+		public ContextMenuKey Base { get; set; }
 
-		public ContextMenuKey Command { get; init; }
+		public ContextMenuKey Command { get; set; }
 
 
 		public string[] ToRegistry()

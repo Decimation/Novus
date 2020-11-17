@@ -51,47 +51,16 @@ namespace Test
 			Console.WriteLine(Environment.Version);
 			Global.Setup();
 
-			CascadingContextMenuEntry x = new ()
-			{
-				Base = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel")
-				{
-					Values = new Dictionary<string, object>
-					{
-						{"MUIVerb","My tool"},
-						{"Icon",@"C:\\Users\\Deci\\Desktop\\SmartImage.exe"},
-						{"subcommands",""},
-					}
-				},
-				Items = new ContextMenuEntry[]
-				{
-					new ContextMenuEntry()
-					{
-						Base = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\shell\a_myactionmain")
-						{
-							Main = "My main action",
-							Values = new Dictionary<string, object>()
-							{
-								{"CommandFlags","dword:00000040"},
-							}
-						},
-						Command = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\shell\a_myactionmain\command")
-						{
-							Main = @"C:\\Users\\Deci\\Desktop\\SmartImage.exe " +"\\\"%1\\\""
-						}
-					},
-					new ContextMenuEntry()
-					{
-						Base = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\shell\b_myactionfirst")
-						{
-							Main = "My action 1",
-						},
-						Command = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\shell\b_myactionfirst\command")
-						{
-							Main = @"C:\\Users\\Deci\\Desktop\\SmartImage.exe " + "--priority-engines All " +"\\\"%1\\\""
-						}
-					},
-				}
-			};
+			CascadingContextMenuEntry x = new("myactiontoplevel");
+			
+			
+
+			var e = x.GetStub();
+			e.Base.Main    = "My action 1";
+			e.Command.Main = @"C:\\Users\\Deci\\Desktop\\SmartImage.exe " + "--priority-engines All " + "\\\"%1\\\"";
+			x.Items.Add(e);
+			x.Base.Values.Add("MUIVerb","My tool");
+			x.Base.Values.Add("Icon", @"C:\\Users\\Deci\\Desktop\\SmartImage.exe");
 
 
 			foreach (string s in x.ToRegistry()) {

@@ -11,17 +11,18 @@ namespace Novus.Win32.ContextMenu
 {
 	public class ContextMenuKey
 	{
-		public string Root { get; init; }
+		public string Root { get; set; }
 
-		public string? Main { get; init; }
+		public string? Main { get; set; }
 
 		// ...
 
-		public Dictionary<string, object>? Values { get; init; }
+		public Dictionary<string, object> Values { get; set; }
 
 		public ContextMenuKey(string root)
 		{
-			Root = root;
+			Root   = root;
+			Values = new Dictionary<string, object>();
 		}
 
 		private static string GetValStr(object o)

@@ -24,7 +24,7 @@ namespace Novus.Win32
 
 			File.WriteAllLines(dest, rg);
 		}
-
+		
 		public static void Remove(string k)
 		{
 			// bypass

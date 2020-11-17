@@ -21,7 +21,7 @@
       <HintPath>Native\Functions.dll</HintPath>
     </Reference>
     <Reference Include="SimpleCore">
-      <HintPath>..\..\..\RiderProjects\SimpleCore\SimpleCore\bin\Release\netcoreapp3.1\SimpleCore.dll</HintPath>
+      <HintPath>..\..\..\RiderProjects\SimpleCore\SimpleCore\bin\Release\net5.0\SimpleCore.dll</HintPath>
     </Reference>
   </ItemGroup>
 

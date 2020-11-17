@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Novus;
 using Novus.CoreClr.Meta;
 using Novus.Memory;
 using Novus.Utilities;
+using Novus.Win32;
+using Novus.Win32.ContextMenu;
 
 namespace Test
 {
@@ -47,23 +50,60 @@ namespace Test
 		{
 			Console.WriteLine(Environment.Version);
 			Global.Setup();
-			
 
-			string s = "foo";
-			Console.WriteLine(Mem.HeapSizeOf(s));
+			CascadingContextMenuEntry x = new ()
+			{
+				Base = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel")
+				{
+					Values = new Dictionary<string, object>
+					{
+						{"MUIVerb","My tool"},
+						{"Icon",@"C:\\Users\\Deci\\Desktop\\SmartImage.exe"},
+						{"subcommands",""},
+					}
+				},
+				Items = new ContextMenuEntry[]
+				{
+					new ContextMenuEntry()
+					{
+						Base = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\shell\a_myactionmain")
+						{
+							Main = "My main action",
+							Values = new Dictionary<string, object>()
+							{
+								{"CommandFlags","dword:00000040"},
+							}
+						},
+						Command = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\shell\a_myactionmain\command")
+						{
+							Main = @"C:\\Users\\Deci\\Desktop\\SmartImage.exe " +"\\\"%1\\\""
+						}
+					},
+					new ContextMenuEntry()
+					{
+						Base = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\shell\b_myactionfirst")
+						{
+							Main = "My action 1",
+						},
+						Command = new ContextMenuKey(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\shell\b_myactionfirst\command")
+						{
+							Main = @"C:\\Users\\Deci\\Desktop\\SmartImage.exe " + "--priority-engines All " +"\\\"%1\\\""
+						}
+					},
+				}
+			};
 
-			Console.WriteLine(Mem.AddressOfHeap(s));
 
-			foreach (var f in s.GetType().GetAllFields()) {
-				var mf = f.AsMetaField();
-
-				Console.WriteLine($"{mf.Size} {mf.Offset} {mf}");
+			foreach (string s in x.ToRegistry()) {
+				Console.WriteLine(s);
 			}
 
-			Console.WriteLine(sizeof(bool));
-			Console.WriteLine(Mem.SizeOf2<bool>(SizeOfOptions.Native));
+			var f = @"C:\Users\Deci\Desktop\regtest.reg";
 
-			Console.WriteLine(Mem.AddressOfHeap(s, OffsetOptions.StringData).Cast<char>()[0]);
+			RegistryOperations.WriteRegistryFile(x.ToRegistry(), f);
+			RegistryOperations.Install(f);
+			Console.ReadLine();
+			RegistryOperations.Remove(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\");
 			Console.ReadLine();
 		}
 	}

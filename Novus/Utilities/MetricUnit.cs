@@ -1,7 +1,7 @@
 ﻿// ReSharper disable IdentifierTypo
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.Win32
+namespace Novus.Utilities
 {
 	public enum MetricUnit
 	{

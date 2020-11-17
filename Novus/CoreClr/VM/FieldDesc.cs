@@ -37,13 +37,12 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = "40 53 48 83 EC 20 8B 41 0C 48 8D 15 E8 90 34 00";
+				var sig = "40 53 48 83 EC 20 8B 41 0C 48 8D 15 44 8E 3E 00";
 
-				var fn = (void*)Resources.Clr.Scanner.FindPattern(sig);
+				var fn = (void*) Resources.Clr.Scanner.FindPattern(sig);
 
-				fixed (FieldDesc* p = &this)
-				{
-					var mt = (int)Functions.Call<uint,ulong>(fn, (ulong)p);
+				fixed (FieldDesc* p = &this) {
+					var mt = (int) Functions.Call<uint, ulong>(fn, (ulong) p);
 
 					return mt;
 				}
@@ -58,7 +57,7 @@ namespace Novus.CoreClr.VM
 
 				const int MT_FIELD_OFS = 0;
 
-				return RuntimeInfo.FieldOffset((MethodTable*)EnclosingMethodTableStub.ToUInt64(), MT_FIELD_OFS);
+				return RuntimeInfo.FieldOffset((MethodTable*) EnclosingMethodTableStub.ToUInt64(), MT_FIELD_OFS);
 			}
 		}
 

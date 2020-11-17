@@ -8,6 +8,7 @@ using Novus.Utilities;
 namespace Test
 {
 	/*
+	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0
 	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\3.1.9
 	 * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
 	 *
@@ -44,6 +45,7 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
+			Console.WriteLine(Environment.Version);
 			Global.Setup();
 			
 

@@ -18,7 +18,7 @@ namespace Novus
 			}
 		}
 
-		public static readonly Version ClrVersion = new Version(3,1,9);
+		public static readonly Version ClrVersion = new Version(5,0,0);
 
 		public static bool Compat()
 		{

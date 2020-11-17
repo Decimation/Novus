@@ -66,7 +66,7 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = "48 8B 41 28 A8 02 75 ? C3";
+				var sig = "48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3";
 
 				var fn = (void*) Resources.Clr.Scanner.FindPattern(sig);
 

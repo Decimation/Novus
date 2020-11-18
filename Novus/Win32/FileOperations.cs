@@ -68,7 +68,7 @@ namespace Novus.Win32
 				// Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
 
 				/* Executing directory */
-				Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location!
+				Path.GetDirectoryName( AppDomain.CurrentDomain.BaseDirectory!
 					.Replace("file:///", String.Empty)
 					.Replace("/", "\\"))!,
 

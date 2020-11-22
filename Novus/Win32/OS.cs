@@ -12,6 +12,9 @@ using System;
 
 namespace Novus.Win32
 {
+	/// <summary>
+	/// <seealso cref="OperatingSystem"/>
+	/// </summary>
 	public static class OS
 	{
 		/// <summary>

@@ -13,7 +13,7 @@ using Novus.Memory;
 
 namespace Novus.Utilities
 {
-	public static class Reflect
+	public static class ReflectionOperations
 	{
 		/// <summary>
 		///     <see cref="ALL_INSTANCE_FLAGS" /> and <see cref="BindingFlags.Static" />

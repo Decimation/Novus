@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Reflection;
+using Novus.CoreClr.Meta.Base;
 using Novus.CoreClr.VM;
 using Novus.CoreClr.VM.EE;
 using Novus.Memory;
 using SimpleCore.Diagnostics;
+
+// ReSharper disable UnusedMember.Global
+// ReSharper disable InconsistentNaming
 
 
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
@@ -27,53 +31,40 @@ namespace Novus.CoreClr.Meta
 {
 	public static class MetaExtensions
 	{
-		public static MetaField AsMetaField(this FieldInfo t) => new MetaField(t);
-		public static MetaType AsMetaType(this Type t) => new MetaType(t);
+		public static MetaField AsMetaField(this FieldInfo t)
+		{
+			return new(t);
+		}
+
+		public static MetaType AsMetaType(this Type t)
+		{
+			return new(t);
+		}
 	}
 
 	/// <summary>
 	///     <list type="bullet">
-	///         <item><description>CLR structure: <see cref="MethodTable"/>, <see cref="EEClass"/>, and
-	/// 		<see cref="TypeHandle"/></description></item>
-	///         <item><description>Reflection structure: <see cref="Type"/></description></item>
+	///         <item>
+	///             <description>
+	///                 CLR structure: <see cref="MethodTable" />, <see cref="EEClass" />, and
+	///                 <see cref="TypeHandle" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>Reflection structure: <see cref="Type" /></description>
+	///         </item>
 	///     </list>
 	/// </summary>
 	public unsafe class MetaType : StandardClrStructure<MethodTable>
 	{
-		#region MethodTable
+		internal MetaType(Pointer<MethodTable> mt) : base(mt) { }
 
-		public  byte             ArrayRank         => EEClass.Reference.ArrayRank;
-		public  int              BaseSize          => Value.Reference.BaseSize;
-		public  MetaType          Canon             => Value.Reference.CanonicalMethodTable;
-		public  short            ComponentSize     => Value.Reference.ComponentSize;
-		private Pointer<EEClass> EEClass           => Value.Reference.EEClass;
-		public  MetaType          ElementTypeHandle => Value.Reference.ElementTypeHandle;
-		public  GenericsFlags    GenericFlags      => Value.Reference.GenericsFlags;
-
-		public Pointer<byte> InterfaceMap    => Value.Reference.InterfaceMap;
-		public short         InterfacesCount => Value.Reference.NumInterfaces;
-		public Pointer<byte> Module          => Value.Reference.Module;
-		public MetaType       Parent          => (Pointer<MethodTable>) Value.Reference.Parent;
-
-		public Pointer<byte> PerInstInfo => Value.Reference.PerInstInfo;
-
-		//		public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
-		public Type RuntimeType { get; }
-
-		public OptionalSlotsFlags SlotFlags => Value.Reference.SlotsFlags;
-
-
-		public OptionalSlotsFlags SlotsFlags    => Value.Reference.SlotsFlags;
-		public TypeFlags          TypeFlags     => Value.Reference.TypeFlags;
-		public short              VirtualsCount => Value.Reference.NumVirtuals;
-		public Pointer<byte>      WriteableData => Value.Reference.WriteableData;
-
-		#endregion
+		internal MetaType(Type t) : this(RuntimeInfo.ResolveHandle(t)) { }
 
 		public TypeAttributes Attributes => EEClass.Reference.Attributes;
 
 		/// <summary>
-		/// Size of the padding in <see cref="BaseSize"/>
+		///     Size of the padding in <see cref="BaseSize" />
 		/// </summary>
 		public int BaseSizePadding => EEClass.Reference.BaseSizePadding;
 
@@ -86,7 +77,7 @@ namespace Novus.CoreClr.Meta
 		public int InstanceFieldsCount => EEClass.Reference.NumInstanceFields;
 
 		/// <summary>
-		/// Size of instance fields
+		///     Size of instance fields
 		/// </summary>
 		public int InstanceFieldsSize => BaseSize - BaseSizePadding;
 
@@ -109,7 +100,7 @@ namespace Novus.CoreClr.Meta
 		}
 
 		/// <summary>
-		/// Number of fields that are not <see cref="FieldInfo.IsLiteral"/> but <see cref="MetaField.IsStatic"/>
+		///     Number of fields that are not <see cref="FieldInfo.IsLiteral" /> but <see cref="MetaField.IsStatic" />
 		/// </summary>
 		public int StaticFieldsCount => EEClass.Reference.NumStaticFields;
 
@@ -120,10 +111,7 @@ namespace Novus.CoreClr.Meta
 
 		public bool ContainsPointers => TypeFlags.HasFlag(TypeFlags.ContainsPointers);
 
-		public bool HasComponentSize
-		{
-			get { return GetFlag(TypeFlags.HasComponentSize) != 0; }
-		}
+		public bool HasComponentSize => GetFlag(TypeFlags.HasComponentSize) != 0;
 
 		/// <summary>
 		///     Whether this <see cref="EEClass" /> has a <see cref="EEClassLayoutInfo" />
@@ -132,44 +120,32 @@ namespace Novus.CoreClr.Meta
 
 		public bool IsBlittable => HasLayout && LayoutInfo.Flags.HasFlag(LayoutFlags.Blittable);
 
-		public bool IsArray
-		{
-			get { return ((GetFlag(TypeFlags.ArrayMask)) == (TypeFlags.Array)); }
-		}
+		public bool IsArray => GetFlag(TypeFlags.ArrayMask) == TypeFlags.Array;
 
 		public bool IsDelegate                      => VMFlags.HasFlag(VMFlags.Delegate);
 		public bool IsReferenceOrContainsReferences => !RuntimeType.IsValueType || ContainsPointers;
 
-		public bool IsString
-		{
-			get { return HasComponentSize && !IsArray && RawGetComponentSize() == sizeof(char); }
-		}
+		public bool IsString => HasComponentSize && !IsArray && RawGetComponentSize() == sizeof(char);
 
 		public bool IsStringOrArray => HasComponentSize;
 
-		internal MetaType(Pointer<MethodTable> mt) : base(mt)
-		{
-			RuntimeType          = RuntimeInfo.ResolveType(mt.Cast());
-		}
+		public override MemberInfo Info => RuntimeType;
 
-		internal MetaType(Type t) : this(RuntimeInfo.ResolveHandle(t)) { }
+		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
 		internal TypeFlags GetFlag(TypeFlags flag)
 		{
-			return (TypeFlags) (TypeFlags & (TypeFlags) flag);
+			return TypeFlags & flag;
 		}
 
 		internal OptionalSlotsFlags GetFlag(OptionalSlotsFlags flag)
 		{
-
-			return (OptionalSlotsFlags) (SlotsFlags & flag);
+			return SlotsFlags & flag;
 		}
 
 		internal GenericsFlags GetFlag(GenericsFlags flag)
 		{
-			return (GenericsFlags) ((IsStringOrArray
-				? (GenericsFlags.StringArrayValues & flag)
-				: (GenericFlags                    & flag)));
+			return IsStringOrArray ? GenericsFlags.StringArrayValues & flag : GenericFlags & flag;
 		}
 
 
@@ -187,9 +163,9 @@ namespace Novus.CoreClr.Meta
 			// }
 		}
 
-		public static implicit operator MetaType(Pointer<MethodTable> ptr) => new MetaType(ptr);
+		public static implicit operator MetaType(Pointer<MethodTable> ptr) => new(ptr);
 
-		public static implicit operator MetaType(Type t) => new MetaType(t);
+		public static implicit operator MetaType(Type t) => new(t);
 
 		public static bool operator !=(MetaType left, MetaType right)
 		{
@@ -206,10 +182,6 @@ namespace Novus.CoreClr.Meta
 			return base.Equals(other); /*&& RuntimeType == other.RuntimeType*/
 		}
 
-		public override MemberInfo Info => RuntimeType;
-
-		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
-
 		public override bool Equals(object? obj)
 		{
 			if (ReferenceEquals(null, obj))
@@ -218,7 +190,7 @@ namespace Novus.CoreClr.Meta
 			if (ReferenceEquals(this, obj))
 				return true;
 
-			if (obj.GetType() != this.GetType())
+			if (obj.GetType() != GetType())
 				return false;
 
 			return Equals((MetaType) obj);
@@ -230,5 +202,32 @@ namespace Novus.CoreClr.Meta
 				return (base.GetHashCode() * 397) ^ RuntimeType.GetHashCode();
 			}
 		}
+
+		public  byte             ArrayRank         => EEClass.Reference.ArrayRank;
+		public  int              BaseSize          => Value.Reference.BaseSize;
+		public  MetaType         Canon             => Value.Reference.CanonicalMethodTable;
+		public  short            ComponentSize     => Value.Reference.ComponentSize;
+		private Pointer<EEClass> EEClass           => Value.Reference.EEClass;
+		public  MetaType         ElementTypeHandle => Value.Reference.ElementTypeHandle;
+		public  GenericsFlags    GenericFlags      => Value.Reference.GenericsFlags;
+
+		public Pointer<byte> InterfaceMap    => Value.Reference.InterfaceMap;
+		public short         InterfacesCount => Value.Reference.NumInterfaces;
+		public Pointer<byte> Module          => Value.Reference.Module;
+		public MetaType      Parent          => (Pointer<MethodTable>) Value.Reference.Parent;
+
+		public Pointer<byte> PerInstInfo => Value.Reference.PerInstInfo;
+
+		//		public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
+
+		public Type RuntimeType => RuntimeInfo.ResolveType(Value.Cast());
+
+		public OptionalSlotsFlags SlotFlags => Value.Reference.SlotsFlags;
+
+
+		public OptionalSlotsFlags SlotsFlags    => Value.Reference.SlotsFlags;
+		public TypeFlags          TypeFlags     => Value.Reference.TypeFlags;
+		public short              VirtualsCount => Value.Reference.NumVirtuals;
+		public Pointer<byte>      WriteableData => Value.Reference.WriteableData;
 	}
 }

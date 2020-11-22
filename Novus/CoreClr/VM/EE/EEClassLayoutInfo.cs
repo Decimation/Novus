@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -6,6 +7,7 @@
 
 namespace Novus.CoreClr.VM.EE
 {
+	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct EEClassLayoutInfo
 	{

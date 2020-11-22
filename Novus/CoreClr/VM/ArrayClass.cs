@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices;
+using Novus.Utilities;
 
 namespace Novus.CoreClr.VM
 {
+	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public struct ArrayClass
 	{

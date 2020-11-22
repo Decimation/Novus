@@ -1,8 +1,11 @@
+using System;
+using System.Diagnostics;
+using System.Reflection;
 using Novus;
 using Novus.CoreClr.Meta;
 using Novus.Memory;
+using Novus.Utilities;
 using NUnit.Framework;
-
 
 
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
@@ -27,11 +30,33 @@ namespace UnitTest
 	public class Tests
 	{
 		[SetUp]
-		public void Setup()
-		{
-		}
+		public void Setup() { }
+
 		[Test]
-		public void Test2()
+		[TestCase(typeof(string), ("_firstChar"))]
+		public void FieldTest(Type t, string n)
+		{
+			var f  = t.GetAnyField(n);
+			var mf = f.AsMetaField();
+
+			Assert.AreEqual(mf.Attributes, f.Attributes);
+			Assert.AreEqual(mf.IsStatic, f.IsStatic);
+			Assert.AreEqual(mf.Token, f.MetadataToken);
+			Assert.AreEqual(mf.FieldInfo, f);
+		}
+
+		[Test]
+		[TestCase(typeof(string))]
+		public void TypeTest(Type t)
+		{
+			var mt = t.AsMetaType();
+
+			Assert.AreEqual(mt.RuntimeType, t);
+			Assert.AreEqual(mt.Token, t.MetadataToken);
+		}
+
+		[Test]
+		public void Test1()
 		{
 			string s  = "foo";
 			var    mt = s.GetType().AsMetaType();
@@ -40,13 +65,10 @@ namespace UnitTest
 			//Assert.AreEqual(mt.BaseSize,0x14); 
 			Assert.AreEqual(mt.ComponentSize, 0x2);
 
-			Assert.AreEqual(mt.InstanceFieldsCount,2);
+			Assert.AreEqual(mt.InstanceFieldsCount, 2);
 			Assert.AreEqual(mt.StaticFieldsCount, 1);
-		}
-		[Test]
-		public void Test1()
-		{
-			Assert.Pass();
+			Assert.AreEqual(mt.StaticFieldsCount, 1);
+
 		}
 	}
 }

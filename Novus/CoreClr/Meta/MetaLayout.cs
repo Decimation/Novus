@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Novus.CoreClr.Meta.Base;
 using Novus.CoreClr.VM.EE;
 using Novus.Memory;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.CoreClr.Meta
 {
@@ -13,14 +15,8 @@ namespace Novus.CoreClr.Meta
 	/// </summary>
 	public sealed unsafe class MetaLayout : ClrStructure<EEClassLayoutInfo>
 	{
-		#region Constructors
-
 		public MetaLayout(Pointer<EEClassLayoutInfo> ptr) : base(ptr) { }
 
-		#endregion
-
-
-		#region Accessors
 
 		public int NativeSize => Value.Reference.NativeSize;
 
@@ -33,7 +29,5 @@ namespace Novus.CoreClr.Meta
 		public int NumCTMFields => Value.Reference.NumCTMFields;
 
 		public Pointer<byte> FieldMarshalers => Value.Reference.FieldMarshalers;
-
-		#endregion
 	}
 }

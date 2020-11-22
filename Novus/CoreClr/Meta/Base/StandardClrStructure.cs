@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using Novus.Memory;
 using Novus.Win32;
 
-namespace Novus.CoreClr.Meta
+namespace Novus.CoreClr.Meta.Base
 {
 	/// <summary>
 	/// Describes a CLR structure that has metadata information.

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 using Novus.CoreClr.VM;
 using Novus.Memory;
 
-namespace Novus.CoreClr.Meta
+namespace Novus.CoreClr.Meta.Base
 {
 	/// <summary>
 	/// Describes a <see cref="StandardClrStructure{TClr}"/> that is enclosed by an accompanying <see cref="MethodTable"/>

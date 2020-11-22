@@ -9,6 +9,7 @@ using Novus.Utilities;
 #nullable enable
 namespace Novus.Win32.ContextMenu
 {
+	// WIP: WIP
 	public class ContextMenuKey
 	{
 		public string Root { get; set; }

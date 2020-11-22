@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
-using Gadget.Native;
 using Novus.Memory;
+using Novus.Native;
+using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
@@ -9,6 +10,7 @@ using Novus.Memory;
 
 namespace Novus.CoreClr.VM
 {
+	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct TypeHandle
 	{

@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Gadget.Native;
 using Novus.CoreClr.Meta;
 using Novus.CoreClr.VM;
 using Novus.CoreClr.VM.EE;
 using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Diagnostics;
+using SimpleCore.Utilities;
 
 
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -176,6 +179,7 @@ namespace Novus.Memory
 			return elemCnt * elemSize;
 		}
 
+		// todo
 
 		public static int SizeOf<T>()
 		{
@@ -253,7 +257,7 @@ namespace Novus.Memory
 				var mtx = (MetaType) type;
 
 				if (mtx.RuntimeType.IsValueType) {
-					return (int) Reflect.CallGeneric(typeof(Mem).GetMethod(nameof(SizeOf)),
+					return (int) ReflectionOperations.CallGeneric(typeof(Mem).GetMethod(nameof(SizeOf)),
 						type, null);
 				}
 
@@ -479,29 +483,42 @@ namespace Novus.Memory
 		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
 
 		/// <summary>
-		/// SI
+		/// Reads a <see cref="byte"/> array as a <see cref="string"/> delimited by spaces in
+		/// hex number format
 		/// </summary>
-		public const double MAGNITUDE = 1000D;
-
-		/// <summary>
-		/// ISO/IEC 80000
-		/// </summary>
-		public const double MAGNITUDE2 = 1024D;
-
-		/// <summary>
-		/// Convert the given bytes to <see cref="MetricUnit"/>
-		/// </summary>
-		/// <param name="bytes">Value in bytes to be converted</param>
-		/// <param name="type">Unit to convert to</param>
-		/// <returns>Converted bytes</returns>
-		public static double ConvertToUnit(double bytes, MetricUnit type)
+		public static byte[] ReadBinaryString(string s)
 		{
-			// var rg  = new[] { "k","M","G","T","P","E","Z","Y"};
-			// var pow = rg.ToList().IndexOf(type) +1;
+			var rg = new List<byte>();
 
-			int pow = (int) type;
-			return bytes / Math.Pow(MAGNITUDE, pow);
+			var bytes = s.Split(Formatting.SPACE);
+
+			foreach (string b in bytes) {
+				byte n = Byte.Parse(b, NumberStyles.HexNumber);
+
+				rg.Add(n);
+			}
+
+			return rg.ToArray();
 		}
+
+		/// <summary>
+		///     Reads <paramref name="bitCount" /> from <paramref name="value" /> at offset <paramref name="bitOfs" />
+		/// </summary>
+		/// <param name="value"><see cref="int" /> value to read from</param>
+		/// <param name="bitOfs">Beginning offset</param>
+		/// <param name="bitCount">Number of bits to read</param>
+		public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool ReadBit(int value, int bitOfs) => (value & (1 << bitOfs)) != 0;
+
+		public static int GetBitMask(int index, int size) => ((1 << size) - 1) << index;
+
+
+		public static int ReadBitsFrom(int data, int index, int size) => (data & GetBitMask(index, size)) >> index;
+
+		public static int WriteBitsTo(int data, int index, int size, int value)
+			=> (data & ~GetBitMask(index, size)) | (value << index);
 	}
 
 	/// <summary>
@@ -517,7 +534,7 @@ namespace Novus.Memory
 
 		/// <summary>
 		///     If the type is a <see cref="string" />, return the
-		///     pointer offset by <see cref="Assets.OffsetToStringData" /> so it
+		///     pointer offset by <see cref="RuntimeInfo.OffsetToStringData" /> so it
 		///     points to the string's characters.
 		///     <remarks>
 		///         Note: Equal to <see cref="GCHandle.AddrOfPinnedObject" /> and <c>fixed</c>.
@@ -527,7 +544,7 @@ namespace Novus.Memory
 
 		/// <summary>
 		///     If the type is an array, return
-		///     the pointer offset by <see cref="Assets.OffsetToArrayData" /> so it points
+		///     the pointer offset by <see cref="RuntimeInfo.OffsetToArrayData" /> so it points
 		///     to the array's elements.
 		///     <remarks>
 		///         Note: Equal to <see cref="GCHandle.AddrOfPinnedObject" /> and <c>fixed</c>
@@ -610,13 +627,13 @@ namespace Novus.Memory
 		///         <para>This includes field padding.</para>
 		///     </remarks>
 		/// </summary>
-		/// <returns><see cref="Runtime.Info.MinObjectSize" /> if type is an array, fields size otherwise</returns>
+		/// <returns><see cref="RuntimeInfo.MinObjectSize" /> if type is an array, fields size otherwise</returns>
 		BaseFields,
 
 		/// <summary>
 		///     <para>Returns the base instance size according to the TypeHandle (<c>MethodTable</c>).</para>
 		///     <para>This is the minimum heap size of a type.</para>
-		///     <para>By default, this equals <see cref="Runtime.Info.MinObjectSize" /> (<c>24</c> (x64) or <c>12</c> (x84)).</para>
+		///     <para>By default, this equals <see cref="RuntimeInfo.MinObjectSize" /> (<c>24</c> (x64) or <c>12</c> (x84)).</para>
 		/// </summary>
 		/// <remarks>
 		/// <para>Only a type parameter is needed, or a value can be supplied</para>
@@ -639,7 +656,7 @@ namespace Novus.Memory
 		///         <item>
 		///             <description>
 		///                 <see cref="MetaType.BaseSize" /> = The base instance size of a type
-		///                 (<c>24</c> (x64) or <c>12</c> (x86) by default) (<see cref="Runtime.Info.MinObjectSize" />)
+		///                 (<c>24</c> (x64) or <c>12</c> (x86) by default) (<see cref="RuntimeInfo.MinObjectSize" />)
 		///             </description>
 		///         </item>
 		///         <item>

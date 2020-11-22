@@ -8,6 +8,8 @@ using JetBrains.Annotations;
 
 namespace Novus.Win32.ContextMenu
 {
+	// WIP: WIP
+
 	public class CascadingContextMenuEntry
 	{
 		public ContextMenuKey Base { get; }

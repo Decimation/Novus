@@ -5,7 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Novus.Win32.ContextMenu
-{
+{ 
+	// WIP: WIP
 	public class ContextMenuEntry
 	{
 		public ContextMenuKey Base { get; set; }

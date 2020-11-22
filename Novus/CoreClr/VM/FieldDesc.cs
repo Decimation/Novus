@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Gadget.Native;
+using JetBrains.Annotations;
 using Novus.Memory;
+using Novus.Native;
+using Novus.Utilities;
 using Novus.Win32;
 
 // ReSharper disable StructCanBeMadeReadOnly
 
 namespace Novus.CoreClr.VM
 {
+	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FieldDesc
 	{
@@ -61,7 +64,7 @@ namespace Novus.CoreClr.VM
 			}
 		}
 
-		internal int Offset => BinaryOperations.ReadBits((int) UInt2, 0, 27);
+		internal int Offset => Mem.ReadBits((int) UInt2, 0, 27);
 
 		internal int Token
 		{

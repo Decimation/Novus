@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Gadget.Native;
 using Novus.CoreClr.VM.EE;
 using Novus.Memory;
+using Novus.Native;
+using Novus.Utilities;
 
 // ReSharper disable StructCanBeMadeReadOnly
 // ReSharper disable InconsistentNaming
@@ -13,7 +14,7 @@ using Novus.Memory;
 namespace Novus.CoreClr.VM
 {
 	//todo
-
+	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct MethodTable
 	{

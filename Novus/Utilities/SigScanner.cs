@@ -55,7 +55,7 @@ namespace Novus.Utilities
 
 
 			string[] strByteArr   = szPattern.Split(' ');
-			var      patternBytes = new byte[strByteArr.Length];
+			byte[]   patternBytes = new byte[strByteArr.Length];
 
 			for (int i = 0; i < strByteArr.Length; i++) {
 				patternBytes[i] = strByteArr[i] == UNKNOWN_STR
@@ -77,7 +77,8 @@ namespace Novus.Utilities
 
 
 				if (PatternCheck(i, pattern)) {
-					Pointer<byte> p = Address + i;
+					var p = Address + i;
+					
 					return p;
 				}
 			}

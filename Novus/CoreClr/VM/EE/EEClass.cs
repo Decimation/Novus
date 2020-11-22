@@ -10,6 +10,7 @@ using Novus.Utilities;
 
 namespace Novus.CoreClr.VM.EE
 {
+	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct EEClass
 	{

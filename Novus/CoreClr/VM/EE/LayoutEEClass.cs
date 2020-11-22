@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices;
+using Novus.Utilities;
 
 namespace Novus.CoreClr.VM.EE
 {
+	[NativeStructure]
 	[StructLayout(LayoutKind.Explicit)]
 	public struct LayoutEEClass
 	{

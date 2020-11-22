@@ -43,27 +43,37 @@ namespace Test
 	 * 
 	 */
 
+	/*
+	 * TODO: Registry
+	 */
 
 	public static class Program
 	{
 		private static void Main(string[] args)
 		{
+			Console.WriteLine(typeof(string).AsMetaType());
+			Global.DumpDependencies();
+		}
+
+		private static void test1()
+		{
 			Console.WriteLine(Environment.Version);
 			Global.Setup();
 
 			CascadingContextMenuEntry x = new("myactiontoplevel");
-			
-			
+
+
 
 			var e = x.GetStub();
 			e.Base.Main    = "My action 1";
 			e.Command.Main = @"C:\\Users\\Deci\\Desktop\\SmartImage.exe " + "--priority-engines All " + "\\\"%1\\\"";
 			x.Items.Add(e);
-			x.Base.Values.Add("MUIVerb","My tool");
+			x.Base.Values.Add("MUIVerb", "My tool");
 			x.Base.Values.Add("Icon", @"C:\\Users\\Deci\\Desktop\\SmartImage.exe");
 
 
-			foreach (string s in x.ToRegistry()) {
+			foreach (string s in x.ToRegistry())
+			{
 				Console.WriteLine(s);
 			}
 

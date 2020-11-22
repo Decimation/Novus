@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Novus.CoreClr;
@@ -15,8 +18,6 @@ namespace Novus
 	/// <seealso cref="Mem"/>
 	public static unsafe class RuntimeInfo
 	{
-		#region Sizes
-
 		// https://github.com/dotnet/coreclr/blob/master/src/vm/object.h
 
 		/// <summary>
@@ -36,10 +37,6 @@ namespace Novus
 		///     Size of the length field and padding (x64)
 		/// </summary>
 		public static readonly int ArrayOverhead = Mem.Size;
-
-		#endregion
-
-		#region Offset
 
 		/// <summary>
 		///     Heap offset to the first field.
@@ -73,8 +70,6 @@ namespace Novus
 		/// (<see cref="Mem.Size"/> + <see cref="int"/>)
 		/// </summary>
 		public static readonly int OffsetToStringData = RuntimeHelpers.OffsetToStringData;
-
-		#endregion
 
 		// https://github.com/dotnet/coreclr/blob/master/src/vm/object.h
 
@@ -160,7 +155,7 @@ namespace Novus
 		internal static Type ResolveType(Pointer<byte> handle)
 		{
 			//return GetTypeFromHandle(handle.Address);
-
+			//todo
 			var t  = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe");
 			
 			var mb = (MethodBase) t;
@@ -171,7 +166,19 @@ namespace Novus
 
 			return type;
 		}
+		public static Assembly GetAssemblyByName(string name)
+		{
+			return AppDomain.CurrentDomain.GetAssemblies().
+				SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
+		}
+		
+		public static IEnumerable<AssemblyName> GetUserDependencies(Assembly asm)
+		{
+			const string SYSTEM = "System";
 
+			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
+		}
+		
 		internal static Pointer<MethodTable> ReadTypeHandle(Type t)
 		{
 			var handle          = t.TypeHandle.Value;

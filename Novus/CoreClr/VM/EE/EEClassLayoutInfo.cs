@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using Novus.Interop;
 using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -11,8 +12,6 @@ namespace Novus.CoreClr.VM.EE
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct EEClassLayoutInfo
 	{
-		#region Fields
-
 		// why is there an m_cbNativeSize in EEClassLayoutInfo and EEClass?
 		internal int NativeSize { get; }
 
@@ -42,7 +41,5 @@ namespace Novus.CoreClr.VM.EE
 		internal int NumCTMFields { get; }
 
 		internal void* FieldMarshalers { get; }
-
-		#endregion
 	}
 }

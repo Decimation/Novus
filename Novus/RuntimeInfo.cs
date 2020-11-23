@@ -74,7 +74,7 @@ namespace Novus
 		// https://github.com/dotnet/coreclr/blob/master/src/vm/object.h
 
 
-		public static readonly unsafe int ObjHeaderSize = sizeof(IntPtr);
+		public static readonly int ObjHeaderSize = sizeof(IntPtr);
 
 		/// <summary>
 		///     Size of <see cref="TypeHandle" /> and <see cref="ObjHeader" />
@@ -97,7 +97,7 @@ namespace Novus
 		/// <summary>
 		/// Alias: PTR_HOST_MEMBER_TADDR
 		/// </summary>
-		internal static unsafe Pointer<byte> FieldOffset<TField>(TField* field, int offset) where TField : unmanaged
+		internal static Pointer<byte> FieldOffset<TField>(TField* field, int offset) where TField : unmanaged
 		{
 			// m_methodTable.GetValue(PTR_HOST_MEMBER_TADDR(MethodDescChunk, this, m_methodTable));
 
@@ -108,7 +108,7 @@ namespace Novus
 			// #define PTR_HOST_MEMBER_TADDR(type, host, memb) \
 			//     (PTR_HOST_TO_TADDR(host) + (TADDR)offsetof(type, memb))
 
-			return (Pointer<byte>)(offset + ((long)field));
+			return (Pointer<byte>) (offset + ((long) field));
 		}
 
 		/// <summary>
@@ -134,6 +134,7 @@ namespace Novus
 
 			return ReadTypeHandle(type);
 		}
+
 		/// <summary>
 		/// Returns a pointer to the internal CLR metadata structure of <paramref name="member"/>
 		/// </summary>
@@ -152,33 +153,35 @@ namespace Novus
 				_                 => throw new InvalidOperationException()
 			};
 		}
+
 		internal static Type ResolveType(Pointer<byte> handle)
 		{
 			//return GetTypeFromHandle(handle.Address);
 			//todo
-			var t  = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe");
-			
+			var t = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe");
+
 			var mb = (MethodBase) t;
 
-			var o = mb.Invoke(null, new object[]{handle.Address});
+			var o = mb.Invoke(null, new object[] {handle.Address});
 
 			var type = (Type) o;
 
 			return type;
 		}
+
 		public static Assembly GetAssemblyByName(string name)
 		{
-			return AppDomain.CurrentDomain.GetAssemblies().
-				SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
+			return AppDomain.CurrentDomain.GetAssemblies()
+				.SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
 		}
-		
+
 		public static IEnumerable<AssemblyName> GetUserDependencies(Assembly asm)
 		{
 			const string SYSTEM = "System";
 
 			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
 		}
-		
+
 		internal static Pointer<MethodTable> ReadTypeHandle(Type t)
 		{
 			var handle          = t.TypeHandle.Value;

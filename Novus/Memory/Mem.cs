@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using Novus.CoreClr.Meta;
 using Novus.CoreClr.VM;
 using Novus.CoreClr.VM.EE;
@@ -66,6 +68,9 @@ namespace Novus.Memory
 	/// <seealso cref="RuntimeInfo"/>
 	public static unsafe class Mem
 	{
+		public static bool Is64Bit => Environment.Is64BitProcess;
+
+
 		public static readonly int Size = IntPtr.Size;
 
 		/// <summary>
@@ -74,7 +79,7 @@ namespace Novus.Memory
 		public static readonly Pointer<byte> Nullptr = null;
 
 		/// <summary>
-		///     Root abstraction of <see cref="NativeInterop.ReadProcessMemory" />
+		///     Root abstraction of <see cref="Native.ReadProcessMemory" />
 		/// </summary>
 		/// <param name="proc"><see cref="Process" /> whose memory is being read</param>
 		/// <param name="baseAddr">Address within the specified process from which to read</param>
@@ -82,11 +87,11 @@ namespace Novus.Memory
 		/// <param name="cb">Number of bytes to read</param>
 		public static void ReadProcessMemory(Process proc, Pointer<byte> baseAddr, Pointer<byte> buffer, int cb)
 		{
-			var h = NativeInterop.OpenProcess(proc);
+			var h = Native.OpenProcess(proc);
 
-			bool ok = NativeInterop.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out int numBytesRead);
+			bool ok = Native.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out int numBytesRead);
 
-			NativeInterop.CloseHandle(h);
+			Native.CloseHandle(h);
 		}
 
 		public static T ReadProcessMemory<T>(Process proc, Pointer<byte> baseAddr)
@@ -120,18 +125,18 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		///     Root abstraction of <see cref="NativeInterop.WriteProcessMemory" />
+		///     Root abstraction of <see cref="Native.WriteProcessMemory" />
 		/// </summary>
 		public static void WriteProcessMemory(Process proc, Pointer<byte> ptrBase, Pointer<byte> ptrBuffer, int dwSize)
 		{
-			var hProc = NativeInterop.OpenProcess(proc);
+			var hProc = Native.OpenProcess(proc);
 
 
-			bool ok = NativeInterop.WriteProcessMemory(hProc, ptrBase.Address, ptrBuffer.Address,
+			bool ok = Native.WriteProcessMemory(hProc, ptrBase.Address, ptrBuffer.Address,
 				dwSize, out int numberOfBytesWritten);
 
 
-			NativeInterop.CloseHandle(hProc);
+			Native.CloseHandle(hProc);
 		}
 
 		public static void WriteProcessMemory(Process proc, Pointer<byte> ptrBase, byte[] value)
@@ -220,7 +225,7 @@ namespace Novus.Memory
 					return mt.NativeSize;
 
 				case SizeOfOptions.Managed:
-					return mt.HasLayout ? mt.LayoutInfo.ManagedSize : NativeInterop.INVALID;
+					return mt.HasLayout ? mt.LayoutInfo.ManagedSize : Native.INVALID;
 
 				case SizeOfOptions.Intrinsic:
 					return SizeOf<T>();
@@ -257,7 +262,7 @@ namespace Novus.Memory
 				var mtx = (MetaType) type;
 
 				if (mtx.RuntimeType.IsValueType) {
-					return (int) ReflectionOperations.CallGeneric(typeof(Mem).GetMethod(nameof(SizeOf)),
+					return (int) ReflectionHelper.CallGeneric(typeof(Mem).GetMethod(nameof(SizeOf)),
 						type, null);
 				}
 
@@ -266,7 +271,7 @@ namespace Novus.Memory
 			}
 
 
-			return NativeInterop.INVALID;
+			return Native.INVALID;
 		}
 
 		/// <summary>
@@ -281,32 +286,40 @@ namespace Novus.Memory
 
 			return Unsafe.AsPointer(ref value);
 		}
-		//    Calculates the complete size of a reference type in heap memory.
-		//    This is the most accurate size calculation.
-		//    This follows the size formula of: (<see cref="MethodTable.BaseSize" />) + (length) *
-		//    (<see cref="MethodTable.ComponentSize" />)
-		//    
-		//    where:
-		//    
-		//             - <see cref="MethodTable.BaseSize" /> = The base instance size of a type
-		//                (<c>24</c> (x64) or <c>12</c> (x86) by default) (<see cref="Assets.MinObjectSize" />)
-		//
-		//             - length	= array or string length; <c>1</c> otherwise
-		//             - <see cref="MethodTable.ComponentSize" /> = element size, if available; <c>0</c> otherwise
-		//        
-		//    
-		//
-		//
-		//    Source: /src/vm/object.inl: 45
-		//    Equals the Son Of Strike "!do" command.
-		//    
-		//        Equals <see cref="SizeOf{T}(T,SizeOfOptions)" /> with <see cref="SizeOfOptions.BaseInstance" /> for objects
-		//        that aren't arrays or strings.
-		//    
-		//    Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)
-		//
-		// Returns the size of the type in heap memory, in bytes
 
+		/// <summary>
+		///     <para>Calculates the complete size of a reference type in heap memory.</para>
+		///     <para>This is the most accurate size calculation.</para>
+		///     <para>
+		///         This follows the size formula of: (<see cref="MethodTable.BaseSize" />) + (length) *
+		///         (<see cref="MethodTable.ComponentSize" />)
+		///     </para>
+		///     <para>where:</para>
+		///     <list type="bullet">
+		///         <item>
+		///             <description>
+		///                 <see cref="MethodTable.BaseSize" /> = The base instance size of a type
+		///                 (<c>24</c> (x64) or <c>12</c> (x86) by default) (<see cref="Offsets.MinObjectSize" />)
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>length	= array or string length; <c>1</c> otherwise</description>
+		///         </item>
+		///         <item>
+		///             <description><see cref="MethodTable.ComponentSize" /> = element size, if available; <c>0</c> otherwise</description>
+		///         </item>
+		///     </list>
+		/// </summary>
+		/// <remarks>
+		///     <para>Source: /src/vm/object.inl: 45</para>
+		///     <para>Equals the Son Of Strike "!do" command.</para>
+		///     <para>
+		///         Equals <see cref="SizeOf{T}" /> with <see cref="SizeOfOptions.BaseInstance" /> for objects
+		///         that aren't arrays or strings.
+		///     </para>
+		///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
+		/// </remarks>
+		/// <returns>The size of the type in heap memory, in bytes</returns>
 		public static int HeapSizeOf<T>(T value) where T : class
 			=> HeapSizeOfInternal(value);
 
@@ -318,7 +331,7 @@ namespace Novus.Memory
 			Guard.Assert(!Inspector.IsStruct(value));
 
 			if (Inspector.IsNil(value)) {
-				return NativeInterop.INVALID;
+				return Native.INVALID;
 			}
 
 			// By manually reading the MethodTable*, we can calculate the size correctly if the reference
@@ -519,6 +532,14 @@ namespace Novus.Memory
 
 		public static int WriteBitsTo(int data, int index, int size, int value)
 			=> (data & ~GetBitMask(index, size)) | (value << index);
+
+		public static string ReadCString(this BinaryReader br, int count)
+		{
+			var s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
+
+
+			return s;
+		}
 	}
 
 	/// <summary>

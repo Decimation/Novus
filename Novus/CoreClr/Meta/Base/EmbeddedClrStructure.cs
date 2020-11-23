@@ -10,20 +10,11 @@ namespace Novus.CoreClr.Meta.Base
 	/// <typeparam name="TClr">CLR structure type</typeparam>
 	public abstract unsafe class EmbeddedClrStructure<TClr> : StandardClrStructure<TClr> where TClr : unmanaged
 	{
-		#region MethodTable
-
 		public abstract MetaType EnclosingType { get; }
 
-		#endregion
-
-		
-
-		#region Constructors
 
 		protected EmbeddedClrStructure(Pointer<TClr> ptr) : base(ptr) { }
 
 		protected EmbeddedClrStructure(MemberInfo info) : base(info) { }
-
-		#endregion
 	}
 }

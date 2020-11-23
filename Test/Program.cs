@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Novus;
 using Novus.CoreClr.Meta;
 using Novus.Memory;
@@ -53,6 +54,17 @@ namespace Test
 		{
 			Console.WriteLine(typeof(string).AsMetaType());
 			Global.DumpDependencies();
+
+			var mm = typeof(Program).GetAnyMethod(nameof(sayhi)).AsMetaMethod();
+			Console.WriteLine(mm);
+			Console.WriteLine(mm.IsPointingToNativeCode);
+			RuntimeHelpers.PrepareMethod(mm.MethodInfo.MethodHandle);
+			Console.WriteLine(mm.IsPointingToNativeCode);
+		}
+
+		public static void sayhi()
+		{
+			Console.WriteLine("h");
 		}
 
 		private static void test1()
@@ -61,7 +73,7 @@ namespace Test
 			Global.Setup();
 
 			CascadingContextMenuEntry x = new("myactiontoplevel");
-
+			
 
 
 			var e = x.GetStub();
@@ -79,10 +91,10 @@ namespace Test
 
 			var f = @"C:\Users\Deci\Desktop\regtest.reg";
 
-			RegistryOperations.WriteRegistryFile(x.ToRegistry(), f);
-			RegistryOperations.Install(f);
+			RegistryHelper.WriteRegistryFile(x.ToRegistry(), f);
+			RegistryHelper.Install(f);
 			Console.ReadLine();
-			RegistryOperations.Remove(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\");
+			RegistryHelper.Remove(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\");
 			Console.ReadLine();
 		}
 	}

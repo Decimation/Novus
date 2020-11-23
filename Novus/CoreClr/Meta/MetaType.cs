@@ -31,15 +31,11 @@ namespace Novus.CoreClr.Meta
 {
 	public static class MetaExtensions
 	{
-		public static MetaField AsMetaField(this FieldInfo t)
-		{
-			return new(t);
-		}
+		public static MetaMethod AsMetaMethod(this MethodInfo t) => new(t);
 
-		public static MetaType AsMetaType(this Type t)
-		{
-			return new(t);
-		}
+		public static MetaField AsMetaField(this FieldInfo t) => new(t);
+
+		public static MetaType AsMetaType(this Type t) => new(t);
 	}
 
 	/// <summary>
@@ -133,20 +129,12 @@ namespace Novus.CoreClr.Meta
 
 		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
-		internal TypeFlags GetFlag(TypeFlags flag)
-		{
-			return TypeFlags & flag;
-		}
+		internal TypeFlags GetFlag(TypeFlags flag) => TypeFlags & flag;
 
-		internal OptionalSlotsFlags GetFlag(OptionalSlotsFlags flag)
-		{
-			return SlotsFlags & flag;
-		}
+		internal OptionalSlotsFlags GetFlag(OptionalSlotsFlags flag) => SlotsFlags & flag;
 
-		internal GenericsFlags GetFlag(GenericsFlags flag)
-		{
-			return IsStringOrArray ? GenericsFlags.StringArrayValues & flag : GenericFlags & flag;
-		}
+		internal GenericsFlags GetFlag(GenericsFlags flag) =>
+			IsStringOrArray ? GenericsFlags.StringArrayValues & flag : GenericFlags & flag;
 
 
 		// returns random combination of flags if this doesn't have a component size
@@ -167,15 +155,9 @@ namespace Novus.CoreClr.Meta
 
 		public static implicit operator MetaType(Type t) => new(t);
 
-		public static bool operator !=(MetaType left, MetaType right)
-		{
-			return !Equals(left, right);
-		}
+		public static bool operator !=(MetaType left, MetaType right) => !Equals(left, right);
 
-		public static bool operator ==(MetaType left, MetaType right)
-		{
-			return Equals(left, right);
-		}
+		public static bool operator ==(MetaType left, MetaType right) => Equals(left, right);
 
 		public bool Equals(MetaType other)
 		{

@@ -28,7 +28,7 @@ namespace Novus.Win32
 
 			var startInfo = new ProcessStartInfo
 			{
-				FileName               = NativeInterop.CMD_EXE,
+				FileName               = Native.CMD_EXE,
 				Arguments              = $"/C {cmd}",
 				RedirectStandardOutput = true,
 				RedirectStandardError  = true,

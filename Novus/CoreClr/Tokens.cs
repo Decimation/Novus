@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Novus.Win32;
 
-namespace Novus
+namespace Novus.CoreClr
 {
-	internal static class Tokens
+	public static class Tokens
 	{
 		// src/inc/corhdr.h
 
-		private const CorElementType PRIMITIVE_TABLE_SIZE = CorElementType.String;
+		public const CorElementType PRIMITIVE_TABLE_SIZE = CorElementType.String;
 
-		private const int PT_PRIMITIVE = 0x01000000;
+		public const int PT_PRIMITIVE = 0x01000000;
 
 		/// <summary>
 		/// <para>The Attributes Table</para>
@@ -20,7 +18,7 @@ namespace Novus
 		/// <para>https://github.com/dotnet/coreclr/blob/master/src/vm/invokeutil.cpp</para>
 		/// <para>https://github.com/dotnet/coreclr/blob/master/src/vm/invokeutil.h</para>
 		/// </summary>
-		private static readonly int[] PrimitiveAttributes =
+		public static readonly int[] PrimitiveAttributes =
 		{
 			0x00,                  // ELEMENT_TYPE_END
 			0x00,                  // ELEMENT_TYPE_VOID
@@ -60,29 +58,29 @@ namespace Novus
 			return (PT_PRIMITIVE & PrimitiveAttributes[(byte)type]) != 0;
 		}
 
-		internal static bool IsNilToken(int tk) => RidFromToken(tk) == 0;
+		public static bool IsNilToken(int tk) => RidFromToken(tk) == 0;
 
-		internal static int RidToToken(int rid, CorTokenType tktype)
+		public static int RidToToken(int rid, CorTokenType tktype)
 		{
 			// #define RidToToken(rid,tktype) ((rid) |= (tktype))
 			(rid) |= ((int)tktype);
 			return rid;
 		}
 
-		internal static int TokenFromRid(int rid, CorTokenType tktype)
+		public static int TokenFromRid(int rid, CorTokenType tktype)
 		{
 			// #define TokenFromRid(rid,tktype) ((rid) | (tktype))
 			return rid | (int)tktype;
 		}
 
-		internal static int RidFromToken(int tk)
+		public static int RidFromToken(int tk)
 		{
 			// #define RidFromToken(tk) ((RID) ((tk) & 0x00ffffff))
 			const int RID_FROM_TOKEN = 0x00FFFFFF;
 			return tk & RID_FROM_TOKEN;
 		}
 
-		internal static long TypeFromToken(int tk)
+		public static long TypeFromToken(int tk)
 		{
 			// #define TypeFromToken(tk) ((ULONG32)((tk) & 0xff000000))
 
@@ -100,7 +98,7 @@ namespace Novus
 		/// <summary>
 		///     <exception cref="Exception">If size is unknown</exception>
 		/// </summary>
-		internal static int SizeOfElementType(CorElementType t)
+		public static int SizeOfElementType(CorElementType t)
 		{
 			switch (t)
 			{
@@ -159,7 +157,7 @@ namespace Novus
 				case CorElementType.CModOpt:
 				case CorElementType.Internal:
 				case CorElementType.MVar:
-					return NativeInterop.INVALID;
+					return Native.INVALID;
 
 				case CorElementType.TypedByRef:
 					return IntPtr.Size * 2;

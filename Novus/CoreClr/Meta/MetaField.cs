@@ -6,6 +6,7 @@ using Novus.CoreClr.Meta.Base;
 using Novus.CoreClr.VM;
 using Novus.Memory;
 using SimpleCore.Diagnostics;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.CoreClr.Meta
 {
@@ -58,18 +59,11 @@ namespace Novus.CoreClr.Meta
 
 		public int Size => Value.Reference.Size;
 
-		/// <summary>
-		/// <remarks>Ensure the enclosing type is loaded!</remarks>
-		/// </summary>
-		public Pointer<byte> GetStaticAddress()
-		{
-			throw new NotImplementedException();
-			//return Value.Reference.GetCurrentStaticAddress();
-		}
+		
 
-		public static implicit operator MetaField(Pointer<FieldDesc> ptr) => new MetaField(ptr);
+		public static implicit operator MetaField(Pointer<FieldDesc> ptr) => new(ptr);
 
-		public static implicit operator MetaField(FieldInfo t) => new MetaField(t);
+		public static implicit operator MetaField(FieldInfo t) => new(t);
 
 		//		public static bool operator ==(MetaField left, MetaField right) => Equals(left, right);
 

@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using Novus.Memory;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.Utilities
+namespace Novus.Memory
 {
 	/// <summary>
 	///     A basic signature scanner.

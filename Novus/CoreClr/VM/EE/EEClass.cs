@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Novus.Interop;
 using Novus.Memory;
 using Novus.Utilities;
 
@@ -14,8 +15,6 @@ namespace Novus.CoreClr.VM.EE
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct EEClass
 	{
-		#region Fields
-
 		internal void* GuidInfo { get; }
 
 		internal void* OptionalFields { get; }
@@ -28,8 +27,6 @@ namespace Novus.CoreClr.VM.EE
 		private FieldDesc* FieldDescList { get; }
 
 		internal void* Chunks { get; }
-
-		#region Union 1
 
 		/// <summary>
 		///     <para>Union 1</para>
@@ -59,8 +56,6 @@ namespace Novus.CoreClr.VM.EE
 			}
 		}
 
-		#endregion
-
 
 		internal void* CCWTemplate { get; }
 
@@ -75,10 +70,6 @@ namespace Novus.CoreClr.VM.EE
 		internal byte FixedEEClassFields { get; }
 
 		internal byte BaseSizePadding { get; }
-
-		#endregion
-
-		#region Accessors
 
 		internal Pointer<FieldDesc> FieldList
 		{
@@ -135,10 +126,6 @@ namespace Novus.CoreClr.VM.EE
 			}
 		}
 
-		#endregion
-
-		#region Packed fields
-
 		internal int NumInstanceFields => GetPackableField(EEClassFieldId.NumInstanceFields);
 
 		internal int NumStaticFields => GetPackableField(EEClassFieldId.NumStaticFields);
@@ -164,8 +151,6 @@ namespace Novus.CoreClr.VM.EE
 				}
 			}
 		}
-
-		#endregion
 	}
 
 

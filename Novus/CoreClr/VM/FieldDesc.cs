@@ -2,10 +2,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Novus.Interop;
 using Novus.Memory;
-using Novus.Native;
+using Novus.Interop;
+using Novus.Properties;
 using Novus.Utilities;
-using Novus.Win32;
 
 // ReSharper disable StructCanBeMadeReadOnly
 
@@ -40,7 +41,7 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = "40 53 48 83 EC 20 8B 41 0C 48 8D 15 44 8E 3E 00";
+				var sig = EmbeddedResources.Sig_GetSize;
 
 				var fn = (void*) Resources.Clr.Scanner.FindPattern(sig);
 

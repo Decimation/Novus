@@ -19,10 +19,10 @@ namespace Novus.Memory
 		public static int GetAllocSize(Pointer<byte> ptr)
 		{
 			if (!IsAllocated(ptr)) {
-				return NativeInterop.INVALID;
+				return Native.INVALID;
 			}
 
-			return (int) NativeInterop.LocalSize(ptr.Address);
+			return (int) Native.LocalSize(ptr.Address);
 		}
 
 		public static Pointer<T> ReAlloc<T>(Pointer<T> ptr, int elemCnt)

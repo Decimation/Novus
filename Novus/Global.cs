@@ -15,7 +15,7 @@ namespace Novus
 	{
 		public static void Setup()
 		{
-			bool c = Compat();
+			bool c = IsCompatible();
 
 			if (!c) {
 				Guard.Fail();
@@ -61,7 +61,7 @@ namespace Novus
 
 		public static readonly Version ClrVersion = new(5, 0, 0);
 
-		public static bool Compat()
+		public static bool IsCompatible()
 		{
 			bool ver = Environment.Version == ClrVersion;
 			bool b   = !GCSettings.IsServerGC;

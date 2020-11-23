@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Novus.Utilities
 {
-	public static class MathOperations
+	public static class MathHelper
 	{
 		/// <summary>
 		/// SI

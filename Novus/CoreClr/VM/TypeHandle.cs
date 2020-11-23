@@ -1,6 +1,8 @@
 ﻿using System.Runtime.InteropServices;
+using Novus.Interop;
 using Novus.Memory;
-using Novus.Native;
+using Novus.Interop;
+using Novus.Properties;
 using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -20,7 +22,8 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = "48 8B 01 A8 02 75 ? C3";
+
+				var sig = EmbeddedResources.Sig_GetMethodTable;
 				var fn  = (void*) Resources.Clr.Scanner.FindPattern(sig);
 
 				fixed (TypeHandle* p = &this) {

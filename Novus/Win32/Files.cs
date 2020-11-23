@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using SimpleCore.Utilities;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -23,7 +22,7 @@ namespace Novus.Win32
 	/// <seealso cref="Directory" />
 	/// <seealso cref="DirectoryInfo" />
 	/// <seealso cref="Path" />
-	public static class FileOperations
+	public static class Files
 	{
 		public static string CreateRandomName() => Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
 
@@ -45,7 +44,7 @@ namespace Novus.Win32
 
 			//Clean up file path so it can be navigated OK
 			filePath = Path.GetFullPath(filePath);
-			Process.Start(NativeInterop.EXPLORER_EXE, $"/select,\"{filePath}\"");
+			Process.Start(Native.EXPLORER_EXE, $"/select,\"{filePath}\"");
 			return true;
 		}
 

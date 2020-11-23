@@ -13,7 +13,7 @@ namespace Novus.CoreClr.Meta
 	///         <item><description>CLR structure: <see cref="EEClassLayoutInfo"/></description></item>
 	///     </list>
 	/// </summary>
-	public sealed unsafe class MetaLayout : ClrStructure<EEClassLayoutInfo>
+	public sealed unsafe class MetaLayout : BaseClrStructure<EEClassLayoutInfo>
 	{
 		public MetaLayout(Pointer<EEClassLayoutInfo> ptr) : base(ptr) { }
 

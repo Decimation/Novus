@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using Novus.Utilities;
 
 namespace Novus.Win32.Shell
 {

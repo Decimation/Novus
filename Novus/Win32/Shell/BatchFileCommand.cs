@@ -17,7 +17,7 @@ namespace Novus.Win32.Shell
 			CommandProcess = CreateProcess(FileName);
 		}
 
-		public BatchFileCommand(string[] commands) : this(commands, FileOperations.CreateRandomName() + ".bat") { }
+		public BatchFileCommand(string[] commands) : this(commands, Files.CreateRandomName() + ".bat") { }
 
 		public string[] Commands { get; }
 
@@ -54,7 +54,7 @@ namespace Novus.Win32.Shell
 			var startInfo = new ProcessStartInfo
 			{
 				WindowStyle     = ProcessWindowStyle.Hidden,
-				FileName        = NativeInterop.CMD_EXE,
+				FileName        = Native.CMD_EXE,
 				Arguments       = "/C \"" + fileName + "\"",
 				Verb            = "runas",
 				UseShellExecute = true

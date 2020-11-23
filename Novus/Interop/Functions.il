@@ -13,7 +13,7 @@
 }
 
 
-.module Novus.Native.Functions.dll
+.module Novus.Interop.Functions.dll
 // MVID: {A224F460-A049-4A03-9E71-80A36DBBBCD3}
 .imagebase 0x00400000
 .file alignment 0x00000200
@@ -26,7 +26,7 @@
 
 // =============== CLASS MEMBERS DECLARATION ===================
 
-.class public auto ansi abstract sealed beforefieldinit Novus.Native.Functions
+.class public auto ansi abstract sealed beforefieldinit Novus.Interop.Functions
 	extends [mscorlib]System.Object
 {             
 	.method public hidebysig static !!TRet  Call<TRet,T1>(void* fn, !!T1 arg1) cil managed

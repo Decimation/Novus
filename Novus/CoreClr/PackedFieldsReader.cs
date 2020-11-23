@@ -5,7 +5,7 @@ using Novus.Memory;
 // ReSharper disable NotAccessedField.Local
 // ReSharper disable BuiltInTypeReferenceStyle
 
-namespace Novus.Utilities
+namespace Novus.CoreClr
 {
 	using DWORD = UInt32;
 

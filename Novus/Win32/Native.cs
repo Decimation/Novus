@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Novus.Win32
 {
-	public static class NativeInterop
+	public static class Native
 	{
 		private const string KERNEL32_DLL = "Kernel32.dll";
 		

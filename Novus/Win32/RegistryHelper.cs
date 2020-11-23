@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Novus.Win32.Shell;
 
 namespace Novus.Win32
 {
-	public static class RegistryOperations
+	public static class RegistryHelper
 	{
 		public static void WriteRegistryFile(string[] reg, string dest)
 		{
+			
 			var rg = new List<string>()
 			{
 				"Windows Registry Editor Version 5.00",

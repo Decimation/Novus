@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Novus.CoreClr.VM.EE;
+using Novus.Interop;
 using Novus.Memory;
-using Novus.Native;
+using Novus.Interop;
+using Novus.Properties;
 using Novus.Utilities;
 
 // ReSharper disable StructCanBeMadeReadOnly
@@ -67,7 +69,7 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = "48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3";
+				var sig = EmbeddedResources.Sig_GetEEClass;
 
 				var fn = (void*) Resources.Clr.Scanner.FindPattern(sig);
 
@@ -79,8 +81,6 @@ namespace Novus.CoreClr.VM
 			}
 		}
 
-
-		#region Union 1
 
 		/// <summary>
 		///     <para>Union 1</para>
@@ -99,10 +99,6 @@ namespace Novus.CoreClr.VM
 			}
 		}
 
-		#endregion
-
-		#region Union 2
-
 		/// <summary>
 		///     <para>Union 2</para>
 		///     <para><see cref="PerInstInfo" /></para>
@@ -117,10 +113,6 @@ namespace Novus.CoreClr.VM
 
 		internal Pointer<byte> MultipurposeSlot1 => Union2;
 
-		#endregion
-
-		#region Union 3
-
 		/// <summary>
 		///     <para>Union 3</para>
 		///     <para><see cref="InterfaceMap" /></para>
@@ -131,10 +123,6 @@ namespace Novus.CoreClr.VM
 		internal Pointer<byte> InterfaceMap => Union3;
 
 		internal Pointer<byte> MultipurposeSlot2 => Union3;
-
-		#endregion
-
-		
 	}
 
 

@@ -2,12 +2,11 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using JetBrains.Annotations;
-using Novus.Memory;
 
 // ReSharper disable UnusedMember.Global
 
 #nullable enable
-namespace Novus.Utilities
+namespace Novus.Memory
 {
 	public unsafe class SmartBinaryReader : BinaryReader
 	{

@@ -7,6 +7,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using JetBrains.Annotations;
 using Novus.CoreClr.Meta;
 using Novus.CoreClr.VM;
 using Novus.CoreClr.VM.EE;
@@ -22,27 +23,6 @@ using SimpleCore.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
-#nullable enable
-#pragma warning disable IDE0059
-
-
-#pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
-#pragma warning disable HAA0602 // Delegate on struct instance caused a boxing allocation
-#pragma warning disable HAA0603 // Delegate allocation from a method group
-#pragma warning disable HAA0604 // Delegate allocation from a method group
-
-#pragma warning disable HAA0501 // Explicit new array type allocation
-#pragma warning disable HAA0502 // Explicit new reference type allocation
-#pragma warning disable HAA0503 // Explicit new reference type allocation
-#pragma warning disable HAA0504 // Implicit new array creation allocation
-#pragma warning disable HAA0505 // Initializer reference type allocation
-#pragma warning disable HAA0506 // Let clause induced allocation
-
-#pragma warning disable HAA0301 // Closure Allocation Source
-#pragma warning disable HAA0302 // Display class allocation to capture closure
-#pragma warning disable HAA0303 // Lambda or anonymous method in a generic method allocates a delegate instance
-
-#pragma warning disable HAA0101
 
 
 namespace Novus.Memory
@@ -368,8 +348,9 @@ namespace Novus.Memory
 
 			if (Inspector.IsArray(value)) {
 				var arr = value as Array;
+				Guard.AssertNotNull(arr, nameof(arr));
 
-				// ReSharper disable once PossibleNullReferenceException
+				
 				// We already know it's not null because the type is an array.
 				length = arr.Length;
 
@@ -431,7 +412,7 @@ namespace Novus.Memory
 			//var tr = __makeref(value);
 			//var heapPtr = **(IntPtr**) (&tr);
 
-			Pointer<byte> heapPtr = AddressOf(ref value).ReadPointer();
+			var heapPtr = AddressOf(ref value).ReadPointer();
 
 
 			// NOTE:
@@ -478,14 +459,19 @@ namespace Novus.Memory
 		///     <see cref="ProcessModule.ModuleName" />
 		/// </param>
 		/// <returns>The found <see cref="ProcessModule" />; <c>null</c> otherwise</returns>
-		public static ProcessModule? FindModule(string moduleName)
+		[CanBeNull]
+		public static ProcessModule FindModule(string moduleName)
 		{
 			var modules = Process.GetCurrentProcess().Modules;
 
-			foreach (ProcessModule? module in modules) {
-				if (module?.ModuleName == moduleName) {
-					return module;
+			foreach (ProcessModule module in modules) {
+				if (module != null) {
+					if (module.ModuleName == moduleName)
+					{
+						return module;
+					}
 				}
+				
 			}
 
 			return null;
@@ -612,7 +598,7 @@ namespace Novus.Memory
 		///     <para>Returned from <see cref="EEClassLayoutInfo.ManagedSize" /></para>
 		/// </remarks>
 		/// <returns>
-		///     Managed size if the type has an <see cref="EEClassLayoutInfo" />; <see cref="Assets.INVALID_VALUE" />
+		///     Managed size if the type has an <see cref="EEClassLayoutInfo" />; <see cref="Win32.Native.INVALID" />
 		///     otherwise
 		/// </returns>
 		Managed,

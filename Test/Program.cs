@@ -48,11 +48,16 @@ namespace Test
 	 * TODO: Registry
 	 */
 
-	public static class Program
+	public static unsafe class Program
 	{
 		private static void Main(string[] args)
 		{
-			Console.WriteLine(typeof(string).AsMetaType());
+			
+			nint n;
+			Console.WriteLine(sizeof(nint));
+			var mt = typeof(string).AsMetaType();
+			Console.WriteLine(mt.InstanceFieldsSize);
+			Console.WriteLine();
 			Global.DumpDependencies();
 
 			var mm = typeof(Program).GetAnyMethod(nameof(sayhi)).AsMetaMethod();
@@ -60,6 +65,7 @@ namespace Test
 			Console.WriteLine(mm.IsPointingToNativeCode);
 			RuntimeHelpers.PrepareMethod(mm.MethodInfo.MethodHandle);
 			Console.WriteLine(mm.IsPointingToNativeCode);
+
 		}
 
 		public static void sayhi()

@@ -9,7 +9,7 @@ namespace Novus.Memory
 {
 	public static class Allocator
 	{
-		private static readonly List<Pointer<byte>> AllocatedPointers = new List<Pointer<byte>>();
+		private static readonly List<Pointer<byte>> AllocatedPointers = new();
 
 		public static bool IsAllocated(Pointer<byte> p)
 		{

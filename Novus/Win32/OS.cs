@@ -5,11 +5,6 @@ using System.Diagnostics;
 // ReSharper disable UnusedMember.Global
 
 #nullable enable
-#pragma warning disable HAA0501 //
-#pragma warning disable HAA0502 //
-#pragma warning disable HAA0301 //
-#pragma warning disable HAA0302 //
-
 
 namespace Novus.Win32
 {

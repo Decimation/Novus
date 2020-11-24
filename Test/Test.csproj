@@ -4,7 +4,35 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <NoWarn>
+      HAA0601,
+      HAA0602,
+      HAA0603,
+      HAA0604,
+      HAA0501,
+      HAA0502,
+      HAA0503,
+      HAA0504,
+      HAA0505,
+      HAA0506,
+      HAA0301,
+      HAA0302,
+      HAA0303,
+      HAA0101,
+    </NoWarn>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Novus\Novus.csproj" />

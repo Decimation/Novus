@@ -8,7 +8,6 @@ using Novus.Memory;
 // ReSharper disable UnusedMember.Global
 
 
-#pragma warning disable HAA0101, HAA0601, HAA0603
 
 
 namespace Novus.Utilities

@@ -8,22 +8,6 @@ using Novus.Utilities;
 using NUnit.Framework;
 
 
-#pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
-#pragma warning disable HAA0602 // Delegate on struct instance caused a boxing allocation
-#pragma warning disable HAA0603 // Delegate allocation from a method group
-#pragma warning disable HAA0604 // Delegate allocation from a method group
-
-#pragma warning disable HAA0501 // Explicit new array type allocation
-#pragma warning disable HAA0502 // Explicit new reference type allocation
-#pragma warning disable HAA0503 // Explicit new reference type allocation
-#pragma warning disable HAA0504 // Implicit new array creation allocation
-#pragma warning disable HAA0505 // Initializer reference type allocation
-#pragma warning disable HAA0506 // Let clause induced allocation
-
-#pragma warning disable HAA0301 // Closure Allocation Source
-#pragma warning disable HAA0302 // Display class allocation to capture closure
-#pragma warning disable HAA0303 // Lambda or anonymous method in a generic method allocates a delegate instance
-
 
 namespace UnitTest
 {
@@ -39,10 +23,11 @@ namespace UnitTest
 			var f  = t.GetAnyField(n);
 			var mf = f.AsMetaField();
 
+
+			Assert.AreEqual(mf.FieldInfo, f);
+			Assert.AreEqual(mf.Token, f.MetadataToken);
 			Assert.AreEqual(mf.Attributes, f.Attributes);
 			Assert.AreEqual(mf.IsStatic, f.IsStatic);
-			Assert.AreEqual(mf.Token, f.MetadataToken);
-			Assert.AreEqual(mf.FieldInfo, f);
 		}
 
 		[Test]
@@ -51,8 +36,10 @@ namespace UnitTest
 		{
 			var mt = t.AsMetaType();
 
+			
 			Assert.AreEqual(mt.RuntimeType, t);
 			Assert.AreEqual(mt.Token, t.MetadataToken);
+			Assert.AreEqual(mt.Attributes, t.Attributes);
 		}
 
 		[Test]
@@ -67,7 +54,7 @@ namespace UnitTest
 
 			Assert.AreEqual(mt.InstanceFieldsCount, 2);
 			Assert.AreEqual(mt.StaticFieldsCount, 1);
-			Assert.AreEqual(mt.StaticFieldsCount, 1);
+			Assert.AreEqual(mt.InstanceFieldsSize, sizeof(char)+sizeof(int));
 
 		}
 	}

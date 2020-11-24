@@ -8,13 +8,13 @@ using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
 [assembly: InternalsVisibleTo("Test")]
-#pragma warning disable HAA0101
 namespace Novus
 {
 	public static class Global
 	{
 		public static void Setup()
 		{
+		
 			bool c = IsCompatible();
 
 			if (!c) {

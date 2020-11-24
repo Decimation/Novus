@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Novus.Win32.Shell;
 
 namespace Novus.Win32
 {
@@ -32,8 +31,7 @@ namespace Novus.Win32
 				$@"reg.exe delete {k} /f >nul"
 			};
 
-
-			BatchFileCommand.CreateAndRun(removeCode, true);
+			Command.RunBatch(removeCode,true);
 		}
 
 		public static void Install(string reg)

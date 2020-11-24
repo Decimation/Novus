@@ -1,9 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Interop;
 using Novus.Memory;
-using Novus.Interop;
 using Novus.Properties;
-using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
@@ -24,7 +22,7 @@ namespace Novus.CoreClr.VM
 			{
 
 				var sig = EmbeddedResources.Sig_GetMethodTable;
-				var fn  = (void*) Resources.Clr.Scanner.FindPattern(sig);
+				var fn  = (void*) Resources.Clr.Scanner.FindSignature(sig);
 
 				fixed (TypeHandle* p = &this) {
 					var mt = (MethodTable*) Functions.CallReturnPointer(fn, (ulong) p);

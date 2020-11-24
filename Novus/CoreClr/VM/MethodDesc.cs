@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Novus.Interop;
 using Novus.Memory;
 using Novus.Properties;
@@ -38,7 +34,7 @@ namespace Novus.CoreClr.VM
 		{
 			var sig = EmbeddedResources.Sig_IsPointingToNativeCode;
 
-			var fn = (void*) Resources.Clr.Scanner.FindPattern(sig);
+			var fn = (void*) Resources.Clr.Scanner.FindSignature(sig);
 
 			fixed (MethodDesc* p = &this) {
 				var mt = (int) Functions.Call<int, ulong>(fn, (ulong) p);
@@ -56,7 +52,7 @@ namespace Novus.CoreClr.VM
 			{
 				var sig = EmbeddedResources.Sig_GetNativeCode;
 
-				var fn = (void*) Resources.Clr.Scanner.FindPattern(sig);
+				var fn = (void*) Resources.Clr.Scanner.FindSignature(sig);
 
 				fixed (MethodDesc* p = &this) {
 					var mt = (void*) Functions.Call<ulong, ulong>(fn, (ulong) p);
@@ -73,7 +69,7 @@ namespace Novus.CoreClr.VM
 			{
 				var sig = EmbeddedResources.Sig_GetMemberDef;
 
-				var fn = (void*) Resources.Clr.Scanner.FindPattern(sig);
+				var fn = (void*) Resources.Clr.Scanner.FindSignature(sig);
 
 				fixed (MethodDesc* p = &this) {
 					var mt = Functions.Call<int, ulong>(fn, (ulong) p);
@@ -102,7 +98,7 @@ namespace Novus.CoreClr.VM
 			{
 				var sig = EmbeddedResources.Sig_GetRVA;
 
-				var fn = (void*)Resources.Clr.Scanner.FindPattern(sig);
+				var fn = (void*)Resources.Clr.Scanner.FindSignature(sig);
 
 				fixed (MethodDesc* p = &this)
 				{

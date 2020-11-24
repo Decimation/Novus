@@ -45,7 +45,7 @@ namespace Novus.Memory
 
 		private const byte UNKNOWN_BYTE = 0x0;
 
-		public static byte[] ReadByteArraySignature(string szPattern)
+		public static byte[] ReadSignature(string szPattern)
 		{
 			//			List<byte> patternbytes = new List<byte>();
 			//			foreach (string szByte in szPattern.Split(' '))
@@ -66,9 +66,9 @@ namespace Novus.Memory
 			return patternBytes;
 		}
 
-		public Pointer<byte> FindPattern(string pattern) => FindPattern(ReadByteArraySignature(pattern));
+		public Pointer<byte> FindSignature(string pattern) => FindSignature(ReadSignature(pattern));
 
-		public Pointer<byte> FindPattern(byte[] pattern)
+		public Pointer<byte> FindSignature(byte[] pattern)
 		{
 			for (int i = 0; i < Buffer.Length; i++) {
 				if (Buffer[i] != pattern[0])

@@ -8,7 +8,6 @@ using SimpleCore.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
-#pragma warning disable HAA0502, HAA0301, HAA0302, HAA0501
 #nullable enable
 
 
@@ -25,6 +24,15 @@ namespace Novus.Win32
 	public static class Files
 	{
 		public static string CreateRandomName() => Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+
+		public static string CreateTempFile(string fname, string[] data)
+		{
+			string file = Path.Combine(Path.GetTempPath(), fname);
+
+			File.WriteAllLines(file, data);
+
+			return file;
+		}
 
 		public static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
 		{

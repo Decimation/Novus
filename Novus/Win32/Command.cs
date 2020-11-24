@@ -1,20 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Novus.Win32.Shell;
 
 // ReSharper disable UnusedMember.Global
 #nullable enable
-#pragma warning disable HAA0601, HAA0502, HAA0505
 
 namespace Novus.Win32
 {
 	/// <summary>
 	///     Utilities for working with the command prompt.
 	/// </summary>
-	/// <remarks>
-	///     Used to implement <see cref="BaseCommand" />, <see cref="BatchFileCommand" />, <see cref="ConsoleCommand" />
-	/// </remarks>
 	public static class Command
 	{
 		/// <summary>
@@ -45,6 +40,29 @@ namespace Novus.Win32
 			return process;
 		}
 
+		public static void RunBatch(string[] commands, bool dispose)
+		{
+			var fname = Files.CreateRandomName() + ".bat";
+			RunBatch(commands, dispose, fname);
+		}
+
+		public static void RunBatch(string[] commands, bool dispose, string fname)
+		{
+			var fileName = Files.CreateTempFile(fname, commands);
+
+			var proc = CreateBatchFileProcess(fileName);
+
+			proc.Start();
+
+
+			if (dispose) {
+				proc.ForceKill();
+				File.Delete(fileName);
+			}
+
+
+		}
+
 		public static string[] ReadAllLines(StreamReader stream)
 		{
 			// todo: move to SimpleCore [Streams] class?
@@ -60,6 +78,26 @@ namespace Novus.Win32
 			}
 
 			return list.ToArray();
+		}
+
+		public static Process CreateBatchFileProcess(string fileName)
+		{
+			var startInfo = new ProcessStartInfo
+			{
+				WindowStyle     = ProcessWindowStyle.Hidden,
+				FileName        = Native.CMD_EXE,
+				Arguments       = "/C \"" + fileName + "\"",
+				Verb            = "runas",
+				UseShellExecute = true
+			};
+
+			var process = new Process
+			{
+				StartInfo           = startInfo,
+				EnableRaisingEvents = true
+			};
+
+			return process;
 		}
 	}
 }

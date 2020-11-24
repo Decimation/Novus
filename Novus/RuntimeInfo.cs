@@ -10,6 +10,7 @@ using Novus.Memory;
 using Novus.Utilities;
 using SimpleCore.Diagnostics;
 
+#pragma warning disable CS0618
 namespace Novus
 {
 	/// <summary>
@@ -74,7 +75,7 @@ namespace Novus
 		// https://github.com/dotnet/coreclr/blob/master/src/vm/object.h
 
 
-		public static readonly int ObjHeaderSize = sizeof(IntPtr);
+		public static readonly int ObjHeaderSize = sizeof(ObjHeader);
 
 		/// <summary>
 		///     Size of <see cref="TypeHandle" /> and <see cref="ObjHeader" />

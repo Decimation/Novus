@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Novus.CoreClr.Meta.Base;
 using Novus.CoreClr.VM;
 using Novus.Memory;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
 
@@ -39,8 +40,8 @@ namespace Novus.CoreClr.Meta
 
 		private bool IsUnboxingStub => Code.HasFlag(CodeFlags.IsUnboxingStub);
 
-		public bool IsIL => MethodClassification.IL == Classification ||
-							MethodClassification.Instantiated == Classification;
+		public bool IsIL => MethodClassification.IL           == Classification ||
+		                    MethodClassification.Instantiated == Classification;
 
 		public bool IsInlined
 		{
@@ -59,12 +60,12 @@ namespace Novus.CoreClr.Meta
 		}
 
 		public MethodClassification Classification => Value.Reference.Classification;
-		public MethodProperties Properties => Value.Reference.Properties;
-		public CodeFlags Code => Value.Reference.Code;
-		public ParamFlags ParameterTypes => Value.Reference.Flags3AndTokenRemainder;
-		public MethodAttributes Attributes => MethodInfo.Attributes;
+		public MethodProperties     Properties     => Value.Reference.Properties;
+		public CodeFlags            Code           => Value.Reference.Code;
+		public ParamFlags           ParameterTypes => Value.Reference.Flags3AndTokenRemainder;
+		public MethodAttributes     Attributes     => MethodInfo.Attributes;
 
-		public MethodInfo MethodInfo => (MethodInfo)Info;
+		public MethodInfo MethodInfo => (MethodInfo) Info;
 
 		public override MemberInfo Info => (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
 

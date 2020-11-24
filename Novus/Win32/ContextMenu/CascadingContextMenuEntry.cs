@@ -25,7 +25,7 @@ namespace Novus.Win32.ContextMenu
 
 			Items = new List<ContextMenuEntry>
 			{
-				new ContextMenuEntry()
+				new()
 				{
 					Base = new ContextMenuKey(GetName().Item1)
 					{

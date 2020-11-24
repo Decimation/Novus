@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Novus.Interop;
 using Novus.Memory;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.CoreClr.VM
 {
@@ -58,6 +55,7 @@ namespace Novus.CoreClr.VM
 		///     These are separate to allow the flags space available and used to be obvious here
 		///     and for the logic that splits the token to be algorithmically generated based on the #define
 		/// </summary>
+		
 		TokenRangeMask = 0x03FF,
 
 		/// <summary>

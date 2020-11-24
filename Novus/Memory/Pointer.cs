@@ -88,7 +88,7 @@ namespace Novus.Memory
 		/// </summary>
 		private const int ELEM_CNT = 1;
 
-		public static explicit operator Pointer<T>(ulong ul) => new Pointer<T>((void*) ul);
+		public static explicit operator Pointer<T>(ulong ul) => new((void*) ul);
 
 		public static explicit operator IntPtr(Pointer<T> ptr) => ptr.Address;
 
@@ -100,11 +100,11 @@ namespace Novus.Memory
 
 		public static implicit operator Pointer<byte>(Pointer<T> ptr) => ptr.ToPointer();
 
-		public static explicit operator Pointer<T>(long value) => new Pointer<T>((void*) value);
+		public static explicit operator Pointer<T>(long value) => new((void*) value);
 
-		public static implicit operator Pointer<T>(void* value) => new Pointer<T>(value);
+		public static implicit operator Pointer<T>(void* value) => new(value);
 
-		public static implicit operator Pointer<T>(IntPtr value) => new Pointer<T>(value);
+		public static implicit operator Pointer<T>(IntPtr value) => new(value);
 
 		public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 

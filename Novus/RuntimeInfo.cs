@@ -9,6 +9,7 @@ using Novus.CoreClr.VM;
 using Novus.Memory;
 using Novus.Utilities;
 using SimpleCore.Diagnostics;
+// ReSharper disable UnusedMember.Global
 
 #pragma warning disable CS0618
 namespace Novus
@@ -159,15 +160,17 @@ namespace Novus
 		{
 			//return GetTypeFromHandle(handle.Address);
 			//todo
-			var t = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe");
+			// var t = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe");
+			//
+			// var mb = (MethodBase) t;
+			//
+			// var o = mb.Invoke(null, new object[] {handle.Address});
+			//
+			// var type = (Type) o;
+			//
+			// return type;
 
-			var mb = (MethodBase) t;
-
-			var o = mb.Invoke(null, new object[] {handle.Address});
-
-			var type = (Type) o;
-
-			return type;
+			return ClrFunctions.Func_GetTypeFromHandle(handle.Address);
 		}
 
 		public static Assembly GetAssemblyByName(string name)

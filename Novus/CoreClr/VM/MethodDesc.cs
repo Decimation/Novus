@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using Novus.Interop;
 using Novus.Memory;
 using Novus.Properties;
+// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.CoreClr.VM
 {
@@ -30,16 +32,17 @@ namespace Novus.CoreClr.VM
 		/// </summary>
 		internal void* Function { get; }
 
-		internal bool IsPointingToNativeCode()
+		internal bool IsPointingToNativeCode
 		{
-			var sig = EmbeddedResources.Sig_IsPointingToNativeCode;
+			get
+			{
+				
 
-			var fn = (void*) Resources.Clr.Scanner.FindSignature(sig);
-
-			fixed (MethodDesc* p = &this) {
-				var mt = (int) Functions.Call<int, ulong>(fn, (ulong) p);
-				//todo
-				return mt > 0;
+				fixed (MethodDesc* p = &this) {
+					var mt = ClrFunctions.Func_IsPointingToNativeCode(p);
+					//todo
+					return mt > 0;
+				}
 			}
 
 
@@ -50,14 +53,11 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = EmbeddedResources.Sig_GetNativeCode;
-
-				var fn = (void*) Resources.Clr.Scanner.FindSignature(sig);
+				
 
 				fixed (MethodDesc* p = &this) {
-					var mt = (void*) Functions.Call<ulong, ulong>(fn, (ulong) p);
 
-					return mt;
+					return ClrFunctions.Func_GetNativeCode(p);
 				}
 			}
 		}
@@ -67,14 +67,9 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = EmbeddedResources.Sig_GetMemberDef;
-
-				var fn = (void*) Resources.Clr.Scanner.FindSignature(sig);
-
 				fixed (MethodDesc* p = &this) {
-					var mt = Functions.Call<int, ulong>(fn, (ulong) p);
 
-					return mt;
+					return ClrFunctions.Func_GetToken(p);
 				}
 			}
 		}
@@ -96,15 +91,11 @@ namespace Novus.CoreClr.VM
 			
 			get
 			{
-				var sig = EmbeddedResources.Sig_GetRVA;
-
-				var fn = (void*)Resources.Clr.Scanner.FindSignature(sig);
 
 				fixed (MethodDesc* p = &this)
 				{
-					var mt = Functions.Call<long, ulong>(fn, (ulong)p);
 
-					return mt;
+					return ClrFunctions.Func_GetRVA(p);
 				}
 			}
 		}

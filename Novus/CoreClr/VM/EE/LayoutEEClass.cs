@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Interop;
+// ReSharper disable InconsistentNaming
 
 namespace Novus.CoreClr.VM.EE
 {

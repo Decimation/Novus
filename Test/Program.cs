@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Novus;
 using Novus.CoreClr.Meta;
 using Novus.Memory;
@@ -58,14 +59,22 @@ namespace Test
 			var mt = typeof(string).AsMetaType();
 			Console.WriteLine(mt.InstanceFieldsSize);
 			Console.WriteLine();
-			Global.DumpDependencies();
+			//Global.DumpDependencies();
 
 			var mm = typeof(Program).GetAnyMethod(nameof(sayhi)).AsMetaMethod();
 			Console.WriteLine(mm);
 			Console.WriteLine(mm.IsPointingToNativeCode);
 			RuntimeHelpers.PrepareMethod(mm.MethodInfo.MethodHandle);
 			Console.WriteLine(mm.IsPointingToNativeCode);
+			Console.WriteLine(mt.IsBlittable);
 
+			string sx  = "foo";
+			var    gc = GCHandle.Alloc(sx, GCHandleType.Pinned);
+
+			Console.WriteLine(gc.Target);
+
+			Console.WriteLine(Inspector.IsPinnable(sx));
+			Console.WriteLine(Inspector.IsNil(default(string)));
 		}
 
 		public static void sayhi()
@@ -102,6 +111,8 @@ namespace Test
 			Console.ReadLine();
 			RegistryHelper.Remove(@"HKEY_CLASSES_ROOT\*\shell\myactiontoplevel\");
 			Console.ReadLine();
+
+
 		}
 	}
 }

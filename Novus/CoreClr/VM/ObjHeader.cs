@@ -7,6 +7,6 @@ namespace Novus.CoreClr.VM
 	[StructLayout(LayoutKind.Sequential)]
 	public struct ObjHeader
 	{
-		private nint m_value;
+		private nint Value { get; }
 	}
 }

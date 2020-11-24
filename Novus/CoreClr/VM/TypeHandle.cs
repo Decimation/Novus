@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
+using Novus.CoreClr.VM;
 using Novus.Interop;
 using Novus.Memory;
 using Novus.Properties;
@@ -8,26 +10,24 @@ using Novus.Properties;
 // ReSharper disable FieldCanBeMadeReadOnly.Local
 #pragma warning disable IDE0044
 
+
 namespace Novus.CoreClr.VM
 {
+	
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct TypeHandle
 	{
-		private void* m_asPtr;
+		private void* Value { get; }
+
 
 		internal Pointer<MethodTable> MethodTable
 		{
 			get
 			{
-
-				var sig = EmbeddedResources.Sig_GetMethodTable;
-				var fn  = (void*) Resources.Clr.Scanner.FindSignature(sig);
-
 				fixed (TypeHandle* p = &this) {
-					var mt = (MethodTable*) Functions.CallReturnPointer(fn, (ulong) p);
 
-					return mt;
+					return ClrFunctions.Func_GetMethodTable(p);
 				}
 			}
 		}

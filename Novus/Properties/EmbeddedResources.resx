@@ -127,7 +127,7 @@
   </data>
   <data name="Sig_GetMethodTable" xml:space="preserve">
     <value>48 8B 01 A8 02 75 ? C3</value>
-    <comment>TypeHandle::MethodTable</comment>
+    <comment>TypeHandle::GetMethodTable</comment>
   </data>
   <data name="Sig_GetNativeCode" xml:space="preserve">
     <value>0F B7 41 06 A8 20 74 ?</value>

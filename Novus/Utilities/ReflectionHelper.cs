@@ -2,12 +2,11 @@
 using System.Collections;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Novus.Memory;
 
 // ReSharper disable UnusedTypeParameter
 // ReSharper disable UnusedMember.Global
-
-
 
 
 namespace Novus.Utilities
@@ -122,6 +121,24 @@ namespace Novus.Utilities
 		public static object CallGeneric(MethodInfo method, Type arg, object value, params object[] fnArgs)
 		{
 			return CallGeneric(method, new[] {arg}, value, fnArgs);
+		}
+
+		private const string BACKING_FIELD = "k__BackingField";
+
+		public static FieldInfo[] GetAllBackingFields(this Type t)
+		{
+			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD)).ToArray();
+
+
+			return rg;
+		}
+
+		public static FieldInfo GetBackingField(this Type t, string name)
+		{
+			var fi = t.GetRuntimeFields()
+				.FirstOrDefault(a => Regex.IsMatch(a.Name, $"\\A<{name}>{BACKING_FIELD}\\Z"));
+
+			return fi;
 		}
 	}
 }

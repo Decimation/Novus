@@ -67,14 +67,10 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = EmbeddedResources.Sig_GetEEClass;
-
-				var fn = (void*) Resources.Clr.Scanner.FindSignature(sig);
 
 				fixed (MethodTable* p = &this) {
-					var mt = (MethodTable*) Functions.CallReturnPointer(fn, (ulong) p);
 
-					return mt;
+					return ClrFunctions.Func_GetClass(p);
 				}
 			}
 		}

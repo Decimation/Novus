@@ -38,14 +38,11 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var sig = EmbeddedResources.Sig_GetSize;
-
-				var fn = (void*) Resources.Clr.Scanner.FindSignature(sig);
+				
 
 				fixed (FieldDesc* p = &this) {
-					var mt = (int) Functions.Call<uint, ulong>(fn, (ulong) p);
 
-					return mt;
+					return ClrFunctions.Func_GetSize(p);
 				}
 			}
 		}

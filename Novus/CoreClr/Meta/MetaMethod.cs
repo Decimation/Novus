@@ -89,7 +89,7 @@ namespace Novus.CoreClr.Meta
 			//set => NativeCode = value;
 		}
 
-		public bool IsPointingToNativeCode => Value.Reference.IsPointingToNativeCode();
+		public bool IsPointingToNativeCode => Value.Reference.IsPointingToNativeCode;
 
 		// public MetaIL ILHeader
 		// {

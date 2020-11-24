@@ -1,25 +1,43 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using Novus.CoreClr.VM;
+using Novus.Properties;
+using Novus.Utilities;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
 [assembly: InternalsVisibleTo("Test")]
+
 namespace Novus
 {
-	public static class Global
+	public static unsafe class Global
 	{
 		public static void Setup()
 		{
-		
+
 			bool c = IsCompatible();
 
 			if (!c) {
 				Guard.Fail();
 			}
+		}
+
+		/// <summary>
+		/// Module initializer
+		/// </summary>
+		[ModuleInitializer]
+		public static void FullInit()
+		{
+			Debug.WriteLine(">>> Module init <<<");
+
+			Setup();
+
+			
 		}
 
 		public static void DumpDependencies()
@@ -51,8 +69,7 @@ namespace Novus
 					Console.WriteLine();
 				}
 				catch (Exception e) {
-					Console.WriteLine(e);
-					throw;
+					
 				}
 			}
 

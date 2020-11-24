@@ -112,7 +112,7 @@ namespace Novus.CoreClr.VM.EE
 		{
 			get
 			{
-				var     pClass    = MethodTable->EEClass;
+				var pClass = MethodTable->EEClass;
 
 				Pointer<MethodTable> pParentMT = MethodTable->Parent;
 
@@ -278,5 +278,4 @@ namespace Novus.CoreClr.VM.EE
 		MarshalingTypeFreeThreaded = 0x80000000,
 		MarshalingTypeStandard     = 0xc0000000
 	}
-
 }

@@ -6,15 +6,21 @@ using SimpleCore.Utilities;
 #nullable enable
 
 
-namespace Novus.Win32
+namespace Novus.Win32.FileSystem
 {
 	/// <summary>
 	/// Represents a file format or type.
 	/// </summary>
 	public class FileFormatType : Enumeration
 	{
+		/// <summary>
+		/// File extensions associated with the described file type
+		/// </summary>
 		public string[]? Extension { get; private init; }
 
+		/// <summary>
+		/// File format type
+		/// </summary>
 		public FileType Type { get; private init; }
 
 		/// <summary>
@@ -84,9 +90,19 @@ namespace Novus.Win32
 		}
 	}
 
+	/// <summary>
+	/// File type
+	/// </summary>
 	public enum FileType
 	{
+		/// <summary>
+		/// (Unknown)
+		/// </summary>
 		Unknown,
+
+		/// <summary>
+		/// Image
+		/// </summary>
 		Image,
 	}
 }

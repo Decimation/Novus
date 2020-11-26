@@ -11,7 +11,7 @@ using SimpleCore.Utilities;
 #nullable enable
 
 
-namespace Novus.Win32
+namespace Novus.Win32.FileSystem
 {
 	/// <summary>
 	///     Utilities for working with the file system, files, etc.

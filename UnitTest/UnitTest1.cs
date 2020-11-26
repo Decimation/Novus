@@ -5,6 +5,7 @@ using Novus;
 using Novus.CoreClr.Meta;
 using Novus.Memory;
 using Novus.Utilities;
+using Novus.Win32;
 using NUnit.Framework;
 
 
@@ -42,7 +43,37 @@ namespace UnitTest
 		}
 
 		[Test]
-		public void Test2()
+		public void SizeTest()
+		{
+			var intArray = new[] {1, 2, 3};
+			Assert.AreEqual(Mem.SizeOf(intArray, SizeOfOptions.Heap), 36);
+
+			var s = "foo";
+			Assert.AreEqual(Mem.SizeOf(s, SizeOfOptions.Heap), 28);
+
+			var o = new object();
+			Assert.AreEqual(Mem.SizeOf(o, SizeOfOptions.Heap), 24);
+
+			Assert.AreEqual(Mem.SizeOf<string>(), Mem.Size);
+
+			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.BaseFields), sizeof(int) + sizeof(char));
+
+			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.BaseInstance), 22); // NOT 20; SOS is wrong
+
+			Assert.AreEqual(Mem.SizeOf(intArray, SizeOfOptions.Data),
+				RuntimeInfo.ArrayOverhead + (sizeof(int) * intArray.Length));
+
+			Assert.AreEqual(Mem.SizeOf(s, SizeOfOptions.Data),
+				RuntimeInfo.StringOverhead + (sizeof(char) * s.Length));
+			
+
+			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.Heap), Native.INVALID);
+
+			
+		}
+
+		[Test]
+		public void InspectorTest()
 		{
 			string s = "foo";
 			Assert.False(Inspector.IsNil(s));
@@ -64,14 +95,14 @@ namespace UnitTest
 		}
 
 		[Test]
-		public void Test1()
+		public void StringTest()
 		{
 			string s  = "foo";
 			var    mt = s.GetType().AsMetaType();
 
 			Assert.AreEqual(Mem.HeapSizeOf(s), 28);
-			//Assert.AreEqual(mt.BaseSize,0x14); 
-			Assert.AreEqual(mt.ComponentSize, 0x2);
+			Assert.AreEqual(mt.BaseSize, 22); // NOT 20; SOS is wrong
+			Assert.AreEqual(mt.ComponentSize, 2);
 
 			Assert.AreEqual(mt.InstanceFieldsCount, 2);
 			Assert.AreEqual(mt.StaticFieldsCount, 1);

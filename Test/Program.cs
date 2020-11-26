@@ -26,7 +26,7 @@ namespace Test
 	 *
 	 * 
 	 * https://github.com/sidristij/dotnetex
-	 *
+	 * https://github.com/IllidanS4/SharpUtils
 	 * https://github.com/wbenny/pdbex
 	 *
 	 * https://github.com/ins0mniaque/ILSupport
@@ -53,7 +53,33 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			
+			Console.WriteLine(Mem.SizeOf<string>(null, SizeOfOptions.Heap));
+
+			Console.WriteLine(RuntimeInfo.ObjHeaderSize);
+			Console.WriteLine(typeof(string).AsMetaType().BaseSize);
+			Console.WriteLine(typeof(object).AsMetaType().BaseSize);
+			var  intArray = new[] { 1, 2, 3 };
+
+			Console.WriteLine(Mem.AddressOfHeap(intArray));//36
+
+			var s = "foo";
+			Console.WriteLine(Mem.AddressOfHeap(s));//28
+
+			object o = new object();
+
+			Console.WriteLine(Mem.AddressOfHeap(o));//24
+
+			Console.ReadLine();
+
+		}
+
+		private static void sayhi()
+		{
+			Console.WriteLine("h");
+		}
+
+		private static void test2()
+		{
 			nint n;
 			Console.WriteLine(sizeof(nint));
 			var mt = typeof(string).AsMetaType();
@@ -68,7 +94,7 @@ namespace Test
 			Console.WriteLine(mm.IsPointingToNativeCode);
 			Console.WriteLine(mt.IsBlittable);
 
-			string sx  = "foo";
+			string sx = "foo";
 			var    gc = GCHandle.Alloc(sx, GCHandleType.Pinned);
 
 			Console.WriteLine(gc.Target);
@@ -76,12 +102,6 @@ namespace Test
 			Console.WriteLine(Inspector.IsPinnable(sx));
 			Console.WriteLine(Inspector.IsNil(default(string)));
 		}
-
-		public static void sayhi()
-		{
-			Console.WriteLine("h");
-		}
-
 		private static void test1()
 		{
 			Console.WriteLine(Environment.Version);

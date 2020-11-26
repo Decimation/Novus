@@ -21,7 +21,9 @@
       HAA0302,
       HAA0303,
       HAA0101,
+      CS1591,
     </NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

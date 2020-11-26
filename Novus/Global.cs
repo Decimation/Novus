@@ -36,7 +36,6 @@ namespace Novus
 			Debug.WriteLine(">>> Module init <<<");
 
 			Setup();
-
 			
 		}
 

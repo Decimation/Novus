@@ -97,6 +97,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 48 8B 41 28 48 8B D9.
+        /// </summary>
+        internal static string Sig_GetNativeLayoutInfo {
+            get {
+                return ResourceManager.GetString("Sig_GetNativeLayoutInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 48 83 EC 38 0F B7 41 06.
         /// </summary>
         internal static string Sig_GetRVA {

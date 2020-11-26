@@ -39,6 +39,42 @@ namespace Novus.Utilities
 		public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
 
 
+		/// <summary>
+		///     Executes a generic method
+		/// </summary>
+		/// <param name="method">Method to execute</param>
+		/// <param name="args">Generic type parameters</param>
+		/// <param name="value">Instance of type; <c>null</c> if the method is static</param>
+		/// <param name="fnArgs">Method arguments</param>
+		/// <returns>Return value of the method specified by <paramref name="method"/></returns>
+		public static object CallGeneric(MethodInfo method, Type[] args, object value, params object[] fnArgs)
+		{
+			return method.MakeGenericMethod(args).Invoke(value, fnArgs);
+		}
+
+		public static object CallGeneric(MethodInfo method, Type arg, object value, params object[] fnArgs)
+		{
+			return CallGeneric(method, new[] {arg}, value, fnArgs);
+		}
+
+		private const string BACKING_FIELD = "k__BackingField";
+
+		public static FieldInfo[] GetAllBackingFields(this Type t)
+		{
+			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD)).ToArray();
+
+
+			return rg;
+		}
+
+		public static FieldInfo GetBackingField(this Type t, string name)
+		{
+			var fi = t.GetRuntimeFields()
+				.FirstOrDefault(a => Regex.IsMatch(a.Name, $"\\A<{name}>{BACKING_FIELD}\\Z"));
+
+			return fi;
+		}
+
 		public static bool ImplementsInterface(this Type type, string interfaceName) =>
 			type.GetInterface(interfaceName) != null;
 
@@ -104,41 +140,5 @@ namespace Novus.Utilities
 		}
 
 		public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
-
-		/// <summary>
-		///     Executes a generic method
-		/// </summary>
-		/// <param name="method">Method to execute</param>
-		/// <param name="args">Generic type parameters</param>
-		/// <param name="value">Instance of type; <c>null</c> if the method is static</param>
-		/// <param name="fnArgs">Method arguments</param>
-		/// <returns>Return value of the method specified by <paramref name="method"/></returns>
-		public static object CallGeneric(MethodInfo method, Type[] args, object value, params object[] fnArgs)
-		{
-			return method.MakeGenericMethod(args).Invoke(value, fnArgs);
-		}
-
-		public static object CallGeneric(MethodInfo method, Type arg, object value, params object[] fnArgs)
-		{
-			return CallGeneric(method, new[] {arg}, value, fnArgs);
-		}
-
-		private const string BACKING_FIELD = "k__BackingField";
-
-		public static FieldInfo[] GetAllBackingFields(this Type t)
-		{
-			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD)).ToArray();
-
-
-			return rg;
-		}
-
-		public static FieldInfo GetBackingField(this Type t, string name)
-		{
-			var fi = t.GetRuntimeFields()
-				.FirstOrDefault(a => Regex.IsMatch(a.Name, $"\\A<{name}>{BACKING_FIELD}\\Z"));
-
-			return fi;
-		}
 	}
 }

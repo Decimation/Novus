@@ -17,7 +17,7 @@ namespace Novus.Memory
 		/// </summary>
 		/// <remarks>
 		/// <para>Only a type parameter is needed</para>
-		///     <para> Returned from <see cref="EEClass.NativeSize" /> </para>
+		///     <para> Returned from <see cref="EEClassNativeLayoutInfo.Size" /> </para>
 		///     <para> Equals <see cref="Marshal.SizeOf(System.Type)" /></para>
 		///     <para> Equals <see cref="StructLayoutAttribute.Size" /> when type isn't zero-sized.</para>
 		/// </remarks>

@@ -30,21 +30,13 @@ namespace Novus.CoreClr.VM.EE
 		/// <summary>
 		///     <para>Union 1</para>
 		///     <para><see cref="ObjectHandleDelegate" /></para>
-		///     <para><see cref="NativeSize" /></para>
 		///     <para><see cref="InterfaceType" /></para>
 		/// </summary>
 		private void* Union1 { get; }
 
 		internal void* ObjectHandleDelegate => Union1;
 
-		internal uint NativeSize
-		{
-			get
-			{
-				var ul = (ulong) Union1;
-				return (uint) ul;
-			}
-		}
+		
 
 		internal CorInterfaceType InterfaceType
 		{
@@ -99,11 +91,14 @@ namespace Novus.CoreClr.VM.EE
 			get
 			{
 				fixed (EEClass* value = &this) {
-					return RuntimeInfo.ReadSubStructure<EEClass, LayoutEEClass>(value)
-						.Cast<EEClassLayoutInfo>();
+					var p = (LayoutEEClass*) value;
+
+					return &p->LayoutInfo;
 				}
 			}
 		}
+
+		
 
 		/// <summary>
 		///     <see cref="FieldDesc"/> list length

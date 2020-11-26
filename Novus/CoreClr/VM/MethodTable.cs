@@ -93,6 +93,17 @@ namespace Novus.CoreClr.VM
 			}
 		}
 
+		internal Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
+		{
+			get
+			{
+				fixed(MethodTable* p = &this)
+				{
+					return ClrFunctions.Func_GetNativeLayoutInfo(p);
+				}
+			}
+		}
+
 		/// <summary>
 		///     <para>Union 2</para>
 		///     <para><see cref="PerInstInfo" /></para>

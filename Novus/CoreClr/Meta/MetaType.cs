@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Novus.CoreClr.Meta.Base;
 using Novus.CoreClr.VM;
 using Novus.CoreClr.VM.EE;
 using Novus.Memory;
+using Novus.Utilities;
 using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
@@ -21,14 +25,40 @@ namespace Novus.CoreClr.Meta
 		public static MetaField AsMetaField(this FieldInfo t) => new(t);
 
 		public static MetaType AsMetaType(this Type t) => new(t);
+		
+		
+		public static MetaType meta_typeof<T>(Expression<Func<T>> expression)
+		{
+			var body = (TypeBinaryExpression)expression.Body;
+			return body.Type;
+		}
+
+
+		/*public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
+		{
+			MemberExpression body = (MemberExpression)expression.Body;
+			return (FieldInfo)body.Member;
+		}
+
+		public static MethodInfo methodof<T>(Expression<Func<T>> expression)
+		{
+			MethodCallExpression body = (MethodCallExpression)expression.Body;
+			return body.Method;
+		}
+
+		public static MethodInfo methodof(Expression<Action> expression)
+		{
+			MethodCallExpression body = (MethodCallExpression)expression.Body;
+			return body.Method;
+		}*/
 	}
 
 	/// <summary>
 	///     <list type="bullet">
 	///         <item>
 	///             <description>
-	///                 CLR structure: <see cref="MethodTable" />, <see cref="EEClass" />, and
-	///                 <see cref="TypeHandle" />
+	///                 CLR structure: <see cref="MethodTable" />, <see cref="EEClass" />, 
+	///                 <see cref="TypeHandle" />, <see cref="EEClassLayoutInfo"/>
 	///             </description>
 	///         </item>
 	///         <item>
@@ -64,21 +94,43 @@ namespace Novus.CoreClr.Meta
 
 		public CorInterfaceType InterfaceType        => EEClass.Reference.InterfaceType;
 		public int              MethodsCount         => EEClass.Reference.NumMethods;
-		public int              NativeSize           => (int) EEClass.Reference.NativeSize;
+		public int              NativeSize           => (int) NativeLayoutInfo.Reference.Size;
 		public int              NonVirtualSlotsCount => EEClass.Reference.NumNonVirtualSlots;
 		public CorElementType   NormType             => EEClass.Reference.NormType;
 
 		public Pointer<byte> OptionalFields => EEClass.Reference.OptionalFields;
 
-		public MetaLayout LayoutInfo
+
+		private Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 		{
 			get
 			{
 				Guard.Assert(HasLayout);
 
-				return new MetaLayout(EEClass.Reference.LayoutInfo);
+				return Value.Reference.NativeLayoutInfo;
 			}
 		}
+
+		public bool IsMarshalable => NativeLayoutInfo.Reference.IsMarshalable > 0;
+		
+		public int NumFields2 => (int) NativeLayoutInfo.Reference.NumFields;
+
+
+		private Pointer<EEClassLayoutInfo> LayoutInfo
+		{
+			get
+			{
+				Guard.Assert(HasLayout);
+
+				return EEClass.Reference.LayoutInfo;
+			}
+		}
+
+		public int ManagedSize => LayoutInfo.Reference.ManagedSize;
+
+		public LayoutFlags Flags => LayoutInfo.Reference.Flags;
+
+		public int PackingSize => LayoutInfo.Reference.PackingSize;
 
 		/// <summary>
 		///     Number of fields that are not <see cref="FieldInfo.IsLiteral" /> but <see cref="MetaField.IsStatic" />
@@ -99,7 +151,7 @@ namespace Novus.CoreClr.Meta
 		/// </summary>
 		public bool HasLayout => VMFlags.HasFlag(VMFlags.HasLayout);
 
-		public bool IsBlittable => HasLayout && LayoutInfo.Flags.HasFlag(LayoutFlags.Blittable);
+		public bool IsBlittable => HasLayout && LayoutInfo.Reference.Flags.HasFlag(LayoutFlags.Blittable);
 
 		public bool IsArray => GetFlag(TypeFlags.ArrayMask) == TypeFlags.Array;
 
@@ -196,5 +248,24 @@ namespace Novus.CoreClr.Meta
 		public TypeFlags          TypeFlags     => Value.Reference.TypeFlags;
 		public short              VirtualsCount => Value.Reference.NumVirtuals;
 		public Pointer<byte>      WriteableData => Value.Reference.WriteableData;
+
+
+		public bool IsInteger => RuntimeType.IsInteger();
+
+		public bool IsReal    => RuntimeType.IsReal();
+
+		public bool IsNumeric => RuntimeType.IsNumeric();
+
+		public bool IsUnmanaged  => RuntimeType.IsUnmanaged();
+
+		public bool IsAnyPointer => RuntimeType.IsAnyPointer();
+
+
+		public override string ToString()
+		{
+			return string.Format("EEClass {0} | {1}", EEClass, base.ToString());
+		}
 	}
+
+	
 }

@@ -1,13 +1,15 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Novus;
 using Novus.CoreClr.Meta;
 using Novus.Memory;
 using Novus.Utilities;
 using Novus.Win32;
 using NUnit.Framework;
-
+using Novus.CoreClr.Meta;
 
 namespace UnitTest
 {
@@ -31,6 +33,55 @@ namespace UnitTest
 		}
 
 		[Test]
+		public void TypeTest2()
+		{
+			var t  = typeof(string);
+			var mt = t.AsMetaType();
+
+
+			Assert.AreEqual(mt.RuntimeType, t);
+			Assert.AreEqual(mt.Token, t.MetadataToken);
+			Assert.AreEqual(mt.Attributes, t.Attributes);
+
+
+			AssertAll(!mt.IsInteger, 
+				!mt.IsUnmanaged, 
+				!mt.IsNumeric, 
+				!mt.IsReal,
+				!mt.IsAnyPointer, 
+				!mt.IsArray);
+
+
+			var mti = typeof(int).AsMetaType();
+
+			AssertAll(mti.IsInteger, 
+				!mti.IsReal, 
+				mti.IsNumeric);
+
+			var mtf = typeof(float).AsMetaType();
+
+			AssertAll(!mtf.IsInteger, 
+				mtf.IsReal, 
+				mtf.IsNumeric);
+
+
+		}
+
+		public static void AssertAll<T>(T t, params Func<T, bool>[] fn)
+		{
+			foreach (var func in fn) {
+				Assert.True(func(t));
+			}
+		}
+
+		public static void AssertAll(params bool[] cond)
+		{
+			foreach (bool b in cond) {
+				Assert.True(b);
+			}
+		}
+
+		[Test]
 		[TestCase(typeof(string))]
 		public void TypeTest(Type t)
 		{
@@ -40,10 +91,12 @@ namespace UnitTest
 			Assert.AreEqual(mt.RuntimeType, t);
 			Assert.AreEqual(mt.Token, t.MetadataToken);
 			Assert.AreEqual(mt.Attributes, t.Attributes);
+
+
 		}
 
 		[Test]
-		public void SizeTest()
+		public unsafe void SizeTest()
 		{
 			var intArray = new[] {1, 2, 3};
 			Assert.AreEqual(Mem.SizeOf(intArray, SizeOfOptions.Heap), 36);
@@ -65,7 +118,7 @@ namespace UnitTest
 
 			Assert.AreEqual(Mem.SizeOf(s, SizeOfOptions.Data),
 				RuntimeInfo.StringOverhead + (sizeof(char) * s.Length));
-			
+
 
 			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.Heap), Native.INVALID);
 
@@ -73,6 +126,11 @@ namespace UnitTest
 			{
 				Mem.SizeOf<string>(null, SizeOfOptions.Heap);
 			});
+
+
+			Assert.AreEqual(Mem.SizeOf<bool>(SizeOfOptions.Native), Marshal.SizeOf<bool>());
+			Assert.AreEqual(Mem.SizeOf<Point>(), sizeof(Point));
+			Assert.AreEqual(Mem.SizeOf<Point>(SizeOfOptions.Intrinsic), sizeof(Point));
 		}
 
 		[Test]

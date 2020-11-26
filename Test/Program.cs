@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Novus;
 using Novus.CoreClr.Meta;
+using Novus.CoreClr.VM.EE;
 using Novus.Memory;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.ContextMenu;
+using Console = System.Console;
 
 namespace Test
 {
@@ -53,23 +56,11 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			Console.WriteLine(Mem.Size);
-			Console.WriteLine(Mem.SizeOf<string>(null, SizeOfOptions.Heap));
-
-			Console.WriteLine(RuntimeInfo.ObjHeaderSize);
-			Console.WriteLine(typeof(string).AsMetaType().BaseSize);
-			Console.WriteLine(typeof(object).AsMetaType().BaseSize);
-			var  intArray = new[] { 1, 2, 3 };
-
-			Console.WriteLine(Mem.AddressOfHeap(intArray));//36
-
-			var s = "foo";
-			Console.WriteLine(Mem.AddressOfHeap(s));//28
-
-			object o = new object();
-
-			Console.WriteLine(Mem.AddressOfHeap(o));//24
-
+			var mt = typeof(bool).AsMetaType();
+			Console.WriteLine(mt.HasLayout);
+			
+			Console.WriteLine();
+			Console.WriteLine(sizeof(EEClassNativeLayoutInfo).ToString("X"));
 			Console.ReadLine();
 
 		}

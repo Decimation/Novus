@@ -47,8 +47,12 @@ namespace Novus.CoreClr
 		/// </summary>
 		internal static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
 
-		
-		internal static GetTypeFromHandleDelegate Func_GetTypeFromHandle { get; }
+		/// <summary>
+		/// <see cref="MethodTable.NativeLayoutInfo"/>
+		/// </summary>
+		internal static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
+
+		internal static GetTypeFromHandleDelegate                                   Func_GetTypeFromHandle   { get; }
 
 
 		internal static IsPinnableDelegate Func_IsPinnable { get; }
@@ -86,6 +90,9 @@ namespace Novus.CoreClr
 			Func_GetClass = (delegate* unmanaged<MethodTable*, EEClass*>) Resources.Clr.Scanner.FindSignature(
 				EmbeddedResources.Sig_GetEEClass);
 
+			Func_GetNativeLayoutInfo =
+				(delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*>) Resources.Clr.Scanner.FindSignature(
+					EmbeddedResources.Sig_GetNativeLayoutInfo);
 
 			Func_GetTypeFromHandle = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe")
 				.CreateDelegate<GetTypeFromHandleDelegate>();

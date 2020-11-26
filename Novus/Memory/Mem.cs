@@ -64,14 +64,16 @@ namespace Novus.Memory
 		{
 			var h = Native.OpenProcess(proc);
 
-			bool ok = Native.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out int numBytesRead);
+			Native.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out _);
 
 			Native.CloseHandle(h);
 		}
 
 		public static T ReadProcessMemory<T>(Process proc, Pointer<byte> baseAddr)
 		{
-			T   t    = default!;
+
+			T t = default!;
+
 			int size = Unsafe.SizeOf<T>();
 			var ptr  = AddressOf(ref t);
 
@@ -107,8 +109,7 @@ namespace Novus.Memory
 			var hProc = Native.OpenProcess(proc);
 
 
-			bool ok = Native.WriteProcessMemory(hProc, ptrBase.Address, ptrBuffer.Address,
-				dwSize, out int numberOfBytesWritten);
+			Native.WriteProcessMemory(hProc, ptrBase.Address, ptrBuffer.Address, dwSize, out _);
 
 
 			Native.CloseHandle(hProc);
@@ -204,7 +205,7 @@ namespace Novus.Memory
 			return options switch
 			{
 				SizeOfOptions.Native       => mt.NativeSize,
-				SizeOfOptions.Managed      => mt.HasLayout ? mt.LayoutInfo.ManagedSize : Native.INVALID,
+				SizeOfOptions.Managed      => mt.HasLayout ? mt.ManagedSize : Native.INVALID,
 				SizeOfOptions.Intrinsic    => SizeOf<T>(),
 				SizeOfOptions.BaseFields   => mt.InstanceFieldsSize,
 				SizeOfOptions.BaseInstance => mt.BaseSize,

@@ -1,23 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Novus.CoreClr;
 using Novus.CoreClr.VM;
 using Novus.Memory;
-using Novus.Utilities;
 using SimpleCore.Diagnostics;
+
 // ReSharper disable UnusedMember.Global
 
 #pragma warning disable CS0618
 namespace Novus
 {
 	/// <summary>
-	/// 
 	/// </summary>
-	/// <seealso cref="Mem"/>
+	/// <seealso cref="Mem" />
 	public static unsafe class RuntimeInfo
 	{
 		// https://github.com/dotnet/coreclr/blob/master/src/vm/object.h
@@ -68,8 +66,8 @@ namespace Novus
 
 		/// <summary>
 		///     Heap offset to the first string character.
-		/// On 64 bit platforms, this should be 12 (8 + 4) and on 32 bit 8 (4 + 4).
-		/// (<see cref="Mem.Size"/> + <see cref="int"/>)
+		///     On 64 bit platforms, this should be 12 (8 + 4) and on 32 bit 8 (4 + 4).
+		///     (<see cref="Mem.Size" /> + <see cref="int" />)
 		/// </summary>
 		public static readonly int OffsetToStringData = RuntimeHelpers.OffsetToStringData;
 
@@ -85,7 +83,7 @@ namespace Novus
 		///             <description>+ <see cref="ObjHeaderSize" />: <see cref="ObjHeader" /></description>
 		///         </item>
 		///         <item>
-		///             <description>+ sizeof <see cref="TypeHandle" />: <see cref="TypeHandle"/></description>
+		///             <description>+ sizeof <see cref="TypeHandle" />: <see cref="TypeHandle" /></description>
 		///         </item>
 		///     </list>
 		/// </summary>
@@ -94,10 +92,10 @@ namespace Novus
 		/// <summary>
 		///     <para>Minimum GC object heap size</para>
 		/// </summary>
-		public static readonly int MinObjectSize = (Mem.Size * 2) + ObjHeaderSize;
+		public static readonly int MinObjectSize = Mem.Size * 2 + ObjHeaderSize;
 
 		/// <summary>
-		/// Alias: PTR_HOST_MEMBER_TADDR
+		///     Alias: PTR_HOST_MEMBER_TADDR
 		/// </summary>
 		internal static Pointer<byte> FieldOffset<TField>(TField* field, int offset) where TField : unmanaged
 		{
@@ -110,11 +108,11 @@ namespace Novus
 			// #define PTR_HOST_MEMBER_TADDR(type, host, memb) \
 			//     (PTR_HOST_TO_TADDR(host) + (TADDR)offsetof(type, memb))
 
-			return (Pointer<byte>) (offset + ((long) field));
+			return (Pointer<byte>) (offset + (long) field);
 		}
 
 		/// <summary>
-		/// Alias: PTR_HOST_MEMBER_TADDR (alt)
+		///     Alias: PTR_HOST_MEMBER_TADDR (alt)
 		/// </summary>
 		internal static Pointer<byte> FieldOffsetAlt<T>(ref T value, long ofs, Pointer<byte> fieldValue)
 			where T : unmanaged
@@ -123,7 +121,6 @@ namespace Novus
 		}
 
 		internal static Pointer<TSub> ReadSubStructure<TSuper, TSub>(Pointer<TSuper> super)
-
 		{
 			int size = Mem.SizeOf<TSuper>();
 			return super.Add(size).Cast<TSub>();
@@ -138,11 +135,11 @@ namespace Novus
 		}
 
 		/// <summary>
-		/// Returns a pointer to the internal CLR metadata structure of <paramref name="member"/>
+		///     Returns a pointer to the internal CLR metadata structure of <paramref name="member" />
 		/// </summary>
 		/// <param name="member">Reflection type</param>
 		/// <returns>A pointer to the corresponding structure</returns>
-		/// <exception cref="InvalidOperationException">The type of <see cref="MemberInfo"/> doesn't have a handle</exception>
+		/// <exception cref="InvalidOperationException">The type of <see cref="MemberInfo" /> doesn't have a handle</exception>
 		internal static Pointer<byte> ResolveHandle(MemberInfo member)
 		{
 			Guard.AssertNotNull(member, nameof(member));
@@ -190,7 +187,7 @@ namespace Novus
 		{
 			var handle          = t.TypeHandle.Value;
 			var typeHandleValue = *(TypeHandle*) &handle;
-			return (typeHandleValue.MethodTable);
+			return typeHandleValue.MethodTable;
 		}
 	}
 }

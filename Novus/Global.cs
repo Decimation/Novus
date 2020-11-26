@@ -1,14 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Novus.CoreClr.VM;
 using Novus.Properties;
 using Novus.Utilities;
 using SimpleCore.Diagnostics;
+using SimpleCore.Internal;
 using SimpleCore.Utilities;
 
 [assembly: InternalsVisibleTo("Test")]
@@ -17,62 +20,50 @@ namespace Novus
 {
 	public static unsafe class Global
 	{
+		/// <summary>
+		/// Module initializer
+		/// </summary>
+		[ModuleInitializer]
 		public static void Setup()
 		{
+			Trace.WriteLine(">>> Module init <<<");
 
 			bool c = IsCompatible();
 
 			if (!c) {
 				Guard.Fail();
 			}
+
+			foreach (var assemblyName in DumpDependencies()) {
+				Trace.WriteLine(assemblyName.Name, "Dependency");
+				//Write("{0}", assemblyName.Name);
+			}
 		}
 
-		/// <summary>
-		/// Module initializer
-		/// </summary>
-		[ModuleInitializer]
-		public static void FullInit()
-		{
-			Debug.WriteLine(">>> Module init <<<");
+		
 
-			Setup();
-			
-		}
-
-		public static void DumpDependencies()
+		public static HashSet<AssemblyName> DumpDependencies()
 		{
 			var rg = new[]
 			{
 				//
-				typeof(Global).Assembly,
+				//typeof(Global).Assembly,
+				//Assembly.GetExecutingAssembly(),
 				//
 				Assembly.GetCallingAssembly()
 			};
 
+			var asm = new HashSet<AssemblyName>();
 
 			foreach (var assembly in rg) {
 
-				try {
-					var name         = assembly.GetName();
-					var dependencies = RuntimeInfo.GetUserDependencies(assembly).ToList();
+				var dependencies = RuntimeInfo.GetUserDependencies(assembly);
 
-					Console.WriteLine("{0}: ", name.Name);
+				asm.UnionWith(dependencies);
 
-					foreach (var asmDependency in dependencies) {
-						var ver = File.GetLastWriteTime(RuntimeInfo.GetAssemblyByName(asmDependency.FullName).Location);
-
-						Console.WriteLine("\t{0}:\t({1}) (modified {2})", asmDependency.Name, asmDependency.Version,
-							ver);
-					}
-
-					Console.WriteLine();
-				}
-				catch (Exception e) {
-					
-				}
 			}
-
-
+			
+			return asm;
 		}
 
 		public static readonly Version ClrVersion = new(5, 0, 0);
@@ -80,9 +71,10 @@ namespace Novus
 		public static bool IsCompatible()
 		{
 			bool ver = Environment.Version == ClrVersion;
-			bool b   = !GCSettings.IsServerGC;
+			bool gc  = !GCSettings.IsServerGC;
+			bool os  = OperatingSystem.IsWindows();
 
-			return ver && b;
+			return ver && gc && os;
 		}
 	}
 }

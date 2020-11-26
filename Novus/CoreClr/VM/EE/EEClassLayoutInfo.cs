@@ -11,9 +11,7 @@ namespace Novus.CoreClr.VM.EE
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct EEClassLayoutInfo
 	{
-		// why is there an m_cbNativeSize in EEClassLayoutInfo and EEClass?
-		internal int NativeSize { get; }
-
+		
 		internal int ManagedSize { get; }
 
 		// 1,2,4 or 8: this is equal to the largest of the alignment requirements
@@ -21,8 +19,7 @@ namespace Novus.CoreClr.VM.EE
 		// the base NStruct is treated as the first member for the purpose of
 		// this calculation.
 
-		// Alias: LargestAlignmentRequirementOfAllMembers
-		internal byte MaxAlignReqOfAll { get; }
+		
 
 		// Post V1.0 addition: This is the equivalent of m_LargestAlignmentRequirementOfAllMember
 		// for the managed layout.
@@ -34,11 +31,6 @@ namespace Novus.CoreClr.VM.EE
 
 		internal byte PackingSize { get; }
 
-		/// <summary>
-		///     # of fields that are of the calltime-marshal variety.
-		/// </summary>
-		internal int NumCTMFields { get; }
-
-		internal void* FieldMarshalers { get; }
+		
 	}
 }

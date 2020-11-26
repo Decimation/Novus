@@ -34,7 +34,7 @@ namespace Novus
 
 		public override string ToString()
 		{
-			return string.Format("{0} ({1})", Module.ModuleName, Scanner.Address);
+			return String.Format("{0} ({1})", Module.ModuleName, Scanner.Address);
 		}
 	}
 }

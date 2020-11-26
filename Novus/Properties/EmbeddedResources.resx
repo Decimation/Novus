@@ -133,6 +133,10 @@
     <value>0F B7 41 06 A8 20 74 ?</value>
     <comment>MethodDesc::GetNativeCode</comment>
   </data>
+  <data name="Sig_GetNativeLayoutInfo" xml:space="preserve">
+    <value>40 53 48 83 EC 20 48 8B 41 28 48 8B D9</value>
+    <comment>MethodTable::GetNativeLayoutInfo</comment>
+  </data>
   <data name="Sig_GetRVA" xml:space="preserve">
     <value>48 83 EC 38 0F B7 41 06</value>
     <comment>MethodDesc::GetRVA</comment>

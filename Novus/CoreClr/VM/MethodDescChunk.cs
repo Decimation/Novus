@@ -11,12 +11,12 @@ namespace Novus.CoreClr.VM
 	public unsafe struct MethodDescChunk
 	{
 		/// <summary>
-		/// <see cref="RelativeFixupPointer{T}"/>
+		/// Relative fixup <see cref="Pointer{T}"/>
 		/// </summary>
 		private Pointer<MethodTable> MethodTableStub { get; }
 
 		/// <summary>
-		/// <see cref="RelativePointer{T}"/> to <see cref="MethodDescChunk"/>
+		/// Relative <see cref="Pointer{T}"/> to <see cref="MethodDescChunk"/>
 		/// </summary>
 		private Pointer<byte> Next { get; }
 

@@ -53,6 +53,7 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
+			Console.WriteLine(Mem.Size);
 			Console.WriteLine(Mem.SizeOf<string>(null, SizeOfOptions.Heap));
 
 			Console.WriteLine(RuntimeInfo.ObjHeaderSize);
@@ -90,7 +91,7 @@ namespace Test
 			var mm = typeof(Program).GetAnyMethod(nameof(sayhi)).AsMetaMethod();
 			Console.WriteLine(mm);
 			Console.WriteLine(mm.IsPointingToNativeCode);
-			RuntimeHelpers.PrepareMethod(mm.MethodInfo.MethodHandle);
+			RuntimeHelpers.PrepareMethod(mm.Info.MethodHandle);
 			Console.WriteLine(mm.IsPointingToNativeCode);
 			Console.WriteLine(mt.IsBlittable);
 

@@ -30,7 +30,6 @@ namespace Novus.CoreClr.Meta
 
 		internal MetaField(FieldInfo ptr) : this(RuntimeInfo.ResolveHandle(ptr)) { }
 
-		public FieldInfo FieldInfo => (FieldInfo) Info;
 
 		public CorElementType Element => Value.Reference.Element;
 
@@ -38,18 +37,19 @@ namespace Novus.CoreClr.Meta
 
 		public int Offset => Value.Reference.Offset;
 
-		public override MemberInfo Info => EnclosingType.RuntimeType.Module.ResolveField(Token);
+		
+		public override FieldInfo Info => EnclosingType.RuntimeType.Module.ResolveField(Token);
 
-		public MetaType FieldType => FieldInfo.FieldType;
+		public MetaType FieldType => Info.FieldType;
 
 		public override MetaType EnclosingType => Value.Reference.ApproxEnclosingMethodTable;
 
 		/// <summary>
-		/// <remarks>Equals <see cref="System.Reflection.FieldInfo.MetadataToken"/></remarks>
+		/// <remarks>Equals <see cref="MemberInfo.MetadataToken"/></remarks>
 		/// </summary>
 		public override int Token => Value.Reference.Token;
 
-		public FieldAttributes Attributes => FieldInfo.Attributes;
+		public FieldAttributes Attributes => Info.Attributes;
 
 		public bool IsPointer => Value.Reference.IsPointer;
 

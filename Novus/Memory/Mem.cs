@@ -16,14 +16,9 @@ using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
 // ReSharper disable SwitchStatementMissingSomeEnumCasesNoDefault
-
 // ReSharper disable SwitchStatementHandlesSomeKnownEnumValuesWithDefault
-
-
 // ReSharper disable ConvertIfStatementToReturnStatement
-
 // ReSharper disable UnusedVariable
-
 // ReSharper disable UnusedMember.Global
 
 
@@ -31,10 +26,9 @@ namespace Novus.Memory
 {
 	/// <summary>
 	///     Provides utilities for manipulating pointers, memory, and types.
-	///     
 	/// </summary>
 	/// <remarks>
-	/// Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.
+	///     Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.
 	/// </remarks>
 	/// <seealso cref="BitConverter" />
 	/// <seealso cref="Convert" />
@@ -47,18 +41,17 @@ namespace Novus.Memory
 	/// <seealso cref="Unsafe" />
 	/// <seealso cref="System.Runtime.CompilerServices" />
 	/// <seealso cref="RuntimeHelpers" />
-	/// <seealso cref="RuntimeInfo"/>
+	/// <seealso cref="RuntimeInfo" />
 	public static unsafe class Mem
 	{
-		public static bool Is64Bit => Environment.Is64BitProcess;
-
-
-		public static readonly int Size = IntPtr.Size;
+		public static readonly int Size = sizeof(nint);
 
 		/// <summary>
 		///     Represents a <c>null</c> <see cref="Pointer{T}" />
 		/// </summary>
 		public static readonly Pointer<byte> Nullptr = null;
+
+		public static bool Is64Bit => Environment.Is64BitProcess;
 
 		/// <summary>
 		///     Root abstraction of <see cref="Native.ReadProcessMemory" />
@@ -97,7 +90,7 @@ namespace Novus.Memory
 
 		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> ptrBase, int cb)
 		{
-			var mem = new byte[cb];
+			byte[] mem = new byte[cb];
 
 			fixed (byte* p = mem) {
 				ReadProcessMemory(proc, ptrBase, p, cb);
@@ -166,12 +159,41 @@ namespace Novus.Memory
 			return elemCnt * elemSize;
 		}
 
+		/// <summary>
+		///     Calculates the size of <typeparamref name="T" />
+		/// </summary>
+		public static int SizeOf<T>() => Unsafe.SizeOf<T>();
 
-		public static int SizeOf<T>()
-		{
-			return Unsafe.SizeOf<T>();
-		}
-
+		/// <summary>
+		///     Calculates the size of <typeparamref name="T" /> with <paramref name="options" />
+		///     <list type="bullet">
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.Native" />
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.Managed" />
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.Intrinsic" />
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.BaseFields" />
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.BaseInstance" />
+		///             </description>
+		///         </item>
+		///     </list>
+		/// </summary>
 		public static int SizeOf<T>(SizeOfOptions options)
 		{
 			MetaType mt = typeof(T);
@@ -191,13 +213,38 @@ namespace Novus.Memory
 
 		}
 
+		/// <summary>
+		///     Calculates the size of <paramref name="value" /> with <paramref name="options" />
+		///     <list type="bullet">
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.BaseFields" />
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.BaseInstance" />
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.Heap" />
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.Data" />
+		///             </description>
+		///         </item>
+		///         <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.BaseData" />
+		///             </description>
+		///         </item>
+		///     </list>
+		/// </summary>
 		public static int SizeOf<T>(T value, SizeOfOptions options)
 		{
-			if (options == SizeOfOptions.Auto) {
-				// Break into the next switch branch which will go to resolved case
-				options = Inspector.IsStruct(value) ? SizeOfOptions.Intrinsic : SizeOfOptions.Heap;
-			}
-
 			Guard.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
 
 			// Value is given
@@ -209,7 +256,7 @@ namespace Novus.Memory
 				SizeOfOptions.BaseFields   => mt.InstanceFieldsSize,
 				SizeOfOptions.BaseInstance => mt.BaseSize,
 				SizeOfOptions.Heap         => HeapSizeOfInternal(value),
-				SizeOfOptions.Data         => DataSizeOf<T>(value),
+				SizeOfOptions.Data         => DataSizeOf(value),
 				SizeOfOptions.BaseData     => BaseDataSizeOf(mt.RuntimeType),
 				_                          => Native.INVALID
 			};
@@ -228,103 +275,15 @@ namespace Novus.Memory
 			return mtx.InstanceFieldsSize;
 		}
 
-		private static int DataSizeOf<T>(T data)
+		private static int DataSizeOf<T>(T value)
 		{
-			if (Inspector.IsStruct(data)) {
+			if (Inspector.IsStruct(value)) {
 				return SizeOf<T>();
 			}
 
 			// Subtract the size of the ObjHeader and MethodTable*
-			return HeapSizeOfInternal(data) - RuntimeInfo.ObjectBaseSize;
+			return HeapSizeOfInternal(value) - RuntimeInfo.ObjectBaseSize;
 		}
-
-		/*public static int SizeOf<T>()
-		{
-			// todo
-
-			return Unsafe.SizeOf<T>();
-		}
-
-		public static int SizeOf2<T>(SizeOfOptions options = SizeOfOptions.Auto) => SizeOf2<T>(default, options);
-
-		public static int SizeOf2<T>(T value, SizeOfOptions options = SizeOfOptions.Intrinsic)
-		{
-			MetaType mt = typeof(T);
-
-			if (options == SizeOfOptions.Auto) {
-				// Break into the next switch branch which will go to resolved case
-				options = Inspector.IsStruct(value) ? SizeOfOptions.Intrinsic : SizeOfOptions.Heap;
-			}
-
-			// If a value was supplied
-			if (!Inspector.IsNil(value)) {
-				mt = new MetaType(value.GetType());
-
-				switch (options) {
-					case SizeOfOptions.BaseFields:   return mt.InstanceFieldsSize;
-					case SizeOfOptions.BaseInstance: return mt.BaseSize;
-					case SizeOfOptions.Heap:         return HeapSizeOfInternal(value);
-					case SizeOfOptions.Data:         return SizeOfData(value);
-					case SizeOfOptions.BaseData:     return BaseSizeOfData(mt.RuntimeType);
-				}
-			}
-
-			// Note: Arrays native size == 0
-			// Note: Arrays have no layout
-
-			switch (options) {
-				case SizeOfOptions.Native:
-					return mt.NativeSize;
-
-				case SizeOfOptions.Managed:
-					return mt.HasLayout ? mt.LayoutInfo.ManagedSize : Native.INVALID;
-
-				case SizeOfOptions.Intrinsic:
-					return SizeOf<T>();
-				case SizeOfOptions.BaseFields:
-					return mt.InstanceFieldsSize;
-
-				case SizeOfOptions.BaseInstance:
-					Guard.Assert(typeof(T) != typeof(string));
-					return mt.BaseSize;
-
-				case SizeOfOptions.Heap:
-				case SizeOfOptions.Data:
-					throw new ArgumentException($"A value must be supplied to use {options}");
-
-				case SizeOfOptions.Auto:
-				case SizeOfOptions.BaseData:
-					break;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(options), options, null);
-			}
-
-			static int SizeOfData(T data)
-			{
-				if (Inspector.IsStruct(data)) {
-					return SizeOf<T>();
-				}
-
-				// Subtract the size of the ObjHeader and MethodTable*
-				return HeapSizeOfInternal(data) - RuntimeInfo.ObjectBaseSize;
-			}
-
-			static int BaseSizeOfData(Type type)
-			{
-				var mtx = (MetaType) type;
-
-				if (mtx.RuntimeType.IsValueType) {
-					return (int) ReflectionHelper.CallGeneric(typeof(Mem).GetMethod(nameof(SizeOf)),
-						type, null);
-				}
-
-				// Subtract the size of the ObjHeader and MethodTable*
-				return mtx.InstanceFieldsSize;
-			}
-
-
-			return Native.INVALID;
-		}*/
 
 		/// <summary>
 		///     <para>Returns the address of <paramref name="value" />.</para>
@@ -366,14 +325,13 @@ namespace Novus.Memory
 		///     <para>Source: /src/vm/object.inl: 45</para>
 		///     <para>Equals the Son Of Strike "!do" command.</para>
 		///     <para>
-		///         Equals <see cref="SizeOf{T}" /> with <see cref="SizeOfOptions.BaseInstance" /> for objects
+		///         Equals <see cref="Mem.SizeOf{T}(T,SizeOfOptions)" /> with <see cref="SizeOfOptions.BaseInstance" /> for objects
 		///         that aren't arrays or strings.
 		///     </para>
 		///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 		/// </remarks>
 		/// <returns>The size of the type in heap memory, in bytes</returns>
-		public static int HeapSizeOf<T>(T value) where T : class
-			=> HeapSizeOfInternal(value);
+		public static int HeapSizeOf<T>(T value) where T : class => HeapSizeOfInternal(value);
 
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -454,10 +412,8 @@ namespace Novus.Memory
 			return true;
 		}
 
-		public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr)
-		{
-			return TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
-		}
+		public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr) =>
+			TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
 
 		/// <summary>
 		///     Returns the address of reference type <paramref name="value" />'s heap memory, offset by the specified
@@ -474,8 +430,11 @@ namespace Novus.Memory
 		/// <param name="offset">Offset type</param>
 		/// <returns>The address of <paramref name="value" /></returns>
 		/// <exception cref="ArgumentOutOfRangeException">If <paramref name="offset"></paramref> is out of range.</exception>
-		public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None) where T : class
-			=> AddressOfHeapInternal(value, offset);
+		public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
+			where T : class
+		{
+			return AddressOfHeapInternal(value, offset);
+		}
 
 		private static Pointer<byte> AddressOfHeapInternal<T>(T value, OffsetOptions offset)
 		{
@@ -548,19 +507,25 @@ namespace Novus.Memory
 			return null;
 		}
 
-		public static byte[] Copy(Pointer<byte> p, int o, int cb) => p.Copy(o, cb);
+		public static byte[] Copy(Pointer<byte> p, int o, int cb)
+		{
+			return p.Copy(o, cb);
+		}
 
-		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
+		public static byte[] Copy(Pointer<byte> p, int cb)
+		{
+			return p.Copy(cb);
+		}
 
 		/// <summary>
-		/// Reads a <see cref="byte"/> array as a <see cref="string"/> delimited by spaces in
-		/// hex number format
+		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
+		///     hex number format
 		/// </summary>
 		public static byte[] ReadBinaryString(string s)
 		{
 			var rg = new List<byte>();
 
-			var bytes = s.Split(Formatting.SPACE);
+			string[] bytes = s.Split(Formatting.SPACE);
 
 			foreach (string b in bytes) {
 				byte n = Byte.Parse(b, NumberStyles.HexNumber);
@@ -577,22 +542,36 @@ namespace Novus.Memory
 		/// <param name="value"><see cref="int" /> value to read from</param>
 		/// <param name="bitOfs">Beginning offset</param>
 		/// <param name="bitCount">Number of bits to read</param>
-		public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
+		public static int ReadBits(int value, int bitOfs, int bitCount)
+		{
+			return ((1 << bitCount) - 1) & (value >> bitOfs);
+		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool ReadBit(int value, int bitOfs) => (value & (1 << bitOfs)) != 0;
+		public static bool ReadBit(int value, int bitOfs)
+		{
+			return (value & (1 << bitOfs)) != 0;
+		}
 
-		public static int GetBitMask(int index, int size) => ((1 << size) - 1) << index;
+		public static int GetBitMask(int index, int size)
+		{
+			return ((1 << size) - 1) << index;
+		}
 
 
-		public static int ReadBitsFrom(int data, int index, int size) => (data & GetBitMask(index, size)) >> index;
+		public static int ReadBitsFrom(int data, int index, int size)
+		{
+			return (data & GetBitMask(index, size)) >> index;
+		}
 
 		public static int WriteBitsTo(int data, int index, int size, int value)
-			=> (data & ~GetBitMask(index, size)) | (value << index);
+		{
+			return (data & ~GetBitMask(index, size)) | (value << index);
+		}
 
 		public static string ReadCString(this BinaryReader br, int count)
 		{
-			var s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
+			string s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
 
 
 			return s;
@@ -639,7 +618,7 @@ namespace Novus.Memory
 
 		/// <summary>
 		///     Don't offset the heap pointer at all, so it
-		///     points to the <see cref="TypeHandle"/>
+		///     points to the <see cref="TypeHandle" />
 		/// </summary>
 		None
 	}

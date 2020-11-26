@@ -109,7 +109,7 @@ namespace Novus.Memory
 		public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 
 		/// <summary>
-		///     Checks to see if <see cref="other" /> is equal to the current instance.
+		///     Checks to see if <paramref name="other"/> is equal to the current instance.
 		/// </summary>
 		/// <param name="other">Other <see cref="Pointer{T}" />.</param>
 		/// <returns></returns>

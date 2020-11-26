@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.Win32
 {
@@ -9,7 +10,9 @@ namespace Novus.Win32
 		private const string KERNEL32_DLL = "Kernel32.dll";
 		
 		public const string CMD_EXE      = "cmd.exe";
+
 		public const string EXPLORER_EXE = "explorer.exe";
+
 		public const int    INVALID      = -1;
 
 		[DllImport(KERNEL32_DLL)]

@@ -21,7 +21,7 @@ namespace Novus.CoreClr.VM.EE
 		internal MethodTable* MethodTable { get; }
 
 		/// <summary>
-		/// <see cref="RelativePointer{T}"/> to <see cref="FieldDesc"/>
+		/// Relative <see cref="Pointer{T}"/> to <see cref="FieldDesc"/>
 		/// </summary>
 		private FieldDesc* FieldDescList { get; }
 

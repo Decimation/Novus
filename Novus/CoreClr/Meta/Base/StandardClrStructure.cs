@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Reflection;
 using Novus.Memory;
 using Novus.Win32;
@@ -8,7 +9,7 @@ namespace Novus.CoreClr.Meta.Base
 	/// <summary>
 	/// Describes a CLR structure that has metadata information.
 	/// </summary>
-	/// <typeparam name="TClr">CLR structure type (<see cref="IClrStructure"/>)</typeparam>
+	/// <typeparam name="TClr">CLR structure type</typeparam>
 	public abstract unsafe class StandardClrStructure<TClr> : BaseClrStructure<TClr>
 		where TClr : unmanaged
 	{

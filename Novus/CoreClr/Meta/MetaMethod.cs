@@ -63,13 +63,12 @@ namespace Novus.CoreClr.Meta
 		public MethodProperties     Properties     => Value.Reference.Properties;
 		public CodeFlags            Code           => Value.Reference.Code;
 		public ParamFlags           ParameterTypes => Value.Reference.Flags3AndTokenRemainder;
-		public MethodAttributes     Attributes     => MethodInfo.Attributes;
+		public MethodAttributes     Attributes     => Info.Attributes;
 
-		public MethodInfo MethodInfo => (MethodInfo) Info;
 
-		public override MemberInfo Info => (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
+		public override MethodInfo Info => (MethodInfo) (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
 
-		public void Prepare() => RuntimeHelpers.PrepareMethod(MethodInfo.MethodHandle);
+		public void Prepare() => RuntimeHelpers.PrepareMethod(Info.MethodHandle);
 
 		public long RVA => Value.Reference.RVA;
 
@@ -85,7 +84,7 @@ namespace Novus.CoreClr.Meta
 
 		public Pointer<byte> Function
 		{
-			get => MethodInfo.MethodHandle.GetFunctionPointer();
+			get => Info.MethodHandle.GetFunctionPointer();
 			//set => NativeCode = value;
 		}
 

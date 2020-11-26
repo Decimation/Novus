@@ -45,7 +45,7 @@ namespace Novus.Memory
 		/// <remarks>
 		/// <para>Only a type parameter is needed</para>
 		/// </remarks>
-		/// <returns><see cref="IntPtr.Size" /> for reference types, size for value types</returns>
+		/// <returns><see cref="Mem.Size" /> for reference types, size for value types</returns>
 		Intrinsic,
 
 		/// <summary>
@@ -118,12 +118,7 @@ namespace Novus.Memory
 		/// <returns>The size of the type in heap memory, in bytes</returns>
 		Heap,
 
-		/// <summary>
-		///     Calculates the complete size of the value's data. If the type parameter is
-		///     a value type, this is equal to option <see cref="Intrinsic"/>. If the type parameter is a
-		///     reference type, this is equal to <see cref="Heap"/>.
-		/// </summary>
-		Auto,
+		
 
 		/// <summary>
 		/// Requires a value.

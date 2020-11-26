@@ -24,7 +24,7 @@ namespace UnitTest
 			var mf = f.AsMetaField();
 
 
-			Assert.AreEqual(mf.FieldInfo, f);
+			Assert.AreEqual(mf.Info, f);
 			Assert.AreEqual(mf.Token, f.MetadataToken);
 			Assert.AreEqual(mf.Attributes, f.Attributes);
 			Assert.AreEqual(mf.IsStatic, f.IsStatic);
@@ -69,7 +69,10 @@ namespace UnitTest
 
 			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.Heap), Native.INVALID);
 
-			
+			Assert.Throws<ArgumentException>(() =>
+			{
+				Mem.SizeOf<string>(null, SizeOfOptions.Heap);
+			});
 		}
 
 		[Test]

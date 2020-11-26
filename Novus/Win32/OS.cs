@@ -23,7 +23,6 @@ namespace Novus.Win32
 		/// </summary>
 		public const char PATH_DELIM = ';';
 
-		public const string KERNEL32_DLL = "kernel32.dll";
 
 		/// <summary>
 		///     Environment variable target

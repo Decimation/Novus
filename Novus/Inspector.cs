@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using Novus.CoreClr;
 using Novus.Utilities;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus
 {

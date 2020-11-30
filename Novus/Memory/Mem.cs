@@ -163,7 +163,10 @@ namespace Novus.Memory
 		/// <summary>
 		///     Calculates the size of <typeparamref name="T" />
 		/// </summary>
-		public static int SizeOf<T>() => Unsafe.SizeOf<T>();
+		public static int SizeOf<T>()
+		{
+			return Unsafe.SizeOf<T>();
+		}
 
 		/// <summary>
 		///     Calculates the size of <typeparamref name="T" /> with <paramref name="options" />
@@ -242,7 +245,7 @@ namespace Novus.Memory
 		///                 <see cref="SizeOfOptions.BaseData" />
 		///             </description>
 		///         </item>
-		/// <item>
+		///         <item>
 		///             <description>
 		///                 <see cref="SizeOfOptions.Auto" />
 		///             </description>
@@ -257,16 +260,28 @@ namespace Novus.Memory
 
 			var mt = new MetaType(value.GetType());
 
-			return options switch
-			{
-				SizeOfOptions.BaseFields   => mt.InstanceFieldsSize,
-				SizeOfOptions.BaseInstance => mt.BaseSize,
-				SizeOfOptions.Heap         => HeapSizeOfInternal(value),
-				SizeOfOptions.Data         => DataSizeOf(value),
-				SizeOfOptions.BaseData     => BaseDataSizeOf(mt.RuntimeType),
-				SizeOfOptions.Auto         => Inspector.IsStruct(value) ? SizeOf<T>() : HeapSizeOfInternal(value),
-				_                          => Native.INVALID
-			};
+			switch (options) {
+				case SizeOfOptions.BaseFields:
+					return mt.InstanceFieldsSize;
+				case SizeOfOptions.BaseInstance:
+					return mt.BaseSize;
+				case SizeOfOptions.Heap:
+					return HeapSizeOfInternal(value);
+				case SizeOfOptions.Data:
+					return DataSizeOf(value);
+				case SizeOfOptions.BaseData:
+					return BaseDataSizeOf(mt.RuntimeType);
+				case SizeOfOptions.Auto:
+
+					if (Inspector.IsStruct(value)) {
+						return SizeOf<T>(SizeOfOptions.Intrinsic);
+					}
+
+					else goto case SizeOfOptions.Heap;
+
+				default:
+					return Native.INVALID;
+			}
 
 		}
 
@@ -292,6 +307,13 @@ namespace Novus.Memory
 			return HeapSizeOfInternal(value) - RuntimeInfo.ObjectBaseSize;
 		}
 
+		public static int OffsetOf(MetaType t, string name)
+		{
+			var f = t.GetField(name);
+
+			return f.Offset;
+		}
+
 		/// <summary>
 		///     <para>Returns the address of <paramref name="value" />.</para>
 		/// </summary>
@@ -306,18 +328,16 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		///     <para>Calculates the complete size of a reference type in heap memory.</para>
-		///     <para>This is the most accurate size calculation.</para>
-		///     <para>
-		///         This follows the size formula of: (<see cref="MethodTable.BaseSize" />) + (length) *
-		///         (<see cref="MethodTable.ComponentSize" />)
-		///     </para>
-		///     <para>where:</para>
+		///     Calculates the complete size of a reference type in heap memory.
+		///     This is the most accurate size calculation.
+		///     This follows the size formula of: (<see cref="MethodTable.BaseSize" />) + (length) *
+		///     (<see cref="MethodTable.ComponentSize" />)
+		///     where:
 		///     <list type="bullet">
 		///         <item>
 		///             <description>
 		///                 <see cref="MethodTable.BaseSize" /> = The base instance size of a type
-		///                 (<see cref="RuntimeInfo.MinObjectSize"/> by default)
+		///                 (<see cref="RuntimeInfo.MinObjectSize" /> by default)
 		///             </description>
 		///         </item>
 		///         <item>

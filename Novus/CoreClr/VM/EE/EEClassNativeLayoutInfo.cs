@@ -15,7 +15,7 @@ namespace Novus.CoreClr.VM.EE
 	public unsafe struct EEClassNativeLayoutInfo
 	{
 		internal byte   Alignment     { get; }
-		internal byte   IsMarshalable { get; }
+		internal bool   IsMarshalable { get; }
 		private  ushort Padding       { get; }
 		internal uint   Size          { get; }
 		internal uint   NumFields     { get; }

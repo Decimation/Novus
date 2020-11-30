@@ -113,7 +113,36 @@ namespace Novus.CoreClr.Meta
 
 		public Pointer<byte> OptionalFields => EEClass.Reference.OptionalFields;
 
+
 		public IEnumerable<MetaField> Fields => RuntimeType.GetAllFields().Select(f => new MetaField(f));
+
+
+		
+		public MetaField GetField(string name)
+		{
+			// todo
+
+			var field = Fields.FirstOrDefault(f => f.Name == name);
+
+			if (field is null) {
+				throw new NullReferenceException();
+			}
+
+			return field;
+		}
+
+		public MetaMethod GetMethod(string name)
+		{
+			// todo
+
+			var method = Methods.FirstOrDefault(f => f.Name == name);
+
+			if (method is null) {
+				throw new NullReferenceException();
+			}
+
+			return method;
+		}
 
 		public IEnumerable<MetaMethod> Methods => RuntimeType.GetAllMethods().Select(f => new MetaMethod(f));
 
@@ -127,9 +156,9 @@ namespace Novus.CoreClr.Meta
 			}
 		}
 
-		public bool IsMarshalable => NativeLayoutInfo.Reference.IsMarshalable > 0;
+		public bool IsMarshalable => NativeLayoutInfo.Reference.IsMarshalable;
 
-		public int NumFields => (int) NativeLayoutInfo.Reference.NumFields;
+		public int NativeFieldsCount => (int) NativeLayoutInfo.Reference.NumFields;
 
 
 		private Pointer<EEClassLayoutInfo> LayoutInfo

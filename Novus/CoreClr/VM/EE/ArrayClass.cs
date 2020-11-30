@@ -1,8 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Interop;
 
-namespace Novus.CoreClr.VM
+namespace Novus.CoreClr.VM.EE
 {
+	/// <summary>
+	/// Substructure of <see cref="EEClass"/>
+	/// </summary>
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public struct ArrayClass

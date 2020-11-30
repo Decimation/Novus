@@ -42,6 +42,10 @@ namespace UnitTest
 			Assert.AreEqual(mt.RuntimeType, t);
 			Assert.AreEqual(mt.Token, t.MetadataToken);
 			Assert.AreEqual(mt.Attributes, t.Attributes);
+			Assert.True(mt.HasComponentSize);
+			Assert.True(mt.IsString);
+			Assert.True(mt.IsStringOrArray);
+			Assert.AreEqual(mt.ComponentSize, sizeof(char));
 
 
 			AssertAll(!mt.IsInteger, 
@@ -64,7 +68,21 @@ namespace UnitTest
 				mtf.IsReal, 
 				mtf.IsNumeric);
 
+			var rg1 = new int[1];
 
+			var mtrg1 = rg1.GetType().AsMetaType();
+			Assert.AreEqual(rg1.Rank, mtrg1.ArrayRank);
+			Assert.True(mtrg1.HasComponentSize);
+			Assert.AreEqual(mtrg1.ComponentSize, sizeof(int));
+			Assert.AreEqual(rg1.GetType().GetElementType(), mtrg1.ElementTypeHandle.RuntimeType);
+
+
+			var rg2   = new int[1,1];
+
+			var mtrg2 = rg2.GetType().AsMetaType();
+			Assert.AreEqual(rg2.Rank, mtrg2.ArrayRank);
+
+			Assert.AreEqual(rg2.GetType().GetElementType(), mtrg2.ElementTypeHandle.RuntimeType);
 		}
 
 		public static void AssertAll<T>(T t, params Func<T, bool>[] fn)

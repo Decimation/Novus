@@ -56,14 +56,15 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			var mt = typeof(bool).AsMetaType();
-			Console.WriteLine(mt.HasLayout);
-			
-			Console.WriteLine();
-			Console.WriteLine(sizeof(EEClassNativeLayoutInfo).ToString("X"));
-			Console.ReadLine();
+			Console.WriteLine(sizeof(bool));
 
+			var p = new Point();
+			Inspector.DumpLayout(p);
+
+			Inspector.DumpLayout("foo");
 		}
+
+		
 
 		private static void sayhi()
 		{

@@ -26,9 +26,9 @@ namespace Novus.CoreClr.Meta
 		//public object GetValue(object value) => FieldInfo.GetValue(value);
 
 
-		internal MetaField(Pointer<FieldDesc> ptr) : base(ptr) { }
+		public MetaField(Pointer<FieldDesc> ptr) : base(ptr) { }
 
-		internal MetaField(FieldInfo ptr) : this(RuntimeInfo.ResolveHandle(ptr)) { }
+		public MetaField(FieldInfo ptr) : base(ptr) { }
 
 
 		public CorElementType Element => Value.Reference.Element;

@@ -1,5 +1,6 @@
 ﻿using System;
 using Novus.Win32;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.CoreClr
 {

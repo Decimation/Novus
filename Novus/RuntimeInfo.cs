@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Novus.CoreClr;
+using Novus.CoreClr.Meta;
 using Novus.CoreClr.VM;
 using Novus.Memory;
 using SimpleCore.Diagnostics;
@@ -114,23 +115,29 @@ namespace Novus
 		/// <summary>
 		///     Alias: PTR_HOST_MEMBER_TADDR (alt)
 		/// </summary>
-		internal static Pointer<byte> FieldOffsetAlt<T>(ref T value, long ofs, Pointer<byte> fieldValue)
+		internal static Pointer<byte> FieldOffset<T>(ref T value, long ofs, Pointer<byte> fieldValue)
 			where T : unmanaged
 		{
 			return Mem.AddressOf(ref value).Add((long) fieldValue).Add(ofs).Cast();
 		}
 
-		internal static Pointer<TSub> ReadSubStructure<TSuper, TSub>(Pointer<TSuper> super)
+		/// <summary>
+		/// Reads inherited substructure <typeparamref name="TSub"/> from parent <typeparamref name="TSuper"/>.
+		/// </summary>
+		/// <typeparam name="TSuper">Superstructure (parent) type</typeparam>
+		/// <typeparam name="TSub">Substructure (child) type</typeparam>
+		/// <param name="super">Superstructure pointer</param>
+		/// <returns>Substructure pointer</returns>
+		public static Pointer<TSub> ReadSubStructure<TSuper, TSub>(Pointer<TSuper> super)
 		{
 			int size = Mem.SizeOf<TSuper>();
 			return super.Add(size).Cast<TSub>();
 		}
 
-		internal static Pointer<MethodTable> ReadTypeHandle<T>(T value)
+
+		public static Pointer<MethodTable> ReadTypeHandle<T>(T value)
 		{
 			var type = value.GetType();
-
-
 			return ReadTypeHandle(type);
 		}
 
@@ -140,7 +147,7 @@ namespace Novus
 		/// <param name="member">Reflection type</param>
 		/// <returns>A pointer to the corresponding structure</returns>
 		/// <exception cref="InvalidOperationException">The type of <see cref="MemberInfo" /> doesn't have a handle</exception>
-		internal static Pointer<byte> ResolveHandle(MemberInfo member)
+		public static Pointer<byte> ResolveHandle(MemberInfo member)
 		{
 			Guard.AssertNotNull(member, nameof(member));
 
@@ -153,7 +160,7 @@ namespace Novus
 			};
 		}
 
-		internal static Type ResolveType(Pointer<byte> handle)
+		public static Type ResolveType(Pointer<MethodTable> handle)
 		{
 			//return GetTypeFromHandle(handle.Address);
 			//todo
@@ -167,23 +174,10 @@ namespace Novus
 			//
 			// return type;
 
-			return ClrFunctions.Func_GetTypeFromHandle(handle.Address);
+			return Functions.Func_GetTypeFromHandle(handle.Address);
 		}
 
-		public static Assembly GetAssemblyByName(string name)
-		{
-			return AppDomain.CurrentDomain.GetAssemblies()
-				.SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
-		}
-
-		public static IEnumerable<AssemblyName> GetUserDependencies(Assembly asm)
-		{
-			const string SYSTEM = "System";
-
-			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
-		}
-
-		internal static Pointer<MethodTable> ReadTypeHandle(Type t)
+		public static Pointer<MethodTable> ReadTypeHandle(Type t)
 		{
 			var handle          = t.TypeHandle.Value;
 			var typeHandleValue = *(TypeHandle*) &handle;

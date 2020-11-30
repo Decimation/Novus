@@ -13,7 +13,6 @@ using Novus.Properties;
 
 namespace Novus.CoreClr.VM
 {
-	
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct TypeHandle
@@ -27,7 +26,7 @@ namespace Novus.CoreClr.VM
 			{
 				fixed (TypeHandle* p = &this) {
 
-					return ClrFunctions.Func_GetMethodTable(p);
+					return Functions.Func_GetMethodTable(p);
 				}
 			}
 		}

@@ -138,6 +138,9 @@ namespace Novus.Memory
 		/// If the value is a value type, this returns <see cref="Mem.SizeOf{T}()" />.
 		/// 
 		/// </summary>
-		BaseData
+		BaseData,
+
+
+		Auto,
 	}
 }

@@ -42,7 +42,7 @@ namespace Novus.CoreClr.VM
 
 				fixed (FieldDesc* p = &this) {
 
-					return ClrFunctions.Func_GetSize(p);
+					return Functions.Func_GetSize(p);
 				}
 			}
 		}
@@ -54,8 +54,8 @@ namespace Novus.CoreClr.VM
 				// m_pMTOfEnclosingClass.GetValue(PTR_HOST_MEMBER_TADDR(FieldDesc, this, m_pMTOfEnclosingClass));
 
 				const int MT_FIELD_OFS = 0;
-
-				return RuntimeInfo.FieldOffset((MethodTable*) EnclosingMethodTableStub.ToUInt64(), MT_FIELD_OFS);
+				
+				return RuntimeInfo.FieldOffset((MethodTable*) EnclosingMethodTableStub, MT_FIELD_OFS);
 			}
 		}
 

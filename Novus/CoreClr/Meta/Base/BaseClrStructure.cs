@@ -30,6 +30,7 @@ namespace Novus.CoreClr.Meta.Base
 		{
 			Value = ptr;
 		}
+
 		protected BaseClrStructure(MemberInfo member) : this(RuntimeInfo.ResolveHandle(member)) { }
 
 

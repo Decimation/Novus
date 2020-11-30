@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using Novus.Interop;
 using Novus.Memory;
 using Novus.Properties;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 
@@ -36,16 +37,12 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				
-
 				fixed (MethodDesc* p = &this) {
-					var mt = ClrFunctions.Func_IsPointingToNativeCode(p);
+					var mt = Functions.Func_IsPointingToNativeCode(p);
 					//todo
 					return mt > 0;
 				}
 			}
-
-
 		}
 
 
@@ -53,11 +50,9 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				
-
 				fixed (MethodDesc* p = &this) {
 
-					return ClrFunctions.Func_GetNativeCode(p);
+					return Functions.Func_GetNativeCode(p);
 				}
 			}
 		}
@@ -69,7 +64,7 @@ namespace Novus.CoreClr.VM
 			{
 				fixed (MethodDesc* p = &this) {
 
-					return ClrFunctions.Func_GetToken(p);
+					return Functions.Func_GetToken(p);
 				}
 			}
 		}
@@ -88,17 +83,15 @@ namespace Novus.CoreClr.VM
 		*/
 		internal long RVA
 		{
-			
 			get
 			{
+				fixed (MethodDesc* p = &this) {
 
-				fixed (MethodDesc* p = &this)
-				{
-
-					return ClrFunctions.Func_GetRVA(p);
+					return Functions.Func_GetRVA(p);
 				}
 			}
 		}
+
 		private static int Alignment
 		{
 			get

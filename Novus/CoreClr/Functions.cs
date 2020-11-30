@@ -10,40 +10,43 @@ using Novus.Utilities;
 
 namespace Novus.CoreClr
 {
-	internal static unsafe class ClrFunctions
+	/// <summary>
+	/// CLR functions
+	/// </summary>
+	public static unsafe class Functions
 	{
 		/// <summary>
-		/// <seealso cref="TypeHandle.MethodTable"/>
+		/// <see cref="TypeHandle.MethodTable"/>
 		/// </summary>
 		internal static delegate* unmanaged<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
 
 		/// <summary>
-		/// <seealso cref="FieldDesc.Size"/>
+		/// <see cref="FieldDesc.Size"/>
 		/// </summary>
 		internal static delegate* unmanaged<FieldDesc*, int> Func_GetSize { get; }
 
 		/// <summary>
-		/// <seealso cref="MethodDesc.IsPointingToNativeCode"/>
+		/// <see cref="MethodDesc.IsPointingToNativeCode"/>
 		/// </summary>
 		internal static delegate* unmanaged<MethodDesc*, int> Func_IsPointingToNativeCode { get; }
 
 		/// <summary>
-		/// <seealso cref="MethodDesc.NativeCode"/>
+		/// <see cref="MethodDesc.NativeCode"/>
 		/// </summary>
 		internal static delegate* unmanaged<MethodDesc*, void*> Func_GetNativeCode { get; }
 
 		/// <summary>
-		/// <seealso cref="MethodDesc.Token"/>
+		/// <see cref="MethodDesc.Token"/>
 		/// </summary>
 		internal static delegate* unmanaged<MethodDesc*, int> Func_GetToken { get; }
 
 		/// <summary>
-		/// <seealso cref="MethodDesc.RVA"/>
+		/// <see cref="MethodDesc.RVA"/>
 		/// </summary>
 		internal static delegate* unmanaged<MethodDesc*, long> Func_GetRVA { get; }
 
 		/// <summary>
-		/// <seealso cref="MethodTable.EEClass"/>
+		/// <see cref="MethodTable.EEClass"/>
 		/// </summary>
 		internal static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
 
@@ -52,7 +55,7 @@ namespace Novus.CoreClr
 		/// </summary>
 		internal static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 
-		internal static GetTypeFromHandleDelegate                                   Func_GetTypeFromHandle   { get; }
+		internal static GetTypeFromHandleDelegate Func_GetTypeFromHandle { get; }
 
 
 		internal static IsPinnableDelegate Func_IsPinnable { get; }
@@ -62,9 +65,9 @@ namespace Novus.CoreClr
 
 		internal delegate Type GetTypeFromHandleDelegate(IntPtr i);
 
-		static ClrFunctions()
+		static Functions()
 		{
-			Debug.WriteLine($"{nameof(ClrFunctions)}");
+			Debug.WriteLine($"{nameof(Functions)}");
 
 
 			Func_GetMethodTable = (delegate* unmanaged<TypeHandle*, MethodTable*>) Resources.Clr.Scanner.FindSignature(

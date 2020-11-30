@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 using Novus.CoreClr;
+using Novus.CoreClr.Meta;
+using Novus.Memory;
 using Novus.Utilities;
 // ReSharper disable UnusedMember.Global
 
@@ -9,6 +13,8 @@ namespace Novus
 {
 	/// <summary>
 	/// <seealso cref="ReflectionHelper"/>
+	/// <seealso cref="Mem"/>
+	/// <seealso cref="RuntimeInfo"/>
 	/// </summary>
 	public static unsafe class Inspector
 	{
@@ -38,9 +44,28 @@ namespace Novus
 
 		public static bool IsPinnable([CanBeNull] object o)
 		{
-			var b = ClrFunctions.Func_IsPinnable(o);
+			var b = Functions.Func_IsPinnable(o);
 
 			return b;
+		}
+
+
+
+		public static void DumpLayout<T>(T t = default)
+		{
+			var sb = new StringBuilder();
+			var mt = t.GetType().AsMetaType();
+			var f  = mt.Fields.Where(x=>!x.IsStatic);
+			var s  = Mem.SizeOf<T>(t, SizeOfOptions.Auto);
+
+			sb.AppendLine($"{mt.Name} ({s}):\n");
+
+			foreach (var metaField in f) {
+				sb.AppendLine($"0x{metaField.Offset:X} | {metaField.Size} | ({metaField.FieldType.Name}) {metaField.Name}");
+			}
+
+
+			Console.WriteLine(sb);
 		}
 	}
 }

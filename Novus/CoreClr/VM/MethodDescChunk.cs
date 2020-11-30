@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using Novus.Interop;
 using Novus.Memory;
+
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.CoreClr.VM
@@ -41,10 +42,9 @@ namespace Novus.CoreClr.VM
 				// for MDC: m_methodTable.GetValue(PTR_HOST_MEMBER_TADDR(MethodDescChunk, this, m_methodTable));
 
 				const int MT_FIELD_OFS = 0;
-				return RuntimeInfo.FieldOffset((MethodTable*)MethodTableStub.ToPointer(), MT_FIELD_OFS);
+				return RuntimeInfo.FieldOffset((MethodTable*) MethodTableStub.ToPointer(), MT_FIELD_OFS);
 			}
 		}
-
 	}
 
 	[Flags]
@@ -55,7 +55,6 @@ namespace Novus.CoreClr.VM
 		///     These are separate to allow the flags space available and used to be obvious here
 		///     and for the logic that splits the token to be algorithmically generated based on the #define
 		/// </summary>
-		
 		TokenRangeMask = 0x03FF,
 
 		/// <summary>

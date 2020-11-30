@@ -5,6 +5,9 @@ using Novus.Interop;
 
 namespace Novus.CoreClr.VM.EE
 {
+	/// <summary>
+	/// Substructure of <see cref="EEClass"/>
+	/// </summary>
 	[NativeStructure]
 	[StructLayout(LayoutKind.Explicit)]
 	public unsafe struct LayoutEEClass

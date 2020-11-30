@@ -242,11 +242,16 @@ namespace Novus.Memory
 		///                 <see cref="SizeOfOptions.BaseData" />
 		///             </description>
 		///         </item>
+		/// <item>
+		///             <description>
+		///                 <see cref="SizeOfOptions.Auto" />
+		///             </description>
+		///         </item>
 		///     </list>
 		/// </summary>
 		public static int SizeOf<T>(T value, SizeOfOptions options)
 		{
-			Guard.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
+			//Guard.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
 
 			// Value is given
 
@@ -259,6 +264,7 @@ namespace Novus.Memory
 				SizeOfOptions.Heap         => HeapSizeOfInternal(value),
 				SizeOfOptions.Data         => DataSizeOf(value),
 				SizeOfOptions.BaseData     => BaseDataSizeOf(mt.RuntimeType),
+				SizeOfOptions.Auto         => Inspector.IsStruct(value) ? SizeOf<T>() : HeapSizeOfInternal(value),
 				_                          => Native.INVALID
 			};
 
@@ -311,7 +317,7 @@ namespace Novus.Memory
 		///         <item>
 		///             <description>
 		///                 <see cref="MethodTable.BaseSize" /> = The base instance size of a type
-		///                 (<c>24</c> (x64) or <c>12</c> (x86) by default) (<see cref="RuntimeInfo.MinObjectSize" />)
+		///                 (<see cref="RuntimeInfo.MinObjectSize"/> by default)
 		///             </description>
 		///         </item>
 		///         <item>
@@ -341,10 +347,6 @@ namespace Novus.Memory
 			// Sanity check
 			Guard.Assert(!Inspector.IsStruct(value));
 
-			if (Inspector.IsNil(value)) {
-				return Native.INVALID;
-			}
-
 			// By manually reading the MethodTable*, we can calculate the size correctly if the reference
 			// is boxed or cloaked
 			var methodTable = RuntimeInfo.ReadTypeHandle(value);
@@ -352,13 +354,6 @@ namespace Novus.Memory
 			// Value of GetSizeField()
 			int length = 0;
 
-			// Type			x86 size				x64 size
-			// 
-			// object		12						24
-			// object[]		16 + length * 4			32 + length * 8
-			// int[]		12 + length * 4			28 + length * 4
-			// byte[]		12 + length				24 + length
-			// string		14 + length * 2			26 + length * 2
 
 			// From object.h line 65:
 
@@ -377,24 +372,10 @@ namespace Novus.Memory
 			// So for Object, since this is of fixed size, the ComponentSize is 0, which makes the right side
 			// of the equation above equal to 0 no matter what the value of GetSizeField(), so the size is just the base size.
 
-			if (Inspector.IsArray(value)) {
-				var arr = value as Array;
-				Guard.AssertNotNull(arr, nameof(arr));
-
-
-				// We already know it's not null because the type is an array.
+			if (value is Array arr) {
 				length = arr.Length;
-
-				// Sanity check
-				Guard.Assert(!Inspector.IsString(value));
 			}
-			else if (Inspector.IsString(value)) {
-				string str = value as string;
-
-				// Sanity check
-				Guard.Assert(!Inspector.IsArray(value));
-				Guard.AssertNotNull(str, nameof(str));
-
+			else if (value is string str) {
 				length = str.Length;
 			}
 

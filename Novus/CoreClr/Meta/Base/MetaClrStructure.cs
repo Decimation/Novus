@@ -10,7 +10,7 @@ namespace Novus.CoreClr.Meta.Base
 	/// Describes a CLR structure that has metadata information.
 	/// </summary>
 	/// <typeparam name="TClr">CLR structure type</typeparam>
-	public abstract unsafe class StandardClrStructure<TClr> : BaseClrStructure<TClr>
+	public abstract unsafe class MetaClrStructure<TClr> : BaseClrStructure<TClr>
 		where TClr : unmanaged
 	{
 		public virtual string Name => Info?.Name;
@@ -19,9 +19,9 @@ namespace Novus.CoreClr.Meta.Base
 
 		public abstract int Token { get; }
 
-		internal StandardClrStructure(Pointer<TClr> ptr) : base(ptr) { }
+		internal MetaClrStructure(Pointer<TClr> ptr) : base(ptr) { }
 
-		protected StandardClrStructure(MemberInfo member) : base(member) { }
+		protected MetaClrStructure(MemberInfo member) : base(member) { }
 
 
 		public override string ToString()
@@ -39,10 +39,10 @@ namespace Novus.CoreClr.Meta.Base
 			return Native.INVALID;
 		}
 
-		public static bool operator ==(StandardClrStructure<TClr> left, StandardClrStructure<TClr> right) =>
+		public static bool operator ==(MetaClrStructure<TClr> left, MetaClrStructure<TClr> right) =>
 			Equals(left, right);
 
-		public static bool operator !=(StandardClrStructure<TClr> left, StandardClrStructure<TClr> right) =>
+		public static bool operator !=(MetaClrStructure<TClr> left, MetaClrStructure<TClr> right) =>
 			!Equals(left, right);
 	}
 }

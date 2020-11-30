@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -140,5 +141,18 @@ namespace Novus.Utilities
 		}
 
 		public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
+
+		public static Assembly GetAssemblyByName(string name)
+		{
+			return AppDomain.CurrentDomain.GetAssemblies()
+				.SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
+		}
+
+		public static IEnumerable<AssemblyName> GetUserDependencies(Assembly asm)
+		{
+			const string SYSTEM = "System";
+
+			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
+		}
 	}
 }

@@ -70,7 +70,7 @@ namespace Novus.CoreClr.VM
 
 				fixed (MethodTable* p = &this) {
 
-					return ClrFunctions.Func_GetClass(p);
+					return Functions.Func_GetClass(p);
 				}
 			}
 		}
@@ -97,9 +97,8 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				fixed(MethodTable* p = &this)
-				{
-					return ClrFunctions.Func_GetNativeLayoutInfo(p);
+				fixed (MethodTable* p = &this) {
+					return Functions.Func_GetNativeLayoutInfo(p);
 				}
 			}
 		}
@@ -348,7 +347,6 @@ namespace Novus.CoreClr.VM
 	///         Use with <see cref="UnionType" />
 	///     </remarks>
 	/// </summary>
-	//	[Flags]
 	public enum UnionType
 	{
 		/// <summary>

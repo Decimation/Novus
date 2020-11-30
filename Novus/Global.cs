@@ -57,7 +57,7 @@ namespace Novus
 
 			foreach (var assembly in rg) {
 
-				var dependencies = RuntimeInfo.GetUserDependencies(assembly);
+				var dependencies = ReflectionHelper.GetUserDependencies(assembly);
 
 				asm.UnionWith(dependencies);
 

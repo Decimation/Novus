@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Novus.CoreClr.Meta.Base;
 using Novus.CoreClr.VM;
 using Novus.CoreClr.VM.EE;
@@ -12,7 +14,6 @@ using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
-
 
 
 #nullable enable
@@ -25,16 +26,16 @@ namespace Novus.CoreClr.Meta
 		public static MetaField AsMetaField(this FieldInfo t) => new(t);
 
 		public static MetaType AsMetaType(this Type t) => new(t);
-		
-		
-		public static MetaType meta_typeof<T>(Expression<Func<T>> expression)
+
+
+		/*public static MetaType meta_typeof<T>(Expression<Func<T>> expression)
 		{
-			var body = (TypeBinaryExpression)expression.Body;
+			var body = (TypeBinaryExpression) expression.Body;
 			return body.Type;
 		}
 
 
-		/*public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
+		public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
 		{
 			MemberExpression body = (MemberExpression)expression.Body;
 			return (FieldInfo)body.Member;
@@ -57,8 +58,8 @@ namespace Novus.CoreClr.Meta
 	///     <list type="bullet">
 	///         <item>
 	///             <description>
-	///                 CLR structure: <see cref="MethodTable" />, <see cref="EEClass" />, 
-	///                 <see cref="TypeHandle" />, <see cref="EEClassLayoutInfo"/>
+	///                 CLR structure: <see cref="VM.MethodTable" />, <see cref="VM.EE.EEClass" />, 
+	///                 <see cref="VM.TypeHandle" />, <see cref="VM.EE.EEClassLayoutInfo"/>, <see cref="VM.EE.ArrayClass"/>
 	///             </description>
 	///         </item>
 	///         <item>
@@ -66,11 +67,12 @@ namespace Novus.CoreClr.Meta
 	///         </item>
 	///     </list>
 	/// </summary>
-	public unsafe class MetaType : StandardClrStructure<MethodTable>
+	public unsafe class MetaType : MetaClrStructure<MethodTable>
 	{
-		internal MetaType(Pointer<MethodTable> mt) : base(mt) { }
+		public MetaType(Pointer<MethodTable> mt) : base(mt) { }
 
-		internal MetaType(Type t) : this(RuntimeInfo.ResolveHandle(t)) { }
+		public MetaType(Type t) : base(t) { }
+
 
 		public TypeAttributes Attributes => EEClass.Reference.Attributes;
 
@@ -79,11 +81,15 @@ namespace Novus.CoreClr.Meta
 		/// </summary>
 		public int BaseSizePadding => EEClass.Reference.BaseSizePadding;
 
-		public Pointer<byte> Chunks             => EEClass.Reference.Chunks;
-		public bool          FieldsArePacked    => EEClass.Reference.FieldsArePacked;
-		public int           FieldsCount        => EEClass.Reference.FieldListLength;
-		public int           FixedEEClassFields => EEClass.Reference.FixedEEClassFields;
-		public Pointer<byte> GuidInfo           => EEClass.Reference.GuidInfo;
+		public Pointer<byte> Chunks => EEClass.Reference.Chunks;
+
+		public bool FieldsArePacked => EEClass.Reference.FieldsArePacked;
+
+		public int FieldsCount => EEClass.Reference.FieldListLength;
+
+		public int FixedEEClassFields => EEClass.Reference.FixedEEClassFields;
+
+		public Pointer<byte> GuidInfo => EEClass.Reference.GuidInfo;
 
 		public int InstanceFieldsCount => EEClass.Reference.NumInstanceFields;
 
@@ -92,14 +98,24 @@ namespace Novus.CoreClr.Meta
 		/// </summary>
 		public int InstanceFieldsSize => BaseSize - BaseSizePadding;
 
-		public CorInterfaceType InterfaceType        => EEClass.Reference.InterfaceType;
-		public int              MethodsCount         => EEClass.Reference.NumMethods;
-		public int              NativeSize           => (int) NativeLayoutInfo.Reference.Size;
-		public int              NonVirtualSlotsCount => EEClass.Reference.NumNonVirtualSlots;
-		public CorElementType   NormType             => EEClass.Reference.NormType;
+		public CorInterfaceType InterfaceType => EEClass.Reference.InterfaceType;
+
+		public int MethodsCount => EEClass.Reference.NumMethods;
+
+		/// <summary>
+		/// Equals <see cref="Marshal.SizeOf(Type)"/>, <see cref="Marshal.SizeOf{T}()"/>
+		/// </summary>
+		public int NativeSize => (int) NativeLayoutInfo.Reference.Size;
+
+		public int NonVirtualSlotsCount => EEClass.Reference.NumNonVirtualSlots;
+
+		public CorElementType NormType => EEClass.Reference.NormType;
 
 		public Pointer<byte> OptionalFields => EEClass.Reference.OptionalFields;
 
+		public IEnumerable<MetaField> Fields => RuntimeType.GetAllFields().Select(f => new MetaField(f));
+
+		public IEnumerable<MetaMethod> Methods => RuntimeType.GetAllMethods().Select(f => new MetaMethod(f));
 
 		private Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 		{
@@ -112,8 +128,8 @@ namespace Novus.CoreClr.Meta
 		}
 
 		public bool IsMarshalable => NativeLayoutInfo.Reference.IsMarshalable > 0;
-		
-		public int NumFields2 => (int) NativeLayoutInfo.Reference.NumFields;
+
+		public int NumFields => (int) NativeLayoutInfo.Reference.NumFields;
 
 
 		private Pointer<EEClassLayoutInfo> LayoutInfo
@@ -128,7 +144,7 @@ namespace Novus.CoreClr.Meta
 
 		public int ManagedSize => LayoutInfo.Reference.ManagedSize;
 
-		public LayoutFlags Flags => LayoutInfo.Reference.Flags;
+		public LayoutFlags LayoutFlags => LayoutInfo.Reference.Flags;
 
 		public int PackingSize => LayoutInfo.Reference.PackingSize;
 
@@ -138,9 +154,6 @@ namespace Novus.CoreClr.Meta
 		public int StaticFieldsCount => EEClass.Reference.NumStaticFields;
 
 		public VMFlags VMFlags => EEClass.Reference.VMFlags;
-		//		public MemberInfo[] GetOriginalMember(string name) => RuntimeType.GetAnyMember(name);
-
-		//		public MemberInfo GetFirstOriginalMember(string name) => GetOriginalMember(name)[0];
 
 		public bool ContainsPointers => TypeFlags.HasFlag(TypeFlags.ContainsPointers);
 
@@ -155,7 +168,8 @@ namespace Novus.CoreClr.Meta
 
 		public bool IsArray => GetFlag(TypeFlags.ArrayMask) == TypeFlags.Array;
 
-		public bool IsDelegate                      => VMFlags.HasFlag(VMFlags.Delegate);
+		public bool IsDelegate => VMFlags.HasFlag(VMFlags.Delegate);
+
 		public bool IsReferenceOrContainsReferences => !RuntimeType.IsValueType || ContainsPointers;
 
 		public bool IsString => HasComponentSize && !IsArray && RawGetComponentSize() == sizeof(char);
@@ -164,6 +178,9 @@ namespace Novus.CoreClr.Meta
 
 		public override MemberInfo Info => RuntimeType;
 
+		/// <summary>
+		/// Equals <see cref="MemberInfo.MetadataToken"/>
+		/// </summary>
 		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
 		internal TypeFlags GetFlag(TypeFlags flag) => TypeFlags & flag;
@@ -175,7 +192,7 @@ namespace Novus.CoreClr.Meta
 
 
 		// returns random combination of flags if this doesn't have a component size
-		internal ushort RawGetComponentSize()
+		private ushort RawGetComponentSize()
 		{
 			Guard.Assert(BitConverter.IsLittleEndian);
 			return (ushort) ComponentSize;
@@ -222,18 +239,30 @@ namespace Novus.CoreClr.Meta
 			}
 		}
 
-		public  byte             ArrayRank         => EEClass.Reference.ArrayRank;
-		public  int              BaseSize          => Value.Reference.BaseSize;
-		public  MetaType         Canon             => Value.Reference.CanonicalMethodTable;
-		public  short            ComponentSize     => Value.Reference.ComponentSize;
-		private Pointer<EEClass> EEClass           => Value.Reference.EEClass;
-		public  MetaType         ElementTypeHandle => Value.Reference.ElementTypeHandle;
-		public  GenericsFlags    GenericFlags      => Value.Reference.GenericsFlags;
+		/// <summary>
+		/// Equals <see cref="Array.Rank"/>
+		/// </summary>
+		public int ArrayRank => EEClass.Reference.ArrayRank;
 
-		public Pointer<byte> InterfaceMap    => Value.Reference.InterfaceMap;
-		public short         InterfacesCount => Value.Reference.NumInterfaces;
-		public Pointer<byte> Module          => Value.Reference.Module;
-		public MetaType      Parent          => (Pointer<MethodTable>) Value.Reference.Parent;
+		public int BaseSize => Value.Reference.BaseSize;
+
+		public MetaType Canon => Value.Reference.CanonicalMethodTable;
+
+		public int ComponentSize => Value.Reference.ComponentSize;
+
+		private Pointer<EEClass> EEClass => Value.Reference.EEClass;
+
+		public MetaType ElementTypeHandle => Value.Reference.ElementTypeHandle;
+
+		public GenericsFlags GenericFlags => Value.Reference.GenericsFlags;
+
+		public Pointer<byte> InterfaceMap => Value.Reference.InterfaceMap;
+
+		public int InterfacesCount => Value.Reference.NumInterfaces;
+
+		public Pointer<byte> Module => Value.Reference.Module;
+
+		public MetaType Parent => (Pointer<MethodTable>) Value.Reference.Parent;
 
 		public Pointer<byte> PerInstInfo => Value.Reference.PerInstInfo;
 
@@ -241,22 +270,22 @@ namespace Novus.CoreClr.Meta
 
 		public Type RuntimeType => RuntimeInfo.ResolveType(Value.Cast());
 
-		public OptionalSlotsFlags SlotFlags => Value.Reference.SlotsFlags;
 
+		public OptionalSlotsFlags SlotsFlags => Value.Reference.SlotsFlags;
 
-		public OptionalSlotsFlags SlotsFlags    => Value.Reference.SlotsFlags;
-		public TypeFlags          TypeFlags     => Value.Reference.TypeFlags;
-		public short              VirtualsCount => Value.Reference.NumVirtuals;
-		public Pointer<byte>      WriteableData => Value.Reference.WriteableData;
+		public TypeFlags TypeFlags => Value.Reference.TypeFlags;
 
+		public int VirtualsCount => Value.Reference.NumVirtuals;
+
+		public Pointer<byte> WriteableData => Value.Reference.WriteableData;
 
 		public bool IsInteger => RuntimeType.IsInteger();
 
-		public bool IsReal    => RuntimeType.IsReal();
+		public bool IsReal => RuntimeType.IsReal();
 
 		public bool IsNumeric => RuntimeType.IsNumeric();
 
-		public bool IsUnmanaged  => RuntimeType.IsUnmanaged();
+		public bool IsUnmanaged => RuntimeType.IsUnmanaged();
 
 		public bool IsAnyPointer => RuntimeType.IsAnyPointer();
 
@@ -266,6 +295,4 @@ namespace Novus.CoreClr.Meta
 			return string.Format("EEClass {0} | {1}", EEClass, base.ToString());
 		}
 	}
-
-	
 }

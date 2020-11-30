@@ -23,7 +23,7 @@ namespace Novus.CoreClr.VM.EE
 		/// <summary>
 		/// Relative <see cref="Pointer{T}"/> to <see cref="FieldDesc"/>
 		/// </summary>
-		private FieldDesc* FieldDescList { get; }
+		internal FieldDesc* FieldDescList { get; }
 
 		internal void* Chunks { get; }
 
@@ -62,15 +62,15 @@ namespace Novus.CoreClr.VM.EE
 
 		internal byte BaseSizePadding { get; }
 
-		internal Pointer<FieldDesc> FieldList
-		{
-			get
-			{
-				const int FD_LIST_FIELD_OFFSET = 24;
-
-				return (FieldDesc*) RuntimeInfo.FieldOffsetAlt(ref this, FD_LIST_FIELD_OFFSET, FieldDescList);
-			}
-		}
+		// internal Pointer<FieldDesc> FieldList
+		// {
+		// 	get
+		// 	{
+		// 		const int FD_LIST_FIELD_OFFSET = 24;
+		//
+		// 		return (FieldDesc*) RuntimeInfo.FieldOffset(ref this, FD_LIST_FIELD_OFFSET, FieldDescList);
+		// 	}
+		// }
 
 		internal Pointer<ArrayClass> AsArrayClass
 		{
@@ -92,9 +92,16 @@ namespace Novus.CoreClr.VM.EE
 			{
 				fixed (EEClass* value = &this) {
 					var p = (LayoutEEClass*) value;
-
+				
 					return &p->LayoutInfo;
 				}
+
+				// fixed (EEClass* value = &this)
+				// {
+				// 	var sub= RuntimeInfo.ReadSubStructure<EEClass, LayoutEEClass>(value).ToPointer<LayoutEEClass>();
+				//
+				// 	return &sub->LayoutInfo;
+				// }
 			}
 		}
 

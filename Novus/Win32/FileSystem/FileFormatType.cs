@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using SimpleCore.Model;
 using SimpleCore.Utilities;
 
@@ -83,6 +86,11 @@ namespace Novus.Win32.FileSystem
 		};
 
 		private FileFormatType(int id, string name) : base(id, name) { }
+
+		public static IEnumerable<FileFormatType> GetAll()
+		{
+			return Enumeration.GetAll<FileFormatType>();
+		}
 
 		public override string ToString()
 		{

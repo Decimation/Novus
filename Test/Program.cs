@@ -62,6 +62,17 @@ namespace Test
 			Inspector.DumpLayout(p);
 
 			Inspector.DumpLayout("foo");
+
+			var rg = new List<int>();
+			Inspector.DumpInfo(rg);
+
+			Inspector.DumpInfo("foo");
+
+			var h = (Half) 1.03;
+			Console.WriteLine(h);
+			Console.WriteLine(Type.GetTypeCode(h.GetType()));
+			Console.WriteLine(h.GetType().IsReal());
+			Console.WriteLine(Half.Epsilon);
 		}
 
 		

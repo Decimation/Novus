@@ -26,10 +26,8 @@ namespace Novus.Memory
 {
 	/// <summary>
 	///     Provides utilities for manipulating pointers, memory, and types.
+	///		<para>Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.</para>
 	/// </summary>
-	/// <remarks>
-	///     Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.
-	/// </remarks>
 	/// <seealso cref="BitConverter" />
 	/// <seealso cref="Convert" />
 	/// <seealso cref="MemoryMarshal" />
@@ -38,12 +36,18 @@ namespace Novus.Memory
 	/// <seealso cref="Memory{T}" />
 	/// <seealso cref="Buffer" />
 	/// <seealso cref="Mem" />
+	/// <seealso cref="Allocator"/>
 	/// <seealso cref="Unsafe" />
-	/// <seealso cref="System.Runtime.CompilerServices" />
 	/// <seealso cref="RuntimeHelpers" />
 	/// <seealso cref="RuntimeInfo" />
+	/// <seealso cref="Inspector"/>
+	/// <seealso cref="Native"/>
+	/// <seealso cref="System.Runtime.CompilerServices" />
 	public static unsafe class Mem
 	{
+		/// <summary>
+		/// Address size
+		/// </summary>
 		public static readonly int Size = sizeof(nint);
 
 		/// <summary>
@@ -369,10 +373,9 @@ namespace Novus.Memory
 
 			// By manually reading the MethodTable*, we can calculate the size correctly if the reference
 			// is boxed or cloaked
-			var methodTable = RuntimeInfo.ReadTypeHandle(value);
+			var metaType = (MetaType) RuntimeInfo.ReadTypeHandle(value);
 
 			// Value of GetSizeField()
-			int length = 0;
 
 
 			// From object.h line 65:
@@ -392,14 +395,18 @@ namespace Novus.Memory
 			// So for Object, since this is of fixed size, the ComponentSize is 0, which makes the right side
 			// of the equation above equal to 0 no matter what the value of GetSizeField(), so the size is just the base size.
 
-			if (value is Array arr) {
-				length = arr.Length;
-			}
-			else if (value is string str) {
-				length = str.Length;
-			}
+			int baseSize = metaType.BaseSize;
 
-			return methodTable.Reference.BaseSize + length * methodTable.Reference.ComponentSize;
+			int componentSize = metaType.ComponentSize;
+
+			int length = value switch
+			{
+				Array arr  => arr.Length,
+				string str => str.Length,
+				_          => 0
+			};
+
+			return baseSize + length * componentSize;
 		}
 
 

@@ -7,61 +7,96 @@ using Novus.CoreClr;
 using Novus.CoreClr.Meta;
 using Novus.Memory;
 using Novus.Utilities;
+
 // ReSharper disable UnusedMember.Global
 
 namespace Novus
 {
 	/// <summary>
+	/// Utilities for inspecting and analyzing data.
+	/// </summary>
 	/// <seealso cref="ReflectionHelper"/>
 	/// <seealso cref="Mem"/>
 	/// <seealso cref="RuntimeInfo"/>
-	/// </summary>
 	public static unsafe class Inspector
 	{
 		/// <summary>
-		///     Determines whether the value of <paramref name="value" /> is <c>default</c> or <c>null</c> bytes,
-		///     or <paramref name="value" /> is <c>null</c>
-		///     <remarks>"Nil" is <c>null</c> or <c>default</c>.</remarks>
+		///     Determines whether the value of <paramref name="value" /> is <c>nil</c>.
+		///     <remarks><c>"Nil"</c> is <c>null</c> or <c>default</c>.</remarks>
 		/// </summary>
-		public static bool IsNil<T>(T value) => EqualityComparer<T>.Default.Equals(value, default);
+		public static bool IsNil<T>([NotNull] T value)
+		{
+			return EqualityComparer<T>.Default.Equals(value, default);
+		}
 
-		public static bool IsStruct<T>(T value) => value.GetType().IsValueType;
 
-		public static bool IsArray<T>(T value) => value is Array;
+		public static bool IsStruct<T>([NotNull] T value)
+		{
+			return value.GetType().IsValueType;
+		}
 
-		public static bool IsString<T>(T value) => value is string;
+		public static bool IsArray<T>([NotNull] T value)
+		{
+			return value is Array;
+		}
+
+		public static bool IsString<T>([NotNull]T value)
+		{
+			return value is string;
+		}
 
 		/// <summary>
 		/// Determines whether <paramref name="value"/> is boxed.
 		/// </summary>
-		/// <param name="value">Value to test for</param>
-		/// <typeparam name="T">Type of <paramref name="value"/></typeparam>
-		/// <returns><c>true</c> if <paramref name="value"/> is boxed; <c>false</c> otherwise</returns>
 		public static bool IsBoxed<T>([CanBeNull] T value)
 		{
 			return (typeof(T).IsInterface || typeof(T) == typeof(object)) && value != null && IsStruct(value);
 		}
 
-		public static bool IsPinnable([CanBeNull] object o)
+		/// <summary>
+		/// Determines whether <paramref name="value"/> is pinnable.
+		/// </summary>
+		public static bool IsPinnable([CanBeNull] object value)
 		{
-			var b = Functions.Func_IsPinnable(o);
+			var b = Functions.Func_IsPinnable(value);
 
 			return b;
 		}
 
+		public static void DumpInfo<T>(T t)
+		{
+			var sb   = new StringBuilder();
 
+			var addr = Mem.AddressOf(ref t);
+			sb.AppendFormat("Address: {0}\n", addr);
+
+			if (Mem.TryGetAddressOfHeap(t, out var heap)) {
+				sb.AppendFormat("Address (heap): {0}\n", heap);
+			}
+
+			sb.AppendFormat("Pinnable: {0}\n", IsPinnable(t));
+			sb.AppendFormat("Boxed: {0}\n", IsBoxed(t));
+			sb.AppendFormat("Nil: {0}\n", IsNil(t));
+
+			var type = t.GetType().AsMetaType();
+
+			
+
+			Console.WriteLine(sb);
+		}
 
 		public static void DumpLayout<T>(T t = default)
 		{
 			var sb = new StringBuilder();
 			var mt = t.GetType().AsMetaType();
-			var f  = mt.Fields.Where(x=>!x.IsStatic);
+			var f  = mt.Fields.Where(x => !x.IsStatic);
 			var s  = Mem.SizeOf<T>(t, SizeOfOptions.Auto);
 
 			sb.AppendLine($"{mt.Name} ({s}):\n");
 
 			foreach (var metaField in f) {
-				sb.AppendLine($"0x{metaField.Offset:X} | {metaField.Size} | ({metaField.FieldType.Name}) {metaField.Name}");
+				sb.AppendLine(
+					$"0x{metaField.Offset:X} | {metaField.Size} | ({metaField.FieldType.Name}) {metaField.Name}");
 			}
 
 

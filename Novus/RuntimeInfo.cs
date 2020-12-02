@@ -15,6 +15,7 @@ using SimpleCore.Diagnostics;
 namespace Novus
 {
 	/// <summary>
+	/// Utilities for runtime info.
 	/// </summary>
 	/// <seealso cref="Mem" />
 	public static unsafe class RuntimeInfo
@@ -56,10 +57,10 @@ namespace Novus
 		///             <description>+ <see cref="Mem.Size" /> for <see cref="TypeHandle" /></description>
 		///         </item>
 		///         <item>
-		///             <description>+ 4 for length (<see cref="uint" />) </description>
+		///             <description>+ sizeof (<see cref="uint" />) for length </description>
 		///         </item>
 		///         <item>
-		///             <description>+ 4 for padding (<see cref="uint" />) (x64 only)</description>
+		///             <description>+ sizeof (<see cref="uint" />) for padding (x64 only)</description>
 		///         </item>
 		///     </list>
 		/// </summary>
@@ -67,8 +68,8 @@ namespace Novus
 
 		/// <summary>
 		///     Heap offset to the first string character.
-		///     On 64 bit platforms, this should be 12 (8 + 4) and on 32 bit 8 (4 + 4).
-		///     (<see cref="Mem.Size" /> + <see cref="int" />)
+		///     On 64 bit platforms, this should be 12 and on 32 bit 8.
+		///     (<see cref="Mem.Size"/> + <see cref="int"/>)
 		/// </summary>
 		public static readonly int OffsetToStringData = RuntimeHelpers.OffsetToStringData;
 
@@ -112,12 +113,11 @@ namespace Novus
 			return (Pointer<byte>) (offset + (long) field);
 		}
 
-		/// <summary>
-		///     Alias: PTR_HOST_MEMBER_TADDR (alt)
-		/// </summary>
+		
 		internal static Pointer<byte> FieldOffset<T>(ref T value, long ofs, Pointer<byte> fieldValue)
 			where T : unmanaged
 		{
+			// Alias: PTR_HOST_MEMBER_TADDR (alt)
 			return Mem.AddressOf(ref value).Add((long) fieldValue).Add(ofs).Cast();
 		}
 
@@ -134,15 +134,17 @@ namespace Novus
 			return super.Add(size).Cast<TSub>();
 		}
 
-
+		/// <summary>
+		/// Reads <see cref="TypeHandle"/> as <see cref="Pointer{T}"/> to <see cref="MethodTable"/> from <paramref name="value"/> 
+		/// </summary>
 		public static Pointer<MethodTable> ReadTypeHandle<T>(T value)
 		{
 			var type = value.GetType();
-			return ReadTypeHandle(type);
+			return ResolveTypeHandle(type);
 		}
 
 		/// <summary>
-		///     Returns a pointer to the internal CLR metadata structure of <paramref name="member" />
+		///     Returns a handle to the internal CLR metadata structure of <paramref name="member" />
 		/// </summary>
 		/// <param name="member">Reflection type</param>
 		/// <returns>A pointer to the corresponding structure</returns>
@@ -153,13 +155,17 @@ namespace Novus
 
 			return member switch
 			{
-				Type t            => ReadTypeHandle(t).Cast(),
+				Type t            => ResolveTypeHandle(t).Cast(),
 				FieldInfo field   => field.FieldHandle.Value,
 				MethodInfo method => method.MethodHandle.Value,
 				_                 => throw new InvalidOperationException()
 			};
 		}
 
+		/// <summary>
+		/// Resolves the <see cref="Type"/> from a <see cref="Pointer{T}"/> to the internal <see cref="MethodTable"/>.
+		/// </summary>
+		/// <remarks>Inverse of <see cref="ResolveTypeHandle"/></remarks>
 		public static Type ResolveType(Pointer<MethodTable> handle)
 		{
 			//return GetTypeFromHandle(handle.Address);
@@ -177,7 +183,23 @@ namespace Novus
 			return Functions.Func_GetTypeFromHandle(handle.Address);
 		}
 
-		public static Pointer<MethodTable> ReadTypeHandle(Type t)
+		// public static Type Type_Of<T>(T t = default)
+		// {
+		// 	//todo
+		//
+		// 	if (Inspector.IsNil(t)) {
+		// 		return typeof(T);
+		// 	}
+		// 	else {
+		// 		return t.GetType();
+		// 	}
+		// }
+
+		/// <summary>
+		/// Resolves the <see cref="Pointer{T}"/> to <see cref="MethodTable"/> from <paramref name="t"/>.
+		/// </summary>
+		/// <remarks>Inverse of <see cref="ResolveType"/></remarks>
+		public static Pointer<MethodTable> ResolveTypeHandle(Type t)
 		{
 			var handle          = t.TypeHandle.Value;
 			var typeHandleValue = *(TypeHandle*) &handle;

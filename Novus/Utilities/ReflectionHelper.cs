@@ -103,12 +103,17 @@ namespace Novus.Utilities
 
 		public static bool IsReal(this Type t)
 		{
-			int c = (int) Type.GetTypeCode(t);
+			int  c = (int) Type.GetTypeCode(t);
 
 			const int REAL_MIN = (int) TypeCode.Single;
 			const int REAL_MAX = (int) TypeCode.Decimal;
 
-			return c <= REAL_MAX && c >= REAL_MIN;
+			var case1= c <= REAL_MAX && c >= REAL_MIN;
+
+			// Special case (?)
+			var case2 = t == typeof(Half);
+
+			return case1 || case2;
 		}
 
 		/// <summary>

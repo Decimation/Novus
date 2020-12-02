@@ -117,7 +117,8 @@ namespace Novus.CoreClr.Meta
 		public IEnumerable<MetaField> Fields => RuntimeType.GetAllFields().Select(f => new MetaField(f));
 
 
-		
+		// todo
+
 		public MetaField GetField(string name)
 		{
 			// todo

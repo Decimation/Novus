@@ -168,22 +168,22 @@ namespace UnitTest
 		public void InspectorTest()
 		{
 			string s = "foo";
-			Assert.False(Inspector.IsNil(s));
+			Assert.False(RuntimeInfo.IsNil(s));
 
 			string s2 = null;
-			Assert.True(Inspector.IsNil(s2));
+			Assert.True(RuntimeInfo.IsNil(s2));
 
 
-			Assert.True(Inspector.IsNil(default(int)));
+			Assert.True(RuntimeInfo.IsNil(default(int)));
 
 
-			Assert.True(Inspector.IsPinnable(s));
+			Assert.True(RuntimeInfo.IsPinnable(s));
 
 			string[] rg = {"foo", "bar"};
-			Assert.False(Inspector.IsPinnable(rg));
+			Assert.False(RuntimeInfo.IsPinnable(rg));
 
 			var rg2 = new int[] {1, 2, 3};
-			Assert.True(Inspector.IsPinnable(rg2));
+			Assert.True(RuntimeInfo.IsPinnable(rg2));
 		}
 
 		[Test]

@@ -15,6 +15,24 @@ namespace Novus.CoreClr
 	/// </summary>
 	public static unsafe class Functions
 	{
+		/*
+		 * Native internal CLR functions
+		 *
+		 * Originally, IL had to be used to call native functions as the calli opcode was needed.
+		 *
+		 * Now, we can use C# 9 unmanaged function pointers because they are implemented using
+		 * the calli opcode.
+		 *
+		 * https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-9.0/function-pointers
+		 * https://github.com/dotnet/csharplang/blob/master/proposals/csharp-9.0/function-pointers.md
+		 * https://devblogs.microsoft.com/dotnet/improvements-in-native-code-interop-in-net-5-0/
+		 *
+		 * Normal delegates using the UnmanagedFunctionPointer attribute is also possible, but it's
+		 * better to use the new unmanaged function pointers.
+		 */
+
+
+
 		/// <summary>
 		/// <see cref="TypeHandle.MethodTable"/>
 		/// </summary>
@@ -56,11 +74,18 @@ namespace Novus.CoreClr
 		internal static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 
 		
-		//
+		/*
+		 * Managed internal functions
+		 */
 		
+		/// <summary>
+		/// <see cref="RuntimeInfo.ResolveType"/>
+		/// </summary>
 		internal static GetTypeFromHandleDelegate Func_GetTypeFromHandle { get; }
 
-
+		/// <summary>
+		/// <see cref="RuntimeInfo.IsPinnable"/>
+		/// </summary>
 		internal static IsPinnableDelegate Func_IsPinnable { get; }
 
 
@@ -72,8 +97,10 @@ namespace Novus.CoreClr
 		{
 			Debug.WriteLine($"{nameof(Functions)}");
 
+			
 			//
-
+			
+			
 			Func_GetMethodTable = (delegate* unmanaged<TypeHandle*, MethodTable*>) Resources.Clr.Scanner.FindSignature(
 				EmbeddedResources.Sig_GetMethodTable);
 

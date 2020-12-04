@@ -54,26 +54,28 @@ namespace Test
 
 	public static unsafe class Program
 	{
+		private static delegate* unmanaged<int, int> fn;
+
+		static int get()
+		{
+			return 1;
+
+		}
 		private static void Main(string[] args)
 		{
-			Console.WriteLine(RuntimeHelpers.IsReferenceOrContainsReferences<string>());
-			Console.WriteLine(sizeof(bool));
 
 			var p = new Point();
-			Inspector.DumpLayout(p);
 
-			Inspector.DumpLayout("foo");
+			
+			
+			Inspector.DumpLayout(ref p);
 
-			var rg = new List<int>();
-			Inspector.DumpInfo(rg);
 
-			Inspector.DumpInfo("foo");
+			Pointer<int> x = stackalloc int[3];
 
-			var h = (Half) 1.03;
-			Console.WriteLine(h);
-			Console.WriteLine(Type.GetTypeCode(h.GetType()));
-			Console.WriteLine(h.GetType().IsReal());
-			Console.WriteLine(Half.Epsilon);
+			Console.WriteLine(x);
+			
+			Console.WriteLine(1.GetMetaType());
 		}
 
 		
@@ -104,8 +106,8 @@ namespace Test
 
 			Console.WriteLine(gc.Target);
 
-			Console.WriteLine(Inspector.IsPinnable(sx));
-			Console.WriteLine(Inspector.IsNil(default(string)));
+			Console.WriteLine(RuntimeInfo.IsPinnable(sx));
+			Console.WriteLine(RuntimeInfo.IsNil(default(string)));
 		}
 		private static void test1()
 		{

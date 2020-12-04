@@ -2,13 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Novus.Memory;
+// ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedTypeParameter
 // ReSharper disable UnusedMember.Global
-
+#pragma warning disable	IDE1006
 
 namespace Novus.Utilities
 {
@@ -27,15 +29,15 @@ namespace Novus.Utilities
 			BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
 
 
-		public static MemberInfo[] GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
+		public static IEnumerable<MemberInfo> GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
 
-		public static MemberInfo[] GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);
+		public static IEnumerable<MemberInfo> GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);
 
-		public static FieldInfo[] GetAllFields(this Type t) => t.GetFields(ALL_FLAGS);
+		public static IEnumerable<FieldInfo> GetAllFields(this Type t) => t.GetFields(ALL_FLAGS);
 
 		public static FieldInfo GetAnyField(this Type t, string name) => t.GetField(name, ALL_FLAGS);
 
-		public static MethodInfo[] GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
+		public static IEnumerable<MethodInfo> GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
 
 		public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
 
@@ -60,7 +62,7 @@ namespace Novus.Utilities
 
 		private const string BACKING_FIELD = "k__BackingField";
 
-		public static FieldInfo[] GetAllBackingFields(this Type t)
+		public static IEnumerable<FieldInfo> GetAllBackingFields(this Type t)
 		{
 			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD)).ToArray();
 
@@ -103,12 +105,12 @@ namespace Novus.Utilities
 
 		public static bool IsReal(this Type t)
 		{
-			int  c = (int) Type.GetTypeCode(t);
+			int c = (int) Type.GetTypeCode(t);
 
 			const int REAL_MIN = (int) TypeCode.Single;
 			const int REAL_MAX = (int) TypeCode.Decimal;
 
-			var case1= c <= REAL_MAX && c >= REAL_MIN;
+			var case1 = c <= REAL_MAX && c >= REAL_MIN;
 
 			// Special case (?)
 			var case2 = t == typeof(Half);
@@ -158,6 +160,25 @@ namespace Novus.Utilities
 			const string SYSTEM = "System";
 
 			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
+		}
+
+
+		public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
+		{
+			var body = (MemberExpression) expression.Body;
+			return (FieldInfo) body.Member;
+		}
+
+		public static MethodInfo methodof<T>(Expression<Func<T>> expression)
+		{
+			var body = (MethodCallExpression) expression.Body;
+			return body.Method;
+		}
+
+		public static MethodInfo methodof(Expression<Action> expression)
+		{
+			var body = (MethodCallExpression) expression.Body;
+			return body.Method;
 		}
 	}
 }

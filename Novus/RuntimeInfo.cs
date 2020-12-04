@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Novus.CoreClr;
-using Novus.CoreClr.Meta;
 using Novus.CoreClr.VM;
 using Novus.Memory;
 using SimpleCore.Diagnostics;
@@ -15,21 +15,22 @@ using SimpleCore.Diagnostics;
 namespace Novus
 {
 	/// <summary>
-	/// Utilities for runtime info.
+	///     Utilities for runtime info.
 	/// </summary>
 	/// <seealso cref="Mem" />
 	public static unsafe class RuntimeInfo
 	{
-		// https://github.com/dotnet/coreclr/blob/master/src/vm/object.h
+		// https://github.com/dotnet/runtime/blob/master/src/coreclr/src/vm/object.h
+
 
 		/// <summary>
 		///     Size of the length field and first character
 		///     <list type="bullet">
 		///         <item>
-		///             <description>+ 2: First character</description>
+		///             <description>+ sizeof <see cref="char" />: First character</description>
 		///         </item>
 		///         <item>
-		///             <description>+ 4: String length</description>
+		///             <description>+ sizeof <see cref="int" />: String length</description>
 		///         </item>
 		///     </list>
 		/// </summary>
@@ -37,6 +38,14 @@ namespace Novus
 
 		/// <summary>
 		///     Size of the length field and padding (x64)
+		///     <list type="bullet">
+		///         <item>
+		///             <description>+ sizeof <see cref="int" />: Length field</description>
+		///         </item>
+		///         <item>
+		///             <description>+ sizeof <see cref="int" />: Padding (x64)</description>
+		///         </item>
+		///     </list>
 		/// </summary>
 		public static readonly int ArrayOverhead = Mem.Size;
 
@@ -69,11 +78,9 @@ namespace Novus
 		/// <summary>
 		///     Heap offset to the first string character.
 		///     On 64 bit platforms, this should be 12 and on 32 bit 8.
-		///     (<see cref="Mem.Size"/> + <see cref="int"/>)
+		///     (<see cref="Mem.Size" /> + <see cref="int" />)
 		/// </summary>
 		public static readonly int OffsetToStringData = RuntimeHelpers.OffsetToStringData;
-
-		// https://github.com/dotnet/coreclr/blob/master/src/vm/object.h
 
 
 		public static readonly int ObjHeaderSize = sizeof(ObjHeader);
@@ -96,11 +103,11 @@ namespace Novus
 		/// </summary>
 		public static readonly int MinObjectSize = Mem.Size * 2 + ObjHeaderSize;
 
-		/// <summary>
-		///     Alias: PTR_HOST_MEMBER_TADDR
-		/// </summary>
+
 		internal static Pointer<byte> FieldOffset<TField>(TField* field, int offset) where TField : unmanaged
 		{
+			// Alias: PTR_HOST_MEMBER_TADDR
+
 			// m_methodTable.GetValue(PTR_HOST_MEMBER_TADDR(MethodDescChunk, this, m_methodTable));
 
 			//const int MT_FIELD_OFS = 0;
@@ -113,7 +120,7 @@ namespace Novus
 			return (Pointer<byte>) (offset + (long) field);
 		}
 
-		
+
 		internal static Pointer<byte> FieldOffset<T>(ref T value, long ofs, Pointer<byte> fieldValue)
 			where T : unmanaged
 		{
@@ -122,7 +129,7 @@ namespace Novus
 		}
 
 		/// <summary>
-		/// Reads inherited substructure <typeparamref name="TSub"/> from parent <typeparamref name="TSuper"/>.
+		///     Reads inherited substructure <typeparamref name="TSub" /> from parent <typeparamref name="TSuper" />.
 		/// </summary>
 		/// <typeparam name="TSuper">Superstructure (parent) type</typeparam>
 		/// <typeparam name="TSub">Substructure (child) type</typeparam>
@@ -135,7 +142,8 @@ namespace Novus
 		}
 
 		/// <summary>
-		/// Reads <see cref="TypeHandle"/> as <see cref="Pointer{T}"/> to <see cref="MethodTable"/> from <paramref name="value"/> 
+		///     Reads <see cref="TypeHandle" /> as <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from
+		///     <paramref name="value" />
 		/// </summary>
 		public static Pointer<MethodTable> ReadTypeHandle<T>(T value)
 		{
@@ -163,47 +171,106 @@ namespace Novus
 		}
 
 		/// <summary>
-		/// Resolves the <see cref="Type"/> from a <see cref="Pointer{T}"/> to the internal <see cref="MethodTable"/>.
+		///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 		/// </summary>
-		/// <remarks>Inverse of <see cref="ResolveTypeHandle"/></remarks>
+		/// <remarks>Inverse of <see cref="ResolveTypeHandle" /></remarks>
 		public static Type ResolveType(Pointer<MethodTable> handle)
 		{
-			//return GetTypeFromHandle(handle.Address);
-			//todo
-			// var t = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe");
-			//
-			// var mb = (MethodBase) t;
-			//
-			// var o = mb.Invoke(null, new object[] {handle.Address});
-			//
-			// var type = (Type) o;
-			//
-			// return type;
-
 			return Functions.Func_GetTypeFromHandle(handle.Address);
 		}
 
-		// public static Type Type_Of<T>(T t = default)
-		// {
-		// 	//todo
-		//
-		// 	if (Inspector.IsNil(t)) {
-		// 		return typeof(T);
-		// 	}
-		// 	else {
-		// 		return t.GetType();
-		// 	}
-		// }
 
 		/// <summary>
-		/// Resolves the <see cref="Pointer{T}"/> to <see cref="MethodTable"/> from <paramref name="t"/>.
+		///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 		/// </summary>
-		/// <remarks>Inverse of <see cref="ResolveType"/></remarks>
+		/// <remarks>Inverse of <see cref="ResolveType" /></remarks>
 		public static Pointer<MethodTable> ResolveTypeHandle(Type t)
 		{
 			var handle          = t.TypeHandle.Value;
 			var typeHandleValue = *(TypeHandle*) &handle;
 			return typeHandleValue.MethodTable;
+		}
+
+		/// <summary>
+		///     Determines whether the value of <paramref name="value" /> is <c>nil</c>.
+		///     <remarks><c>Nil</c> is <c>null</c> or <c>default</c>.</remarks>
+		/// </summary>
+		public static bool IsNil<T>([CanBeNull] T value)
+		{
+			return EqualityComparer<T>.Default.Equals(value, default);
+		}
+
+		public static bool IsStruct<T>([NotNull] T value)
+		{
+			return value.GetType().IsValueType;
+		}
+
+		public static bool IsArray<T>([NotNull] T value)
+		{
+			return value is Array;
+		}
+
+		public static bool IsString<T>([NotNull] T value)
+		{
+			return value is string;
+		}
+
+		/// <summary>
+		///     Determines whether <paramref name="value" /> is boxed.
+		/// </summary>
+		public static bool IsBoxed<T>([CanBeNull] T value)
+		{
+			return (typeof(T).IsInterface || typeof(T) == typeof(object)) && value != null && IsStruct(value);
+		}
+
+		/// <summary>
+		///     Determines whether <paramref name="value" /> is pinnable.
+		/// </summary>
+		public static bool IsPinnable([CanBeNull] object value)
+		{
+			return Functions.Func_IsPinnable(value);
+		}
+
+		/// <summary>
+		///     Heuristically determines whether <paramref name="value" /> is blank.
+		///     This always returns <c>true</c> if <paramref name="value" /> is <c>null</c> or nil.
+		/// </summary>
+		/// <remarks>
+		///     Blank is defined as one of the following: <c>null</c>, nil (<see cref="IsNilFast{T}" />),
+		///     non-unique, or unmodified
+		/// </remarks>
+		/// <example>
+		///     If <paramref name="value" /> is a <see cref="string" />, this function returns <c>true</c> if the
+		///     <see cref="string" /> is <c>null</c> or whitespace (<see cref="string.IsNullOrWhiteSpace" />).
+		/// </example>
+		/// <param name="value">Value to check for</param>
+		/// <typeparam name="T">Type of <paramref name="value" /></typeparam>
+		/// <returns>
+		///     <c>true</c> if <paramref name="value" /> is <c>null</c> or nil; or
+		///     if <paramref name="value" /> is heuristically determined to be blank.
+		/// </returns>
+		public static bool IsBlank<T>([CanBeNull] T value)
+		{
+			if (IsNil(value)) {
+				return true;
+			}
+
+			if (IsBoxed(value)) {
+				return false;
+			}
+
+
+			// As for strings, IsNullOrWhiteSpace should always be true when
+			// IsNullOrEmpty is true, and vise versa
+
+			bool test = value switch
+			{
+				IList list => list.Count == 0,
+				string str => String.IsNullOrWhiteSpace(str),
+				_          => false
+			};
+
+			return test;
 		}
 	}
 }

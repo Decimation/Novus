@@ -279,7 +279,7 @@ namespace Novus.Memory
 					return BaseDataSizeOf(mt.RuntimeType);
 				case SizeOfOptions.Auto:
 
-					if (Inspector.IsStruct(value)) {
+					if (RuntimeInfo.IsStruct(value)) {
 						return SizeOf<T>(SizeOfOptions.Intrinsic);
 					}
 
@@ -305,7 +305,7 @@ namespace Novus.Memory
 
 		private static int DataSizeOf<T>(T value)
 		{
-			if (Inspector.IsStruct(value)) {
+			if (RuntimeInfo.IsStruct(value)) {
 				return SizeOf<T>();
 			}
 
@@ -371,7 +371,7 @@ namespace Novus.Memory
 		private static int HeapSizeOfInternal<T>(T value)
 		{
 			// Sanity check
-			Guard.Assert(!Inspector.IsStruct(value));
+			Guard.Assert(!RuntimeInfo.IsStruct(value));
 
 			// By manually reading the MethodTable*, we can calculate the size correctly if the reference
 			// is boxed or cloaked
@@ -414,7 +414,7 @@ namespace Novus.Memory
 
 		public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer<byte> ptr)
 		{
-			if (Inspector.IsStruct(value)) {
+			if (RuntimeInfo.IsStruct(value)) {
 				ptr = null;
 				return false;
 			}
@@ -465,12 +465,12 @@ namespace Novus.Memory
 
 			switch (offset) {
 				case OffsetOptions.StringData:
-					Guard.Assert(Inspector.IsString(value));
+					Guard.Assert(RuntimeInfo.IsString(value));
 					offsetValue = RuntimeInfo.OffsetToStringData;
 					break;
 
 				case OffsetOptions.ArrayData:
-					Guard.Assert(Inspector.IsArray(value));
+					Guard.Assert(RuntimeInfo.IsArray(value));
 					offsetValue = RuntimeInfo.OffsetToArrayData;
 					break;
 

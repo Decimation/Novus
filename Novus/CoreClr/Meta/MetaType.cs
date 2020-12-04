@@ -22,37 +22,13 @@ namespace Novus.CoreClr.Meta
 {
 	public static class MetaExtensions
 	{
+		public static MetaType GetMetaType(this object o) => o.GetType().AsMetaType();
+		
 		public static MetaMethod AsMetaMethod(this MethodInfo t) => new(t);
 
 		public static MetaField AsMetaField(this FieldInfo t) => new(t);
 
 		public static MetaType AsMetaType(this Type t) => new(t);
-
-
-		/*public static MetaType meta_typeof<T>(Expression<Func<T>> expression)
-		{
-			var body = (TypeBinaryExpression) expression.Body;
-			return body.Type;
-		}
-
-
-		public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
-		{
-			MemberExpression body = (MemberExpression)expression.Body;
-			return (FieldInfo)body.Member;
-		}
-
-		public static MethodInfo methodof<T>(Expression<Func<T>> expression)
-		{
-			MethodCallExpression body = (MethodCallExpression)expression.Body;
-			return body.Method;
-		}
-
-		public static MethodInfo methodof(Expression<Action> expression)
-		{
-			MethodCallExpression body = (MethodCallExpression)expression.Body;
-			return body.Method;
-		}*/
 	}
 
 	/// <summary>
@@ -114,39 +90,24 @@ namespace Novus.CoreClr.Meta
 
 		//public Pointer<byte> OptionalFields => EEClass.Reference.OptionalFields;
 
+		
+		public IEnumerable<MetaField> Fields => RuntimeType.GetAllFields()
+			.Select(f => new MetaField(f));
 
-		public IEnumerable<MetaField> Fields => RuntimeType.GetAllFields().Select(f => new MetaField(f));
+		
+		public IEnumerable<MetaMethod> Methods => RuntimeType.GetAllMethods()
+			.Select(m => new MetaMethod(m));
 
-
-		// todo
 
 		public MetaField GetField(string name)
 		{
-			// todo
-
-			var field = Fields.FirstOrDefault(f => f.Name == name);
-
-			if (field is null) {
-				throw new NullReferenceException();
-			}
-
-			return field;
+			return RuntimeType.GetAnyField(name);
 		}
 
 		public MetaMethod GetMethod(string name)
 		{
-			// todo
-
-			var method = Methods.FirstOrDefault(f => f.Name == name);
-
-			if (method is null) {
-				throw new NullReferenceException();
-			}
-
-			return method;
+			return RuntimeType.GetAnyMethod(name);
 		}
-
-		public IEnumerable<MetaMethod> Methods => RuntimeType.GetAllMethods().Select(f => new MetaMethod(f));
 
 		private Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 		{
@@ -188,16 +149,19 @@ namespace Novus.CoreClr.Meta
 
 		public bool ContainsPointers => TypeFlags.HasFlag(TypeFlags.ContainsPointers);
 
-		public bool HasComponentSize => GetFlag(TypeFlags.HasComponentSize) != 0;
+		public bool HasComponentSize => TypeFlags.HasFlag(TypeFlags.HasComponentSize);
 
 		/// <summary>
 		///     Whether this <see cref="EEClass" /> has a <see cref="EEClassLayoutInfo" />
 		/// </summary>
 		public bool HasLayout => VMFlags.HasFlag(VMFlags.HasLayout);
 
+		/// <summary>
+		/// <a href="https://docs.microsoft.com/en-us/dotnet/framework/interop/blittable-and-non-blittable-types">Blittable types</a>
+		/// </summary>
 		public bool IsBlittable => HasLayout && LayoutInfo.Reference.Flags.HasFlag(LayoutFlags.Blittable);
 
-		public bool IsArray => GetFlag(TypeFlags.ArrayMask) == TypeFlags.Array;
+		public bool IsArray => (TypeFlags & TypeFlags.ArrayMask) == TypeFlags.Array;
 
 		public bool IsDelegate => VMFlags.HasFlag(VMFlags.Delegate);
 
@@ -217,12 +181,7 @@ namespace Novus.CoreClr.Meta
 		/// </summary>
 		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
-		private TypeFlags GetFlag(TypeFlags flag) => TypeFlags & flag;
-
-		private OptionalSlotsFlags GetFlag(OptionalSlotsFlags flag) => SlotsFlags & flag;
-
-		private GenericsFlags GetFlag(GenericsFlags flag) =>
-			IsStringOrArray ? GenericsFlags.StringArrayValues & flag : GenericFlags & flag;
+		
 
 
 		// returns random combination of flags if this doesn't have a component size
@@ -296,7 +255,7 @@ namespace Novus.CoreClr.Meta
 
 		public Pointer<byte> Module => Value.Reference.Module;
 
-		public MetaType Parent => (Pointer<MethodTable>) Value.Reference.Parent;
+		public MetaType ParentType => (Pointer<MethodTable>) Value.Reference.Parent;
 
 		//public Pointer<byte> PerInstInfo => Value.Reference.PerInstInfo;
 
@@ -326,7 +285,7 @@ namespace Novus.CoreClr.Meta
 
 		public override string ToString()
 		{
-			return ($"{nameof(EEClass)}: {EEClass} | {base.ToString()}");
+			return ($"{base.ToString()} | {nameof(EEClass)}: {EEClass}");
 		}
 	}
 }

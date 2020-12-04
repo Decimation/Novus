@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,58 +14,21 @@ using Novus.Utilities;
 namespace Novus
 {
 	/// <summary>
-	/// Utilities for inspecting and analyzing data.
+	///     Utilities for inspecting and analyzing objects, data, etc.
 	/// </summary>
-	/// <seealso cref="ReflectionHelper"/>
-	/// <seealso cref="Mem"/>
-	/// <seealso cref="RuntimeInfo"/>
-	public static unsafe class Inspector
+	/// 
+	/// <seealso cref="Mem" />
+	/// <seealso cref="RuntimeInfo" />
+	/// <seealso cref="ReflectionHelper" />
+	public static class Inspector
 	{
-		/// <summary>
-		///     Determines whether the value of <paramref name="value" /> is <c>nil</c>.
-		///     <remarks><c>Nil</c> is <c>null</c> or <c>default</c>.</remarks>
-		/// </summary>
-		public static bool IsNil<T>([NotNull] T value)
+		public enum InspectorOptions
 		{
-			return EqualityComparer<T>.Default.Equals(value, default);
+			// todo
 		}
-
-
-		public static bool IsStruct<T>([NotNull] T value)
-		{
-			return value.GetType().IsValueType;
-		}
-
-		public static bool IsArray<T>([NotNull] T value)
-		{
-			return value is Array;
-		}
-
-		public static bool IsString<T>([NotNull] T value)
-		{
-			return value is string;
-		}
-
-		/// <summary>
-		/// Determines whether <paramref name="value"/> is boxed.
-		/// </summary>
-		public static bool IsBoxed<T>([CanBeNull] T value)
-		{
-			return (typeof(T).IsInterface || typeof(T) == typeof(object)) && value != null && IsStruct(value);
-		}
-
-		/// <summary>
-		/// Determines whether <paramref name="value"/> is pinnable.
-		/// </summary>
-		public static bool IsPinnable([CanBeNull] object value)
-		{
-			bool b = Functions.Func_IsPinnable(value);
-
-			return b;
-		}
-
-
-		public static void DumpInfo<T>([NotNull] T t)
+		
+		
+		public static void DumpInfo<T>([NotNull] ref T t)
 		{
 			var sb = new StringBuilder();
 
@@ -75,24 +39,26 @@ namespace Novus
 				sb.AppendFormat("Address (heap): {0}\n", heap);
 			}
 
-			sb.AppendFormat("Pinnable: {0}\n", IsPinnable(t));
-			sb.AppendFormat("Boxed: {0}\n", IsBoxed(t));
-			sb.AppendFormat("Nil: {0}\n", IsNil(t));
+			sb.AppendFormat("Pinnable: {0}\n", RuntimeInfo.IsPinnable(t));
+			sb.AppendFormat("Boxed: {0}\n", RuntimeInfo.IsBoxed(t));
+			sb.AppendFormat("Nil: {0}\n", RuntimeInfo.IsNil(t));
 
-			var type = t.GetType().AsMetaType();
+			var type = t.GetMetaType();
 
 
 			Console.WriteLine(sb);
 		}
 
-		public static void DumpLayout<T>(T t)
+		public static void DumpLayout<T>(ref T t)
 		{
 			var sb = new StringBuilder();
-			var mt = t.GetType().AsMetaType();
+			var mt = t.GetMetaType();
 			var f  = mt.Fields.Where(x => !x.IsStatic);
-			var s  = Mem.SizeOf<T>(t, SizeOfOptions.Auto);
-
-			sb.AppendLine($"{mt.Name} ({s}):\n");
+			int s  = Mem.SizeOf(t, SizeOfOptions.Auto);
+			var p  = Mem.AddressOf(ref t);
+			
+			
+			sb.AppendLine($"{mt.Name} ({s}) @ {p}:\n");
 
 			foreach (var metaField in f) {
 				sb.AppendLine(

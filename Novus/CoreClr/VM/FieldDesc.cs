@@ -6,6 +6,7 @@ using Novus.Memory;
 using Novus.Properties;
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
+// ReSharper disable CommentTypo
 
 // ReSharper disable StructCanBeMadeReadOnly
 
@@ -64,7 +65,7 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				var rawToken = (int) (UInt1 & 0xFFFFFF);
+				int rawToken = (int) (UInt1 & 0xFFFFFF);
 
 				// Check if this FieldDesc is using the packed mb layout
 				if (!BitFlags.HasFlag(FieldBitFlags.RequiresFullMBValue))

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Novus;
 using Novus.CoreClr.Meta;
@@ -48,24 +49,24 @@ namespace UnitTest
 			Assert.AreEqual(mt.ComponentSize, sizeof(char));
 
 
-			AssertAll(!mt.IsInteger, 
-				!mt.IsUnmanaged, 
-				!mt.IsNumeric, 
+			AssertAll(!mt.IsInteger,
+				!mt.IsUnmanaged,
+				!mt.IsNumeric,
 				!mt.IsReal,
-				!mt.IsAnyPointer, 
+				!mt.IsAnyPointer,
 				!mt.IsArray);
 
 
 			var mti = typeof(int).AsMetaType();
 
-			AssertAll(mti.IsInteger, 
-				!mti.IsReal, 
+			AssertAll(mti.IsInteger,
+				!mti.IsReal,
 				mti.IsNumeric);
 
 			var mtf = typeof(float).AsMetaType();
 
-			AssertAll(!mtf.IsInteger, 
-				mtf.IsReal, 
+			AssertAll(!mtf.IsInteger,
+				mtf.IsReal,
 				mtf.IsNumeric);
 
 			var rg1 = new int[1];
@@ -77,12 +78,19 @@ namespace UnitTest
 			Assert.AreEqual(rg1.GetType().GetElementType(), mtrg1.ElementTypeHandle.RuntimeType);
 
 
-			var rg2   = new int[1,1];
+			var rg2 = new int[1, 1];
 
 			var mtrg2 = rg2.GetType().AsMetaType();
 			Assert.AreEqual(rg2.Rank, mtrg2.ArrayRank);
 
 			Assert.AreEqual(rg2.GetType().GetElementType(), mtrg2.ElementTypeHandle.RuntimeType);
+
+
+			unsafe {
+				fixed (int* i = rg1) {
+					Assert.AreEqual((ulong)i, Mem.AddressOfHeap(rg1, OffsetOptions.ArrayData).ToUInt64());
+				}
+			}
 		}
 
 		public static void AssertAll<T>(T t, params Func<T, bool>[] fn)
@@ -101,6 +109,8 @@ namespace UnitTest
 
 		[Test]
 		[TestCase(typeof(string))]
+		[TestCase(typeof(object))]
+		[TestCase(typeof(object[]))]
 		public void TypeTest(Type t)
 		{
 			var mt = t.AsMetaType();
@@ -111,6 +121,9 @@ namespace UnitTest
 			Assert.AreEqual(mt.Attributes, t.Attributes);
 
 
+			var b1 = ReflectionHelper.CallGeneric(
+				typeof(RuntimeHelpers).GetMethod("IsReferenceOrContainsReferences"), t, null);
+			Assert.AreEqual(mt.IsReferenceOrContainsReferences, b1);
 		}
 
 		[Test]
@@ -140,7 +153,7 @@ namespace UnitTest
 
 			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.Heap), Native.INVALID);
 
-			Assert.Throws<ArgumentException>(() =>
+			Assert.Throws<ArgumentNullException>(() =>
 			{
 				Mem.SizeOf<string>(null, SizeOfOptions.Heap);
 			});
@@ -186,6 +199,13 @@ namespace UnitTest
 			Assert.AreEqual(mt.InstanceFieldsCount, 2);
 			Assert.AreEqual(mt.StaticFieldsCount, 1);
 			Assert.AreEqual(mt.InstanceFieldsSize, sizeof(char) + sizeof(int));
+
+
+			unsafe {
+				fixed (char* p = s) {
+					Assert.AreEqual((ulong) p, Mem.AddressOfHeap(s, OffsetOptions.StringData).ToUInt64());
+				}
+			}
 
 		}
 	}

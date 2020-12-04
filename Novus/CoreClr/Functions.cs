@@ -11,7 +11,7 @@ using Novus.Utilities;
 namespace Novus.CoreClr
 {
 	/// <summary>
-	/// CLR functions
+	/// Internal CLR functions
 	/// </summary>
 	public static unsafe class Functions
 	{
@@ -55,20 +55,24 @@ namespace Novus.CoreClr
 		/// </summary>
 		internal static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 
+		
+		//
+		
 		internal static GetTypeFromHandleDelegate Func_GetTypeFromHandle { get; }
 
 
 		internal static IsPinnableDelegate Func_IsPinnable { get; }
 
 
-		internal delegate bool IsPinnableDelegate(object o);
+		internal delegate bool IsPinnableDelegate(object obj);
 
-		internal delegate Type GetTypeFromHandleDelegate(IntPtr i);
+		internal delegate Type GetTypeFromHandleDelegate(IntPtr handle);
 
 		static Functions()
 		{
 			Debug.WriteLine($"{nameof(Functions)}");
 
+			//
 
 			Func_GetMethodTable = (delegate* unmanaged<TypeHandle*, MethodTable*>) Resources.Clr.Scanner.FindSignature(
 				EmbeddedResources.Sig_GetMethodTable);
@@ -97,6 +101,9 @@ namespace Novus.CoreClr
 				(delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*>) Resources.Clr.Scanner.FindSignature(
 					EmbeddedResources.Sig_GetNativeLayoutInfo);
 
+			
+			//
+			
 			Func_GetTypeFromHandle = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe")
 				.CreateDelegate<GetTypeFromHandleDelegate>();
 

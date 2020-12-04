@@ -151,7 +151,7 @@ namespace Novus
 		/// <exception cref="InvalidOperationException">The type of <see cref="MemberInfo" /> doesn't have a handle</exception>
 		public static Pointer<byte> ResolveHandle(MemberInfo member)
 		{
-			Guard.AssertNotNull(member, nameof(member));
+			Guard.AssertArgumentNotNull(member, nameof(member));
 
 			return member switch
 			{

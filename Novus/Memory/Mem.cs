@@ -258,6 +258,8 @@ namespace Novus.Memory
 		/// </summary>
 		public static int SizeOf<T>(T value, SizeOfOptions options)
 		{
+			Guard.AssertArgumentNotNull(value, nameof(value));
+			
 			//Guard.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
 
 			// Value is given
@@ -463,12 +465,12 @@ namespace Novus.Memory
 
 			switch (offset) {
 				case OffsetOptions.StringData:
-					Trace.Assert(Inspector.IsString(value));
+					Guard.Assert(Inspector.IsString(value));
 					offsetValue = RuntimeInfo.OffsetToStringData;
 					break;
 
 				case OffsetOptions.ArrayData:
-					Trace.Assert(Inspector.IsArray(value));
+					Guard.Assert(Inspector.IsArray(value));
 					offsetValue = RuntimeInfo.OffsetToArrayData;
 					break;
 

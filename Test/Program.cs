@@ -56,6 +56,7 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
+			Console.WriteLine(RuntimeHelpers.IsReferenceOrContainsReferences<string>());
 			Console.WriteLine(sizeof(bool));
 
 			var p = new Point();

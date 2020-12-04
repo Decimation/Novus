@@ -13,7 +13,9 @@ namespace Novus.CoreClr.Meta.Base
 	public abstract unsafe class MetaClrStructure<TClr> : BaseClrStructure<TClr>
 		where TClr : unmanaged
 	{
-		public virtual string Name => Info?.Name;
+		// TODO: Maybe add MemberInfo type parameter
+		
+		public virtual string Name => Info.Name;
 
 		public abstract MemberInfo Info { get; }
 

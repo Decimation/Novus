@@ -1,19 +1,23 @@
 ﻿using System;
 using Novus.Memory;
 
+// ReSharper disable ConvertToAutoPropertyWhenPossible
 // ReSharper disable UnusedMember.Local
 // ReSharper disable NotAccessedField.Local
 // ReSharper disable BuiltInTypeReferenceStyle
+#pragma warning disable IDE0052
 
 namespace Novus.CoreClr
 {
 	using DWORD = UInt32;
 
 	/// <summary>
-	/// Packed DWORD fields
+	/// Packed DWORD fields reader
 	/// </summary>
 	internal readonly struct PackedFieldsReader
 	{
+		// NOTE: This is only for use with packed EEClass fields
+		
 		private const int PACKED_FIELDS_RG_LEN = 1;
 
 		private const int MAX_LENGTH_BITS = 5;
@@ -32,7 +36,7 @@ namespace Novus.CoreClr
 
 		internal PackedFieldsReader(Pointer<DWORD> p, int l)
 		{
-			m_ptr = p;
+			m_ptr                  = p;
 			m_unpackedFieldsLength = l;
 		}
 
@@ -48,21 +52,19 @@ namespace Novus.CoreClr
 		private Pointer<DWORD> UnpackedFields => m_ptr;
 
 
-
 		/// <summary>
 		///     Get the value of the given field when the structure is in its unpacked state.
 		/// </summary>
 		internal DWORD GetUnpackedField(DWORD dwFieldIndex)
 		{
-			return UnpackedFields[(int)dwFieldIndex];
+			return UnpackedFields[(int) dwFieldIndex];
 		}
 
 		internal DWORD GetPackedField(DWORD dwFieldIndex)
 		{
 			DWORD dwOffset = 0;
 
-			for (DWORD i = 0; i < dwFieldIndex; i++)
-			{
+			for (DWORD i = 0; i < dwFieldIndex; i++) {
 				// +1 since size is [1,32] not [0,31]
 				dwOffset += MAX_LENGTH_BITS + BitVectorGet(dwOffset, MAX_LENGTH_BITS) + 1;
 			}
@@ -80,24 +82,24 @@ namespace Novus.CoreClr
 		}
 
 		private const int BITS_PER_DWORD = 32;
-		private DWORD BitVectorGet(DWORD dwOffset, DWORD dwLength)
+
+		internal DWORD BitVectorGet(DWORD dwOffset, DWORD dwLength)
 		{
 			// Calculate the start and end naturally aligned DWORDs from which the value will come.
-			DWORD dwStartBlock = dwOffset / BITS_PER_DWORD;
-			DWORD dwEndBlock = (dwOffset + dwLength - 1) / BITS_PER_DWORD;
+			DWORD dwStartBlock = dwOffset                  / BITS_PER_DWORD;
+			DWORD dwEndBlock   = (dwOffset + dwLength - 1) / BITS_PER_DWORD;
 
-			if (dwStartBlock == dwEndBlock)
-			{
+			if (dwStartBlock == dwEndBlock) {
 				// Easy case: the new value fits entirely within one aligned DWORD. Compute the number of bits
 				// we'll need to shift the extracted value (to the right) and a mask of the bits that will be
 				// extracted in the destination DWORD.
 				DWORD dwValueShift = dwOffset % BITS_PER_DWORD;
-				DWORD dwValueMask = ((1U << (int)dwLength) - 1) << (int)dwValueShift;
+				DWORD dwValueMask  = ((1U << (int) dwLength) - 1) << (int) dwValueShift;
 
 				// Mask out the bits we want and shift them down into the bottom of the result DWORD.
 
 
-				return (PackedFields[(int)dwStartBlock] & dwValueMask) >> (int)dwValueShift;
+				return (PackedFields[(int) dwStartBlock] & dwValueMask) >> (int) dwValueShift;
 			}
 
 			// Hard case: the return value is split across two DWORDs (two DWORDs is the max as the new value
@@ -105,7 +107,7 @@ namespace Novus.CoreClr
 			// non-spanning gets and stitch the result together from that. We can revisit this in the future
 			// if the perf is a problem.
 			DWORD dwInitialBits = BITS_PER_DWORD -
-								  dwOffset % BITS_PER_DWORD; // Number of bits to get in the first DWORD
+			                      dwOffset % BITS_PER_DWORD; // Number of bits to get in the first DWORD
 			DWORD dwReturn;
 
 			// Get the initial (low-order) bits from the first DWORD.
@@ -114,7 +116,7 @@ namespace Novus.CoreClr
 			// Get the remaining bits from the second DWORD. These bits will need to be shifted to the left
 			// (past the bits we've already read) before being OR'd into the result.
 			dwReturn |= BitVectorGet(dwOffset + dwInitialBits, dwLength - dwInitialBits)
-						<< (int)dwInitialBits;
+			            << (int) dwInitialBits;
 
 			return dwReturn;
 		}

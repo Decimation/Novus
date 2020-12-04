@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Novus.CoreClr.Meta.Base;
 using Novus.CoreClr.VM;
@@ -81,7 +82,7 @@ namespace Novus.CoreClr.Meta
 		/// </summary>
 		public int BaseSizePadding => EEClass.Reference.BaseSizePadding;
 
-		public Pointer<byte> Chunks => EEClass.Reference.Chunks;
+		//public Pointer<byte> Chunks => EEClass.Reference.Chunks;
 
 		public bool FieldsArePacked => EEClass.Reference.FieldsArePacked;
 
@@ -89,7 +90,7 @@ namespace Novus.CoreClr.Meta
 
 		public int FixedEEClassFields => EEClass.Reference.FixedEEClassFields;
 
-		public Pointer<byte> GuidInfo => EEClass.Reference.GuidInfo;
+		//public Pointer<byte> GuidInfo => EEClass.Reference.GuidInfo;
 
 		public int InstanceFieldsCount => EEClass.Reference.NumInstanceFields;
 
@@ -111,7 +112,7 @@ namespace Novus.CoreClr.Meta
 
 		public CorElementType NormType => EEClass.Reference.NormType;
 
-		public Pointer<byte> OptionalFields => EEClass.Reference.OptionalFields;
+		//public Pointer<byte> OptionalFields => EEClass.Reference.OptionalFields;
 
 
 		public IEnumerable<MetaField> Fields => RuntimeType.GetAllFields().Select(f => new MetaField(f));
@@ -200,6 +201,9 @@ namespace Novus.CoreClr.Meta
 
 		public bool IsDelegate => VMFlags.HasFlag(VMFlags.Delegate);
 
+		/// <summary>
+		/// Equals <see cref="RuntimeHelpers.IsReferenceOrContainsReferences{T}"/>
+		/// </summary>
 		public bool IsReferenceOrContainsReferences => !RuntimeType.IsValueType || ContainsPointers;
 
 		public bool IsString => HasComponentSize && !IsArray && RawGetComponentSize() == sizeof(char);
@@ -213,11 +217,11 @@ namespace Novus.CoreClr.Meta
 		/// </summary>
 		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
-		internal TypeFlags GetFlag(TypeFlags flag) => TypeFlags & flag;
+		private TypeFlags GetFlag(TypeFlags flag) => TypeFlags & flag;
 
-		internal OptionalSlotsFlags GetFlag(OptionalSlotsFlags flag) => SlotsFlags & flag;
+		private OptionalSlotsFlags GetFlag(OptionalSlotsFlags flag) => SlotsFlags & flag;
 
-		internal GenericsFlags GetFlag(GenericsFlags flag) =>
+		private GenericsFlags GetFlag(GenericsFlags flag) =>
 			IsStringOrArray ? GenericsFlags.StringArrayValues & flag : GenericFlags & flag;
 
 
@@ -276,7 +280,7 @@ namespace Novus.CoreClr.Meta
 
 		public int BaseSize => Value.Reference.BaseSize;
 
-		public MetaType Canon => Value.Reference.CanonicalMethodTable;
+		public MetaType CanonicalType => Value.Reference.CanonicalMethodTable;
 
 		public int ComponentSize => Value.Reference.ComponentSize;
 
@@ -286,7 +290,7 @@ namespace Novus.CoreClr.Meta
 
 		public GenericsFlags GenericFlags => Value.Reference.GenericsFlags;
 
-		public Pointer<byte> InterfaceMap => Value.Reference.InterfaceMap;
+		//public Pointer<byte> InterfaceMap => Value.Reference.InterfaceMap;
 
 		public int InterfacesCount => Value.Reference.NumInterfaces;
 
@@ -294,9 +298,9 @@ namespace Novus.CoreClr.Meta
 
 		public MetaType Parent => (Pointer<MethodTable>) Value.Reference.Parent;
 
-		public Pointer<byte> PerInstInfo => Value.Reference.PerInstInfo;
+		//public Pointer<byte> PerInstInfo => Value.Reference.PerInstInfo;
 
-		//		public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
+		public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
 
 		public Type RuntimeType => RuntimeInfo.ResolveType(Value.Cast());
 
@@ -307,7 +311,7 @@ namespace Novus.CoreClr.Meta
 
 		public int VirtualsCount => Value.Reference.NumVirtuals;
 
-		public Pointer<byte> WriteableData => Value.Reference.WriteableData;
+		//public Pointer<byte> WriteableData => Value.Reference.WriteableData;
 
 		public bool IsInteger => RuntimeType.IsInteger();
 
@@ -322,7 +326,7 @@ namespace Novus.CoreClr.Meta
 
 		public override string ToString()
 		{
-			return string.Format("EEClass {0} | {1}", EEClass, base.ToString());
+			return ($"{nameof(EEClass)}: {EEClass} | {base.ToString()}");
 		}
 	}
 }

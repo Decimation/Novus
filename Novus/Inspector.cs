@@ -22,7 +22,7 @@ namespace Novus
 	{
 		/// <summary>
 		///     Determines whether the value of <paramref name="value" /> is <c>nil</c>.
-		///     <remarks><c>"Nil"</c> is <c>null</c> or <c>default</c>.</remarks>
+		///     <remarks><c>Nil</c> is <c>null</c> or <c>default</c>.</remarks>
 		/// </summary>
 		public static bool IsNil<T>([NotNull] T value)
 		{
@@ -40,7 +40,7 @@ namespace Novus
 			return value is Array;
 		}
 
-		public static bool IsString<T>([NotNull]T value)
+		public static bool IsString<T>([NotNull] T value)
 		{
 			return value is string;
 		}
@@ -58,14 +58,15 @@ namespace Novus
 		/// </summary>
 		public static bool IsPinnable([CanBeNull] object value)
 		{
-			var b = Functions.Func_IsPinnable(value);
+			bool b = Functions.Func_IsPinnable(value);
 
 			return b;
 		}
 
-		public static void DumpInfo<T>(T t)
+
+		public static void DumpInfo<T>([NotNull] T t)
 		{
-			var sb   = new StringBuilder();
+			var sb = new StringBuilder();
 
 			var addr = Mem.AddressOf(ref t);
 			sb.AppendFormat("Address: {0}\n", addr);
@@ -80,12 +81,11 @@ namespace Novus
 
 			var type = t.GetType().AsMetaType();
 
-			
 
 			Console.WriteLine(sb);
 		}
 
-		public static void DumpLayout<T>(T t = default)
+		public static void DumpLayout<T>(T t)
 		{
 			var sb = new StringBuilder();
 			var mt = t.GetType().AsMetaType();

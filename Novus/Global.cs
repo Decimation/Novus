@@ -18,6 +18,9 @@ using SimpleCore.Utilities;
 
 namespace Novus
 {
+	/// <summary>
+	/// Global
+	/// </summary>
 	public static unsafe class Global
 	{
 		/// <summary>
@@ -26,7 +29,7 @@ namespace Novus
 		[ModuleInitializer]
 		public static void Setup()
 		{
-			Trace.WriteLine(">>> Module init <<<");
+			Debug.WriteLine(">>> Module init <<<");
 
 			bool c = IsCompatible();
 
@@ -35,7 +38,7 @@ namespace Novus
 			}
 
 			foreach (var assemblyName in DumpDependencies()) {
-				Trace.WriteLine(assemblyName.Name, "Dependency");
+				Debug.WriteLine(assemblyName.Name, "Dependency");
 				//Write("{0}", assemblyName.Name);
 			}
 		}
@@ -73,6 +76,7 @@ namespace Novus
 			bool ver = Environment.Version == ClrVersion;
 			bool gc  = !GCSettings.IsServerGC;
 			bool os  = OperatingSystem.IsWindows();
+			
 
 			return ver && gc && os;
 		}

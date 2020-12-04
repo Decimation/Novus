@@ -65,6 +65,7 @@ namespace Novus.Memory
 			set => m_value = (void*) value;
 		}
 
+
 		/// <summary>
 		///     Whether <see cref="Address" /> is <c>null</c> (<see cref="IntPtr.Zero" />).
 		/// </summary>
@@ -103,6 +104,8 @@ namespace Novus.Memory
 		public static explicit operator Pointer<T>(long value) => new((void*) value);
 
 		public static implicit operator Pointer<T>(void* value) => new(value);
+
+		//public static implicit operator Pointer<T>(nint value) => new(value);
 
 		public static implicit operator Pointer<T>(IntPtr value) => new(value);
 
@@ -374,6 +377,9 @@ namespace Novus.Memory
 		[Pure]
 		public void* ToPointer() => m_value;
 
+
+		[Pure]
+		public nint ToNativeInt() => (nint) m_value;
 
 		[Pure]
 		public ulong ToUInt64() => (ulong) m_value;

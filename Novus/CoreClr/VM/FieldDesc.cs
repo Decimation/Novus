@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using Novus.Interop;
 using Novus.Memory;
 using Novus.Properties;
+// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
 
 // ReSharper disable StructCanBeMadeReadOnly
 
@@ -38,10 +40,7 @@ namespace Novus.CoreClr.VM
 		{
 			get
 			{
-				
-
 				fixed (FieldDesc* p = &this) {
-
 					return Functions.Func_GetSize(p);
 				}
 			}
@@ -54,7 +53,7 @@ namespace Novus.CoreClr.VM
 				// m_pMTOfEnclosingClass.GetValue(PTR_HOST_MEMBER_TADDR(FieldDesc, this, m_pMTOfEnclosingClass));
 
 				const int MT_FIELD_OFS = 0;
-				
+
 				return RuntimeInfo.FieldOffset((MethodTable*) EnclosingMethodTableStub, MT_FIELD_OFS);
 			}
 		}

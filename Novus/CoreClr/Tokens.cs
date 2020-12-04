@@ -1,4 +1,5 @@
 ﻿using System;
+using Novus.Memory;
 using Novus.Win32;
 // ReSharper disable UnusedMember.Global
 
@@ -161,7 +162,7 @@ namespace Novus.CoreClr
 					return Native.INVALID;
 
 				case CorElementType.TypedByRef:
-					return IntPtr.Size * 2;
+					return Mem.Size * 2;
 
 				case CorElementType.Max:
 				case CorElementType.Modifier:

@@ -60,10 +60,14 @@ namespace Novus.CoreClr.Meta
 		}
 
 		public MethodClassification Classification => Value.Reference.Classification;
-		public MethodProperties     Properties     => Value.Reference.Properties;
-		public CodeFlags            Code           => Value.Reference.Code;
-		public ParamFlags           ParameterTypes => Value.Reference.Flags3AndTokenRemainder;
-		public MethodAttributes     Attributes     => Info.Attributes;
+
+		public MethodProperties Properties => Value.Reference.Properties;
+
+		public CodeFlags Code => Value.Reference.Code;
+
+		public ParamFlags ParameterTypes => Value.Reference.Flags3AndTokenRemainder;
+
+		public MethodAttributes Attributes => Info.Attributes;
 
 
 		public override MethodInfo Info => (MethodInfo) (EnclosingType.RuntimeType).Module.ResolveMethod(Token);

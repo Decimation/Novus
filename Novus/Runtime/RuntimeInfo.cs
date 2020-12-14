@@ -7,8 +7,9 @@ using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Novus.Memory;
 using Novus.Runtime.VM;
-using Novus.Utilities;
 using SimpleCore.Diagnostics;
+
+// ReSharper disable ClassCannotBeInstantiated
 
 // ReSharper disable UnusedMember.Global
 
@@ -196,25 +197,13 @@ namespace Novus.Runtime
 		///     Determines whether the value of <paramref name="value" /> is <c>nil</c>.
 		///     <remarks><c>Nil</c> is <c>null</c> or <c>default</c>.</remarks>
 		/// </summary>
-		public static bool IsNil<T>([CanBeNull] T value)
-		{
-			return EqualityComparer<T>.Default.Equals(value, default);
-		}
+		public static bool IsNil<T>([CanBeNull] T value) => EqualityComparer<T>.Default.Equals(value, default);
 
-		public static bool IsStruct<T>([NotNull] T value)
-		{
-			return value.GetType().IsValueType;
-		}
+		public static bool IsStruct<T>([NotNull] T value) => value.GetType().IsValueType;
 
-		public static bool IsArray<T>([NotNull] T value)
-		{
-			return value is Array;
-		}
+		public static bool IsArray<T>([NotNull] T value) => value is Array;
 
-		public static bool IsString<T>([NotNull] T value)
-		{
-			return value is string;
-		}
+		public static bool IsString<T>([NotNull] T value) => value is string;
 
 		/// <summary>
 		///     Determines whether <paramref name="value" /> is boxed.
@@ -227,10 +216,7 @@ namespace Novus.Runtime
 		/// <summary>
 		///     Determines whether <paramref name="value" /> is pinnable.
 		/// </summary>
-		public static bool IsPinnable([CanBeNull] object value)
-		{
-			return Functions.Func_IsPinnable(value);
-		}
+		public static bool IsPinnable([CanBeNull] object value) => Functions.Func_IsPinnable(value);
 
 		/// <summary>
 		///     Heuristically determines whether <paramref name="value" /> is blank.
@@ -309,6 +295,39 @@ namespace Novus.Runtime
 			const string SYSTEM = "System";
 
 			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
+		}
+
+		/// <summary>
+		///     Used for unsafe pinning of arbitrary objects.
+		///     This allows for pinning of unblittable objects,
+		///     with the <c>fixed</c> statement.
+		/// </summary>
+		public static PinningHelper GetPinningHelper(object value) => Unsafe.As<PinningHelper>(value);
+
+
+		/// <summary>
+		///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
+		///     <code>
+		///  fixed (byte* pData = &amp;PinHelper.GetPinningHelper(value).Data)
+		///  {
+		///  }
+		///  </code>
+		///     <remarks>
+		///         <para><c>pData</c> is what <c>Object::GetData()</c> returns in VM.</para>
+		///         <para><c>pData</c> is also equal to offsetting the pointer by <see cref="OffsetOptions.Fields" />. </para>
+		///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
+		///     </remarks>
+		/// </summary>
+		[UsedImplicitly]
+		public sealed class PinningHelper
+		{
+			/// <summary>
+			///     Represents the first field in an object.
+			/// </summary>
+			/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
+			public byte Data;
+
+			private PinningHelper() { }
 		}
 	}
 }

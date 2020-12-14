@@ -100,7 +100,7 @@ namespace Novus
 					}
 				}
 
-				Debug.WriteLine("{0} -> {1} @ {2}", member.Name, attribute.Name, fieldValue);
+				Debug.WriteLine($"{attribute.Name} with {fieldValue} -> {member.Name}");
 
 				// Set value
 

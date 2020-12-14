@@ -260,7 +260,7 @@ namespace Novus.Memory
 		public static int SizeOf<T>(T value, SizeOfOptions options)
 		{
 			Guard.AssertArgumentNotNull(value, nameof(value));
-			
+
 			//Guard.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
 
 			// Value is given
@@ -313,7 +313,26 @@ namespace Novus.Memory
 			// Subtract the size of the ObjHeader and MethodTable*
 			return HeapSizeOfInternal(value) - RuntimeInfo.ObjectBaseSize;
 		}
+		
+		
+		/// <summary>
+		/// Returns the offset of the field <paramref name="name"/> within the type <typeparamref name="T"/>.
+		/// </summary>
+		/// <param name="name">Field name</param>
+		public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
 
+		//public static int OffsetOf(object obj, string name)
+		//{
+		//	var type = obj.GetMetaType();
+		//	return OffsetOf(type, name);
+		//}
+
+		
+		/// <summary>
+		/// Returns the offset of the field <paramref name="name"/> within the type <paramref name="t"/>.
+		/// </summary>
+		/// <param name="t">Enclosing type</param>
+		/// <param name="name">Field name</param>
 		public static int OffsetOf(MetaType t, string name)
 		{
 			var f = t.GetField(name);
@@ -322,7 +341,7 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		///     <para>Returns the address of <paramref name="value" />.</para>
+		///     Returns the address of <paramref name="value" />.
 		/// </summary>
 		/// <param name="value">Value to return the address of.</param>
 		/// <returns>The address of the type in memory.</returns>
@@ -436,6 +455,7 @@ namespace Novus.Memory
 		///             This may require pinning to prevent the GC from moving the object.
 		///             If the GC compacts the heap, this pointer may become invalid.
 		///         </para>
+		/// <seealso cref="RuntimeInfo.GetPinningHelper"/>
 		///     </remarks>
 		/// </summary>
 		/// <param name="value">Reference type to return the heap address of</param>
@@ -519,9 +539,10 @@ namespace Novus.Memory
 			return null;
 		}
 
-		public static byte[] Copy(Pointer<byte> p, int o, int cb)
+
+		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb)
 		{
-			return p.Copy(o, cb);
+			return p.Copy(startIndex, cb);
 		}
 
 		public static byte[] Copy(Pointer<byte> p, int cb)

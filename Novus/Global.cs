@@ -56,6 +56,11 @@ namespace Novus
 	///                 <see cref="Resource" />
 	///             </description>
 	///         </item>
+	/// <item>
+	///             <description>
+	///                 <see cref="SigScanner" />
+	///             </description>
+	///         </item>
 	///     </list>
 	///     OS utilities:
 	///     <list type="bullet">

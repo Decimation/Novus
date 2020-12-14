@@ -14,10 +14,106 @@ using NUnit.Framework;
 
 namespace UnitTest
 {
+	public static class TestUtil
+	{
+		public static void AssertAll<T>(T t, params Func<T, bool>[] fn)
+		{
+			foreach (var func in fn) {
+				Assert.True(func(t));
+			}
+		}
+
+		public static void AssertAll(params bool[] cond)
+		{
+			foreach (bool b in cond) {
+				Assert.True(b);
+			}
+		}
+	}
+
 	public class Tests
 	{
 		[SetUp]
 		public void Setup() { }
+
+		[StructLayout(LayoutKind.Explicit)]
+		private struct MyStruct
+		{
+			[FieldOffset(default)] public int a;
+
+			[FieldOffset(sizeof(int))] public int b;
+		}
+		
+		
+		[Test]
+		public unsafe void TestMem1()
+		{
+			
+			
+			Assert.AreEqual(0, Mem.OffsetOf<MyStruct>(nameof(MyStruct.a)));
+			Assert.AreEqual(sizeof(int), Mem.OffsetOf<MyStruct>( nameof(MyStruct.b)));
+
+			
+			Assert.AreEqual(0, Mem.OffsetOf<string>("_stringLength"));
+			Assert.AreEqual(sizeof(int), Mem.OffsetOf<string>("_firstChar"));
+		}
+		
+		
+		[Test]
+		public unsafe void TestAddresses()
+		{
+			/*
+			 * String
+			 */
+
+
+			var s = "foo";
+
+			IntPtr strFixed;
+
+			fixed (char* c = s) {
+				strFixed = (IntPtr) c;
+			}
+
+			var strMem = Mem.AddressOfHeap(s, OffsetOptions.StringData).Address;
+
+			Assert.AreEqual(strFixed, strMem);
+
+			/*
+			 * Array
+			 */
+
+			IntPtr arrayFixed;
+
+			var rg = new int[] {1, 2, 3};
+
+			fixed (int* c = rg) {
+				arrayFixed = (IntPtr) c;
+			}
+
+			var arrayMem = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData).Address;
+
+			Assert.AreEqual(arrayFixed, arrayMem);
+			
+			
+			/*
+			 * Object
+			 */
+
+			object obj = new object();
+
+			IntPtr objFixed;
+			
+			fixed(byte* p = &RuntimeInfo.GetPinningHelper(obj).Data) {
+				objFixed = (IntPtr) p;
+			}
+
+			var objMem = Mem.AddressOfHeap(obj, OffsetOptions.Fields).Address;
+			
+			Assert.AreEqual(objFixed, objMem);
+
+		}
+
 
 		[Test]
 		[TestCase(typeof(string), ("_firstChar"))]
@@ -49,7 +145,7 @@ namespace UnitTest
 			Assert.AreEqual(mt.ComponentSize, sizeof(char));
 
 
-			AssertAll(!mt.IsInteger,
+			TestUtil.AssertAll(!mt.IsInteger,
 				!mt.IsUnmanaged,
 				!mt.IsNumeric,
 				!mt.IsReal,
@@ -59,13 +155,13 @@ namespace UnitTest
 
 			var mti = typeof(int).AsMetaType();
 
-			AssertAll(mti.IsInteger,
+			TestUtil.AssertAll(mti.IsInteger,
 				!mti.IsReal,
 				mti.IsNumeric);
 
 			var mtf = typeof(float).AsMetaType();
 
-			AssertAll(!mtf.IsInteger,
+			TestUtil.AssertAll(!mtf.IsInteger,
 				mtf.IsReal,
 				mtf.IsNumeric);
 
@@ -88,22 +184,8 @@ namespace UnitTest
 
 			unsafe {
 				fixed (int* i = rg1) {
-					Assert.AreEqual((ulong)i, Mem.AddressOfHeap(rg1, OffsetOptions.ArrayData).ToUInt64());
+					Assert.AreEqual((ulong) i, Mem.AddressOfHeap(rg1, OffsetOptions.ArrayData).ToUInt64());
 				}
-			}
-		}
-
-		public static void AssertAll<T>(T t, params Func<T, bool>[] fn)
-		{
-			foreach (var func in fn) {
-				Assert.True(func(t));
-			}
-		}
-
-		public static void AssertAll(params bool[] cond)
-		{
-			foreach (bool b in cond) {
-				Assert.True(b);
 			}
 		}
 

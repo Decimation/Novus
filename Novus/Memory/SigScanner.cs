@@ -8,10 +8,20 @@ using System.Globalization;
 namespace Novus.Memory
 {
 	/// <summary>
-	///     A basic signature scanner.
+	///     Signature scanner.
 	/// </summary>
+	/// <remarks>
+	/// <a href="https://wiki.alliedmods.net/Signature_scanning">Signature scanning</a>
+	/// </remarks>
 	public class SigScanner
 	{
+		/*
+		 * Other implementation:
+		 * https://github.com/LiveSplit/LiveSplit/blob/master/LiveSplit/LiveSplit.Core/ComponentUtil/SignatureScanner.cs
+		 * https://github.com/LiveSplit/LiveSplit/blob/master/LiveSplit/LiveSplit.Core/ComponentUtil/ProcessExtensions.cs
+		 */
+		
+
 		public byte[] Buffer { get; }
 
 		public Pointer<byte> Address { get; }

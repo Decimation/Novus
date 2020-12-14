@@ -112,7 +112,6 @@ namespace Novus.Runtime
 			 * Load imports
 			 */
 
-
 			Resource.LoadImports(typeof(Functions));
 		}
 	}

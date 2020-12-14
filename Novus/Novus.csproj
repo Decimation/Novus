@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <!--<Reference Include="Functions">
       <HintPath>Native\Functions.dll</HintPath>

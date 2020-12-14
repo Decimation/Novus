@@ -5,7 +5,7 @@ using Novus.Memory;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.CoreClr.VM
+namespace Novus.Runtime.VM
 {
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]

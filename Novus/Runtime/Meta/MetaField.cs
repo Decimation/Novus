@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using Novus.CoreClr.Meta.Base;
-using Novus.CoreClr.VM;
+﻿using System.Reflection;
 using Novus.Memory;
-using SimpleCore.Diagnostics;
+using Novus.Runtime.Meta.Base;
+using Novus.Runtime.VM;
+
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.CoreClr.Meta
+namespace Novus.Runtime.Meta
 {
 	/// <summary>
 	///     <list type="bullet">

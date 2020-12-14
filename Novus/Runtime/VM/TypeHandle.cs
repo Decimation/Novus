@@ -1,9 +1,6 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
-using Novus.CoreClr.VM;
+﻿using System.Runtime.InteropServices;
 using Novus.Interop;
 using Novus.Memory;
-using Novus.Properties;
 
 // ReSharper disable UnusedMember.Global
 
@@ -11,7 +8,7 @@ using Novus.Properties;
 #pragma warning disable IDE0044
 
 
-namespace Novus.CoreClr.VM
+namespace Novus.Runtime.VM
 {
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]

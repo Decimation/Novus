@@ -5,13 +5,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Novus;
-using Novus.CoreClr.Meta;
-using Novus.CoreClr.VM.EE;
 using Novus.Memory;
+using Novus.Runtime;
+using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.ContextMenu;
-using Console = System.Console;
 
 namespace Test
 {
@@ -28,11 +27,9 @@ namespace Test
 	 * todo: fully migrate NeoCore and RazorSharp
 	 *
 	 * 
-	 * https://github.com/sidristij/dotnetex
-	 * https://github.com/IllidanS4/SharpUtils
-	 * https://github.com/wbenny/pdbex
+	 * 
 	 *
-	 * https://github.com/ins0mniaque/ILSupport
+	 * 
 	 */
 
 
@@ -61,24 +58,34 @@ namespace Test
 			return 1;
 
 		}
+
 		private static void Main(string[] args)
 		{
-
+			
 			var p = new Point();
 
-			
-			
+
 			Inspector.DumpLayout(ref p);
 
-
-			Pointer<int> x = stackalloc int[3];
-
-			Console.WriteLine(x);
 			
-			Console.WriteLine(1.GetMetaType());
+
+			var s = "foo";
+			Inspector.DumpLayout(ref s);
+			Inspector.DumpInfo(ref s);
+
+			var t = typeof(Program).GetAllFields();
+
+			foreach (var info in t) {
+				Console.WriteLine("{0} {1}",info, info.FieldType);
+			}
+
+			var rg = new string[] {"foo"};
+			
+			Console.WriteLine(Functions.Func_IsPinnable(rg));
+			
+			Console.WriteLine(Functions.Func_IsPinnable(1));
 		}
 
-		
 
 		private static void sayhi()
 		{
@@ -109,13 +116,13 @@ namespace Test
 			Console.WriteLine(RuntimeInfo.IsPinnable(sx));
 			Console.WriteLine(RuntimeInfo.IsNil(default(string)));
 		}
+
 		private static void test1()
 		{
 			Console.WriteLine(Environment.Version);
 			Global.Setup();
 
 			CascadingContextMenuEntry x = new("myactiontoplevel");
-			
 
 
 			var e = x.GetStub();
@@ -126,8 +133,7 @@ namespace Test
 			x.Base.Values.Add("Icon", @"C:\\Users\\Deci\\Desktop\\SmartImage.exe");
 
 
-			foreach (string s in x.ToRegistry())
-			{
+			foreach (string s in x.ToRegistry()) {
 				Console.WriteLine(s);
 			}
 

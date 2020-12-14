@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Novus.CoreClr.VM.EE;
 using Novus.Interop;
 using Novus.Memory;
-using Novus.Properties;
+using Novus.Runtime.VM.EE;
 
 // ReSharper disable StructCanBeMadeReadOnly
 // ReSharper disable InconsistentNaming
@@ -11,7 +10,7 @@ using Novus.Properties;
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable FieldCanBeMadeReadOnly.Local
 
-namespace Novus.CoreClr.VM
+namespace Novus.Runtime.VM
 {
 	//todo
 	[NativeStructure]

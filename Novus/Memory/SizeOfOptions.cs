@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using Novus.CoreClr.Meta;
-using Novus.CoreClr.VM;
-using Novus.CoreClr.VM.EE;
+using Novus.Runtime;
+using Novus.Runtime.Meta;
+using Novus.Runtime.VM;
+using Novus.Runtime.VM.EE;
 
 namespace Novus.Memory
 {

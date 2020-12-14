@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Interop;
 
-namespace Novus.CoreClr.VM
+namespace Novus.Runtime.VM
 {
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]

@@ -5,12 +5,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Novus;
-using Novus.CoreClr.Meta;
 using Novus.Memory;
+using Novus.Runtime;
+using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
 using NUnit.Framework;
-using Novus.CoreClr.Meta;
 
 namespace UnitTest
 {

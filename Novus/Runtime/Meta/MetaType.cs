@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Novus.CoreClr.Meta.Base;
-using Novus.CoreClr.VM;
-using Novus.CoreClr.VM.EE;
 using Novus.Memory;
+using Novus.Runtime.Meta.Base;
+using Novus.Runtime.VM;
+using Novus.Runtime.VM.EE;
 using Novus.Utilities;
 using SimpleCore.Diagnostics;
 
@@ -18,7 +16,7 @@ using SimpleCore.Diagnostics;
 
 
 #nullable enable
-namespace Novus.CoreClr.Meta
+namespace Novus.Runtime.Meta
 {
 	public static class MetaExtensions
 	{

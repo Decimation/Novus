@@ -4,7 +4,7 @@ using System.Reflection;
 using Novus.Memory;
 using Novus.Win32;
 
-namespace Novus.CoreClr.Meta.Base
+namespace Novus.Runtime.Meta.Base
 {
 	/// <summary>
 	/// Describes a CLR structure that doesn't have an accompanying token or <see cref="MemberInfo"/>

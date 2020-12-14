@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using JetBrains.Annotations;
-using Novus.CoreClr;
-using Novus.CoreClr.Meta;
 using Novus.Memory;
+using Novus.Runtime.Meta;
 using Novus.Utilities;
+using SimpleCore.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus
+namespace Novus.Runtime
 {
 	/// <summary>
 	///     Utilities for inspecting and analyzing objects, data, etc.
@@ -26,47 +22,59 @@ namespace Novus
 		{
 			// todo
 		}
-		
-		
+
+
 		public static void DumpInfo<T>([NotNull] ref T t)
 		{
-			var sb = new StringBuilder();
+			/*
+			 *
+			 */
+
+			var addrTable = new ConsoleTable("-", "Address");
 
 			var addr = Mem.AddressOf(ref t);
-			sb.AppendFormat("Address: {0}\n", addr);
+			addrTable.AddRow("Address", addr);
 
 			if (Mem.TryGetAddressOfHeap(t, out var heap)) {
-				sb.AppendFormat("Address (heap): {0}\n", heap);
+				addrTable.AddRow("Address (heap)", heap);
 			}
 
-			sb.AppendFormat("Pinnable: {0}\n", RuntimeInfo.IsPinnable(t));
-			sb.AppendFormat("Boxed: {0}\n", RuntimeInfo.IsBoxed(t));
-			sb.AppendFormat("Nil: {0}\n", RuntimeInfo.IsNil(t));
+			addrTable.Write();
 
-			var type = t.GetMetaType();
+			/*
+			 *
+			 */
 
+			var propTable = new ConsoleTable("-", "Value");
 
-			Console.WriteLine(sb);
+			propTable.AddRow("Pinnable", RuntimeInfo.IsPinnable(t));
+			propTable.AddRow("Boxed", RuntimeInfo.IsBoxed(t));
+			propTable.AddRow("Nil", RuntimeInfo.IsNil(t));
+
+			propTable.Write();
 		}
 
 		public static void DumpLayout<T>(ref T t)
 		{
-			var sb = new StringBuilder();
+			var layoutTable = new ConsoleTable("Offset", "Size", "Type", "Name");
+
+
 			var mt = t.GetMetaType();
 			var f  = mt.Fields.Where(x => !x.IsStatic);
 			int s  = Mem.SizeOf(t, SizeOfOptions.Auto);
 			var p  = Mem.AddressOf(ref t);
-			
-			
-			sb.AppendLine($"{mt.Name} ({s}) @ {p}:\n");
+
+
+			//sb.AppendLine($"{mt.Name} ({s}) @ {p}:\n");
+
 
 			foreach (var metaField in f) {
-				sb.AppendLine(
-					$"0x{metaField.Offset:X} | {metaField.Size} | ({metaField.FieldType.Name}) {metaField.Name}");
+				layoutTable.AddRow(
+					$"0x{metaField.Offset:X}", metaField.Size, metaField.FieldType.Name, metaField.Name);
 			}
 
 
-			Console.WriteLine(sb);
+			layoutTable.Write();
 		}
 	}
 }

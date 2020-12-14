@@ -4,15 +4,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using Novus.CoreClr;
-using Novus.CoreClr.VM;
 using Novus.Memory;
+using Novus.Runtime.VM;
 using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 
 #pragma warning disable CS0618
-namespace Novus
+namespace Novus.Runtime
 {
 	/// <summary>
 	///     Utilities for runtime info.

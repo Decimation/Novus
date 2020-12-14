@@ -3,7 +3,7 @@ using Novus.Interop;
 
 // ReSharper disable InconsistentNaming
 
-namespace Novus.CoreClr.VM.EE
+namespace Novus.Runtime.VM.EE
 {
 	/// <summary>
 	/// Substructure of <see cref="EEClass"/>

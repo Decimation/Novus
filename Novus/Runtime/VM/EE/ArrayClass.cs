@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Interop;
 
-namespace Novus.CoreClr.VM.EE
+namespace Novus.Runtime.VM.EE
 {
 	/// <summary>
 	/// Substructure of <see cref="EEClass"/>

@@ -5,7 +5,7 @@ using Novus.Interop;
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable InconsistentNaming
 
-namespace Novus.CoreClr.VM.EE
+namespace Novus.Runtime.VM.EE
 {
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]

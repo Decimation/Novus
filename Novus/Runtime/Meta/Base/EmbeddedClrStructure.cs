@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
-using Novus.CoreClr.VM;
 using Novus.Memory;
+using Novus.Runtime.VM;
 
-namespace Novus.CoreClr.Meta.Base
+namespace Novus.Runtime.Meta.Base
 {
 	/// <summary>
 	/// Describes a <see cref="MetaClrStructure{TClr}"/> that is enclosed by an accompanying <see cref="MethodTable"/>

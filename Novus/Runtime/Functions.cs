@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Novus.CoreClr.VM;
-using Novus.CoreClr.VM.EE;
-using Novus.Properties;
-using Novus.Utilities;
+using Novus.Interop;
+using Novus.Runtime.VM;
+using Novus.Runtime.VM.EE;
+
+// ReSharper disable UnassignedGetOnlyAutoProperty
 
 // ReSharper disable InconsistentNaming
 
-namespace Novus.CoreClr
+namespace Novus.Runtime
 {
 	/// <summary>
-	/// Internal CLR functions
+	/// Contains internal runtime functions.
 	/// </summary>
 	public static unsafe class Functions
 	{
@@ -23,6 +24,8 @@ namespace Novus.CoreClr
 		 * Now, we can use C# 9 unmanaged function pointers because they are implemented using
 		 * the calli opcode.
 		 *
+		 * Unmanaged function pointers are backed by IntPtr.
+		 *
 		 * https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-9.0/function-pointers
 		 * https://github.com/dotnet/csharplang/blob/master/proposals/csharp-9.0/function-pointers.md
 		 * https://devblogs.microsoft.com/dotnet/improvements-in-native-code-interop-in-net-5-0/
@@ -32,111 +35,85 @@ namespace Novus.CoreClr
 		 */
 
 
-
 		/// <summary>
 		/// <see cref="TypeHandle.MethodTable"/>
 		/// </summary>
+		[field: ImportUnmanagedFunction("Sig_GetMethodTable")]
 		internal static delegate* unmanaged<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
 
 		/// <summary>
 		/// <see cref="FieldDesc.Size"/>
 		/// </summary>
+		[field: ImportUnmanagedFunction("Sig_GetSize")]
 		internal static delegate* unmanaged<FieldDesc*, int> Func_GetSize { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.IsPointingToNativeCode"/>
 		/// </summary>
+		[field: ImportUnmanagedFunction("Sig_IsPointingToNativeCode")]
 		internal static delegate* unmanaged<MethodDesc*, int> Func_IsPointingToNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.NativeCode"/>
 		/// </summary>
+		[field: ImportUnmanagedFunction("Sig_GetNativeCode")]
 		internal static delegate* unmanaged<MethodDesc*, void*> Func_GetNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.Token"/>
 		/// </summary>
+		[field: ImportUnmanagedFunction("Sig_GetMemberDef")]
 		internal static delegate* unmanaged<MethodDesc*, int> Func_GetToken { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.RVA"/>
 		/// </summary>
+		[field: ImportUnmanagedFunction("Sig_GetRVA")]
 		internal static delegate* unmanaged<MethodDesc*, long> Func_GetRVA { get; }
 
 		/// <summary>
 		/// <see cref="MethodTable.EEClass"/>
 		/// </summary>
+		[field: ImportUnmanagedFunction("Sig_GetEEClass")]
 		internal static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
 
 		/// <summary>
 		/// <see cref="MethodTable.NativeLayoutInfo"/>
 		/// </summary>
+		[field: ImportUnmanagedFunction("Sig_GetNativeLayoutInfo")]
 		internal static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 
-		
+
 		/*
 		 * Managed internal functions
 		 */
+
+		
 		
 		/// <summary>
 		/// <see cref="RuntimeInfo.ResolveType"/>
 		/// </summary>
-		internal static GetTypeFromHandleDelegate Func_GetTypeFromHandle { get; }
+		[field: ImportManagedFunction(typeof(Type), "GetTypeFromHandleUnsafe")]
+		internal static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
 
 		/// <summary>
 		/// <see cref="RuntimeInfo.IsPinnable"/>
 		/// </summary>
-		internal static IsPinnableDelegate Func_IsPinnable { get; }
+		[field: ImportManagedFunction(typeof(Marshal), "IsPinnable")]
+		internal static delegate* managed<object, bool> Func_IsPinnable { get; }
 
-
-		internal delegate bool IsPinnableDelegate(object obj);
-
-		internal delegate Type GetTypeFromHandleDelegate(IntPtr handle);
 
 		static Functions()
 		{
-			Debug.WriteLine($"{nameof(Functions)}");
-
-			
-			//
-			
-			
-			Func_GetMethodTable = (delegate* unmanaged<TypeHandle*, MethodTable*>) Resources.Clr.Scanner.FindSignature(
-				EmbeddedResources.Sig_GetMethodTable);
-
-			Func_GetSize = (delegate* unmanaged<FieldDesc*, int>) Resources.Clr.Scanner.FindSignature(
-				EmbeddedResources.Sig_GetSize);
-
-			Func_IsPointingToNativeCode = (delegate* unmanaged<MethodDesc*, int>) Resources.Clr.Scanner.FindSignature(
-				EmbeddedResources.Sig_IsPointingToNativeCode);
+			Debug.WriteLine($"Loading {nameof(Functions)}");
 
 
-			Func_GetNativeCode = (delegate* unmanaged<MethodDesc*, void*>) Resources.Clr.Scanner.FindSignature(
-				EmbeddedResources.Sig_GetNativeCode);
+			/*
+			 * Load imports
+			 */
 
 
-			Func_GetToken = (delegate* unmanaged<MethodDesc*, int>) Resources.Clr.Scanner.FindSignature(
-				EmbeddedResources.Sig_GetMemberDef);
-
-			Func_GetRVA = (delegate* unmanaged<MethodDesc*, long>) Resources.Clr.Scanner.FindSignature(
-				EmbeddedResources.Sig_GetRVA);
-
-			Func_GetClass = (delegate* unmanaged<MethodTable*, EEClass*>) Resources.Clr.Scanner.FindSignature(
-				EmbeddedResources.Sig_GetEEClass);
-
-			Func_GetNativeLayoutInfo =
-				(delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*>) Resources.Clr.Scanner.FindSignature(
-					EmbeddedResources.Sig_GetNativeLayoutInfo);
-
-			
-			//
-			
-			Func_GetTypeFromHandle = typeof(Type).GetAnyMethod("GetTypeFromHandleUnsafe")
-				.CreateDelegate<GetTypeFromHandleDelegate>();
-
-
-			Func_IsPinnable = typeof(Marshal).GetAnyMethod("IsPinnable")
-				.CreateDelegate<IsPinnableDelegate>();
+			Global.Clr.LoadImports(typeof(Functions));
 		}
 	}
 }

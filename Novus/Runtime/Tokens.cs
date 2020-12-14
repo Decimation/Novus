@@ -1,9 +1,10 @@
 ﻿using System;
 using Novus.Memory;
 using Novus.Win32;
+
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.CoreClr
+namespace Novus.Runtime
 {
 	public static class Tokens
 	{

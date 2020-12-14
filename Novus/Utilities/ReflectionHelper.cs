@@ -78,6 +78,14 @@ namespace Novus.Utilities
 			return fi;
 		}
 
+
+		internal static (TAttr Attribute, MemberInfo Member)[] GetAnnotated<TAttr>(this Type t) where TAttr : Attribute
+		{
+			return (from member in t.GetAllMembers()
+				where Attribute.IsDefined(member, typeof(TAttr))
+				select (member.GetCustomAttribute<TAttr>(),member)).ToArray();
+		}
+
 		public static bool ImplementsInterface(this Type type, string interfaceName) =>
 			type.GetInterface(interfaceName) != null;
 

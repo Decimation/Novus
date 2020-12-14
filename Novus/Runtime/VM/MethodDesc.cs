@@ -2,12 +2,11 @@
 using System.Runtime.InteropServices;
 using Novus.Interop;
 using Novus.Memory;
-using Novus.Properties;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.CoreClr.VM
+namespace Novus.Runtime.VM
 {
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]

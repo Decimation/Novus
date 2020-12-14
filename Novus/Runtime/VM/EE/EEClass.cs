@@ -8,7 +8,7 @@ using Novus.Memory;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
-namespace Novus.CoreClr.VM.EE
+namespace Novus.Runtime.VM.EE
 {
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]

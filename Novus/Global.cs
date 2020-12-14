@@ -1,49 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
-using Novus.CoreClr.VM;
-using Novus.Properties;
 using Novus.Utilities;
 using SimpleCore.Diagnostics;
-using SimpleCore.Internal;
-using SimpleCore.Utilities;
+
+// ReSharper disable UnusedMember.Global
 
 [assembly: InternalsVisibleTo("Test")]
-
+#nullable enable
 namespace Novus
 {
 	/// <summary>
-	/// Global
+	///     Global and resources
 	/// </summary>
-	public static unsafe class Global
+	public static class Global
 	{
+		
+
+		public static Resource Clr { get; } = new("coreclr.dll");
+
+		public static readonly Version ClrVersion = new(5, 0, 0);
+
 		/// <summary>
-		/// Module initializer
+		///     Module initializer
 		/// </summary>
 		[ModuleInitializer]
 		public static void Setup()
 		{
+			/*
+			 *
+			 */
+
 			Debug.WriteLine(">>> Module init <<<");
 
-			bool c = IsCompatible();
+			bool compatible = IsCompatible();
 
-			if (!c) {
+			if (!compatible) {
 				Guard.Fail();
 			}
 
-			foreach (var assemblyName in DumpDependencies()) {
-				Debug.WriteLine(assemblyName.Name, "Dependency");
-				//Write("{0}", assemblyName.Name);
-			}
 		}
-
-		
 
 		public static HashSet<AssemblyName> DumpDependencies()
 		{
@@ -65,18 +64,16 @@ namespace Novus
 				asm.UnionWith(dependencies);
 
 			}
-			
+
 			return asm;
 		}
-
-		public static readonly Version ClrVersion = new(5, 0, 0);
 
 		public static bool IsCompatible()
 		{
 			bool ver = Environment.Version == ClrVersion;
 			bool gc  = !GCSettings.IsServerGC;
 			bool os  = OperatingSystem.IsWindows();
-			
+
 
 			return ver && gc && os;
 		}

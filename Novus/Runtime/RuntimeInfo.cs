@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Novus.Memory;
 using Novus.Runtime.VM;
+using Novus.Utilities;
 using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
@@ -270,6 +272,43 @@ namespace Novus.Runtime
 			};
 
 			return test;
+		}
+
+		public static HashSet<AssemblyName> DumpDependencies()
+		{
+			var rg = new[]
+			{
+				//
+				//typeof(Global).Assembly,
+				//Assembly.GetExecutingAssembly(),
+				//
+				Assembly.GetCallingAssembly()
+			};
+
+			var asm = new HashSet<AssemblyName>();
+
+			foreach (var assembly in rg) {
+
+				var dependencies = GetUserDependencies(assembly);
+
+				asm.UnionWith(dependencies);
+
+			}
+
+			return asm;
+		}
+
+		public static Assembly GetAssemblyByName(string name)
+		{
+			return AppDomain.CurrentDomain.GetAssemblies()
+				.SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
+		}
+
+		public static IEnumerable<AssemblyName> GetUserDependencies(Assembly asm)
+		{
+			const string SYSTEM = "System";
+
+			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
 		}
 	}
 }

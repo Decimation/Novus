@@ -79,11 +79,11 @@ namespace Novus.Utilities
 		}
 
 
-		internal static (TAttr Attribute, MemberInfo Member)[] GetAnnotated<TAttr>(this Type t) where TAttr : Attribute
+		public static (TAttribute Attribute, MemberInfo Member)[] GetAnnotated<TAttribute>(this Type t) where TAttribute : Attribute
 		{
 			return (from member in t.GetAllMembers()
-				where Attribute.IsDefined(member, typeof(TAttr))
-				select (member.GetCustomAttribute<TAttr>(),member)).ToArray();
+				where Attribute.IsDefined(member, typeof(TAttribute))
+				select (member.GetCustomAttribute<TAttribute>(),member)).ToArray();
 		}
 
 		public static bool ImplementsInterface(this Type type, string interfaceName) =>
@@ -156,19 +156,6 @@ namespace Novus.Utilities
 		}
 
 		public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
-
-		public static Assembly GetAssemblyByName(string name)
-		{
-			return AppDomain.CurrentDomain.GetAssemblies()
-				.SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
-		}
-
-		public static IEnumerable<AssemblyName> GetUserDependencies(Assembly asm)
-		{
-			const string SYSTEM = "System";
-
-			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
-		}
 
 
 		public static FieldInfo fieldof<T>(Expression<Func<T>> expression)

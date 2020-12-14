@@ -4,7 +4,6 @@ using Novus.Properties;
 using Novus.Utilities;
 using SimpleCore.Diagnostics;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -16,18 +15,17 @@ namespace Novus
 	/// <seealso cref="EmbeddedResources"/>
 	public class Resource
 	{
-		public string Name { get; }
+		public string ModuleName { get; }
 
 		public ProcessModule Module { get; }
 
 		public SigScanner Scanner { get; }
 
-
-		public Resource(string name)
+		public Resource(string moduleName)
 		{
-			Name = name;
+			ModuleName = moduleName;
 
-			var module = Mem.FindModule(name);
+			var module = Mem.FindModule(moduleName);
 
 			Guard.AssertNotNull(module);
 
@@ -45,11 +43,13 @@ namespace Novus
 		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
 		/// </summary>
 		/// <param name="t">Enclosing type</param>
-		public void LoadImports(Type t)
+		public static void LoadImports(Type t)
 		{
-			var rg = t.GetAnnotated<ImportAttribute>();
+			Debug.WriteLine($"Loading {t.Name}");
 
-			foreach (var (attribute, member) in rg) {
+			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
+
+			foreach (var (attribute, member) in annotatedTuples) {
 				var    field      = (FieldInfo) member;
 				object fieldValue = null;
 
@@ -60,18 +60,33 @@ namespace Novus
 
 						// Get signature
 
-						var sig = (string?) EmbeddedResources.ResourceManager
+						var sig = (string) EmbeddedResources.ResourceManager
 							.GetObject(unmanagedAttr.Name);
 						Guard.AssertNotNull(sig);
 
+						// Get resource
+
+						string mod = unmanagedAttr.ModuleName;
+
+						Resource resource;
+
+						// NOTE: Unique case for CLR
+						if (mod == Global.CLR_MODULE && unmanagedAttr is ImportClrFunctionAttribute) {
+							resource = Global.Clr;
+						}
+						else {
+							resource = new Resource(mod);
+						}
+
 						// Find signature address
 
-						var addr = Scanner.FindSignature(sig);
+						var addr = resource.Scanner.FindSignature(sig);
 						Guard.Assert(!addr.IsNull);
 
 						fieldValue = (IntPtr) addr;
 						break;
 					}
+
 					case ImportManagedFunctionAttribute managedAttr:
 					{
 						Guard.Assert(managedAttr.ImportType == ImportType.Managed);

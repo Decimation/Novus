@@ -1,28 +1,94 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
-using Novus.Utilities;
+using Novus.Memory;
+using Novus.Properties;
+using Novus.Runtime;
+using Novus.Win32;
 using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 
 [assembly: InternalsVisibleTo("Test")]
 #nullable enable
+
 namespace Novus
 {
 	/// <summary>
-	///     Global and resources
+	///     Core functionality and global resources.
 	/// </summary>
+	/// <remarks>
+	///     Central runtime utilities:
+	///     <list type="bullet">
+	///         <item>
+	///             <description>
+	///                 <see cref="Global" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="Mem" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="RuntimeInfo" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="Inspector" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="Functions" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="EmbeddedResources" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="Resource" />
+	///             </description>
+	///         </item>
+	///     </list>
+	///     OS utilities:
+	///     <list type="bullet">
+	///         <item>
+	///             <description>
+	///                 <see cref="OS" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="Command" />
+	///             </description>
+	///         </item>
+	///     </list>
+	/// </remarks>
 	public static class Global
 	{
-		
+		/// <summary>
+		///     Runtime CLR module name
+		/// </summary>
+		public const string CLR_MODULE = "coreclr.dll";
 
-		public static Resource Clr { get; } = new("coreclr.dll");
-
+		/// <summary>
+		///     Runtime CLR version
+		/// </summary>
 		public static readonly Version ClrVersion = new(5, 0, 0);
+
+		/// <summary>
+		///     Runtime CLR resources
+		/// </summary>
+		public static Resource Clr { get; } = new(CLR_MODULE);
+
+		public static bool IsSetup { get; private set; }
 
 		/// <summary>
 		///     Module initializer
@@ -31,7 +97,7 @@ namespace Novus
 		public static void Setup()
 		{
 			/*
-			 *
+			 * Setup
 			 */
 
 			Debug.WriteLine(">>> Module init <<<");
@@ -42,30 +108,10 @@ namespace Novus
 				Guard.Fail();
 			}
 
-		}
+			IsSetup = true;
 
-		public static HashSet<AssemblyName> DumpDependencies()
-		{
-			var rg = new[]
-			{
-				//
-				//typeof(Global).Assembly,
-				//Assembly.GetExecutingAssembly(),
-				//
-				Assembly.GetCallingAssembly()
-			};
 
-			var asm = new HashSet<AssemblyName>();
-
-			foreach (var assembly in rg) {
-
-				var dependencies = ReflectionHelper.GetUserDependencies(assembly);
-
-				asm.UnionWith(dependencies);
-
-			}
-
-			return asm;
+			// ??? AppDomain.CurrentDomain.ProcessExit ???
 		}
 
 		public static bool IsCompatible()

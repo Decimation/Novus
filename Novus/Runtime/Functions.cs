@@ -38,49 +38,49 @@ namespace Novus.Runtime
 		/// <summary>
 		/// <see cref="TypeHandle.MethodTable"/>
 		/// </summary>
-		[field: ImportUnmanagedFunction("Sig_GetMethodTable")]
+		[field: ImportClrFunction("Sig_GetMethodTable")]
 		internal static delegate* unmanaged<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
 
 		/// <summary>
 		/// <see cref="FieldDesc.Size"/>
 		/// </summary>
-		[field: ImportUnmanagedFunction("Sig_GetSize")]
+		[field: ImportClrFunction("Sig_GetSize")]
 		internal static delegate* unmanaged<FieldDesc*, int> Func_GetSize { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.IsPointingToNativeCode"/>
 		/// </summary>
-		[field: ImportUnmanagedFunction("Sig_IsPointingToNativeCode")]
+		[field: ImportClrFunction("Sig_IsPointingToNativeCode")]
 		internal static delegate* unmanaged<MethodDesc*, int> Func_IsPointingToNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.NativeCode"/>
 		/// </summary>
-		[field: ImportUnmanagedFunction("Sig_GetNativeCode")]
+		[field: ImportClrFunction("Sig_GetNativeCode")]
 		internal static delegate* unmanaged<MethodDesc*, void*> Func_GetNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.Token"/>
 		/// </summary>
-		[field: ImportUnmanagedFunction("Sig_GetMemberDef")]
+		[field: ImportClrFunction("Sig_GetMemberDef")]
 		internal static delegate* unmanaged<MethodDesc*, int> Func_GetToken { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.RVA"/>
 		/// </summary>
-		[field: ImportUnmanagedFunction("Sig_GetRVA")]
+		[field: ImportClrFunction("Sig_GetRVA")]
 		internal static delegate* unmanaged<MethodDesc*, long> Func_GetRVA { get; }
 
 		/// <summary>
 		/// <see cref="MethodTable.EEClass"/>
 		/// </summary>
-		[field: ImportUnmanagedFunction("Sig_GetEEClass")]
+		[field: ImportClrFunction("Sig_GetEEClass")]
 		internal static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
 
 		/// <summary>
 		/// <see cref="MethodTable.NativeLayoutInfo"/>
 		/// </summary>
-		[field: ImportUnmanagedFunction("Sig_GetNativeLayoutInfo")]
+		[field: ImportClrFunction("Sig_GetNativeLayoutInfo")]
 		internal static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 
 
@@ -113,7 +113,7 @@ namespace Novus.Runtime
 			 */
 
 
-			Global.Clr.LoadImports(typeof(Functions));
+			Resource.LoadImports(typeof(Functions));
 		}
 	}
 }

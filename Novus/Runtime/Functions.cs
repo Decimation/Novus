@@ -24,7 +24,7 @@ namespace Novus.Runtime
 		 * Now, we can use C# 9 unmanaged function pointers because they are implemented using
 		 * the calli opcode.
 		 *
-		 * Unmanaged function pointers are backed by IntPtr.
+		 * Delegate function pointers are backed by IntPtr.
 		 *
 		 * https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-9.0/function-pointers
 		 * https://github.com/dotnet/csharplang/blob/master/proposals/csharp-9.0/function-pointers.md

@@ -114,9 +114,22 @@ namespace Novus
 			}
 
 			IsSetup = true;
+			
+			/*
+			 * Close
+			 */
+			
+			AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
+			{
+				Close();
+			};
+		}
 
+		public static void Close()
+		{
+			Allocator.Close();
 
-			// ??? AppDomain.CurrentDomain.ProcessExit ???
+			IsSetup = false;
 		}
 
 		public static bool IsCompatible()

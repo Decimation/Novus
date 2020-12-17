@@ -321,12 +321,6 @@ namespace Novus.Memory
 		/// <param name="name">Field name</param>
 		public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
 
-		//public static int OffsetOf(object obj, string name)
-		//{
-		//	var type = obj.GetMetaType();
-		//	return OffsetOf(type, name);
-		//}
-
 		
 		/// <summary>
 		/// Returns the offset of the field <paramref name="name"/> within the type <paramref name="t"/>.
@@ -540,15 +534,9 @@ namespace Novus.Memory
 		}
 
 
-		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb)
-		{
-			return p.Copy(startIndex, cb);
-		}
+		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
 
-		public static byte[] Copy(Pointer<byte> p, int cb)
-		{
-			return p.Copy(cb);
-		}
+		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
 
 		/// <summary>
 		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
@@ -575,32 +563,17 @@ namespace Novus.Memory
 		/// <param name="value"><see cref="int" /> value to read from</param>
 		/// <param name="bitOfs">Beginning offset</param>
 		/// <param name="bitCount">Number of bits to read</param>
-		public static int ReadBits(int value, int bitOfs, int bitCount)
-		{
-			return ((1 << bitCount) - 1) & (value >> bitOfs);
-		}
+		public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool ReadBit(int value, int bitOfs)
-		{
-			return (value & (1 << bitOfs)) != 0;
-		}
+		public static bool ReadBit(int value, int bitOfs) => (value & (1 << bitOfs)) != 0;
 
-		public static int GetBitMask(int index, int size)
-		{
-			return ((1 << size) - 1) << index;
-		}
+		public static int GetBitMask(int index, int size) => ((1 << size) - 1) << index;
 
 
-		public static int ReadBitsFrom(int data, int index, int size)
-		{
-			return (data & GetBitMask(index, size)) >> index;
-		}
+		public static int ReadBitsFrom(int data, int index, int size) => (data & GetBitMask(index, size)) >> index;
 
-		public static int WriteBitsTo(int data, int index, int size, int value)
-		{
-			return (data & ~GetBitMask(index, size)) | (value << index);
-		}
+		public static int WriteBitsTo(int data, int index, int size, int value) => (data & ~GetBitMask(index, size)) | (value << index);
 
 		public static string ReadCString(this BinaryReader br, int count)
 		{

@@ -31,6 +31,7 @@ namespace UnitTest
 		}
 	}
 
+	[TestFixture]
 	public class Tests
 	{
 		[SetUp]
@@ -289,6 +290,36 @@ namespace UnitTest
 				}
 			}
 
+		}
+
+		[Test]
+		public void AllocatorTest()
+		{
+			Pointer<byte> h = Allocator.Alloc(256);
+			
+			Assert.AreEqual(true, Allocator.IsAllocated(h));
+
+
+			Assert.AreEqual(256, Allocator.GetAllocSize(h));
+
+
+			h = Allocator.ReAlloc(h, 512);
+			
+			Assert.AreEqual(512, Allocator.GetAllocSize(h));
+
+			Assert.Throws<ArgumentException>(() =>
+			{
+				Allocator.ReAlloc(h, -1);
+			});
+			
+			Allocator.Free(h);
+			
+			Assert.AreEqual(false, Allocator.IsAllocated(h));
+
+			Assert.True(Allocator.ReAlloc(h, -1)==null);
+
+
+			
 		}
 	}
 }

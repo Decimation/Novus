@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -10,7 +11,7 @@ using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
-using Novus.Win32.ContextMenu;
+
 // ReSharper disable LocalizableElement
 
 namespace Test
@@ -24,13 +25,8 @@ namespace Test
 	 *
 	 * todo: integrate pdbex
 	 * todo: IL, ILSupport
-	 * todo: use resources
 	 * todo: fully migrate NeoCore and RazorSharp
 	 *
-	 * 
-	 * 
-	 *
-	 * 
 	 */
 
 
@@ -46,39 +42,77 @@ namespace Test
 	 * 
 	 */
 
-	/*
-	 * TODO: Registry
+
+
+
+	/* Runtime
+	 *
+	 * https://github.com/dotnet/runtime
+	 *
+	 *
+	 *
+	 * Field
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
+	 *
+	 * Method
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
+	 *
+	 * EEClass
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
+	 *
+	 * MethodTable
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
+	 *
+	 * TypeHandle
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.h
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.cpp
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.inl
+	 *
+	 * Marshal Native
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
+	 *
+	 * Other
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
+	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
 	 */
 
-	
-	
 	public static unsafe class Program
 	{
+		
 		private static void Main(string[] args)
 		{
-			
+
 			var p = new Point();
 
 
 			Inspector.DumpLayout(ref p);
 
-			
 
-			var s = "foo";
-			Inspector.DumpLayout(ref s);
-			Inspector.DumpInfo(ref s);
+			// 0000000180349C00
+			// 00000001804A5D98
 
-			var t = typeof(Program).GetAllFields();
-
-			foreach (var info in t) {
-				Console.WriteLine("{0} {1}",info, info.FieldType);
+			foreach (var v in Native.GetPESectionInfo(Global.Clr.Module.BaseAddress)) {
+				Console.WriteLine(v);
 			}
+			
 
-			var rg = new string[] {"foo"};
 			
-			Console.WriteLine(Functions.Func_IsPinnable(rg));
+		}
+
+		
+
+		struct Number
+		{
 			
-			Console.WriteLine(Functions.Func_IsPinnable(1));
 		}
 	}
 }

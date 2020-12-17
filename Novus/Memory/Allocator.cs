@@ -2,19 +2,30 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Novus.Win32;
+using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Memory
 {
+	/// <summary>
+	/// Memory allocation manager.
+	/// </summary>
 	public static class Allocator
 	{
-		private static readonly List<Pointer<byte>> AllocatedPointers = new();
+		private static readonly List<Pointer<byte>> Allocated = new();
 
-		public static bool IsAllocated(Pointer<byte> p)
+		public static int AllocCount => Allocated.Count;
+		
+		
+		public static void Close()
 		{
-			return AllocatedPointers.Contains(p);
+			foreach (var pointer in Allocated) {
+				FreeInternal(pointer);
+			}
 		}
+		
+		public static bool IsAllocated(Pointer<byte> ptr) => Allocated.Contains(ptr);
 
 		public static int GetAllocSize(Pointer<byte> ptr)
 		{
@@ -30,41 +41,59 @@ namespace Novus.Memory
 			if (!IsAllocated(ptr)) {
 				return null;
 			}
+			
+			Guard.AssertPositive(elemCnt);
 
-			AllocatedPointers.Remove(ptr);
+			Allocated.Remove(ptr);
 
 			var elemSize = Mem.SizeOf<T>();
 			var cb       = Mem.FlatSize(elemSize, elemCnt);
 
 			ptr = Marshal.ReAllocHGlobal(ptr.Address, (IntPtr) cb);
 
-			AllocatedPointers.Add(ptr);
+			Allocated.Add(ptr);
 
 			return ptr;
 		}
 
+		private static void FreeInternal(Pointer<byte> ptr)
+		{
+			Marshal.FreeHGlobal(ptr.Address);
+			Allocated.Remove(ptr);
+		}
+		
+		
 		public static void Free(Pointer<byte> ptr)
 		{
 			if (!IsAllocated(ptr)) {
 				return;
 			}
 
-			Marshal.FreeHGlobal(ptr.Address);
-			AllocatedPointers.Remove(ptr);
+			FreeInternal(ptr);
 		}
 
+		/// <summary>
+		/// Allocates memory for <paramref name="cb"/> elements of type <see cref="byte"/>.
+		/// </summary>
+		/// <param name="cb">Number of bytes</param>
 		public static Pointer<byte> Alloc(int cb) => Alloc<byte>(cb);
 
+		/// <summary>
+		/// Allocates memory for <paramref name="elemCnt"></paramref> elements of type <typeparamref name="T"/>.
+		/// </summary>
+		/// <typeparam name="T">Element type</typeparam>
+		/// <param name="elemCnt">Number of elements</param>
 		public static Pointer<T> Alloc<T>(int elemCnt)
 		{
+			Guard.AssertPositive(elemCnt);
+			
 			var elemSize = Mem.SizeOf<T>();
 			var cb       = Mem.FlatSize(elemSize, elemCnt);
 
 			Pointer<T> h = Marshal.AllocHGlobal(cb);
 			h.Clear(elemCnt);
 
-			AllocatedPointers.Add(h);
-
+			Allocated.Add(h);
 
 			return h;
 		}

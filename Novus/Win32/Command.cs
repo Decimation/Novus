@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Novus.Win32.FileSystem;
 
 // ReSharper disable UnusedMember.Global
 #nullable enable
@@ -43,13 +42,13 @@ namespace Novus.Win32
 
 		public static void RunBatch(string[] commands, bool dispose)
 		{
-			var fname = Files.CreateRandomName() + ".bat";
+			var fname = FileSystem.CreateRandomName() + ".bat";
 			RunBatch(commands, dispose, fname);
 		}
 
 		public static void RunBatch(string[] commands, bool dispose, string fname)
 		{
-			var fileName = Files.CreateTempFile(fname, commands);
+			var fileName = FileSystem.CreateTempFile(fname, commands);
 
 			var proc = CreateBatchFileProcess(fileName);
 

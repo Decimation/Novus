@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using SimpleCore.Model;
 using SimpleCore.Utilities;
 
@@ -9,7 +7,7 @@ using SimpleCore.Utilities;
 #nullable enable
 
 
-namespace Novus.Win32.FileSystem
+namespace Novus.Win32
 {
 	/// <summary>
 	/// Represents a file format or type.

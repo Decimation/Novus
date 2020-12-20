@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using JetBrains.Annotations;
 using SimpleCore.Utilities;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -11,7 +12,7 @@ using SimpleCore.Utilities;
 #nullable enable
 
 
-namespace Novus.Win32.FileSystem
+namespace Novus.Win32
 {
 	/// <summary>
 	///     Utilities for working with the file system, files, etc.
@@ -21,8 +22,28 @@ namespace Novus.Win32.FileSystem
 	/// <seealso cref="Directory" />
 	/// <seealso cref="DirectoryInfo" />
 	/// <seealso cref="Path" />
-	public static class Files
+	public static class FileSystem
 	{
+		public static string GetParentLevel([NotNull] string fi, int n)
+		{
+			var i = new string[n+1];
+			
+			Array.Fill(i,"..");
+			i[0] = fi;
+			var p = Path.Combine(i);
+
+			return p;
+		}
+		
+		// public static DirectoryInfo GetParentLevel([NotNull] this DirectoryInfo fi, int n)
+		// {
+		// 	if (n == 0) {
+		// 		return fi;
+		// 	}
+		//
+		// 	return fi.Parent.GetParentLevel(--n);
+		// }
+
 		public static string CreateRandomName() => Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
 
 		public static string CreateTempFile(string fname, string[] data)

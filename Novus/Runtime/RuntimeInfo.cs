@@ -13,7 +13,7 @@ using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 
-#pragma warning disable CS0618
+#pragma warning disable CS0618, CS1574
 namespace Novus.Runtime
 {
 	/// <summary>
@@ -223,7 +223,7 @@ namespace Novus.Runtime
 		///     This always returns <c>true</c> if <paramref name="value" /> is <c>null</c> or nil.
 		/// </summary>
 		/// <remarks>
-		///     Blank is defined as one of the following: <c>null</c>, nil (<see cref="IsNilFast{T}" />),
+		///     Blank is defined as one of the following: <c>null</c>, nil (<see cref="IsNil{T}" />),
 		///     non-unique, or unmodified
 		/// </remarks>
 		/// <example>

@@ -103,7 +103,7 @@ namespace Test
 			foreach (var v in Native.GetPESectionInfo(Global.Clr.Module.BaseAddress)) {
 				Console.WriteLine(v);
 			}
-			
+
 
 			
 		}

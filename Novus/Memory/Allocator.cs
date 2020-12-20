@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 using Novus.Win32;
 using SimpleCore.Diagnostics;
 
@@ -16,15 +17,15 @@ namespace Novus.Memory
 		private static readonly List<Pointer<byte>> Allocated = new();
 
 		public static int AllocCount => Allocated.Count;
-		
-		
+
+
 		public static void Close()
 		{
 			foreach (var pointer in Allocated) {
 				FreeInternal(pointer);
 			}
 		}
-		
+
 		public static bool IsAllocated(Pointer<byte> ptr) => Allocated.Contains(ptr);
 
 		public static int GetAllocSize(Pointer<byte> ptr)
@@ -36,12 +37,13 @@ namespace Novus.Memory
 			return (int) Native.LocalSize(ptr.Address);
 		}
 
+		[MustUseReturnValue]
 		public static Pointer<T> ReAlloc<T>(Pointer<T> ptr, int elemCnt)
 		{
 			if (!IsAllocated(ptr)) {
 				return null;
 			}
-			
+
 			Guard.AssertPositive(elemCnt);
 
 			Allocated.Remove(ptr);
@@ -61,8 +63,8 @@ namespace Novus.Memory
 			Marshal.FreeHGlobal(ptr.Address);
 			Allocated.Remove(ptr);
 		}
-		
-		
+
+
 		public static void Free(Pointer<byte> ptr)
 		{
 			if (!IsAllocated(ptr)) {
@@ -76,6 +78,7 @@ namespace Novus.Memory
 		/// Allocates memory for <paramref name="cb"/> elements of type <see cref="byte"/>.
 		/// </summary>
 		/// <param name="cb">Number of bytes</param>
+		[MustUseReturnValue]
 		public static Pointer<byte> Alloc(int cb) => Alloc<byte>(cb);
 
 		/// <summary>
@@ -83,10 +86,11 @@ namespace Novus.Memory
 		/// </summary>
 		/// <typeparam name="T">Element type</typeparam>
 		/// <param name="elemCnt">Number of elements</param>
+		[MustUseReturnValue]
 		public static Pointer<T> Alloc<T>(int elemCnt)
 		{
 			Guard.AssertPositive(elemCnt);
-			
+
 			var elemSize = Mem.SizeOf<T>();
 			var cb       = Mem.FlatSize(elemSize, elemCnt);
 

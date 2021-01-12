@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Novus.Memory;
+
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedTypeParameter
@@ -62,6 +63,27 @@ namespace Novus.Utilities
 
 		private const string BACKING_FIELD = "k__BackingField";
 
+		public static FieldInfo GetBackingField(this MemberInfo m)
+		{
+			var fv = m.DeclaringType.GetFieldAuto(m.Name);
+
+			return fv;
+		}
+		
+		
+		
+		public static FieldInfo GetFieldAuto(this Type t, string fname)
+		{
+			var member = t.GetAnyMember(fname).First();
+
+
+			var field = member.MemberType == MemberTypes.Property
+				? t.GetBackingField(fname)
+				: member as FieldInfo;
+
+			return field;
+		}
+
 		public static IEnumerable<FieldInfo> GetAllBackingFields(this Type t)
 		{
 			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD)).ToArray();
@@ -79,11 +101,12 @@ namespace Novus.Utilities
 		}
 
 
-		public static (TAttribute Attribute, MemberInfo Member)[] GetAnnotated<TAttribute>(this Type t) where TAttribute : Attribute
+		public static (TAttribute Attribute, MemberInfo Member)[] GetAnnotated<TAttribute>(this Type t)
+			where TAttribute : Attribute
 		{
 			return (from member in t.GetAllMembers()
 				where Attribute.IsDefined(member, typeof(TAttribute))
-				select (member.GetCustomAttribute<TAttribute>(),member)).ToArray();
+				select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
 		}
 
 		public static bool ImplementsInterface(this Type type, string interfaceName) =>

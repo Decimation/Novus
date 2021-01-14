@@ -115,7 +115,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8B 41 0C 48 8D 15 44 8E 3E 00.
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8B 41 0C 48 8D 15 64 1A 3E 00.
         /// </summary>
         internal static string Sig_GetSize {
             get {

@@ -25,10 +25,8 @@ namespace Novus.Win32
 	/// <seealso cref="Path" />
 	public static class FileSystem
 	{
-
-
 		/// <remarks><a href="https://stackoverflow.com/questions/10667012/getting-downloads-folder-in-c">Adapted from here</a></remarks>
-		private static readonly string[] KnownFolderGuids = new[]
+		private static readonly string[] KnownFolderGuids =
 		{
 			"{56784854-C6CB-462B-8169-88E350ACB882}", // Contacts
 			"{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}", // Desktop
@@ -63,7 +61,8 @@ namespace Novus.Win32
 		/// <returns>The default path of the known folder.</returns>
 		/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 		///     could not be retrieved.</exception>
-		public static string GetPath(KnownFolder knownFolder, bool defaultUser) => GetPath(knownFolder, KnownFolderFlags.DontVerify, defaultUser);
+		public static string GetPath(KnownFolder knownFolder, bool defaultUser) =>
+			GetPath(knownFolder, KnownFolderFlags.DontVerify, defaultUser);
 
 		private static string GetPath(KnownFolder knownFolder, KnownFolderFlags flags, bool defaultUser)
 		{

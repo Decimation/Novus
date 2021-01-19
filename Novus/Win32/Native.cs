@@ -13,15 +13,26 @@ namespace Novus.Win32
 {
 	public static unsafe class Native
 	{
-		private const string KERNEL32_DLL = "Kernel32.dll";
+		public const string KERNEL32_DLL = "Kernel32.dll";
 
-		public const string CMD_EXE = "cmd.exe";
+		public const string USER32_DLL = "user32.dll";
+
+		public const string DBG_HELP_DLL = "DbgHelp.dll";
+
+		public const string SHELL32_DLL = "Shell32.dll";
+		
+		
+		public const string CMD_EXE      = "cmd.exe";
 
 		public const string EXPLORER_EXE = "explorer.exe";
 
 		public const int INVALID = -1;
 
-		private const string DBG_HELP_DLL = "DbgHelp.dll";
+		[DllImport(SHELL32_DLL)]
+		internal static extern int SHGetKnownFolderPath(
+			[MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken,
+			out IntPtr ppszPath);
+
 
 
 		[DllImport(DBG_HELP_DLL)]
@@ -60,6 +71,18 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern IntPtr GetStdHandle(int nStdHandle);
 
+		[DllImport(USER32_DLL, EntryPoint = "FindWindow", SetLastError = true, CharSet = CharSet.Unicode)]
+		private static extern IntPtr FindWindowByCaption(IntPtr zeroOnly, string lpWindowName);
+
+		[DllImport(KERNEL32_DLL, ExactSpelling = true)]
+		public static extern IntPtr GetConsoleWindow();
+
+		public static IntPtr GetWindowByCaption(string lpWindowName) => FindWindowByCaption(IntPtr.Zero, lpWindowName);
+
+		/// <summary>
+		/// Gets console application's window handle. <see cref="Process.MainWindowHandle"/> does not work in some cases.
+		/// </summary>
+		public static IntPtr GetConsoleWindowHandle() => GetWindowByCaption(Console.Title);
 
 		public static unsafe ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
 		{
@@ -81,6 +104,21 @@ namespace Novus.Win32
 
 			return arr;
 		}
+	}
+
+	[Flags]
+	internal enum KnownFolderFlags : uint
+	{
+		SimpleIDList              = 0x00000100,
+		NotParentRelative         = 0x00000200,
+		DefaultPath               = 0x00000400,
+		Init                      = 0x00000800,
+		NoAlias                   = 0x00001000,
+		DontUnexpand              = 0x00002000,
+		DontVerify                = 0x00004000,
+		Create                    = 0x00008000,
+		NoAppcontainerRedirection = 0x00010000,
+		AliasOnly                 = 0x80000000
 	}
 
 	[Flags]

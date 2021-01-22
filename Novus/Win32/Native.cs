@@ -8,9 +8,14 @@ using Novus.Win32.Wrappers;
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedMember.Global
+using Microsoft.Windows.Sdk;
 
 namespace Novus.Win32
 {
+	/// <summary>
+	/// Native interop; Win32 API
+	/// </summary>
+	/// <seealso cref="NativeInternal"/>
 	public static unsafe class Native
 	{
 		public const string KERNEL32_DLL = "Kernel32.dll";
@@ -84,7 +89,8 @@ namespace Novus.Win32
 		/// </summary>
 		public static IntPtr GetConsoleWindowHandle() => GetWindowByCaption(Console.Title);
 
-		public static unsafe ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
+		
+		public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
 		{
 			// get the location of the module's IMAGE_NT_HEADERS structure
 			ImageNtHeaders* pNtHdr = ImageNtHeader(hModule);

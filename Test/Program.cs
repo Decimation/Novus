@@ -97,13 +97,7 @@ namespace Test
 
 			Inspector.DumpLayout(ref p);
 
-			// 0000000180349C00
-			// 00000001804A5D98
-
-			foreach (var v in Native.GetPESectionInfo(Global.Clr.Module.BaseAddress)) {
-				Console.WriteLine(v);
-			}
-
+			
 		}
 	}
 }

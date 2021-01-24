@@ -108,15 +108,9 @@ namespace Novus.Runtime
 		[field: ImportManagedComponent(typeof(Marshal), "IsPinnable")]
 		internal static delegate* managed<object, bool> Func_IsPinnable { get; }
 
-		
-
-
 		static Functions()
 		{
-			/*
-			 * Load imports
-			 */
-
+			
 			Resource.LoadImports(typeof(Functions));
 		}
 	}

@@ -58,34 +58,8 @@ namespace Novus.Memory
 
 		public static bool Is64Bit => Environment.Is64BitProcess;
 
-		/// <summary>
-		///     Root abstraction of <see cref="Native.ReadProcessMemory" />
-		/// </summary>
-		/// <param name="proc"><see cref="Process" /> whose memory is being read</param>
-		/// <param name="baseAddr">Address within the specified process from which to read</param>
-		/// <param name="buffer">Buffer that receives the read contents from the address space</param>
-		/// <param name="cb">Number of bytes to read</param>
-		public static void ReadProcessMemory(Process proc, Pointer<byte> baseAddr, Pointer<byte> buffer, int cb)
-		{
-			var h = Native.OpenProcess(proc);
 
-			Native.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out _);
-
-			Native.CloseHandle(h);
-		}
-
-		public static T ReadProcessMemory<T>(Process proc, Pointer<byte> baseAddr)
-		{
-
-			T t = default!;
-
-			int size = Unsafe.SizeOf<T>();
-			var ptr  = AddressOf(ref t);
-
-			ReadProcessMemory(proc, baseAddr.Address, ptr.Address, size);
-
-			return t;
-		}
+		#region Write
 
 		public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 		{
@@ -93,17 +67,6 @@ namespace Novus.Memory
 			var ptr    = AddressOf(ref value);
 
 			WriteProcessMemory(proc, baseAddr.Address, ptr.Address, dwSize);
-		}
-
-		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> ptrBase, int cb)
-		{
-			byte[] mem = new byte[cb];
-
-			fixed (byte* p = mem) {
-				ReadProcessMemory(proc, ptrBase, p, cb);
-			}
-
-			return mem;
 		}
 
 		/// <summary>
@@ -127,28 +90,54 @@ namespace Novus.Memory
 			}
 		}
 
-		/// <param name="p">Operand</param>
-		/// <param name="lo">Start address (inclusive)</param>
-		/// <param name="hi">End address (inclusive)</param>
-		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, Pointer<byte> hi)
+		#endregion
+
+		#region Read
+
+		/// <summary>
+		///     Root abstraction of <see cref="Native.ReadProcessMemory" />
+		/// </summary>
+		/// <param name="proc"><see cref="Process" /> whose memory is being read</param>
+		/// <param name="baseAddr">Address within the specified process from which to read</param>
+		/// <param name="buffer">Buffer that receives the read contents from the address space</param>
+		/// <param name="cb">Number of bytes to read</param>
+		public static void ReadProcessMemory(Process proc, Pointer<byte> baseAddr, Pointer<byte> buffer, int cb)
 		{
-			// [lo, hi]
+			var h = Native.OpenProcess(proc);
 
-			// if ((ptrStack < stackBase) && (ptrStack > (stackBase - stackSize)))
-			// (p >= regionStart && p < regionStart + regionSize) ;
-			// return target >= start && target < end;
-			// return m_CacheStackLimit < addr && addr <= m_CacheStackBase;
-			// if (!((object < g_gc_highest_address) && (object >= g_gc_lowest_address)))
-			// return max.ToInt64() < p.ToInt64() && p.ToInt64() <= min.ToInt64();
+			Native.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out _);
 
-			return p <= hi && p >= lo;
+			Native.CloseHandle(h);
 		}
 
-		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, long size)
+		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> ptrBase, int cb)
 		{
-			return p >= lo && p <= lo + size;
+			byte[] mem = new byte[cb];
+
+			fixed (byte* p = mem) {
+				ReadProcessMemory(proc, ptrBase, p, cb);
+			}
+
+			return mem;
 		}
 
+		public static T ReadProcessMemory<T>(Process proc, Pointer<byte> baseAddr)
+		{
+
+			T t = default!;
+
+			int size = Unsafe.SizeOf<T>();
+			var ptr  = AddressOf(ref t);
+
+			ReadProcessMemory(proc, baseAddr.Address, ptr.Address, size);
+
+			return t;
+		}
+
+		#endregion
+
+
+		#region Size
 
 		/// <summary>
 		///     Calculates the total byte size of <paramref name="elemCnt" /> elements with
@@ -313,39 +302,6 @@ namespace Novus.Memory
 			// Subtract the size of the ObjHeader and MethodTable*
 			return HeapSizeOfInternal(value) - RuntimeInfo.ObjectBaseSize;
 		}
-		
-		
-		/// <summary>
-		/// Returns the offset of the field <paramref name="name"/> within the type <typeparamref name="T"/>.
-		/// </summary>
-		/// <param name="name">Field name</param>
-		public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
-
-		
-		/// <summary>
-		/// Returns the offset of the field <paramref name="name"/> within the type <paramref name="t"/>.
-		/// </summary>
-		/// <param name="t">Enclosing type</param>
-		/// <param name="name">Field name</param>
-		public static int OffsetOf(MetaType t, string name)
-		{
-			var f = t.GetField(name);
-
-			return f.Offset;
-		}
-
-		/// <summary>
-		///     Returns the address of <paramref name="value" />.
-		/// </summary>
-		/// <param name="value">Value to return the address of.</param>
-		/// <returns>The address of the type in memory.</returns>
-		public static Pointer<T> AddressOf<T>(ref T value)
-		{
-			/*var tr = __makeref(t);
-			return *(IntPtr*) (&tr);*/
-
-			return Unsafe.AsPointer(ref value);
-		}
 
 		/// <summary>
 		///     Calculates the complete size of a reference type in heap memory.
@@ -379,7 +335,6 @@ namespace Novus.Memory
 		/// </remarks>
 		/// <returns>The size of the type in heap memory, in bytes</returns>
 		public static int HeapSizeOf<T>(T value) where T : class => HeapSizeOfInternal(value);
-
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static int HeapSizeOfInternal<T>(T value)
@@ -425,6 +380,23 @@ namespace Novus.Memory
 			return baseSize + length * componentSize;
 		}
 
+		#endregion
+
+
+		#region Address
+
+		/// <summary>
+		///     Returns the address of <paramref name="value" />.
+		/// </summary>
+		/// <param name="value">Value to return the address of.</param>
+		/// <returns>The address of the type in memory.</returns>
+		public static Pointer<T> AddressOf<T>(ref T value)
+		{
+			/*var tr = __makeref(t);
+			return *(IntPtr*) (&tr);*/
+
+			return Unsafe.AsPointer(ref value);
+		}
 
 		public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer<byte> ptr)
 		{
@@ -507,6 +479,47 @@ namespace Novus.Memory
 			return heapPtr + offsetValue;
 		}
 
+		#endregion
+
+		/// <summary>
+		/// Returns the offset of the field <paramref name="name"/> within the type <typeparamref name="T"/>.
+		/// </summary>
+		/// <param name="name">Field name</param>
+		public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
+
+		/// <summary>
+		/// Returns the offset of the field <paramref name="name"/> within the type <paramref name="t"/>.
+		/// </summary>
+		/// <param name="t">Enclosing type</param>
+		/// <param name="name">Field name</param>
+		public static int OffsetOf(MetaType t, string name)
+		{
+			var f = t.GetField(name);
+
+			return f.Offset;
+		}
+
+		/// <param name="p">Operand</param>
+		/// <param name="lo">Start address (inclusive)</param>
+		/// <param name="hi">End address (inclusive)</param>
+		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, Pointer<byte> hi)
+		{
+			// [lo, hi]
+
+			// if ((ptrStack < stackBase) && (ptrStack > (stackBase - stackSize)))
+			// (p >= regionStart && p < regionStart + regionSize) ;
+			// return target >= start && target < end;
+			// return m_CacheStackLimit < addr && addr <= m_CacheStackBase;
+			// if (!((object < g_gc_highest_address) && (object >= g_gc_lowest_address)))
+			// return max.ToInt64() < p.ToInt64() && p.ToInt64() <= min.ToInt64();
+
+			return p <= hi && p >= lo;
+		}
+
+		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, long size)
+		{
+			return p >= lo && p <= lo + size;
+		}
 
 		/// <summary>
 		///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
@@ -573,7 +586,8 @@ namespace Novus.Memory
 
 		public static int ReadBitsFrom(int data, int index, int size) => (data & GetBitMask(index, size)) >> index;
 
-		public static int WriteBitsTo(int data, int index, int size, int value) => (data & ~GetBitMask(index, size)) | (value << index);
+		public static int WriteBitsTo(int data, int index, int size, int value) =>
+			(data & ~GetBitMask(index, size)) | (value << index);
 
 		public static string ReadCString(this BinaryReader br, int count)
 		{

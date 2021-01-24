@@ -8,16 +8,19 @@ using Novus.Win32.Wrappers;
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedMember.Global
-using Microsoft.Windows.Sdk;
+//using Microsoft.Windows.Sdk;
 
 namespace Novus.Win32
 {
 	/// <summary>
 	/// Native interop; Win32 API
 	/// </summary>
-	/// <seealso cref="NativeInternal"/>
 	public static unsafe class Native
 	{
+		/*
+		 * CsWin32 and Microsoft.Windows.Sdk tanks VS performance; won't use it for now
+		 */
+
 		#region DLL
 
 		public const string KERNEL32_DLL = "Kernel32.dll";

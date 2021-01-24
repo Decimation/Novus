@@ -61,6 +61,24 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 4A4D98.
+        /// </summary>
+        internal static string g_pGCHeap {
+            get {
+                return ResourceManager.GetString("g_pGCHeap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 348BF0.
+        /// </summary>
+        internal static string Ofs_IsHeapPointer {
+            get {
+                return ResourceManager.GetString("Ofs_IsHeapPointer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3.
         /// </summary>
         internal static string Sig_GetEEClass {

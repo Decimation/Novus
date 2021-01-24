@@ -11,18 +11,18 @@ namespace Novus.Interop
 	[MeansImplicitUse(ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors)]
 	public class ImportAttribute : Attribute
 	{
-		public ImportAttribute(string name, ImportType importType)
+		public ImportAttribute(string name, ManageType manageType)
 		{
 			Name       = name;
-			ImportType = importType;
+			ManageType = manageType;
 		}
 
 		public string Name { get; set; }
 
-		public ImportType ImportType { get; set; }
+		public ManageType ManageType { get; set; }
 	}
 
-	public enum ImportType
+	public enum ManageType
 	{
 		Unmanaged,
 		Managed

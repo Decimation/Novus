@@ -8,9 +8,11 @@ using Novus;
 using Novus.Memory;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
+using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
 using NUnit.Framework;
+// ReSharper disable InconsistentNaming
 
 namespace UnitTest
 {
@@ -320,6 +322,19 @@ namespace UnitTest
 
 
 			
+		}
+
+		[Test]
+		public unsafe void GCTest()
+		{
+			var s   = "bar";
+			var ptr = Mem.AddressOfHeap(s).ToPointer();
+			Assert.True(GCHeap.IsHeapPointer(ptr));
+
+			var p = new Point();
+			Assert.False(GCHeap.IsHeapPointer(&p));
+
+			Assert.True(GCHeap.IsHeapPointer(s));
 		}
 	}
 }

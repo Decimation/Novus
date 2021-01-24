@@ -18,16 +18,19 @@ namespace Novus.Win32
 	/// <seealso cref="NativeInternal"/>
 	public static unsafe class Native
 	{
+		#region DLL
+
 		public const string KERNEL32_DLL = "Kernel32.dll";
 
-		public const string USER32_DLL = "user32.dll";
+		public const string USER32_DLL = "User32.dll";
 
 		public const string DBG_HELP_DLL = "DbgHelp.dll";
 
 		public const string SHELL32_DLL = "Shell32.dll";
-		
-		
-		public const string CMD_EXE      = "cmd.exe";
+
+		#endregion
+
+		public const string CMD_EXE = "cmd.exe";
 
 		public const string EXPLORER_EXE = "explorer.exe";
 
@@ -37,7 +40,6 @@ namespace Novus.Win32
 		internal static extern int SHGetKnownFolderPath(
 			[MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken,
 			out IntPtr ppszPath);
-
 
 
 		[DllImport(DBG_HELP_DLL)]
@@ -89,11 +91,11 @@ namespace Novus.Win32
 		/// </summary>
 		public static IntPtr GetConsoleWindowHandle() => GetWindowByCaption(Console.Title);
 
-		
+
 		public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
 		{
 			// get the location of the module's IMAGE_NT_HEADERS structure
-			ImageNtHeaders* pNtHdr = ImageNtHeader(hModule);
+			var pNtHdr = ImageNtHeader(hModule);
 
 			// section table immediately follows the IMAGE_NT_HEADERS
 			var pSectionHdr = (IntPtr) (pNtHdr + 1);

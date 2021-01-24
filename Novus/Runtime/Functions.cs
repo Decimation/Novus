@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Novus.Interop;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.EE;
+using UnmanagedType = Novus.Interop.UnmanagedType;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
@@ -38,76 +39,80 @@ namespace Novus.Runtime
 		/// <summary>
 		/// <see cref="TypeHandle.MethodTable"/>
 		/// </summary>
-		[field: ImportClrFunction("Sig_GetMethodTable")]
+		[field: ImportClrComponent("Sig_GetMethodTable")]
 		internal static delegate* unmanaged<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
 
 		/// <summary>
 		/// <see cref="FieldDesc.Size"/>
 		/// </summary>
-		[field: ImportClrFunction("Sig_GetSize")]
+		[field: ImportClrComponent("Sig_GetSize")]
 		internal static delegate* unmanaged<FieldDesc*, int> Func_GetSize { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.IsPointingToNativeCode"/>
 		/// </summary>
-		[field: ImportClrFunction("Sig_IsPointingToNativeCode")]
+		[field: ImportClrComponent("Sig_IsPointingToNativeCode")]
 		internal static delegate* unmanaged<MethodDesc*, int> Func_IsPointingToNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.NativeCode"/>
 		/// </summary>
-		[field: ImportClrFunction("Sig_GetNativeCode")]
+		[field: ImportClrComponent("Sig_GetNativeCode")]
 		internal static delegate* unmanaged<MethodDesc*, void*> Func_GetNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.Token"/>
 		/// </summary>
-		[field: ImportClrFunction("Sig_GetMemberDef")]
+		[field: ImportClrComponent("Sig_GetMemberDef")]
 		internal static delegate* unmanaged<MethodDesc*, int> Func_GetToken { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.RVA"/>
 		/// </summary>
-		[field: ImportClrFunction("Sig_GetRVA")]
+		[field: ImportClrComponent("Sig_GetRVA")]
 		internal static delegate* unmanaged<MethodDesc*, long> Func_GetRVA { get; }
 
 		/// <summary>
 		/// <see cref="MethodTable.EEClass"/>
 		/// </summary>
-		[field: ImportClrFunction("Sig_GetEEClass")]
+		[field: ImportClrComponent("Sig_GetEEClass")]
 		internal static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
 
 		/// <summary>
 		/// <see cref="MethodTable.NativeLayoutInfo"/>
 		/// </summary>
-		[field: ImportClrFunction("Sig_GetNativeLayoutInfo")]
+		[field: ImportClrComponent("Sig_GetNativeLayoutInfo")]
 		internal static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 
-
+		/// <summary>
+		/// <see cref="GCHeap.IsHeapPointer"/>
+		/// </summary>
+		[field: ImportClrComponent("Ofs_IsHeapPointer", UnmanagedType.Offset)]
+		internal static delegate* unmanaged<void*, void*, bool, bool> Func_IsHeapPointer { get; }
+		
+		
 		/*
 		 * Managed internal functions
 		 */
 
-		
-		
+
 		/// <summary>
 		/// <see cref="RuntimeInfo.ResolveType"/>
 		/// </summary>
-		[field: ImportManagedFunction(typeof(Type), "GetTypeFromHandleUnsafe")]
+		[field: ImportManagedComponent(typeof(Type), "GetTypeFromHandleUnsafe")]
 		internal static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
 
 		/// <summary>
 		/// <see cref="RuntimeInfo.IsPinnable"/>
 		/// </summary>
-		[field: ImportManagedFunction(typeof(Marshal), "IsPinnable")]
+		[field: ImportManagedComponent(typeof(Marshal), "IsPinnable")]
 		internal static delegate* managed<object, bool> Func_IsPinnable { get; }
+
+		
 
 
 		static Functions()
 		{
-			Debug.WriteLine($"Loading {nameof(Functions)}");
-
-
 			/*
 			 * Load imports
 			 */

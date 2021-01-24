@@ -9,6 +9,7 @@ using Novus;
 using Novus.Memory;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
+using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
 
@@ -86,17 +87,15 @@ namespace Test
 	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
 	 */
 
+
 	public static unsafe class Program
 	{
-		
 		private static void Main(string[] args)
 		{
 
 			var p = new Point();
 
-
 			Inspector.DumpLayout(ref p);
-
 
 			// 0000000180349C00
 			// 00000001804A5D98
@@ -105,15 +104,6 @@ namespace Test
 				Console.WriteLine(v);
 			}
 
-
-			
-		}
-
-		
-
-		struct Number
-		{
-			
 		}
 	}
 }

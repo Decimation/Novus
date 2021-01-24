@@ -10,12 +10,19 @@ using JetBrains.Annotations;
 namespace Novus.Memory
 {
 	/// <summary>
-	///     <para>Represents a native pointer. Equals the size of <see cref="P:System.IntPtr.Size" />.</para>
-	///     <para>Can be represented as a native pointer in memory. </para>
-	///     <para>
-	///         Supports pointer arithmetic, reading/writing different any type, and other pointer operations.
-	///     </para>
+	///     Represents a native pointer.
+	/// </summary>
+	/// <remarks>
 	///     <list type="bullet">
+	///         <item>
+	///             <description>Can be represented as a native pointer in memory. </description>
+	///         </item>
+	///         <item>
+	///             <description>Equals the size of <see cref="P:System.IntPtr.Size" /></description>
+	///         </item>
+	///         <item>
+	///             <description>Supports pointer arithmetic, reading/writing different any type, and other pointer operations.</description>
+	///         </item>
 	///         <item>
 	///             <description>No bounds checking</description>
 	///         </item>
@@ -23,12 +30,11 @@ namespace Novus.Memory
 	///             <description>Minimum type safety</description>
 	///         </item>
 	///     </list>
-	/// </summary>
-	/// <typeparam name="T">Pointer element type</typeparam>
+	/// </remarks>
 	public unsafe struct Pointer<T>
 	{
 		/// <summary>
-		/// Internal pointer value.
+		///     Internal pointer value.
 		/// </summary>
 		private void* m_value;
 
@@ -80,12 +86,12 @@ namespace Novus.Memory
 		public Pointer(IntPtr value) : this(value.ToPointer()) { }
 
 		/// <summary>
-		/// Default offset for <see cref="Pointer{T}"/>
+		///     Default offset for <see cref="Pointer{T}" />
 		/// </summary>
 		private const int OFFSET = 0;
 
 		/// <summary>
-		/// Default increment/decrement/element count for <see cref="Pointer{T}"/>
+		///     Default increment/decrement/element count for <see cref="Pointer{T}" />
 		/// </summary>
 		private const int ELEM_CNT = 1;
 
@@ -112,11 +118,14 @@ namespace Novus.Memory
 		public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 
 		/// <summary>
-		///     Checks to see if <paramref name="other"/> is equal to the current instance.
+		///     Checks to see if <paramref name="other" /> is equal to the current instance.
 		/// </summary>
 		/// <param name="other">Other <see cref="Pointer{T}" />.</param>
 		/// <returns></returns>
-		public bool Equals(Pointer<T> other) => Address == other.Address;
+		public bool Equals(Pointer<T> other)
+		{
+			return Address == other.Address;
+		}
 
 		public override bool Equals(object? obj)
 		{
@@ -133,20 +142,32 @@ namespace Novus.Memory
 			return unchecked((int) (long) m_value);
 		}
 
-		public static bool operator ==(Pointer<T> left, Pointer<byte> right) => left.Equals(right);
+		public static bool operator ==(Pointer<T> left, Pointer<byte> right)
+		{
+			return left.Equals(right);
+		}
 
-		public static bool operator !=(Pointer<T> left, Pointer<byte> right) => !left.Equals(right);
+		public static bool operator !=(Pointer<T> left, Pointer<byte> right)
+		{
+			return !left.Equals(right);
+		}
 
-		public static bool operator ==(Pointer<T> left, Pointer<T> right) => left.Equals(right);
+		public static bool operator ==(Pointer<T> left, Pointer<T> right)
+		{
+			return left.Equals(right);
+		}
 
-		public static bool operator !=(Pointer<T> left, Pointer<T> right) => !left.Equals(right);
+		public static bool operator !=(Pointer<T> left, Pointer<T> right)
+		{
+			return !left.Equals(right);
+		}
 
 		/// <summary>
 		///     Increment <see cref="Address" /> by the specified number of bytes
 		/// </summary>
 		/// <param name="byteCnt">Number of bytes to add</param>
 		/// <returns>
-		///     A new <see cref="Pointer{T}"/> with <paramref name="byteCnt"/> bytes added
+		///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes added
 		/// </returns>
 		[Pure]
 		public Pointer<T> Add(long byteCnt = ELEM_CNT)
@@ -161,26 +182,40 @@ namespace Novus.Memory
 		/// </summary>
 		/// <param name="byteCnt">Number of bytes to subtract</param>
 		/// <returns>
-		///     A new <see cref="Pointer{T}"/> with <paramref name="byteCnt"/> bytes subtracted
+		///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes subtracted
 		/// </returns>
 		[Pure]
-		public Pointer<T> Subtract(long byteCnt = ELEM_CNT) => Add(-byteCnt);
+		public Pointer<T> Subtract(long byteCnt = ELEM_CNT)
+		{
+			return Add(-byteCnt);
+		}
 
-		public static Pointer<T> operator +(Pointer<T> left, long right) =>
-			(void*) (left.ToInt64() + right);
+		public static Pointer<T> operator +(Pointer<T> left, long right)
+		{
+			return (void*) (left.ToInt64() + right);
+		}
 
-		public static Pointer<T> operator -(Pointer<T> left, long right) =>
-			(void*) (left.ToInt64() - right);
+		public static Pointer<T> operator -(Pointer<T> left, long right)
+		{
+			return (void*) (left.ToInt64() - right);
+		}
 
-		public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right) =>
-			(void*) (left.ToInt64() + right.ToInt64());
+		public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right)
+		{
+			return (void*) (left.ToInt64() + right.ToInt64());
+		}
 
-		public static Pointer<T> operator -(Pointer<T> left, Pointer<T> right) =>
-			(void*) (left.ToInt64() - right.ToInt64());
+		public static Pointer<T> operator -(Pointer<T> left, Pointer<T> right)
+		{
+			return (void*) (left.ToInt64() - right.ToInt64());
+		}
 
 		[Pure]
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void* Offset(int elemCnt) => (void*) ((long) m_value + (Mem.FlatSize(ElementSize, elemCnt)));
+		private void* Offset(int elemCnt)
+		{
+			return (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
+		}
 
 		[Pure]
 		public Pointer<T> AddressOfIndex(int index) => Offset(index);
@@ -190,7 +225,7 @@ namespace Novus.Memory
 		/// </summary>
 		/// <param name="elemCnt">Number of elements</param>
 		/// <returns>
-		///     A new <see cref="Pointer{T}"/> with <paramref name="elemCnt"/> elements incremented
+		///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
 		/// </returns>
 		[Pure]
 		public Pointer<T> Increment(int elemCnt = ELEM_CNT) => Offset(elemCnt);
@@ -201,7 +236,7 @@ namespace Novus.Memory
 		/// </summary>
 		/// <param name="elemCnt">Number of elements</param>
 		/// <returns>
-		///     A new <see cref="Pointer{T}"/> with <paramref name="elemCnt"/> elements decremented
+		///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
 		/// </returns>
 		[Pure]
 		public Pointer<T> Decrement(int elemCnt = ELEM_CNT) => Increment(-elemCnt);
@@ -281,7 +316,7 @@ namespace Novus.Memory
 		public ref T AsRef(int elemOffset = OFFSET) => ref Unsafe.AsRef<T>(Offset(elemOffset));
 
 		/// <summary>
-		/// Zeros <paramref name="elemCnt"/> elements.
+		///     Zeros <paramref name="elemCnt" /> elements.
 		/// </summary>
 		/// <param name="elemCnt">Number of elements to zero</param>
 		public void Clear(int elemCnt = ELEM_CNT)
@@ -303,15 +338,18 @@ namespace Novus.Memory
 
 
 		[Pure]
-		public Pointer<byte> ReadPointer(int elemOffset = OFFSET) =>
-			ReadPointer<byte>(elemOffset);
+		public Pointer<byte> ReadPointer(int elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
 
 		[Pure]
-		public Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET) =>
-			Cast<Pointer<TType>>().Read(elemOffset);
+		public Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET)
+		{
+			return Cast<Pointer<TType>>().Read(elemOffset);
+		}
 
-		public void WritePointer<TType>(Pointer<TType> ptr, int elemOffset = OFFSET) =>
+		public void WritePointer<TType>(Pointer<TType> ptr, int elemOffset = OFFSET)
+		{
 			Cast<Pointer<TType>>().Write(ptr, elemOffset);
+		}
 
 
 		/// <summary>
@@ -353,22 +391,28 @@ namespace Novus.Memory
 		/// </summary>
 		/// <typeparam name="TNew">Type to point to</typeparam>
 		/// <returns>A new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" /></returns>
-		public Pointer<TNew> Cast<TNew>() => m_value;
+		public Pointer<TNew> Cast<TNew>()
+		{
+			return m_value;
+		}
 
 		/// <summary>
-		///     Creates a new <see cref="Pointer{T}" /> of type <see cref="Byte"/>, pointing to
+		///     Creates a new <see cref="Pointer{T}" /> of type <see cref="Byte" />, pointing to
 		///     <see cref="Address" />
 		/// </summary>
-		/// <returns>A new <see cref="Pointer{T}" /> of type <see cref="Byte"/></returns>
+		/// <returns>A new <see cref="Pointer{T}" /> of type <see cref="Byte" /></returns>
 		public Pointer<byte> Cast() => Cast<byte>();
 
 		/// <summary>
-		///     Creates a native pointer of type <typeparamref name="TUnmanaged"/>, pointing to
+		///     Creates a native pointer of type <typeparamref name="TUnmanaged" />, pointing to
 		///     <see cref="Address" />
 		/// </summary>
-		/// <returns>A native pointer of type <typeparamref name="TUnmanaged"/></returns>
+		/// <returns>A native pointer of type <typeparamref name="TUnmanaged" /></returns>
 		[Pure]
-		public TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged => (TUnmanaged*) m_value;
+		public TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged
+		{
+			return (TUnmanaged*) m_value;
+		}
 
 		/// <summary>
 		///     Creates a native <c>void*</c> pointer, pointing to <see cref="Address" />

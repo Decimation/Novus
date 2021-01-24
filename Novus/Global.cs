@@ -106,7 +106,7 @@ namespace Novus
 			 */
 
 			Debug.WriteLine(">>> Module init <<<");
-
+			
 			bool compatible = IsCompatible();
 
 			if (!compatible) {
@@ -137,8 +137,7 @@ namespace Novus
 			bool ver = Environment.Version == ClrVersion;
 			bool gc  = !GCSettings.IsServerGC;
 			bool os  = OperatingSystem.IsWindows();
-
-			Debug.WriteLine($"{Environment.Version} | {ClrVersion}");
+			
 			return ver && gc && os;
 		}
 	}

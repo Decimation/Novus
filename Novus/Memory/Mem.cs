@@ -16,6 +16,7 @@ using Novus.Win32;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
+
 // ReSharper disable SwitchStatementMissingSomeEnumCasesNoDefault
 // ReSharper disable SwitchStatementHandlesSomeKnownEnumValuesWithDefault
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -477,6 +478,23 @@ namespace Novus.Memory
 			}
 
 			return heapPtr + offsetValue;
+		}
+
+		/// <summary>
+		///     Returns the address of the data of <paramref name="value"/>. If <typeparamref name="T" /> is a value type,
+		///     this will return <see cref="AddressOf{T}" />. If <typeparamref name="T" /> is a reference type,
+		///     this will return the equivalent of <see cref="AddressOfHeap{T}(T, OffsetOptions)" /> with
+		///     <see cref="OffsetOptions.Fields" />.
+		/// </summary>
+		public static Pointer<byte> AddressOfFields<T>(ref T value)
+		{
+			Pointer<T> addr = AddressOf(ref value);
+
+			if (RuntimeInfo.IsStruct(value)) {
+				return addr.Cast();
+			}
+
+			return AddressOfHeapInternal(value, OffsetOptions.Fields);
 		}
 
 		#endregion

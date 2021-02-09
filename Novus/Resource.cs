@@ -49,7 +49,6 @@ namespace Novus
 		private static List<Type> Loaded { get; } = new();
 
 
-
 		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
 		{
 			object fieldValue = null;
@@ -138,7 +137,7 @@ namespace Novus
 			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
 			foreach (var (attribute, member) in annotatedTuples) {
-				var    field      = (FieldInfo) member;
+				var field = (FieldInfo) member;
 
 				var fieldValue = GetImportValue(attribute, field);
 

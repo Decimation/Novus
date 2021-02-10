@@ -96,8 +96,6 @@ namespace Test
 			var p = new Point();
 
 			Inspector.DumpLayout(ref p);
-
-			
 		}
 	}
 }

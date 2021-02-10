@@ -87,6 +87,14 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, ExactSpelling = true)]
 		public static extern IntPtr GetConsoleWindow();
 
+		[DllImport(KERNEL32_DLL)]
+		public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+
+		[DllImport(KERNEL32_DLL)]
+		public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+		
+		public const uint ENABLE_QUICK_EDIT = 0x0040;
+
 		public static IntPtr GetWindowByCaption(string lpWindowName) => FindWindowByCaption(IntPtr.Zero, lpWindowName);
 
 		/// <summary>

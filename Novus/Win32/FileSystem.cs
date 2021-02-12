@@ -81,7 +81,6 @@ namespace Novus.Win32
 		}
 
 
-
 		public static string GetRelativeParent([NotNull] string fi, int n)
 		{
 			var i = new string[n + 1];
@@ -102,7 +101,6 @@ namespace Novus.Win32
 			return GetParent(Directory.GetParent(fi).FullName, --n);
 		}
 
-		
 
 		// public static DirectoryInfo GetParentLevel([NotNull] this DirectoryInfo fi, int n)
 		// {
@@ -198,6 +196,8 @@ namespace Novus.Win32
 			return f.Length;
 		}
 
+		//todo
+
 		/// <summary>
 		///     Attempts to determine the file format (type) given a file.
 		/// </summary>
@@ -241,9 +241,13 @@ namespace Novus.Win32
 			var jpegJfifExif2 = new byte[] {0xFF, 0xD8, 0xFF, 0xE1};
 			var jpegJfifExif3 = new byte[] {0xFF, 0xD8, 0xFF, 0xE0};
 
+			// Photoshop unique signature
+			var jpegJfifExif4 = new byte[] {0xFF, 0xD8, 0xFF, 0xED};
+
 			if (fileBytes.StartsWith(jpegJfifExif)  ||
 			    fileBytes.StartsWith(jpegJfifExif2) ||
-			    fileBytes.StartsWith(jpegJfifExif3)) {
+			    fileBytes.StartsWith(jpegJfifExif3) ||
+			    fileBytes.StartsWith(jpegJfifExif4)) {
 				return FileFormatType.JPEG_JFIF_EXIF;
 			}
 

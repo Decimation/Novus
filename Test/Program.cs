@@ -93,9 +93,10 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			
 
-			
+			var s = "butt";
+			Inspector.DumpLayout(ref s);
+
 		}
 	}
 }

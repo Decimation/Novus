@@ -80,7 +80,9 @@ namespace Novus.Win32
 			}
 		}
 
-		public static string GetParentLevel([NotNull] string fi, int n)
+
+
+		public static string GetRelativeParent([NotNull] string fi, int n)
 		{
 			var i = new string[n + 1];
 
@@ -90,6 +92,17 @@ namespace Novus.Win32
 
 			return p;
 		}
+
+		public static string GetParent([NotNull] string fi, int n)
+		{
+			if (n == 0) {
+				return fi;
+			}
+
+			return GetParent(Directory.GetParent(fi).FullName, --n);
+		}
+
+		
 
 		// public static DirectoryInfo GetParentLevel([NotNull] this DirectoryInfo fi, int n)
 		// {

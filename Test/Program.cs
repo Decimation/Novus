@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -92,10 +93,9 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
+			
 
-			var p = new Point();
-
-			Inspector.DumpLayout(ref p);
+			
 		}
 	}
 }

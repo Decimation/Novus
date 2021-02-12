@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -60,7 +61,21 @@ namespace UnitTest
 			Assert.AreEqual(0, Mem.OffsetOf<string>("_stringLength"));
 			Assert.AreEqual(sizeof(int), Mem.OffsetOf<string>("_firstChar"));
 		}
-		
+
+		[Test]
+		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Koala.jpg", 3)]
+		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Deserts.jpg", 4)]
+		public void TestFileSystem(string str, int i)
+		{
+			var p = new FileInfo(str);
+
+			
+			var a = FileSystem.GetRelativeParent(p.FullName, i);
+			var b = FileSystem.GetParent(p.FullName, i);
+
+			var d = new DirectoryInfo(a);
+			Assert.AreEqual(d.FullName,b);
+		}
 		
 		[Test]
 		public unsafe void TestAddresses()

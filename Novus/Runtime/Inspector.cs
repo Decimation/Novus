@@ -38,6 +38,8 @@ namespace Novus.Runtime
 			All = Offset | Size | Type | Name | Address | Value
 		}
 
+		private const InspectorOptions DEFAULT = InspectorOptions.All;
+
 
 		public static void DumpInfo<T>([NotNull] ref T value)
 		{
@@ -68,8 +70,6 @@ namespace Novus.Runtime
 
 			propTable.Write();
 		}
-
-		public const InspectorOptions DEFAULT = InspectorOptions.All;
 
 		public static void DumpLayout<T>(ref T value, InspectorOptions options = DEFAULT)
 		{

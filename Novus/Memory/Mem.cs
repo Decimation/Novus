@@ -13,6 +13,7 @@ using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
+using Novus.Win32.Structures;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
@@ -58,7 +59,6 @@ namespace Novus.Memory
 		public static readonly Pointer<byte> Nullptr = null;
 
 		public static bool Is64Bit => Environment.Is64BitProcess;
-
 
 		#region Write
 
@@ -597,6 +597,45 @@ namespace Novus.Memory
 
 			return rg.ToArray();
 		}
+
+		#region Virtual
+
+		public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize, AllocationType type,
+			MemoryProtection mp)
+		{
+			var ptr = Native.VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
+
+			return ptr;
+		}
+
+		public static bool VirtualFree(Process hProcess, Pointer<byte> lpAddress,
+			int dwSize, AllocationType dwFreeType)
+		{
+			var p = Native.VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
+
+			return p;
+		}
+
+		public static bool VirtualProtect(Process hProcess, Pointer<byte> lpAddress,
+			int dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
+		{
+			var p = Native.VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
+				out lpflOldProtect);
+
+			return p;
+		}
+
+		public static MemoryBasicInformation VirtualQuery(Process proc, Pointer<byte> lpAddr)
+		{
+			var mbi = new MemoryBasicInformation();
+
+			var v = Native.VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
+				(uint) Marshal.SizeOf<MemoryBasicInformation>());
+
+			return mbi;
+		}
+
+		#endregion
 
 		#region Bits
 

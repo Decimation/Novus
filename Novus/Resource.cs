@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using System.Resources;
 using Novus.Imports;
 
 namespace Novus
@@ -17,13 +18,13 @@ namespace Novus
 	/// <seealso cref="EmbeddedResources"/>
 	public class Resource
 	{
-		public string ModuleName { get; }
+		public Pointer<byte> Address    { get; }
+		public ProcessModule Module     { get; }
+		public string        ModuleName { get; }
+		public SigScanner    Scanner    { get; }
 
-		public ProcessModule Module { get; }
 
-		public SigScanner Scanner { get; }
-
-		public Pointer<byte> Address { get; }
+		private static readonly List<Type> LoadedTypes = new();
 
 		public Resource(string moduleName)
 		{
@@ -41,13 +42,117 @@ namespace Novus
 		}
 
 
+		/// <summary>
+		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
+		/// </summary>
+		/// <param name="t">Enclosing type</param>
+		public static void LoadImports(Type t)
+		{
+			if (LoadedTypes.Contains(t)) {
+				return;
+			}
+
+			Debug.WriteLine($"[debug] Loading {t.Name}");
+
+			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
+
+			foreach (var (attribute, member) in annotatedTuples) {
+				var field = (FieldInfo) member;
+
+
+				var fieldValue = GetImportValue(attribute, field);
+
+				Debug.WriteLine($"[debug] Loading {member.Name} ({attribute.Name})");
+
+				// Set value
+
+				field.SetValue(null, fieldValue);
+			}
+
+			LoadedTypes.Add(t);
+		}
+
 		public override string ToString()
 		{
 			return $"{Module.ModuleName} ({Scanner.Address})";
 		}
 
-		private static List<Type> LoadedTypes { get; } = new();
+		/*
+		 * Native internal CLR functions
+		 *
+		 * Originally, IL had to be used to call native functions as the calli opcode was needed.
+		 *
+		 * Now, we can use C# 9 unmanaged function pointers because they are implemented using
+		 * the calli opcode.
+		 *
+		 * Delegate function pointers are backed by IntPtr.
+		 *
+		 * https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-9.0/function-pointers
+		 * https://github.com/dotnet/csharplang/blob/master/proposals/csharp-9.0/function-pointers.md
+		 * https://devblogs.microsoft.com/dotnet/improvements-in-native-code-interop-in-net-5-0/
+		 *
+		 * Normal delegates using the UnmanagedFunctionPointer attribute is also possible, but it's
+		 * better to use the new unmanaged function pointers.
+		 */
 
+
+		private static ResourceManager GetManager(Assembly assembly)
+		{
+
+
+			string name = null;
+
+			foreach (var v in assembly.GetManifestResourceNames()) {
+
+				if (v.Contains("EmbeddedResources")) {
+					name = v;
+					break;
+				}
+			}
+
+			name = name.Substring(0, name.LastIndexOf('.'));
+
+
+			//"Novus.Properties.EmbeddedResources"
+
+			ResourceManager resourceManager = new ResourceManager(name, assembly);
+			
+
+			return resourceManager;
+		}
+
+		public static object GetObject(string s)
+		{
+			/*var asm1            = Assembly.GetCallingAssembly();
+			var asm2            = Assembly.GetEntryAssembly();
+			
+			var resourceManager = GetManager(asm1);
+			
+			var resValue        = (string)resourceManager.GetObject(s);
+
+			if (resValue == null) {
+				resValue=(string)EmbeddedResources.ResourceManager.GetObject(s);
+			}
+
+			return (string)resValue;*/
+
+			var resValue = (string)EmbeddedResources.ResourceManager.GetObject(s);
+
+			if (resValue != null) {
+				return resValue;
+			}
+
+			Console.WriteLine(Assembly.GetCallingAssembly());
+			Console.WriteLine(Assembly.GetEntryAssembly());
+			Console.WriteLine(Assembly.GetExecutingAssembly());
+
+			var manager = GetManager(Assembly.GetCallingAssembly());
+
+			Console.WriteLine($"using {manager.BaseName}");
+
+			return  manager.GetObject(s);
+
+		}
 
 		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
 		{
@@ -58,12 +163,19 @@ namespace Novus
 				{
 					Guard.Assert(unmanagedAttr.ManageType == ManageType.Unmanaged);
 
-
 					// Get value
 
-					string resValue = (string) EmbeddedResources.ResourceManager
-						.GetObject(unmanagedAttr.Name);
+					//Assembly.GetEntryAssembly();
 
+					// var resourceManager = GetManager();
+					// var resValue        = (string) resourceManager.GetObject(unmanagedAttr.Name);
+
+					// string resValue = (string) EmbeddedResources.ResourceManager
+					// .GetObject(unmanagedAttr.Name);
+
+					var resValue = (string) GetObject(unmanagedAttr.Name);
+
+					
 					Guard.AssertNotNull(resValue);
 
 					// Get resource
@@ -92,7 +204,6 @@ namespace Novus
 
 					Guard.Assert(!addr.IsNull);
 
-
 					if (field.FieldType == typeof(Pointer<byte>)) {
 						fieldValue = addr;
 					}
@@ -120,35 +231,6 @@ namespace Novus
 			}
 
 			return fieldValue;
-		}
-
-		/// <summary>
-		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
-		/// </summary>
-		/// <param name="t">Enclosing type</param>
-		public static void LoadImports(Type t)
-		{
-			if (LoadedTypes.Contains(t)) {
-				return;
-			}
-
-			Debug.WriteLine($"[debug] Loading {t.Name}");
-
-			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
-
-			foreach (var (attribute, member) in annotatedTuples) {
-				var field = (FieldInfo) member;
-
-				var fieldValue = GetImportValue(attribute, field);
-
-				Debug.WriteLine($"[debug] Loading ({attribute.Name}): {fieldValue} -> {member.Name}");
-
-				// Set value
-
-				field.SetValue(null, fieldValue);
-			}
-
-			LoadedTypes.Add(t);
 		}
 	}
 }

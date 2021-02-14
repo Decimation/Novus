@@ -16,6 +16,10 @@ namespace Novus.Runtime.VM
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct FieldDesc
 	{
+		static FieldDesc()
+		{
+			Resource.LoadImports(typeof(FieldDesc));
+		}
 		private Pointer<MethodTable> EnclosingMethodTableStub { get; }
 
 
@@ -42,7 +46,7 @@ namespace Novus.Runtime.VM
 			get
 			{
 				fixed (FieldDesc* p = &this) {
-					return Functions.Func_GetSize(p);
+					return Func_GetSize(p);
 				}
 			}
 		}
@@ -83,6 +87,12 @@ namespace Novus.Runtime.VM
 		internal bool IsPointer => Element == CorElementType.Ptr;
 
 		internal FieldBitFlags BitFlags => (FieldBitFlags) UInt1;
+
+		/// <summary>
+		/// <see cref="FieldDesc.Size"/>
+		/// </summary>
+		[field: ImportClrComponent("Sig_GetSize")]
+		private static delegate* unmanaged<FieldDesc*, int> Func_GetSize { get; }
 	}
 
 	/// <summary>

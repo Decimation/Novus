@@ -17,6 +17,11 @@ namespace Novus.Runtime.VM
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct MethodTable
 	{
+		static MethodTable()
+		{
+			Resource.LoadImports(typeof(MethodTable));
+		}
+
 		internal short ComponentSize { get; }
 
 		internal GenericsFlags GenericsFlags { get; }
@@ -69,7 +74,7 @@ namespace Novus.Runtime.VM
 
 				fixed (MethodTable* p = &this) {
 
-					return Functions.Func_GetClass(p);
+					return Func_GetClass(p);
 				}
 			}
 		}
@@ -97,7 +102,7 @@ namespace Novus.Runtime.VM
 			get
 			{
 				fixed (MethodTable* p = &this) {
-					return Functions.Func_GetNativeLayoutInfo(p);
+					return Func_GetNativeLayoutInfo(p);
 				}
 			}
 		}
@@ -126,6 +131,18 @@ namespace Novus.Runtime.VM
 		internal Pointer<byte> InterfaceMap => Union3;
 
 		internal Pointer<byte> MultipurposeSlot2 => Union3;
+
+		/// <summary>
+		/// <see cref="MethodTable.EEClass"/>
+		/// </summary>
+		[field: ImportClrComponent("Sig_GetEEClass")]
+		private static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
+
+		/// <summary>
+		/// <see cref="MethodTable.NativeLayoutInfo"/>
+		/// </summary>
+		[field: ImportClrComponent("Sig_GetNativeLayoutInfo")]
+		private static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 	}
 
 

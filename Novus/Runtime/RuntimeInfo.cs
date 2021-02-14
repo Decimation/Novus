@@ -4,10 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Novus.Imports;
 using Novus.Memory;
 using Novus.Runtime.VM;
 using SimpleCore.Diagnostics;
+// ReSharper disable InconsistentNaming
+// ReSharper disable UnassignedGetOnlyAutoProperty
 
 // ReSharper disable ClassCannotBeInstantiated
 
@@ -24,6 +28,11 @@ namespace Novus.Runtime
 	{
 		// https://github.com/dotnet/runtime/blob/master/src/coreclr/src/vm/object.h
 
+
+		static RuntimeInfo()
+		{
+			Resource.LoadImports(typeof(RuntimeInfo));
+		}
 
 		/// <summary>
 		///     Size of the length field and first character
@@ -178,7 +187,7 @@ namespace Novus.Runtime
 		/// <remarks>Inverse of <see cref="ResolveTypeHandle" /></remarks>
 		public static Type ResolveType(Pointer<MethodTable> handle)
 		{
-			return Functions.Func_GetTypeFromHandle(handle.Address);
+			return Func_GetTypeFromHandle(handle.Address);
 		}
 
 
@@ -216,7 +225,7 @@ namespace Novus.Runtime
 		/// <summary>
 		///     Determines whether <paramref name="value" /> is pinnable.
 		/// </summary>
-		public static bool IsPinnable([CanBeNull] object value) => Functions.Func_IsPinnable(value);
+		public static bool IsPinnable([CanBeNull] object value) => Func_IsPinnable(value);
 
 		/// <summary>
 		///     Heuristically determines whether <paramref name="value" /> is blank.
@@ -329,5 +338,17 @@ namespace Novus.Runtime
 
 			private PinningHelper() { }
 		}
+
+		/// <summary>
+		/// <see cref="RuntimeInfo.ResolveType"/>
+		/// </summary>
+		[field: ImportManagedComponent(typeof(Type), "GetTypeFromHandleUnsafe")]
+		private static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
+
+		/// <summary>
+		/// <see cref="RuntimeInfo.IsPinnable"/>
+		/// </summary>
+		[field: ImportManagedComponent(typeof(Marshal), "IsPinnable")]
+		private static delegate* managed<object, bool> Func_IsPinnable { get; }
 	}
 }

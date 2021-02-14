@@ -94,12 +94,11 @@ namespace Test
 		private static void Main(string[] args)
 		{
 
-			
+			Console.WriteLine((^1).Value);
+			string s = "foo";
+			Inspector.DumpLayout(ref s);
 
-			var f = @"C:\Users\Deci\Pictures\fucking_epic.jpg";
-			var m = FileSystem.ResolveMimeType(File.ReadAllBytes(f), null);
-
-			Console.WriteLine(m);
+			Console.WriteLine(GCHeap.IsHeapPointer(s));
 		}
 	}
 }

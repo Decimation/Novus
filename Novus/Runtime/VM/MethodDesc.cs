@@ -12,6 +12,11 @@ namespace Novus.Runtime.VM
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct MethodDesc
 	{
+		static MethodDesc()
+		{
+			Resource.LoadImports(typeof(MethodDesc));
+		}
+
 		internal MethodClassification Classification =>
 			(MethodClassification) ((ushort) Properties & (ushort) MethodProperties.Classification);
 
@@ -37,7 +42,7 @@ namespace Novus.Runtime.VM
 			get
 			{
 				fixed (MethodDesc* p = &this) {
-					var mt = Functions.Func_IsPointingToNativeCode(p);
+					var mt = Func_IsPointingToNativeCode(p);
 					//todo
 					return mt > 0;
 				}
@@ -51,7 +56,7 @@ namespace Novus.Runtime.VM
 			{
 				fixed (MethodDesc* p = &this) {
 
-					return Functions.Func_GetNativeCode(p);
+					return Func_GetNativeCode(p);
 				}
 			}
 		}
@@ -63,7 +68,7 @@ namespace Novus.Runtime.VM
 			{
 				fixed (MethodDesc* p = &this) {
 
-					return Functions.Func_GetToken(p);
+					return Func_GetToken(p);
 				}
 			}
 		}
@@ -86,7 +91,7 @@ namespace Novus.Runtime.VM
 			{
 				fixed (MethodDesc* p = &this) {
 
-					return Functions.Func_GetRVA(p);
+					return Func_GetRVA(p);
 				}
 			}
 		}
@@ -116,6 +121,30 @@ namespace Novus.Runtime.VM
 		}
 
 		internal Pointer<MethodTable> MethodTable => MethodDescChunk.Reference.MethodTable;
+
+		/// <summary>
+		/// <see cref="MethodDesc.IsPointingToNativeCode"/>
+		/// </summary>
+		[field: ImportClrComponent("Sig_IsPointingToNativeCode")]
+		private static delegate* unmanaged<MethodDesc*, int> Func_IsPointingToNativeCode { get; }
+
+		/// <summary>
+		/// <see cref="MethodDesc.NativeCode"/>
+		/// </summary>
+		[field: ImportClrComponent("Sig_GetNativeCode")]
+		private static delegate* unmanaged<MethodDesc*, void*> Func_GetNativeCode { get; }
+
+		/// <summary>
+		/// <see cref="MethodDesc.Token"/>
+		/// </summary>
+		[field: ImportClrComponent("Sig_GetMemberDef")]
+		private static delegate* unmanaged<MethodDesc*, int> Func_GetToken { get; }
+
+		/// <summary>
+		/// <see cref="MethodDesc.RVA"/>
+		/// </summary>
+		[field: ImportClrComponent("Sig_GetRVA")]
+		private static delegate* unmanaged<MethodDesc*, long> Func_GetRVA { get; }
 	}
 
 

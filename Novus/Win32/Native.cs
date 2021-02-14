@@ -24,25 +24,19 @@ namespace Novus.Win32
 
 		public const int INVALID = -1;
 
-		public const int STD_ERROR_HANDLE = -12;
-
-		public const int STD_INPUT_HANDLE = -10;
-
-		public const int STD_OUTPUT_HANDLE = -11;
-
-		public const uint ENABLE_QUICK_EDIT = 0x0040;
-
-		[DllImport(SHELL32_DLL)]
-		internal static extern int SHGetKnownFolderPath(
-			[MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken,
-			out IntPtr ppszPath);
-
-
-		[DllImport(DBG_HELP_DLL)]
-		private static extern ImageNtHeaders* ImageNtHeader(IntPtr hModule);
+		#region Memory
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern uint LocalSize(IntPtr p);
+		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
+			int size, out int numBytesRead);
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
+			int size, out int numberBytesWritten);
+
+		#endregion
+
+		#region Handle
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern IntPtr OpenProcess(ProcessAccess dwDesiredAccess, bool bInheritHandle, int dwProcessId);
@@ -50,15 +44,45 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, SetLastError = true, PreserveSig = true)]
 		internal static extern bool CloseHandle(IntPtr obj);
 
-		[DllImport(KERNEL32_DLL)]
-		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
-			int size, out int numBytesRead);
-
-		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		internal static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
-			int size, out int numberBytesWritten);
-
 		internal static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
+
+		[DllImport(USER32_DLL, EntryPoint = "FindWindow", SetLastError = true, CharSet = CharSet.Unicode)]
+		private static extern IntPtr FindWindowByCaption(IntPtr zeroOnly, string lpWindowName);
+
+		public static IntPtr GetWindowByCaption(string lpWindowName) => FindWindowByCaption(IntPtr.Zero, lpWindowName);
+
+		#endregion
+
+
+		#region Virtual
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
+			uint dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
+			int dwSize, AllocationType dwFreeType);
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress,
+			uint dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect);
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
+			ref MemoryBasicInformation lpBuffer, uint dwLength);
+
+		#endregion
+
+		#region Console
+
+		public const uint ENABLE_QUICK_EDIT = 0x0040;
+
+		public const int STD_ERROR_HANDLE = -12;
+
+		public const int STD_INPUT_HANDLE = -10;
+
+		public const int STD_OUTPUT_HANDLE = -11;
 
 		/// <param name="nStdHandle">
 		///     <see cref="STD_INPUT_HANDLE" />,
@@ -68,36 +92,26 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern IntPtr GetStdHandle(int nStdHandle);
 
-		[DllImport(USER32_DLL, EntryPoint = "FindWindow", SetLastError = true, CharSet = CharSet.Unicode)]
-		private static extern IntPtr FindWindowByCaption(IntPtr zeroOnly, string lpWindowName);
-
-		[DllImport(KERNEL32_DLL, ExactSpelling = true)]
-		public static extern IntPtr GetConsoleWindow();
-
 		[DllImport(KERNEL32_DLL)]
 		public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
 
 		[DllImport(KERNEL32_DLL)]
 		public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
 
-		public static IntPtr GetWindowByCaption(string lpWindowName) => FindWindowByCaption(IntPtr.Zero, lpWindowName);
+		[DllImport(KERNEL32_DLL, ExactSpelling = true)]
+		public static extern IntPtr GetConsoleWindow();
 
 		/// <summary>
 		///     Gets console application's window handle. <see cref="Process.MainWindowHandle" /> does not work in some cases.
 		/// </summary>
 		public static IntPtr GetConsoleWindowHandle() => GetWindowByCaption(Console.Title);
 
-		[DllImport(URLMON_DLL, CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-		internal static extern int FindMimeFromData(IntPtr pBC,
-			[MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
-			[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1, SizeParamIndex = 3)]
-			byte[] pBuffer,
-			int cbSize,
-			[MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
-			int dwMimeFlags,
-			out IntPtr ppwzMimeOut,
-			int dwReserved);
+		#endregion
 
+		#region Image
+
+		[DllImport(DBG_HELP_DLL)]
+		private static extern ImageNtHeaders* ImageNtHeader(IntPtr hModule);
 
 		public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
 		{
@@ -119,9 +133,31 @@ namespace Novus.Win32
 
 			return arr;
 		}
+
+		#endregion
+
 		/*
 		 * CsWin32 and Microsoft.Windows.Sdk tanks VS performance; won't use it for now
 		 */
+
+		[DllImport(SHELL32_DLL)]
+		internal static extern int SHGetKnownFolderPath(
+			[MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken,
+			out IntPtr ppszPath);
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern uint LocalSize(IntPtr p);
+
+		[DllImport(URLMON_DLL, CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
+		internal static extern int FindMimeFromData(IntPtr pBC,
+			[MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
+			[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1, SizeParamIndex = 3)]
+			byte[] pBuffer,
+			int cbSize,
+			[MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
+			int dwMimeFlags,
+			out IntPtr ppwzMimeOut,
+			int dwReserved);
 
 		#region DLL
 
@@ -131,9 +167,9 @@ namespace Novus.Win32
 
 		public const string DBG_HELP_DLL = "DbgHelp.dll";
 
-		public const  string SHELL32_DLL = "Shell32.dll";
+		public const string SHELL32_DLL = "Shell32.dll";
 
-		public const string URLMON_DLL  = "urlmon.dll";
+		public const string URLMON_DLL = "urlmon.dll";
 
 		#endregion
 	}

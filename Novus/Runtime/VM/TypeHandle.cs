@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.Memory;
+// ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedMember.Global
 
@@ -14,6 +15,11 @@ namespace Novus.Runtime.VM
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct TypeHandle
 	{
+		static TypeHandle()
+		{
+			Resource.LoadImports(typeof(TypeHandle));
+		}
+
 		private void* Value { get; }
 
 
@@ -23,9 +29,15 @@ namespace Novus.Runtime.VM
 			{
 				fixed (TypeHandle* p = &this) {
 
-					return Functions.Func_GetMethodTable(p);
+					return Func_GetMethodTable(p);
 				}
 			}
 		}
+
+		/// <summary>
+		/// <see cref="TypeHandle.MethodTable"/>
+		/// </summary>
+		[field: ImportClrComponent("Sig_GetMethodTable")]
+		private static delegate* unmanaged<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
 	}
 }

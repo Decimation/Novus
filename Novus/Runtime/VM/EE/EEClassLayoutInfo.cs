@@ -1,5 +1,5 @@
 ﻿using System.Runtime.InteropServices;
-using Novus.Interop;
+using Novus.Imports;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnassignedGetOnlyAutoProperty

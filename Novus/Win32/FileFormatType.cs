@@ -36,28 +36,19 @@ namespace Novus.Win32
 		/// <summary>
 		/// Joint Photographic Experts Group
 		/// </summary>
-		/// <remarks>JPEG/JPG</remarks>
-		public static readonly FileFormatType JPEG_RAW = new(1, nameof(JPEG_RAW))
+		/// <remarks>JPEG/JPG/JFIF</remarks>
+		public static readonly FileFormatType JPEG = new(1, nameof(JPEG))
 		{
-			Extension = new[] {".jpeg", ".jpg"},
+			Extension = new[] {".jpeg", ".jpg", ".jfif"},
 			Type      = FileType.Image
 		};
 
-		/// <summary>
-		/// Joint Photographic Experts Group
-		/// </summary>
-		/// <remarks>JPEG/JPG/JFIF</remarks>
-		public static readonly FileFormatType JPEG_JFIF_EXIF = new(2, nameof(JPEG_JFIF_EXIF))
-		{
-			Extension = new[] {JPEG_RAW.Extension![0], JPEG_RAW.Extension![1], ".jfif"},
-			Type      = FileType.Image
-		};
 
 		/// <summary>
 		/// Portable Network Graphics
 		/// </summary>
 		/// <remarks>PNG</remarks>
-		public static readonly FileFormatType PNG = new(3, nameof(PNG))
+		public static readonly FileFormatType PNG = new(2, nameof(PNG))
 		{
 			Extension = new[] {".png"},
 			Type      = FileType.Image
@@ -67,7 +58,7 @@ namespace Novus.Win32
 		/// Graphical Interchange Format
 		/// </summary>
 		/// <remarks>GIF</remarks>
-		public static readonly FileFormatType GIF = new(4, nameof(GIF))
+		public static readonly FileFormatType GIF = new(3, nameof(GIF))
 		{
 			Extension = new[] {".gif"},
 			Type      = FileType.Image
@@ -77,7 +68,7 @@ namespace Novus.Win32
 		/// Bitmap
 		/// </summary>
 		/// <remarks>BMP</remarks>
-		public static readonly FileFormatType BMP = new(5, nameof(BMP))
+		public static readonly FileFormatType BMP = new(4, nameof(BMP))
 		{
 			Extension = new[] {".bmp"},
 			Type      = FileType.Image
@@ -92,7 +83,7 @@ namespace Novus.Win32
 
 		public override string ToString()
 		{
-			return String.Format("{0} {1} {2}", base.ToString(), Extension?.QuickJoin(), Type);
+			return $"{base.ToString()} {Extension?.QuickJoin()} {Type}";
 		}
 	}
 

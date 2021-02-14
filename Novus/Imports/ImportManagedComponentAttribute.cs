@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Novus.Interop
+namespace Novus.Imports
 {
 	/// <summary>
 	///     Describes an imported managed function.

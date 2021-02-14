@@ -76,6 +76,8 @@ namespace Novus.Memory
 			return patternBytes;
 		}
 
+
+
 		public Pointer<byte> FindSignature(string pattern) => FindSignature(ReadSignature(pattern));
 
 		public Pointer<byte> FindSignature(byte[] pattern)

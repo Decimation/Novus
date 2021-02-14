@@ -539,6 +539,15 @@ namespace Novus.Memory
 			return p >= lo && p <= lo + size;
 		}
 
+		public static Pointer<byte> FindSignature(string moduleName, string sig)
+		{
+			var res = new Resource(moduleName);
+			var p   = res.Scanner.FindSignature(sig);
+
+
+			return p;
+		}
+
 		/// <summary>
 		///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
 		///     <paramref name="moduleName" />
@@ -573,6 +582,7 @@ namespace Novus.Memory
 		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
 		///     hex number format
 		/// </summary>
+		/// <seealso cref="SigScanner.ReadSignature"/>
 		public static byte[] ReadBinaryString(string s)
 		{
 			var rg = new List<byte>();
@@ -587,6 +597,8 @@ namespace Novus.Memory
 
 			return rg.ToArray();
 		}
+
+		#region Bits
 
 		/// <summary>
 		///     Reads <paramref name="bitCount" /> from <paramref name="value" /> at offset <paramref name="bitOfs" />
@@ -607,12 +619,37 @@ namespace Novus.Memory
 		public static int WriteBitsTo(int data, int index, int size, int value) =>
 			(data & ~GetBitMask(index, size)) | (value << index);
 
+		#endregion
+
 		public static string ReadCString(this BinaryReader br, int count)
 		{
 			string s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
 
 
 			return s;
+		}
+
+		/// <summary>
+		///     Forcefully kills a <see cref="Process" /> and ensures the process has exited.
+		/// </summary>
+		/// <param name="p"><see cref="Process" /> to forcefully kill.</param>
+		/// <returns><c>true</c> if <paramref name="p" /> was killed; <c>false</c> otherwise</returns>
+		public static bool ForceKill(this Process p)
+		{
+			p.WaitForExit();
+			p.Dispose();
+
+			try {
+				if (!p.HasExited) {
+					p.Kill();
+				}
+
+				return true;
+			}
+			catch (Exception) {
+
+				return false;
+			}
 		}
 	}
 

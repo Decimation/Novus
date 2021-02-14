@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Novus.Win32.Structures;
+using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -23,8 +26,11 @@ namespace Novus.Win32
 	/// <seealso cref="Directory" />
 	/// <seealso cref="DirectoryInfo" />
 	/// <seealso cref="Path" />
+	/// <seealso cref="OperatingSystem"/>
 	public static class FileSystem
 	{
+		#region KnownFolder
+
 		/// <remarks><a href="https://stackoverflow.com/questions/10667012/getting-downloads-folder-in-c">Adapted from here</a></remarks>
 		private static readonly string[] KnownFolderGuids =
 		{
@@ -70,15 +76,17 @@ namespace Novus.Win32
 				(uint) flags, new IntPtr(defaultUser ? -1 : 0), out IntPtr outPath);
 
 			if (result >= 0) {
-				string path = Marshal.PtrToStringUni(outPath);
+				string path = Marshal.PtrToStringUni(outPath)!;
 				Marshal.FreeCoTaskMem(outPath);
 				return path;
 			}
 			else {
-				throw new ExternalException("Unable to retrieve the known folder path. It may not "
-				                            + "be available on this system.", result);
+				throw new ExternalException(
+					"Unable to retrieve the known folder path. It may not be available on this system.", result);
 			}
 		}
+
+		#endregion
 
 
 		public static string GetRelativeParent([NotNull] string fi, int n)
@@ -98,7 +106,7 @@ namespace Novus.Win32
 				return fi;
 			}
 
-			return GetParent(Directory.GetParent(fi).FullName, --n);
+			return GetParent(Directory.GetParent(fi)!.FullName, --n);
 		}
 
 
@@ -170,7 +178,7 @@ namespace Novus.Win32
 
 			};
 
-			rg.AddRange(OS.PathDirectories);
+			rg.AddRange(PathDirectories);
 
 			//
 
@@ -189,14 +197,44 @@ namespace Novus.Win32
 		/// </summary>
 		/// <param name="file">File location</param>
 		/// <returns>Size of the file, in bytes</returns>
-		public static long GetFileSize(string file)
+		public static long GetFileSize(string file) => new FileInfo(file).Length;
+
+		#region File types
+
+		public static string ResolveMimeType(string file, string? mimeProposed = null) =>
+			ResolveMimeType(File.ReadAllBytes(file), mimeProposed);
+
+
+		public static string ResolveMimeType(byte[] dataBytes, string? mimeProposed = null)
 		{
-			var f = new FileInfo(file);
+			//https://stackoverflow.com/questions/2826808/how-to-identify-the-extension-type-of-the-file-using-c/2826884#2826884
+			//https://stackoverflow.com/questions/18358548/urlmon-dll-findmimefromdata-works-perfectly-on-64bit-desktop-console-but-gener
+			//https://stackoverflow.com/questions/11547654/determine-the-file-type-using-c-sharp
 
-			return f.Length;
+			Guard.AssertArgumentNotNull(dataBytes, nameof(dataBytes));
+
+
+			string mimeRet = String.Empty;
+
+			if (!string.IsNullOrEmpty(mimeProposed)) {
+				//suggestPtr = Marshal.StringToCoTaskMemUni(mimeProposed); // for your experiments ;-)
+				mimeRet = mimeProposed;
+			}
+
+			int ret = Native.FindMimeFromData(IntPtr.Zero,
+				null, dataBytes, dataBytes.Length, mimeProposed, 0, out var outPtr, 0);
+
+			if (ret == 0 && outPtr != IntPtr.Zero) {
+
+				var str = Marshal.PtrToStringUni(outPtr)!;
+
+				Marshal.FreeHGlobal(outPtr);
+
+				return str;
+			}
+
+			return mimeRet;
 		}
-
-		//todo
 
 		/// <summary>
 		///     Attempts to determine the file format (type) given a file.
@@ -207,6 +245,48 @@ namespace Novus.Win32
 		///     determined.
 		/// </returns>
 		public static FileFormatType ResolveFileType(string file) => ResolveFileType(File.ReadAllBytes(file));
+
+
+		private static readonly Dictionary<List<byte[]>, FileFormatType> FileTypeSignatures = new()
+		{
+			{
+				new List<byte[]>
+				{
+					new byte[] {0xFF, 0xD8, 0xFF, 0xDB},
+					new byte[] {0xFF, 0xD8, 0xFF, 0xE1},
+					new byte[] {0xFF, 0xD8, 0xFF, 0xE0},
+
+					// Photoshop
+					new byte[] {0xFF, 0xD8, 0xFF, 0xED},
+				},
+				FileFormatType.JPEG
+
+			},
+
+			{
+				new List<byte[]>
+				{
+					new byte[] {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A},
+				},
+				FileFormatType.PNG
+			},
+
+			{
+				new List<byte[]>
+				{
+					new byte[] {0x47, 0x49, 0x46, 0x38}
+				},
+				FileFormatType.GIF
+			},
+
+			{
+				new List<byte[]>
+				{
+					new byte[] {0x42, 0x4D},
+				},
+				FileFormatType.BMP
+			}
+		};
 
 		/// <summary>
 		///     Attempts to determine the file format (type) given the raw bytes of a file
@@ -219,73 +299,78 @@ namespace Novus.Win32
 		/// </returns>
 		public static FileFormatType ResolveFileType(byte[] fileBytes)
 		{
-			// todo: FileIdentity, FileSequence, etc
 
-			/*
-			 * JPEG RAW
-			 */
+			//Map.Keys.Any(k=>k.Any(b=>fileBytes.StartsWith(b)))
 
-			var jpegStart = new byte[] {0xFF, 0xD8, 0xFF, 0xDB};
-			var jpegEnd   = new byte[] {0xFF, 0xD9};
-
-			if (fileBytes.StartsWith(jpegStart) && fileBytes.EndsWith(jpegEnd)) {
-				return FileFormatType.JPEG_RAW;
+			foreach (var map in FileTypeSignatures) {
+				foreach (byte[] bytes in map.Key) {
+					if (fileBytes.StartsWith(bytes)) {
+						return map.Value;
+					}
+				}
 			}
-
-			/*
-			 * JPEG JFIF
-			 */
-
-			//var jpegJfif = new byte[] {0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01};
-			var jpegJfifExif  = new byte[] {0xFF, 0xD8, 0xFF, 0xDB};
-			var jpegJfifExif2 = new byte[] {0xFF, 0xD8, 0xFF, 0xE1};
-			var jpegJfifExif3 = new byte[] {0xFF, 0xD8, 0xFF, 0xE0};
-
-			// Photoshop unique signature
-			var jpegJfifExif4 = new byte[] {0xFF, 0xD8, 0xFF, 0xED};
-
-			if (fileBytes.StartsWith(jpegJfifExif)  ||
-			    fileBytes.StartsWith(jpegJfifExif2) ||
-			    fileBytes.StartsWith(jpegJfifExif3) ||
-			    fileBytes.StartsWith(jpegJfifExif4)) {
-				return FileFormatType.JPEG_JFIF_EXIF;
-			}
-
-			/*
-			 * PNG
-			 */
-
-			var png = new byte[] {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
-
-			if (fileBytes.StartsWith(png)) {
-				return FileFormatType.PNG;
-			}
-
-			/*
-			 * GIF
-			 */
-
-			var gif = new byte[] {0x47, 0x49, 0x46, 0x38};
-
-			if (fileBytes.StartsWith(gif)) {
-				return FileFormatType.GIF;
-			}
-
-			/*
-			 * BMP
-			 */
-
-			var bmp = new byte[] {0x42, 0x4D};
-
-			if (fileBytes.StartsWith(bmp)) {
-				return FileFormatType.BMP;
-			}
-
-			/*
-			 * Unknown
-			 */
 
 			return FileFormatType.Unknown;
+		}
+
+		#endregion
+
+		/// <summary>
+		///     Environment variable PATH
+		/// </summary>
+		public const string PATH_ENV = "PATH";
+
+		/// <summary>
+		///     Delimiter of environment variable <see cref="PATH_ENV" />
+		/// </summary>
+		public const char PATH_DELIM = ';';
+
+		/// <summary>
+		///     Environment variable target
+		/// </summary>
+		public static EnvironmentVariableTarget Target { get; set; } = EnvironmentVariableTarget.User;
+
+		/// <summary>
+		///     Directories of <see cref="EnvironmentPath" /> with environment variable target <see cref="Target" />
+		/// </summary>
+		public static string[] PathDirectories => EnvironmentPath.Split(PATH_DELIM);
+
+		/// <summary>
+		///     Environment variable <see cref="PATH_ENV" /> with target <see cref="Target" />
+		/// </summary>
+		public static string EnvironmentPath
+		{
+			get
+			{
+				string? env = Environment.GetEnvironmentVariable(PATH_ENV, Target);
+
+				if (env == null) {
+					throw new NullReferenceException();
+				}
+
+				return env;
+			}
+			set => Environment.SetEnvironmentVariable(PATH_ENV, value, Target);
+		}
+
+		/// <summary>
+		///     Removes <paramref name="location" /> from <see cref="PathDirectories" />
+		/// </summary>
+		public static void RemoveFromPath(string location)
+		{
+			string oldValue = EnvironmentPath;
+
+			EnvironmentPath = oldValue.Replace(PATH_DELIM + location, String.Empty);
+		}
+
+		/// <summary>
+		///     Determines whether <paramref name="location" /> is in <see cref="PathDirectories" />
+		/// </summary>
+		public static bool IsFolderInPath(string location)
+		{
+			string? dir = Array.Find(PathDirectories, s => s == location);
+
+			return !String.IsNullOrWhiteSpace(dir);
 		}
 	}
 

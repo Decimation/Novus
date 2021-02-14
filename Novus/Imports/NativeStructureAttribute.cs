@@ -1,7 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace Novus.Interop
+namespace Novus.Imports
 {
 	[MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
 	public sealed class NativeStructureAttribute : Attribute { }

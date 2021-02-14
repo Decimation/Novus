@@ -66,7 +66,7 @@ namespace Novus
 	///     <list type="bullet">
 	///         <item>
 	///             <description>
-	///                 <see cref="OS" />
+	///                 <see cref="FileSystem" />
 	///             </description>
 	///         </item>
 	///         <item>

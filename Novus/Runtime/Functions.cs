@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Novus.Interop;
+using Novus.Imports;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.EE;
-using UnmanagedType = Novus.Interop.UnmanagedType;
+using UnmanagedType = Novus.Imports.UnmanagedType;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 

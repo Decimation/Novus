@@ -1,5 +1,4 @@
-﻿using Novus.Interop;
-using Novus.Memory;
+﻿using Novus.Memory;
 using Novus.Properties;
 using Novus.Utilities;
 using SimpleCore.Diagnostics;
@@ -8,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using Novus.Imports;
 
 namespace Novus
 {
@@ -46,7 +46,7 @@ namespace Novus
 			return $"{Module.ModuleName} ({Scanner.Address})";
 		}
 
-		private static List<Type> Loaded { get; } = new();
+		private static List<Type> LoadedTypes { get; } = new();
 
 
 		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
@@ -128,7 +128,7 @@ namespace Novus
 		/// <param name="t">Enclosing type</param>
 		public static void LoadImports(Type t)
 		{
-			if (Loaded.Contains(t)) {
+			if (LoadedTypes.Contains(t)) {
 				return;
 			}
 
@@ -148,7 +148,7 @@ namespace Novus
 				field.SetValue(null, fieldValue);
 			}
 
-			Loaded.Add(t);
+			LoadedTypes.Add(t);
 		}
 	}
 }

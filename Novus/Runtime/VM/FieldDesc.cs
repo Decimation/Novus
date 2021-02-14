@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using Novus.Interop;
+using Novus.Imports;
 using Novus.Memory;
 
 // ReSharper disable InconsistentNaming

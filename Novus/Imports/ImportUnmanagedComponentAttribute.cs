@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Novus.Properties;
 
-namespace Novus.Interop
+namespace Novus.Imports
 {
 	/// <summary>
 	///     Describes an imported unmanaged function.

@@ -1,7 +1,9 @@
 ﻿using System.Runtime.InteropServices;
 
 // ReSharper disable StructCanBeMadeReadOnly
-
+// ReSharper disable IdentifierTypo
+// ReSharper disable UnusedMember.Global
+// ReSharper disable InconsistentNaming
 namespace Novus.Win32.Structures
 {
 	[StructLayout(LayoutKind.Explicit)]

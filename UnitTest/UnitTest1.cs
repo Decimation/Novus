@@ -13,6 +13,7 @@ using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
 using NUnit.Framework;
+
 // ReSharper disable InconsistentNaming
 
 namespace UnitTest
@@ -47,17 +48,17 @@ namespace UnitTest
 
 			[FieldOffset(sizeof(int))] public int b;
 		}
-		
-		
+
+
 		[Test]
 		public unsafe void TestMem1()
 		{
-			
-			
-			Assert.AreEqual(0, Mem.OffsetOf<MyStruct>(nameof(MyStruct.a)));
-			Assert.AreEqual(sizeof(int), Mem.OffsetOf<MyStruct>( nameof(MyStruct.b)));
 
-			
+
+			Assert.AreEqual(0, Mem.OffsetOf<MyStruct>(nameof(MyStruct.a)));
+			Assert.AreEqual(sizeof(int), Mem.OffsetOf<MyStruct>(nameof(MyStruct.b)));
+
+
 			Assert.AreEqual(0, Mem.OffsetOf<string>("_stringLength"));
 			Assert.AreEqual(sizeof(int), Mem.OffsetOf<string>("_firstChar"));
 		}
@@ -69,14 +70,41 @@ namespace UnitTest
 		{
 			var p = new FileInfo(str);
 
-			
+
 			var a = FileSystem.GetRelativeParent(p.FullName, i);
 			var b = FileSystem.GetParent(p.FullName, i);
 
 			var d = new DirectoryInfo(a);
-			Assert.AreEqual(d.FullName,b);
+			Assert.AreEqual(d.FullName, b);
+
+
 		}
-		
+
+		[Test]
+		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.jpg", nameof(FileFormatType.JPEG))]
+		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.gif", nameof(FileFormatType.GIF))]
+		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.bmp", nameof(FileFormatType.BMP))]
+		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.png", nameof(FileFormatType.PNG))]
+		public void TestFileType(string s, string n)
+		{
+			//C:\Users\Deci\Pictures\Camera Roll
+
+			var t = FileSystem.ResolveFileType(s);
+
+
+			Assert.AreEqual(t.Name, n);
+
+			var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s), null);
+
+
+			TestContext.WriteLine(m);
+
+			Assert.Throws<ArgumentNullException>(() =>
+			{ 
+				FileSystem.ResolveMimeType(dataBytes: null);
+			});
+		}
+
 		[Test]
 		public unsafe void TestAddresses()
 		{
@@ -112,8 +140,8 @@ namespace UnitTest
 			var arrayMem = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData).Address;
 
 			Assert.AreEqual(arrayFixed, arrayMem);
-			
-			
+
+
 			/*
 			 * Object
 			 */
@@ -121,13 +149,13 @@ namespace UnitTest
 			object obj = new object();
 
 			IntPtr objFixed;
-			
-			fixed(byte* p = &RuntimeInfo.GetPinningHelper(obj).Data) {
+
+			fixed (byte* p = &RuntimeInfo.GetPinningHelper(obj).Data) {
 				objFixed = (IntPtr) p;
 			}
 
 			var objMem = Mem.AddressOfHeap(obj, OffsetOptions.Fields).Address;
-			
+
 			Assert.AreEqual(objFixed, objMem);
 
 		}
@@ -313,7 +341,7 @@ namespace UnitTest
 		public void AllocatorTest()
 		{
 			Pointer<byte> h = Allocator.Alloc(256);
-			
+
 			Assert.AreEqual(true, Allocator.IsAllocated(h));
 
 
@@ -321,22 +349,21 @@ namespace UnitTest
 
 
 			h = Allocator.ReAlloc(h, 512);
-			
+
 			Assert.AreEqual(512, Allocator.GetAllocSize(h));
 
 			Assert.Throws<ArgumentException>(() =>
 			{
 				Allocator.ReAlloc(h, -1);
 			});
-			
+
 			Allocator.Free(h);
-			
+
 			Assert.AreEqual(false, Allocator.IsAllocated(h));
 
-			Assert.True(Allocator.ReAlloc(h, -1)==null);
+			Assert.True(Allocator.ReAlloc(h, -1) == null);
 
 
-			
 		}
 
 		[Test]

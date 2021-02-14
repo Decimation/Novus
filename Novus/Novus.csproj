@@ -48,13 +48,11 @@
     <!--<Reference Include="Functions">
       <HintPath>Native\Functions.dll</HintPath>
     </Reference>-->
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="SimpleCore">
       <HintPath>..\..\..\RiderProjects\SimpleCore\SimpleCore\bin\Release\net5.0\SimpleCore.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="NativeMethods.txt" />
-    <AdditionalFiles Include="NativeMethods.json" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\EmbeddedResources.Designer.cs">

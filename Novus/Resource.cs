@@ -6,9 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Resources;
 using Novus.Imports;
+
+// ReSharper disable UnusedMember.Global
 
 namespace Novus
 {
@@ -23,8 +26,6 @@ namespace Novus
 		public string        ModuleName { get; }
 		public SigScanner    Scanner    { get; }
 
-
-		private static readonly List<Type> LoadedTypes = new();
 
 		public Resource(string moduleName)
 		{
@@ -96,61 +97,17 @@ namespace Novus
 		 */
 
 
-		private static ResourceManager GetManager(Assembly assembly)
+		private static readonly List<Type> LoadedTypes = new();
+
+		public static readonly List<ResourceManager> Managers = new()
 		{
+			EmbeddedResources.ResourceManager,
+		};
 
 
-			string name = null;
-
-			foreach (var v in assembly.GetManifestResourceNames()) {
-
-				if (v.Contains("EmbeddedResources")) {
-					name = v;
-					break;
-				}
-			}
-
-			name = name.Substring(0, name.LastIndexOf('.'));
-
-
-			//"Novus.Properties.EmbeddedResources"
-
-			ResourceManager resourceManager = new ResourceManager(name, assembly);
-			
-
-			return resourceManager;
-		}
-
-		public static object GetObject(string s)
+		private static object GetObject(string s)
 		{
-			/*var asm1            = Assembly.GetCallingAssembly();
-			var asm2            = Assembly.GetEntryAssembly();
-			
-			var resourceManager = GetManager(asm1);
-			
-			var resValue        = (string)resourceManager.GetObject(s);
-
-			if (resValue == null) {
-				resValue=(string)EmbeddedResources.ResourceManager.GetObject(s);
-			}
-
-			return (string)resValue;*/
-
-			var resValue = (string)EmbeddedResources.ResourceManager.GetObject(s);
-
-			if (resValue != null) {
-				return resValue;
-			}
-
-			Console.WriteLine(Assembly.GetCallingAssembly());
-			Console.WriteLine(Assembly.GetEntryAssembly());
-			Console.WriteLine(Assembly.GetExecutingAssembly());
-
-			var manager = GetManager(Assembly.GetCallingAssembly());
-
-			Console.WriteLine($"using {manager.BaseName}");
-
-			return  manager.GetObject(s);
+			return Managers.Select(manager => manager.GetObject(s)).FirstOrDefault(o => o != null);
 
 		}
 
@@ -165,17 +122,10 @@ namespace Novus
 
 					// Get value
 
-					//Assembly.GetEntryAssembly();
-
-					// var resourceManager = GetManager();
-					// var resValue        = (string) resourceManager.GetObject(unmanagedAttr.Name);
-
-					// string resValue = (string) EmbeddedResources.ResourceManager
-					// .GetObject(unmanagedAttr.Name);
-
+					
 					var resValue = (string) GetObject(unmanagedAttr.Name);
 
-					
+
 					Guard.AssertNotNull(resValue);
 
 					// Get resource

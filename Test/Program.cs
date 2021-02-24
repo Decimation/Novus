@@ -93,12 +93,18 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-
-			Console.WriteLine((^1).Value);
+			
 			string s = "foo";
 			Inspector.DumpLayout(ref s);
 
 			Console.WriteLine(GCHeap.IsHeapPointer(s));
+			Console.WriteLine(RuntimeInfo.MinObjectSize);
+			Console.WriteLine(typeof(string).AsMetaType().BaseSize);
+
+			var p = Mem.AddressOfHeap(s, OffsetOptions.StringData).Cast<char>();
+			p[0] = 'g';
+
+			Console.WriteLine(s);
 		}
 	}
 }

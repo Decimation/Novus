@@ -112,6 +112,7 @@ namespace Novus
 			if (!compatible) {
 				Guard.Fail();
 			}
+			
 
 			IsSetup = true;
 			

@@ -42,37 +42,6 @@ namespace Novus
 			Address = Module.BaseAddress;
 		}
 
-
-		/// <summary>
-		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
-		/// </summary>
-		/// <param name="t">Enclosing type</param>
-		public static void LoadImports(Type t)
-		{
-			if (LoadedTypes.Contains(t)) {
-				return;
-			}
-
-			Debug.WriteLine($"[debug] Loading {t.Name}");
-
-			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
-
-			foreach (var (attribute, member) in annotatedTuples) {
-				var field = (FieldInfo) member;
-
-
-				var fieldValue = GetImportValue(attribute, field);
-
-				Debug.WriteLine($"[debug] Loading {member.Name} ({attribute.Name})");
-
-				// Set value
-
-				field.SetValue(null, fieldValue);
-			}
-
-			LoadedTypes.Add(t);
-		}
-
 		public override string ToString()
 		{
 			return $"{Module.ModuleName} ({Scanner.Address})";
@@ -96,18 +65,92 @@ namespace Novus
 		 * better to use the new unmanaged function pointers.
 		 */
 
+		
+
+
+		/// <summary>
+		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
+		/// </summary>
+		/// <param name="t">Enclosing type</param>
+		public static void LoadImports(Type t)
+		{
+			if (LoadedTypes.Contains(t)) {
+				return;
+			}
+
+			var mgr = GetManager(t.Assembly);
+
+			if (!Managers.Contains(mgr)) {
+				Managers.Add(mgr);
+			}
+
+			Debug.WriteLine($"[debug] Loading {t.Name}");
+
+			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
+
+			foreach (var (attribute, member) in annotatedTuples) {
+				var field = (FieldInfo) member;
+
+
+				var fieldValue = GetImportValue(attribute, field);
+
+				Debug.WriteLine($"[debug] Loading {member.Name} ({attribute.Name})");
+
+				// Set value
+
+				field.SetValue(null, fieldValue);
+			}
+
+			LoadedTypes.Add(t);
+		}
 
 		private static readonly List<Type> LoadedTypes = new();
 
-		public static readonly List<ResourceManager> Managers = new()
+		private static readonly List<ResourceManager> Managers = new()
 		{
 			EmbeddedResources.ResourceManager,
 		};
 
+		private static ResourceManager GetManager(Assembly assembly)
+		{
+			string name = null;
+
+			foreach (var v in assembly.GetManifestResourceNames()) {
+
+				var value = assembly.GetName().Name;
+
+				if (v.Contains(value) || v.Contains("EmbeddedResources")) {
+					name = v;
+					break;
+				}
+			}
+
+			if (name == null) {
+				return null;
+			}
+
+			name = name.Substring(0, name.LastIndexOf('.'));
+
+
+			var resourceManager = new ResourceManager(name, assembly);
+
+
+			return resourceManager;
+		}
+
 
 		private static object GetObject(string s)
 		{
-			return Managers.Select(manager => manager.GetObject(s)).FirstOrDefault(o => o != null);
+			foreach (var manager in Managers) {
+				var v = manager.GetObject(s);
+
+				if (v != null) {
+					Trace.WriteLine($"{manager.BaseName}:: {v}");
+					return v;
+				}
+			}
+
+			return null;
 
 		}
 
@@ -122,7 +165,7 @@ namespace Novus
 
 					// Get value
 
-					
+
 					var resValue = (string) GetObject(unmanagedAttr.Name);
 
 

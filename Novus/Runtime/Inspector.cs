@@ -97,7 +97,7 @@ namespace Novus.Runtime
 
 
 				if (options.HasFlag(InspectorOptions.Offset)) {
-					rowValues.Add($"0x{metaField.Offset:X}");
+					rowValues.Add($"{metaField.Offset:X}");
 				}
 
 				if (options.HasFlag(InspectorOptions.Size)) {
@@ -114,7 +114,7 @@ namespace Novus.Runtime
 
 				if (options.HasFlag(InspectorOptions.Address)) {
 					var addr = Mem.AddressOfFields(ref value) + metaField.Offset;
-					rowValues.Add($"0x{addr}");
+					rowValues.Add(addr.ToString(PointerFormatting.FMT_HEX));
 				}
 
 				if (options.HasFlag(InspectorOptions.Value)) {

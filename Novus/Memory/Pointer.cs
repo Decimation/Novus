@@ -1,7 +1,9 @@
 ﻿#nullable enable
 using System;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using static Novus.Memory.PointerFormatting;
 
 // ReSharper disable UnusedMember.Global
 
@@ -31,7 +33,7 @@ namespace Novus.Memory
 	///         </item>
 	///     </list>
 	/// </remarks>
-	public unsafe struct Pointer<T>
+	public unsafe struct Pointer<T> : IFormattable
 	{
 		/// <summary>
 		///     Internal pointer value.
@@ -95,6 +97,8 @@ namespace Novus.Memory
 		/// </summary>
 		private const int ELEM_CNT = 1;
 
+		#region Conversion
+
 		public static explicit operator Pointer<T>(ulong ul) => new((void*) ul);
 
 		public static explicit operator IntPtr(Pointer<T> ptr) => ptr.Address;
@@ -116,6 +120,62 @@ namespace Novus.Memory
 		public static implicit operator Pointer<T>(IntPtr value) => new(value);
 
 		public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
+
+		/// <summary>
+		///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to
+		///     <see cref="Address" />
+		/// </summary>
+		/// <typeparam name="TNew">Type to point to</typeparam>
+		/// <returns>A new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" /></returns>
+		public Pointer<TNew> Cast<TNew>()
+		{
+			return m_value;
+		}
+
+		/// <summary>
+		///     Creates a new <see cref="Pointer{T}" /> of type <see cref="Byte" />, pointing to
+		///     <see cref="Address" />
+		/// </summary>
+		/// <returns>A new <see cref="Pointer{T}" /> of type <see cref="Byte" /></returns>
+		public Pointer<byte> Cast() => Cast<byte>();
+
+		/// <summary>
+		///     Creates a native pointer of type <typeparamref name="TUnmanaged" />, pointing to
+		///     <see cref="Address" />
+		/// </summary>
+		/// <returns>A native pointer of type <typeparamref name="TUnmanaged" /></returns>
+		[Pure]
+		public TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged
+		{
+			return (TUnmanaged*) m_value;
+		}
+
+		/// <summary>
+		///     Creates a native <c>void*</c> pointer, pointing to <see cref="Address" />
+		/// </summary>
+		/// <returns>A native <c>void*</c> pointer</returns>
+		[Pure]
+		public void* ToPointer() => m_value;
+
+
+		[Pure]
+		public nint ToNativeInt() => (nint) m_value;
+
+		[Pure]
+		public ulong ToUInt64() => (ulong) m_value;
+
+		[Pure]
+		public long ToInt64() => (long) m_value;
+
+		[Pure]
+		public int ToInt32() => (int) m_value;
+
+		[Pure]
+		public uint ToUInt32() => (uint) m_value;
+
+		#endregion
+
+		#region Comparison
 
 		/// <summary>
 		///     Checks to see if <paramref name="other" /> is equal to the current instance.
@@ -161,6 +221,17 @@ namespace Novus.Memory
 		{
 			return !left.Equals(right);
 		}
+
+		public static bool operator >(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64()  > b.ToInt64();
+		public static bool operator >=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() >= b.ToInt64();
+
+		public static bool operator <(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() < b.ToInt64();
+
+		public static bool operator <=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() <= b.ToInt64();
+
+		#endregion
+
+		#region Arithmetic
 
 		/// <summary>
 		///     Increment <see cref="Address" /> by the specified number of bytes
@@ -210,37 +281,6 @@ namespace Novus.Memory
 			return (void*) (left.ToInt64() - right.ToInt64());
 		}
 
-		[Pure]
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void* Offset(int elemCnt)
-		{
-			return (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
-		}
-
-		[Pure]
-		public Pointer<T> AddressOfIndex(int index) => Offset(index);
-
-		/// <summary>
-		///     Increment <see cref="Address" /> by the specified number of elements
-		/// </summary>
-		/// <param name="elemCnt">Number of elements</param>
-		/// <returns>
-		///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
-		/// </returns>
-		[Pure]
-		public Pointer<T> Increment(int elemCnt = ELEM_CNT) => Offset(elemCnt);
-
-
-		/// <summary>
-		///     Decrement <see cref="Address" /> by the specified number of elements
-		/// </summary>
-		/// <param name="elemCnt">Number of elements</param>
-		/// <returns>
-		///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
-		/// </returns>
-		[Pure]
-		public Pointer<T> Decrement(int elemCnt = ELEM_CNT) => Increment(-elemCnt);
-
 		/// <summary>
 		///     Increments the <see cref="Address" /> by the specified number of elements.
 		///     <remarks>
@@ -283,13 +323,40 @@ namespace Novus.Memory
 		/// <returns>The offset <see cref="Address" /></returns>
 		public static Pointer<T> operator --(Pointer<T> ptr) => ptr.Decrement();
 
-		public static bool operator >(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() > b.ToInt64();
+		/// <summary>
+		///     Increment <see cref="Address" /> by the specified number of elements
+		/// </summary>
+		/// <param name="elemCnt">Number of elements</param>
+		/// <returns>
+		///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
+		/// </returns>
+		[Pure]
+		public Pointer<T> Increment(int elemCnt = ELEM_CNT) => Offset(elemCnt);
 
-		public static bool operator >=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() >= b.ToInt64();
 
-		public static bool operator <(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() < b.ToInt64();
+		/// <summary>
+		///     Decrement <see cref="Address" /> by the specified number of elements
+		/// </summary>
+		/// <param name="elemCnt">Number of elements</param>
+		/// <returns>
+		///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
+		/// </returns>
+		[Pure]
+		public Pointer<T> Decrement(int elemCnt = ELEM_CNT) => Increment(-elemCnt);
 
-		public static bool operator <=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() <= b.ToInt64();
+		[Pure]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private void* Offset(int elemCnt)
+		{
+			return (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
+		}
+
+		[Pure]
+		public Pointer<T> AddressOfIndex(int index) => Offset(index);
+
+		#endregion
+
+		#region Read/write
 
 		/// <summary>
 		///     Writes a value of type <typeparamref name="T" /> to <see cref="Address" />.
@@ -385,64 +452,39 @@ namespace Novus.Memory
 		[Pure]
 		public T[] Copy(int elemCnt) => Copy(OFFSET, elemCnt);
 
-		/// <summary>
-		///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to
-		///     <see cref="Address" />
-		/// </summary>
-		/// <typeparam name="TNew">Type to point to</typeparam>
-		/// <returns>A new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" /></returns>
-		public Pointer<TNew> Cast<TNew>()
+		#endregion
+
+		#region Format
+
+		public override string ToString() => ToString(FMT_HEX);
+
+		private const string PTR_PREFIX = "0x";
+
+		public string ToString(string format) => this.ToString(format, null);
+
+		public string ToString(string? format, IFormatProvider? provider)
 		{
-			return m_value;
+			if (String.IsNullOrEmpty(format))
+				format = FMT_HEX;
+
+			provider ??= CultureInfo.CurrentCulture;
+
+			return format.ToUpperInvariant() switch
+			{
+				FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
+				FMT_PTR => PTR_PREFIX +ToString(FMT_HEX),
+				_                         => throw new FormatException(),
+			};
+
 		}
 
-		/// <summary>
-		///     Creates a new <see cref="Pointer{T}" /> of type <see cref="Byte" />, pointing to
-		///     <see cref="Address" />
-		/// </summary>
-		/// <returns>A new <see cref="Pointer{T}" /> of type <see cref="Byte" /></returns>
-		public Pointer<byte> Cast() => Cast<byte>();
+		#endregion
+	}
 
-		/// <summary>
-		///     Creates a native pointer of type <typeparamref name="TUnmanaged" />, pointing to
-		///     <see cref="Address" />
-		/// </summary>
-		/// <returns>A native pointer of type <typeparamref name="TUnmanaged" /></returns>
-		[Pure]
-		public TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged
-		{
-			return (TUnmanaged*) m_value;
-		}
+	public static class PointerFormatting
+	{
+		public const string FMT_HEX = "X";
 
-		/// <summary>
-		///     Creates a native <c>void*</c> pointer, pointing to <see cref="Address" />
-		/// </summary>
-		/// <returns>A native <c>void*</c> pointer</returns>
-		[Pure]
-		public void* ToPointer() => m_value;
-
-
-		[Pure]
-		public nint ToNativeInt() => (nint) m_value;
-
-		[Pure]
-		public ulong ToUInt64() => (ulong) m_value;
-
-		[Pure]
-		public long ToInt64() => (long) m_value;
-
-		[Pure]
-		public int ToInt32() => (int) m_value;
-
-		[Pure]
-		public uint ToUInt32() => (uint) m_value;
-
-
-		public override string ToString()
-		{
-			const string HEX = "X";
-
-			return Address.ToInt64().ToString(HEX);
-		}
+		public const string FMT_PTR = "P";
 	}
 }

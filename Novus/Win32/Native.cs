@@ -36,6 +36,19 @@ namespace Novus.Win32
 
 		#endregion
 
+		#region Library
+
+		[DllImport(KERNEL32_DLL)]
+		public static extern IntPtr LoadLibrary(string dllToLoad);
+
+		[DllImport(KERNEL32_DLL)]
+		public static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
+
+		[DllImport(KERNEL32_DLL)]
+		public static extern bool FreeLibrary(IntPtr hModule);
+
+		#endregion
+
 		#region Handle
 
 		[DllImport(KERNEL32_DLL)]

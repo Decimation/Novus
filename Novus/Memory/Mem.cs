@@ -598,6 +598,7 @@ namespace Novus.Memory
 			return rg.ToArray();
 		}
 
+		
 		#region Virtual
 
 		public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize, AllocationType type,

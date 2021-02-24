@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -36,33 +37,8 @@ namespace UnitTest
 	}
 
 	[TestFixture]
-	public class Tests
+	public class Tests_FileSystem
 	{
-		[SetUp]
-		public void Setup() { }
-
-		[StructLayout(LayoutKind.Explicit)]
-		private struct MyStruct
-		{
-			[FieldOffset(default)] public int a;
-
-			[FieldOffset(sizeof(int))] public int b;
-		}
-
-
-		[Test]
-		public unsafe void TestMem1()
-		{
-
-
-			Assert.AreEqual(0, Mem.OffsetOf<MyStruct>(nameof(MyStruct.a)));
-			Assert.AreEqual(sizeof(int), Mem.OffsetOf<MyStruct>(nameof(MyStruct.b)));
-
-
-			Assert.AreEqual(0, Mem.OffsetOf<string>("_stringLength"));
-			Assert.AreEqual(sizeof(int), Mem.OffsetOf<string>("_firstChar"));
-		}
-
 		[Test]
 		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Koala.jpg", 3)]
 		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Deserts.jpg", 4)]
@@ -100,67 +76,15 @@ namespace UnitTest
 			TestContext.WriteLine(m);
 
 			Assert.Throws<ArgumentNullException>(() =>
-			{ 
+			{
 				FileSystem.ResolveMimeType(dataBytes: null);
 			});
 		}
+	}
 
-		[Test]
-		public unsafe void TestAddresses()
-		{
-			/*
-			 * String
-			 */
-
-
-			var s = "foo";
-
-			IntPtr strFixed;
-
-			fixed (char* c = s) {
-				strFixed = (IntPtr) c;
-			}
-
-			var strMem = Mem.AddressOfHeap(s, OffsetOptions.StringData).Address;
-
-			Assert.AreEqual(strFixed, strMem);
-
-			/*
-			 * Array
-			 */
-
-			IntPtr arrayFixed;
-
-			var rg = new int[] {1, 2, 3};
-
-			fixed (int* c = rg) {
-				arrayFixed = (IntPtr) c;
-			}
-
-			var arrayMem = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData).Address;
-
-			Assert.AreEqual(arrayFixed, arrayMem);
-
-
-			/*
-			 * Object
-			 */
-
-			object obj = new object();
-
-			IntPtr objFixed;
-
-			fixed (byte* p = &RuntimeInfo.GetPinningHelper(obj).Data) {
-				objFixed = (IntPtr) p;
-			}
-
-			var objMem = Mem.AddressOfHeap(obj, OffsetOptions.Fields).Address;
-
-			Assert.AreEqual(objFixed, objMem);
-
-		}
-
-
+	[TestFixture]
+	public class Tests_Metadata
+	{
 		[Test]
 		[TestCase(typeof(string), ("_firstChar"))]
 		public void FieldTest(Type t, string n)
@@ -255,6 +179,121 @@ namespace UnitTest
 		}
 
 		[Test]
+		public void StringTest()
+		{
+			string s  = "foo";
+			var    mt = s.GetType().AsMetaType();
+
+			Assert.AreEqual(Mem.HeapSizeOf(s), 28);
+			Assert.AreEqual(mt.BaseSize, 22); // NOT 20; SOS is wrong
+			Assert.AreEqual(mt.ComponentSize, 2);
+
+			Assert.AreEqual(mt.InstanceFieldsCount, 2);
+			Assert.AreEqual(mt.StaticFieldsCount, 1);
+			Assert.AreEqual(mt.InstanceFieldsSize, sizeof(char) + sizeof(int));
+
+
+		}
+
+		[Test]
+		public unsafe void GCTest()
+		{
+			var s   = "bar";
+			var ptr = Mem.AddressOfHeap(s).ToPointer();
+			Assert.True(GCHeap.IsHeapPointer(ptr));
+
+			var p = new Point();
+			Assert.False(GCHeap.IsHeapPointer(&p));
+
+			Assert.True(GCHeap.IsHeapPointer(s));
+		}
+	}
+
+	[StructLayout(LayoutKind.Explicit)]
+	public struct MyStruct
+	{
+		[FieldOffset(default)] public int a;
+
+		[FieldOffset(sizeof(int))] public int b;
+	}
+
+	[TestFixture]
+	public class Tests_Mem
+	{
+		[SetUp]
+		public void Setup() { }
+
+
+		[Test]
+		public unsafe void TestMem1()
+		{
+
+
+			Assert.AreEqual(0, Mem.OffsetOf<MyStruct>(nameof(MyStruct.a)));
+			Assert.AreEqual(sizeof(int), Mem.OffsetOf<MyStruct>(nameof(MyStruct.b)));
+
+
+			Assert.AreEqual(0, Mem.OffsetOf<string>("_stringLength"));
+			Assert.AreEqual(sizeof(int), Mem.OffsetOf<string>("_firstChar"));
+		}
+
+
+		[Test]
+		public unsafe void TestAddresses()
+		{
+			/*
+			 * String
+			 */
+
+
+			var s = "foo";
+
+			IntPtr strFixed;
+
+			fixed (char* c = s) {
+				strFixed = (IntPtr) c;
+			}
+
+			var strMem = Mem.AddressOfHeap(s, OffsetOptions.StringData).Address;
+
+			Assert.AreEqual(strFixed, strMem);
+
+			/*
+			 * Array
+			 */
+
+			IntPtr arrayFixed;
+
+			var rg = new int[] {1, 2, 3};
+
+			fixed (int* c = rg) {
+				arrayFixed = (IntPtr) c;
+			}
+
+			var arrayMem = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData).Address;
+
+			Assert.AreEqual(arrayFixed, arrayMem);
+
+			/*
+			 * Object
+			 */
+
+			object obj = new object();
+
+			IntPtr objFixed;
+
+			fixed (byte* p = &RuntimeInfo.GetPinningHelper(obj).Data) {
+				objFixed = (IntPtr) p;
+			}
+
+			var objMem = Mem.AddressOfHeap(obj, OffsetOptions.Fields).Address;
+
+			Assert.AreEqual(objFixed, objMem);
+
+		}
+
+
+		[Test]
 		public unsafe void SizeTest()
 		{
 			var intArray = new[] {1, 2, 3};
@@ -317,24 +356,41 @@ namespace UnitTest
 		[Test]
 		public void StringTest()
 		{
-			string s  = "foo";
-			var    mt = s.GetType().AsMetaType();
+			string s = "foo";
 
-			Assert.AreEqual(Mem.HeapSizeOf(s), 28);
-			Assert.AreEqual(mt.BaseSize, 22); // NOT 20; SOS is wrong
-			Assert.AreEqual(mt.ComponentSize, 2);
-
-			Assert.AreEqual(mt.InstanceFieldsCount, 2);
-			Assert.AreEqual(mt.StaticFieldsCount, 1);
-			Assert.AreEqual(mt.InstanceFieldsSize, sizeof(char) + sizeof(int));
-
+			var pointer = Mem.AddressOfHeap(s, OffsetOptions.StringData);
 
 			unsafe {
 				fixed (char* p = s) {
-					Assert.AreEqual((ulong) p, Mem.AddressOfHeap(s, OffsetOptions.StringData).ToUInt64());
+					Assert.AreEqual((ulong) p, pointer.ToUInt64());
 				}
 			}
 
+
+			var p2 = pointer.Cast<char>();
+			p2[0] = 'g';
+
+			Assert.AreEqual(s, "goo");
+
+		}
+		[Test]
+		public void ArrayTest()
+		{
+			int[] rg = {1, 2, 3};
+
+			var ptr = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
+
+			unsafe
+			{
+				fixed (int* p = rg)
+				{
+					Assert.AreEqual((ulong)p, ptr.ToUInt64());
+				}
+			}
+
+			ptr[0] = 100;
+
+			Assert.True(rg.SequenceEqual(new[]{100,2,3}));
 		}
 
 		[Test]
@@ -364,19 +420,6 @@ namespace UnitTest
 			Assert.True(Allocator.ReAlloc(h, -1) == null);
 
 
-		}
-
-		[Test]
-		public unsafe void GCTest()
-		{
-			var s   = "bar";
-			var ptr = Mem.AddressOfHeap(s).ToPointer();
-			Assert.True(GCHeap.IsHeapPointer(ptr));
-
-			var p = new Point();
-			Assert.False(GCHeap.IsHeapPointer(&p));
-
-			Assert.True(GCHeap.IsHeapPointer(s));
 		}
 	}
 }

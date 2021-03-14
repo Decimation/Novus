@@ -4,7 +4,7 @@
 namespace Novus.Win32.Structures
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct MemoryBasicInformation64
+	public struct MemoryBasicInformation64//todo
 	{
 		public ulong BaseAddress;
 		public ulong AllocationBase;

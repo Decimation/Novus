@@ -23,12 +23,23 @@ namespace Novus.Win32
 		public const string EXPLORER_EXE = "explorer.exe";
 
 		public const int INVALID = -1;
-
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern void GetSystemInfo(ref SystemInfo Info);//todo
+		
+		
 		#region Memory
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
 			int size, out int numBytesRead);
+
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
+			int size, out int numBytesRead);
+		[DllImport(KERNEL32_DLL)]
+		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
+			IntPtr size, out IntPtr numBytesRead);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
@@ -84,7 +95,7 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL)]
 		internal static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
 			ref MemoryBasicInformation lpBuffer, uint dwLength);
-
+		
 		#endregion
 
 		#region Console

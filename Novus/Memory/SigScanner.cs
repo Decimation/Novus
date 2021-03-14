@@ -20,19 +20,30 @@ namespace Novus.Memory
 		 * https://github.com/LiveSplit/LiveSplit/blob/master/LiveSplit/LiveSplit.Core/ComponentUtil/SignatureScanner.cs
 		 * https://github.com/LiveSplit/LiveSplit/blob/master/LiveSplit/LiveSplit.Core/ComponentUtil/ProcessExtensions.cs
 		 */
-		
+
 
 		public byte[] Buffer { get; }
 
 		public Pointer<byte> Address { get; }
 
-		public SigScanner(ProcessModule module) : this(module.BaseAddress, module.ModuleMemorySize) { }
 
-		public SigScanner(Pointer<byte> p, int c) : this(p, p.Copy(c)) { }
+		public ulong Size { get; }
+		
+		public SigScanner(Process proc, ProcessModule module) 
+			: this(module.BaseAddress, (ulong) module.ModuleMemorySize,
+			Mem.ReadProcessMemory(proc, module.BaseAddress, module.ModuleMemorySize)) { }
 
-		public SigScanner(Pointer<byte> ptr, byte[] buffer)
+
+		public SigScanner(ProcessModule module)
+			: this(module.BaseAddress, (ulong) module.ModuleMemorySize)
+		{ }
+
+		public SigScanner(Pointer<byte> p, ulong c) : this(p,c, p.Copy((int)c)) { }
+
+		public SigScanner(Pointer<byte> ptr, ulong size, byte[] buffer)
 		{
 			Buffer  = buffer;
+			Size = size;
 			Address = ptr;
 		}
 
@@ -77,7 +88,6 @@ namespace Novus.Memory
 		}
 
 
-
 		public Pointer<byte> FindSignature(string pattern) => FindSignature(ReadSignature(pattern));
 
 		public Pointer<byte> FindSignature(byte[] pattern)
@@ -89,7 +99,7 @@ namespace Novus.Memory
 
 				if (PatternCheck(i, pattern)) {
 					var p = Address + i;
-					
+
 					return p;
 				}
 			}

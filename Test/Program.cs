@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Xml;
 using Novus;
 using Novus.Memory;
 using Novus.Runtime;
@@ -13,6 +14,8 @@ using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
+using Novus.Win32.Structures;
+using SimpleCore.Utilities;
 
 // ReSharper disable LocalizableElement
 
@@ -44,8 +47,6 @@ namespace Test
 	 * Memkit				https://github.com/Decimation/Memkit
 	 * 
 	 */
-
-
 
 
 	/* Runtime
@@ -91,20 +92,26 @@ namespace Test
 
 	public static unsafe class Program
 	{
+		static int SearchBytes(byte[] haystack, byte[] needle)
+		{
+			var len   = needle.Length;
+			var limit = haystack.Length - len;
+			for (var i = 0; i <= limit; i++)
+			{
+				var k = 0;
+				for (; k < len; k++)
+				{
+					if (needle[k] != haystack[i + k]) break;
+				}
+				if (k == len) return i;
+			}
+			return -1;
+		}
+		
 		private static void Main(string[] args)
 		{
+
 			
-			string s = "foo";
-			Inspector.DumpLayout(ref s);
-
-			Console.WriteLine(GCHeap.IsHeapPointer(s));
-			Console.WriteLine(RuntimeInfo.MinObjectSize);
-			Console.WriteLine(typeof(string).AsMetaType().BaseSize);
-
-			var p = Mem.AddressOfHeap(s, OffsetOptions.StringData).Cast<char>();
-			p[0] = 'g';
-
-			Console.WriteLine(s);
 		}
 	}
 }

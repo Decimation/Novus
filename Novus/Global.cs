@@ -9,7 +9,7 @@ using Novus.Win32;
 using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
-
+[assembly: InternalsVisibleTo("Ultrakiller")]
 [assembly: InternalsVisibleTo("Test")]
 #nullable enable
 

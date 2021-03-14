@@ -8,10 +8,16 @@ namespace Novus.Win32.Structures
 	{
 		public IntPtr BaseAddress;
 		public IntPtr AllocationBase;
-		public uint   AllocationProtect;
+		public MemoryProtection   AllocationProtect;
 		public IntPtr RegionSize;
-		public uint   State;
-		public uint   Protect;
-		public uint   Type;
+		public AllocationType   State;
+		public MemoryProtection   Protect;
+		public TypeEnum   Type;
+	}
+	public enum TypeEnum : uint//todo
+	{
+		MEM_IMAGE   = 0x1000000,
+		MEM_MAPPED  = 0x40000,
+		MEM_PRIVATE = 0x20000
 	}
 }

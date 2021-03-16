@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml;
@@ -16,7 +17,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using SimpleCore.Utilities;
-
+#nullable enable
 // ReSharper disable LocalizableElement
 
 namespace Test
@@ -107,11 +108,67 @@ namespace Test
 			}
 			return -1;
 		}
-		
-		private static void Main(string[] args)
+		private static CorJitCompiler.CorJitResult Compile(IntPtr thisPtr,
+			IntPtr corJitInfo,
+			CorInfo* methInfo,
+			CorJitFlags.CorJitFlag flags,
+			IntPtr nativeEntry,
+			IntPtr nativeSizeOfCode)
 		{
+			var res = hook.Compile(thisPtr, corJitInfo, methInfo, flags, nativeEntry, nativeSizeOfCode);
 
 			
+
+
+			//corJitInfo__ = corJitInfo;
+
+			return res;
+		}
+
+		private static CompilerHook hook;
+		static int Calc(int x, int y)
+		{
+			var r = Math.Asin((double)x);
+			return (int)r * y;
+		}
+
+		private static void Main(string[] args)
+		{
+			
+
+
+			// ICorJitCompiler
+			var pJit = CorJitCompiler.GetJit();
+
+			hook = new CompilerHook();
+
+			Debug.Assert(pJit != IntPtr.Zero);
+			var compiler = Marshal.PtrToStructure<CorJitCompiler.CorJitCompilerNative>(Marshal.ReadIntPtr(pJit));
+			Debug.Assert(compiler.CompileMethod != null);
+
+			var m = typeof(MethodBase).GetMethods()
+				.Where(x => x.Name == "GetMethodFromHandle")
+				.First(x => x.GetParameters().Length  == 1 &&
+				            x.GetParameters()[0].Name == "handle");
+			
+			
+			RuntimeHelpers.PrepareMethod(m.MethodHandle);
+			//
+			 var tgt  = typeof(Program).GetAnyMethod("Calc");
+			// var tgt2 = typeof(Program).GetAnyMethod("doS");
+			
+			hook.Hook(Compile);
+
+			RuntimeHelpers.PrepareMethod(tgt.MethodHandle);
+
+			//	//while (corJitInfo__ == IntPtr.Zero) { }
+
+			//RuntimeHelpers.PrepareMethod(tgt2.MethodHandle);
+
+			//hook.RemoveHook();
+
+			
+
 		}
 	}
 }

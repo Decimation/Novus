@@ -86,7 +86,7 @@ namespace Novus
 		/// <summary>
 		///     Runtime CLR version
 		/// </summary>
-		public static readonly Version ClrVersion = new(5, 0, 2);
+		public static readonly Version ClrVersion = new(5, 0, 4);
 
 		/// <summary>
 		///     Runtime CLR resources
@@ -105,7 +105,7 @@ namespace Novus
 			 * Setup
 			 */
 
-			Debug.WriteLine(">>> Module init <<<");
+			Debug.WriteLine($">>> Module init <<<");
 			
 			bool compatible = IsCompatible();
 
@@ -138,7 +138,7 @@ namespace Novus
 			bool ver = Environment.Version == ClrVersion;
 			bool gc  = !GCSettings.IsServerGC;
 			bool os  = OperatingSystem.IsWindows();
-			
+		
 			return ver && gc && os;
 		}
 	}

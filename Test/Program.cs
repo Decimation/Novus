@@ -24,6 +24,7 @@ using SimpleCore.Utilities;
 namespace Test
 {
 	/*
+	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.4
 	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.2
 	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0
 	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\3.1.9

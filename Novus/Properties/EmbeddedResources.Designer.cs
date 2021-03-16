@@ -70,7 +70,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 348BF0.
+        ///   Looks up a localized string similar to 348C40.
         /// </summary>
         internal static string Ofs_IsHeapPointer {
             get {
@@ -133,7 +133,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8B 41 0C 48 8D 15 64 1A 3E 00.
+        ///   Looks up a localized string similar to 4C 8B DC 48 81 EC 98 00 00 00 48 8D 05 4F 7C 03 00.
         /// </summary>
         internal static string Sig_GetSize {
             get {

@@ -12,6 +12,7 @@ using Novus;
 using Novus.Memory;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
+using Novus.Runtime.Meta.Jit;
 using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
@@ -111,7 +112,7 @@ namespace Test
 		private static CorJitCompiler.CorJitResult Compile(IntPtr thisPtr,
 			IntPtr corJitInfo,
 			CorInfo* methInfo,
-			CorJitFlags.CorJitFlag flags,
+			CorJitFlag flags,
 			IntPtr nativeEntry,
 			IntPtr nativeSizeOfCode)
 		{

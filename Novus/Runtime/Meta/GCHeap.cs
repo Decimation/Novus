@@ -7,7 +7,7 @@ using Novus.Memory;
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.Runtime
+namespace Novus.Runtime.Meta
 {
 	/// <summary>
 	/// GC heap

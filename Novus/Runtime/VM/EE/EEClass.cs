@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.Memory;
+using Novus.Utilities;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global

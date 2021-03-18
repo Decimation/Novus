@@ -112,15 +112,15 @@ namespace Novus.Win32
 
 		internal static unsafe DebugSymbol* GetSymbol(IntPtr hProc, string img, string name)
 		{
-			var options = GetOptions();
+			//var options = GetOptions();
 
 			// SYMOPT_DEBUG option asks DbgHelp to print additional troubleshooting
 			// messages to debug output - use the debugger's Debug Output window
 			// to view the messages
 
-			options |= SymbolOptions.DEBUG;
+			//options |= SymbolOptions.DEBUG;
 
-			SetOptions(options);
+			//SetOptions(options);
 
 			// Initialize DbgHelp and load symbols for all modules of the current process 
 			Initialize(hProc);
@@ -135,14 +135,16 @@ namespace Novus.Win32
 			//SymEnumTypes(hProcess, BaseOfDll, EnumSymProc, ctcx);
 			//SymCleanup(hProcess);
 
-			var hFile = CreateFile(img, FileAccess.Read, FileShare.Read,
-				FileMode.Open, default);
+			//var hFile = CreateFile(img, FileAccess.Read, FileShare.Read,
+			//	FileMode.Open, default);
 
-			var fileSize = GetFileSize(hFile);
+			//var fileSize = GetFileSize(hFile);
 
-			Console.WriteLine(fileSize);
+			//Console.WriteLine(fileSize);
 			
-			var m_modBase = LoadModuleEx(hProc, img, 0x10000000, fileSize);
+			var m_modBase = LoadModuleEx(hProc, IntPtr.Zero, img, null, 0x400000, 0x20000, IntPtr.Zero, 0);
+
+			EnumSymbols(hProc, m_modBase, "*!*", AddSymCallback, IntPtr.Zero);
 			Console.WriteLine(m_modBase);
 
 			
@@ -156,6 +158,8 @@ namespace Novus.Win32
 			// Guard.Assert(FromName(hProc, name, (IntPtr) buffer),
 			// 	"Symbol \"{0}\" not found", name);
 			EnumSymbols(hProc, m_modBase, AddSymCallback);
+
+
 			return default;
 		}
 
@@ -218,7 +222,8 @@ namespace Novus.Win32
 		private static bool AddSymCallback(IntPtr sym, uint symSize, IntPtr userCtx)
 		{
 			var symName =(((DebugSymbol*) sym));
-			Console.WriteLine($"{symName.}");
+			Console.WriteLine($"{symName->Address}");
+
 			return true;
 		}
 		#endregion

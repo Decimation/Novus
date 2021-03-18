@@ -95,82 +95,14 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		static int SearchBytes(byte[] haystack, byte[] needle)
-		{
-			var len   = needle.Length;
-			var limit = haystack.Length - len;
-			for (var i = 0; i <= limit; i++)
-			{
-				var k = 0;
-				for (; k < len; k++)
-				{
-					if (needle[k] != haystack[i + k]) break;
-				}
-				if (k == len) return i;
-			}
-			return -1;
-		}
-		private static CorJitCompiler.CorJitResult Compile(IntPtr thisPtr,
-			IntPtr corJitInfo,
-			CorInfo* methInfo,
-			CorJitFlag flags,
-			IntPtr nativeEntry,
-			IntPtr nativeSizeOfCode)
-		{
-			var res = hook.Compile(thisPtr, corJitInfo, methInfo, flags, nativeEntry, nativeSizeOfCode);
-
-			
-
-
-			//corJitInfo__ = corJitInfo;
-
-			return res;
-		}
-
-		private static CompilerHook hook;
-		static int Calc(int x, int y)
-		{
-			var r = Math.Asin((double)x);
-			return (int)r * y;
-		}
-
+		
+		
 		private static void Main(string[] args)
 		{
+
+
+		Native.GetSymbol(Native.GetCurrentProcess(),@"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
 			
-
-
-			// ICorJitCompiler
-			var pJit = CorJitCompiler.GetJit();
-
-			hook = new CompilerHook();
-
-			Debug.Assert(pJit != IntPtr.Zero);
-			var compiler = Marshal.PtrToStructure<CorJitCompiler.CorJitCompilerNative>(Marshal.ReadIntPtr(pJit));
-			Debug.Assert(compiler.CompileMethod != null);
-
-			var m = typeof(MethodBase).GetMethods()
-				.Where(x => x.Name == "GetMethodFromHandle")
-				.First(x => x.GetParameters().Length  == 1 &&
-				            x.GetParameters()[0].Name == "handle");
-			
-			
-			RuntimeHelpers.PrepareMethod(m.MethodHandle);
-			//
-			 var tgt  = typeof(Program).GetAnyMethod("Calc");
-			// var tgt2 = typeof(Program).GetAnyMethod("doS");
-			
-			hook.Hook(Compile);
-
-			RuntimeHelpers.PrepareMethod(tgt.MethodHandle);
-
-			//	//while (corJitInfo__ == IntPtr.Zero) { }
-
-			//RuntimeHelpers.PrepareMethod(tgt2.MethodHandle);
-
-			//hook.RemoveHook();
-
-			
-
 		}
 	}
 }

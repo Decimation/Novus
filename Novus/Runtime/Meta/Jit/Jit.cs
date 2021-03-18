@@ -7,6 +7,8 @@ using Novus.Win32.Structures;
 
 namespace Novus.Runtime.Meta.Jit
 {
+	//todo
+
 	/*
 	 * https://georgeplotnikov.github.io/articles/just-in-time-hooking.html
 	 * https://github.com/GeorgePlotnikov/ClrAnalyzer
@@ -22,6 +24,7 @@ namespace Novus.Runtime.Meta.Jit
 		CorInfoFlag GetMethodAttribs(IntPtr thisPtr, [In] IntPtr methodHandle);
 		CorInfoFlag GetMethodAttribsInternal(IntPtr thisPtr, [In] IntPtr methodHandle);
 	}
+
 	/// <summary>
 	/// corjit.h
 	/// </summary>
@@ -33,31 +36,36 @@ namespace Novus.Runtime.Meta.Jit
 
 		void ProcessShutdownWork(IntPtr thisPtr, [In] IntPtr corStaticInfo);
 	}
+
 	public unsafe class CorStaticInfo
 	{
 		[StructLayout(layoutKind: LayoutKind.Sequential)]
 		public unsafe struct CorStaticInfoNative
 		{
-			public getMethodAttribsDel GetMethodAttribs;
+			public getMethodAttribsDel         GetMethodAttribs;
 			public getMethodAttribsInternalDel GetMethodAttribsInternal;
 		}
 
 		public static ICorStaticInfo GetCorStaticInfoInterface(IntPtr ptr)
 		{
 			var corStaticInfoNative = Marshal.PtrToStructure<CorStaticInfoNative>(ptr);
-			return new CorStaticInfoNativeWrapper(ptr, corStaticInfoNative.GetMethodAttribs, corStaticInfoNative.GetMethodAttribsInternal);
+
+			return new CorStaticInfoNativeWrapper(ptr, corStaticInfoNative.GetMethodAttribs,
+				corStaticInfoNative.GetMethodAttribsInternal);
 		}
 
 		private sealed class CorStaticInfoNativeWrapper : ICorStaticInfo
 		{
 			private IntPtr _pThis;
-			private getMethodAttribsDel _getMethodAttribs;
+
+			private getMethodAttribsDel         _getMethodAttribs;
 			private getMethodAttribsInternalDel _getMethodAttribsInternal;
 
-			public CorStaticInfoNativeWrapper(IntPtr pThis, getMethodAttribsDel getMethodAttribs, getMethodAttribsInternalDel getMethodAttribsInternal)
+			public CorStaticInfoNativeWrapper(IntPtr pThis, getMethodAttribsDel getMethodAttribs,
+				getMethodAttribsInternalDel getMethodAttribsInternal)
 			{
-				_pThis = pThis;
-				_getMethodAttribs = getMethodAttribs;
+				_pThis                    = pThis;
+				_getMethodAttribs         = getMethodAttribs;
 				_getMethodAttribsInternal = getMethodAttribsInternal;
 			}
 
@@ -72,7 +80,6 @@ namespace Novus.Runtime.Meta.Jit
 			}
 		}
 
-		
 
 		[UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
 		public unsafe delegate CorInfoFlag getMethodAttribsDel(IntPtr thisPtr, [In] IntPtr methodHandle);
@@ -80,47 +87,56 @@ namespace Novus.Runtime.Meta.Jit
 		[UnmanagedFunctionPointer(CallingConvention.StdCall, SetLastError = true)]
 		public unsafe delegate CorInfoFlag getMethodAttribsInternalDel(IntPtr thisPtr, [In] IntPtr methodHandle);
 	}
+
 	public class CompiledMethodInfo<T>
 	{
-		public uint CodeSize;
-		public uint PrologSize;
+		public uint   CodeSize;
+		public uint   PrologSize;
 		public string ILCode { get; private set; }
+
 		public bool IsBlendedCode
 		{
 			get
 			{
-				if (_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_DEBUG_CODE))
-				{
+				if (_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_DEBUG_CODE)) {
 					var compCodeOpt = CorJitCompiler.CodeOptimize.BLENDED_CODE;
+
 					// If the EE sets SIZE_OPT or if we are compiling a Class constructor
 					// we will optimize for code size at the expense of speed
 					//
-					if (_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_SIZE_OPT) || ((_compFlags & CorInfoFlag.FLG_CCTOR) == CorInfoFlag.FLG_CCTOR))
-					{
+					if (_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_SIZE_OPT) ||
+					    ((_compFlags & CorInfoFlag.FLG_CCTOR) == CorInfoFlag.FLG_CCTOR)) {
 						compCodeOpt = CorJitCompiler.CodeOptimize.SMALL_CODE;
 					}
 					//
 					// If the EE sets SPEED_OPT we will optimize for speed at the expense of code size
 					//
 					else if (_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_SPEED_OPT) ||
-							 (_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_TIER1) && !_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_MIN_OPT)))
-					{
+					         (_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_TIER1) &&
+					          !_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_MIN_OPT))) {
 						compCodeOpt = CorJitCompiler.CodeOptimize.FAST_CODE;
+
 						if (_corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_SIZE_OPT))
 							throw new Exception("Seems CorJitFlags corrupted");
 					}
+
 					return compCodeOpt == CorJitCompiler.CodeOptimize.BLENDED_CODE;
 				}
+
 				//TODO: track https://github.com/dotnet/coreclr/blob/dbd533372e41b029398839056450c0fcac2b91f0/src/jit/compiler.h#L8533
 				return true;
 			}
 		}
-		public bool IsOptimizedCode => _corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_SIZE_OPT) || _corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_SPEED_OPT);
-		public bool IsRbpBasedFrame { get; private set; }
-		public bool IsPartiallyInterruptible { get; private set; }
+
+		public bool IsOptimizedCode => _corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_SIZE_OPT) ||
+		                               _corJitFlags.IsSet(CorJitFlag.CORJIT_FLAG_SPEED_OPT);
+
+		public bool IsRbpBasedFrame                 { get; private set; }
+		public bool IsPartiallyInterruptible        { get; private set; }
 		public bool IsFinalLocalVariableAssignments { get; private set; }
 
 		private CorJitFlags __corJitFlags;
+
 		private CorJitFlags _corJitFlags
 		{
 			get
@@ -129,7 +145,8 @@ namespace Novus.Runtime.Meta.Jit
 				return __corJitFlags;
 			}
 		}
-		private CorJitFlag    _corJitFlag;
+
+		private CorJitFlag  _corJitFlag;
 		private CorInfoFlag _compFlags;
 
 		public void Build(string path)
@@ -144,9 +161,13 @@ namespace Novus.Runtime.Meta.Jit
 #pragma warning restore CS0693 // Type parameter has the same name as the type parameter from outer type
 		{
 			RuntimeHelpers.PrepareMethod(GetType().GetMethod("Release", System.Reflection.BindingFlags.Instance
-				| System.Reflection.BindingFlags.Public).MethodHandle, new[] { typeof(T).TypeHandle });
+			                                                            | System.Reflection.BindingFlags.Public)
+				.MethodHandle, new[] {typeof(T).TypeHandle});
+
 			RuntimeHelpers.PrepareMethod(GetType().GetMethod("NativeDump", System.Reflection.BindingFlags.Instance
-				| System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static).MethodHandle, new[] { typeof(T).TypeHandle });
+			                                                               | System.Reflection.BindingFlags.Public |
+			                                                               System.Reflection.BindingFlags.Static)
+				.MethodHandle, new[] {typeof(T).TypeHandle});
 
 			RuntimeHelpers.PrepareMethod(typeof(CorJitCompiler).GetMethod("DumpMethodInfo",
 				System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static).MethodHandle, null);
@@ -155,10 +176,13 @@ namespace Novus.Runtime.Meta.Jit
 		}
 
 		public void Release() => hook.RemoveHook();
-		public static unsafe void NativeDump(IntPtr corJitInfoPtr, CorInfo* methodInfo,
-			CorJitFlag flags, IntPtr nativeEntry, IntPtr nativeSizeOfCode) => CorJitCompiler.DumpMethodInfo(corJitInfoPtr, methodInfo, flags, nativeEntry, nativeSizeOfCode);
 
-		internal static unsafe CorJitCompiler.CorJitResult CompileMethodDel(IntPtr thisPtr, [In] IntPtr corJitInfoPtr, [In] CorInfo* methodInfo,
+		public static unsafe void NativeDump(IntPtr corJitInfoPtr, CorInfo* methodInfo,
+			CorJitFlag flags, IntPtr nativeEntry, IntPtr nativeSizeOfCode) =>
+			CorJitCompiler.DumpMethodInfo(corJitInfoPtr, methodInfo, flags, nativeEntry, nativeSizeOfCode);
+
+		internal static unsafe CorJitCompiler.CorJitResult CompileMethodDel(IntPtr thisPtr, [In] IntPtr corJitInfoPtr,
+			[In] CorInfo* methodInfo,
 			CorJitFlag flags, [Out] IntPtr nativeEntry, [Out] IntPtr nativeSizeOfCode)
 		{
 			hook.RemoveHook();
@@ -167,6 +191,7 @@ namespace Novus.Runtime.Meta.Jit
 			return res;
 		}
 	}
+
 	public unsafe class CompilerHook
 	{
 		public CorJitCompiler.CompileMethodDel Compile = null;
@@ -293,9 +318,6 @@ namespace Novus.Runtime.Meta.Jit
 		public CorInfoSigInfo locals;
 	}
 
-	
-
-	
 
 	//CORINFO_SIG_INFO
 	[StructLayout(layoutKind: LayoutKind.Sequential)]
@@ -324,9 +346,6 @@ namespace Novus.Runtime.Meta.Jit
 		public UInt32 token;
 	}
 
-
-
-	
 
 	//CORINFO_SIG_INST
 	[StructLayout(layoutKind: LayoutKind.Sequential)]
@@ -372,7 +391,6 @@ namespace Novus.Runtime.Meta.Jit
 		public UInt32 cbMethodSpec;
 	}
 
-	
 
 	//CORINFO_CALL_INFO
 	[StructLayout(layoutKind: LayoutKind.Sequential)]
@@ -447,7 +465,6 @@ namespace Novus.Runtime.Meta.Jit
 		};
 	}
 
-	
 
 	//CORINFO_CONST_LOOKUP
 	[StructLayout(layoutKind: LayoutKind.Explicit)]
@@ -484,7 +501,7 @@ namespace Novus.Runtime.Meta.Jit
 #if _TARGET_X64_
 			4
 #else
-					 2
+		             2
 #endif
 		)]
 		public CorinfoRuntimeLookup runtimeLookup;
@@ -498,7 +515,7 @@ namespace Novus.Runtime.Meta.Jit
 #if _TARGET_X64_
 			4
 #else
-					 2
+		             2
 #endif
 		)]
 		public CorinfoConstLookup constLookup;
@@ -617,9 +634,7 @@ namespace Novus.Runtime.Meta.Jit
 		}
 
 		[DllImport(
-
 			"Clrjit.dll"
-
 			, CallingConvention = CallingConvention.StdCall, SetLastError = true, EntryPoint = "getJit",
 			BestFitMapping      = true)]
 		public static extern IntPtr GetJit();
@@ -652,21 +667,21 @@ namespace Novus.Runtime.Meta.Jit
 			CORJIT_OK = 0,
 
 			CORJIT_BADCODE = unchecked((Int32) (((UInt32) (SEVERITY_ERROR) << 31) | ((UInt32) (FACILITY_NULL) << 16) |
-												((UInt32) (1)))),
+			                                    ((UInt32) (1)))),
 
 			CORJIT_OUTOFMEM = unchecked((Int32) (((UInt32) (SEVERITY_ERROR) << 31) | ((UInt32) (FACILITY_NULL) << 16) |
-												 ((UInt32) (2)))),
+			                                     ((UInt32) (2)))),
 
 			CORJIT_INTERNALERROR =
 				unchecked((Int32) (((UInt32) (SEVERITY_ERROR) << 31) | ((UInt32) (FACILITY_NULL) << 16) |
-								   ((UInt32) (3)))),
+				                   ((UInt32) (3)))),
 
 			CORJIT_SKIPPED = unchecked((Int32) (((UInt32) (SEVERITY_ERROR) << 31) | ((UInt32) (FACILITY_NULL) << 16) |
-												((UInt32) (4)))),
+			                                    ((UInt32) (4)))),
 
 			CORJIT_RECOVERABLEERROR =
 				unchecked((Int32) (((UInt32) (SEVERITY_ERROR) << 31) | ((UInt32) (FACILITY_NULL) << 16) |
-								   ((UInt32) (5)))),
+				                   ((UInt32) (5)))),
 		};
 
 		public enum CodeOptimize

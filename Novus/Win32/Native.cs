@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
-using Novus.Imports;
+using Novus.Memory;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
 using SimpleCore.Diagnostics;
@@ -28,89 +30,89 @@ namespace Novus.Win32
 
 		public const int INVALID = -1;
 
-		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		public static extern void GetSystemInfo(ref SystemInfo Info); //todo
-
-		private const string SYM_PREFIX  = "Sym";
-		private const string DBGHELP_DLL = "DbgHelp.dll";
-
-		[DllImport(DBGHELP_DLL, EntryPoint = SYM_PREFIX + nameof(Initialize), CharSet = CharSet.Unicode)]
-		private static extern bool Initialize(IntPtr hProcess, IntPtr userSearchPath, bool fInvadeProcess);
+		//todo
 
 
-		[DllImport(Native.DBGHELP_DLL, EntryPoint = SYM_PREFIX + nameof(Cleanup), CharSet = CharSet.Unicode)]
-		internal static extern bool Cleanup(IntPtr hProcess);
+		#region Sym
+
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
+		internal static extern bool SymInitialize(IntPtr hProcess, IntPtr userSearchPath, bool fInvadeProcess);
+
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
+		internal static extern bool SymCleanup(IntPtr hProcess);
 
 
-		[DllImport(Native.DBGHELP_DLL, EntryPoint = SYM_PREFIX + nameof(EnumSymbols), CharSet = CharSet.Unicode)]
-		private static extern bool EnumSymbols(IntPtr hProcess, ulong modBase,
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
+		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase,
 			string mask, EnumSymbolsCallback callback,
 			IntPtr pUserContext);
 
 
-		[DllImport(Native.DBGHELP_DLL, EntryPoint = SYM_PREFIX + nameof(GetOptions))]
-		internal static extern SymbolOptions GetOptions();
+		[DllImport(DBGHELP_DLL)]
+		internal static extern SymbolOptions SymGetOptions();
 
-		[DllImport(Native.DBGHELP_DLL, EntryPoint = SYM_PREFIX + nameof(SetOptions))]
-		internal static extern SymbolOptions SetOptions(SymbolOptions options);
-
-
-		[DllImport(Native.DBGHELP_DLL, EntryPoint = SYM_PREFIX + nameof(FromName))]
-		private static extern bool FromName(IntPtr hProcess, string name, IntPtr pSymbol);
+		[DllImport(DBGHELP_DLL)]
+		internal static extern SymbolOptions SymSetOptions(SymbolOptions options);
 
 
-		[DllImport(Native.DBGHELP_DLL, EntryPoint = SYM_PREFIX + nameof(UnloadModule64))]
-		internal static extern bool UnloadModule64(IntPtr hProc, ulong baseAddr);
+		[DllImport(DBGHELP_DLL)]
+		private static extern bool SymFromName(IntPtr hProcess, string name, IntPtr pSymbol);
 
 
-		[DllImport(Native.DBGHELP_DLL, EntryPoint = SYM_PREFIX + nameof(LoadModuleEx), CharSet = CharSet.Unicode)]
-		private static extern ulong LoadModuleEx(IntPtr hProcess, IntPtr hFile, string imageName,
+		[DllImport(DBGHELP_DLL)]
+		internal static extern bool SymUnloadModule64(IntPtr hProc, ulong baseAddr);
+
+
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
+		internal static extern ulong SymLoadModuleEx(IntPtr hProcess, IntPtr hFile, string imageName,
 			string moduleName, ulong baseOfDll, uint dllSize,
 			IntPtr data, uint flags);
 
 		internal delegate bool EnumSymbolsCallback(IntPtr symInfo, uint symbolSize, IntPtr pUserContext);
 
 
-		internal static void Initialize(IntPtr hProcess) =>
-			Initialize(hProcess, IntPtr.Zero, false);
+		internal static void SymInitialize(IntPtr hProcess) =>
+			SymInitialize(hProcess, IntPtr.Zero, false);
 
 
-		internal static bool EnumSymbols(IntPtr hProcess, ulong modBase, EnumSymbolsCallback callback) =>
-			EnumSymbols(hProcess, modBase, null, callback, IntPtr.Zero);
+		internal static bool SymEnumSymbols(IntPtr hProcess, ulong modBase, EnumSymbolsCallback callback) =>
+			SymEnumSymbols(hProcess, modBase, null, callback, IntPtr.Zero);
 
-		internal static ulong LoadModuleEx(IntPtr hProc, string img, ulong dllBase, uint fileSize)
+		internal static ulong SymLoadModuleEx(IntPtr hProc, string img, ulong dllBase, uint fileSize)
 		{
-			return LoadModuleEx(hProc, IntPtr.Zero, img, null, dllBase,
+			return SymLoadModuleEx(hProc, IntPtr.Zero, img, null, dllBase,
 				fileSize, IntPtr.Zero, default);
 		}
 
-		public static uint GetFileSize(IntPtr hFile) => GetFileSize(hFile, IntPtr.Zero);
+		private static List<Symbol> m_rgList = new List<Symbol>();
 
-		[DllImport(Native.KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
-		private static extern IntPtr CreateFile(string fileName, FileAccess fileAccess,
-			FileShare fileShare,
-			IntPtr securityAttributes,
-			FileMode creationDisposition,
-			FileAttributes flagsAndAttributes,
-			IntPtr template);
-
-		[DllImport(Native.KERNEL32_DLL)]
-		private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
-
-		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		internal static extern IntPtr GetCurrentProcess();
-
-		public static IntPtr CreateFile(string fileName,
-			FileAccess access,
-			FileShare share,
-			FileMode mode,
-			FileAttributes attributes)
+		internal static bool AddSymCallback(IntPtr sym, uint symSize, IntPtr userCtx)
 		{
-			return CreateFile(fileName, access, share, IntPtr.Zero,
-				mode, attributes, IntPtr.Zero);
+			var symName = (((DebugSymbol*) sym));
+
+			//size_t maxcmplen = strlen((PCHAR)UserContext);
+			//if (maxcmplen == pSymInfo->NameLen)
+			//{
+			//	if ((strncmp(pSymInfo->Name, (PCHAR)UserContext, pSymInfo->NameLen)) == 0)
+			//	{
+			//		TI_FINDCHILDREN_PARAMS childs = { 0 };
+			//		SymGetTypeInfo(hProcess, pSymInfo->ModBase, pSymInfo->TypeIndex,
+			//			TI_GET_CHILDRENCOUNT, &childs.Count);
+			//		printf("%8s%10s%10s%16s %s", "Size", "TypeIndex", "Childs", "Address", "Name\n");
+			//		printf("%8x %8x %8x %16I64x %10s\n", pSymInfo->Size, pSymInfo->TypeIndex,
+			//			childs.Count, pSymInfo->Address, pSymInfo->Name);
+			//	}
+			//}
+
+
+			m_rgList.Add(new Symbol(symName));
+			//Console.WriteLine($">> {symName->ReadSymbolName()}");
+
+
+			return true;
 		}
 
-		internal static unsafe DebugSymbol* GetSymbol(IntPtr hProc, string img, string name)
+		internal static unsafe void GetSymbol(IntPtr hProc, string img, string name)
 		{
 			//var options = GetOptions();
 
@@ -123,7 +125,7 @@ namespace Novus.Win32
 			//SetOptions(options);
 
 			// Initialize DbgHelp and load symbols for all modules of the current process 
-			Initialize(hProc);
+			SymInitialize(hProc);
 
 			//....
 
@@ -141,13 +143,15 @@ namespace Novus.Win32
 			//var fileSize = GetFileSize(hFile);
 
 			//Console.WriteLine(fileSize);
-			
-			var m_modBase = LoadModuleEx(hProc, IntPtr.Zero, img, null, 0x400000, 0x20000, IntPtr.Zero, 0);
 
-			EnumSymbols(hProc, m_modBase, "*!*", AddSymCallback, IntPtr.Zero);
+			var m_modBase = SymLoadModuleEx(hProc, IntPtr.Zero, img,
+				null, 0x400000, 0x20000, IntPtr.Zero, 0);
+
+			var methoddescReset = "MethodDesc::Reset";
+			SymEnumSymbols(hProc, m_modBase, "*!*", AddSymCallback, Marshal.StringToHGlobalUni(methoddescReset));
+
 			Console.WriteLine(m_modBase);
 
-			
 
 			// byte* byteBuffer = stackalloc byte[DebugSymbol.FullSize];
 			// var   buffer     = (DebugSymbol*) byteBuffer;
@@ -157,76 +161,42 @@ namespace Novus.Win32
 			//
 			// Guard.Assert(FromName(hProc, name, (IntPtr) buffer),
 			// 	"Symbol \"{0}\" not found", name);
-			EnumSymbols(hProc, m_modBase, AddSymCallback);
 
-
-			return default;
+			Console.WriteLine(m_rgList.First(s => s.Name.Contains(methoddescReset)));
 		}
 
-		#region Abstraction
-
-		public unsafe class Symbol
-		{
-			internal Symbol(DebugSymbol* pSymInfo)
-			{
-				Name = pSymInfo->ReadSymbolName();
-
-				SizeOfStruct = (int)pSymInfo->SizeOfStruct;
-				TypeIndex    = (int)pSymInfo->TypeIndex;
-				Index        = (int)pSymInfo->Index;
-				Size         = (int)pSymInfo->Size;
-				ModBase      = pSymInfo->ModBase;
-				Flags        = pSymInfo->Flags;
-				Value        = pSymInfo->Value;
-				Address      = pSymInfo->Address;
-				Register     = (int)pSymInfo->Register;
-				Scope        = (int)pSymInfo->Scope;
-				Tag          = pSymInfo->Tag;
-			}
-
-			internal Symbol(IntPtr pSym) : this((DebugSymbol*)pSym) { }
-
-			public string Name { get; }
-
-			public int SizeOfStruct { get; }
-
-			public int TypeIndex { get; }
-
-			public int Index { get; }
-
-			public int Size { get; }
-
-			public ulong ModBase { get; }
-
-			public ulong Value { get; }
-
-			public ulong Address { get; }
-
-			public int Register { get; }
-
-			public int Scope { get; }
-
-			public SymbolTag Tag { get; }
-
-			public SymbolFlag Flags { get; }
-
-			public long Offset => (long)(Address - ModBase);
-
-
-			public override string ToString()
-			{
-				return String.Format("Name: {0} | Offset: {1:X} | Address: {2:X} | Tag: {3} | Flags: {4}",
-					Name, Offset, Address, Tag, Flags);
-			}
-		}
-		private static bool AddSymCallback(IntPtr sym, uint symSize, IntPtr userCtx)
-		{
-			var symName =(((DebugSymbol*) sym));
-			Console.WriteLine($"{symName->Address}");
-
-			return true;
-		}
 		#endregion
+
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern void GetSystemInfo(ref SystemInfo Info);
+
+		public static uint GetFileSize(IntPtr hFile) => GetFileSize(hFile, IntPtr.Zero);
+
+		[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
+		private static extern IntPtr CreateFile(string fileName, FileAccess fileAccess,
+			FileShare fileShare,
+			IntPtr securityAttributes,
+			FileMode creationDisposition,
+			FileAttributes flagsAndAttributes,
+			IntPtr template);
+
+		[DllImport(KERNEL32_DLL)]
+		private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		internal static extern IntPtr GetCurrentProcess();
+
+		//TODO
+		public static IntPtr CreateFile(string fileName,
+			FileAccess access,
+			FileShare share,
+			FileMode mode,
+			FileAttributes attributes)
+		{
+			return CreateFile(fileName, access, share, IntPtr.Zero,
+				mode, attributes, IntPtr.Zero);
+		}
 
 		#region Memory
 
@@ -336,7 +306,7 @@ namespace Novus.Win32
 
 		#region Image
 
-		[DllImport(DBG_HELP_DLL)]
+		[DllImport(DBGHELP_DLL)]
 		private static extern ImageNtHeaders* ImageNtHeader(IntPtr hModule);
 
 		public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
@@ -391,150 +361,13 @@ namespace Novus.Win32
 
 		public const string USER32_DLL = "User32.dll";
 
-		public const string DBG_HELP_DLL = "DbgHelp.dll";
 
 		public const string SHELL32_DLL = "Shell32.dll";
 
-		public const string URLMON_DLL = "urlmon.dll";
+		private const string DBGHELP_DLL = "DbgHelp.dll";
+		public const  string URLMON_DLL  = "urlmon.dll";
 
 		#endregion
-	}
-
-	/// <summary>
-	/// Contains symbol information.
-	/// </summary>
-	[NativeStructure]
-	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct DebugSymbol
-	{
-		/// <summary>
-		///     Max string length for <see cref="DebugSymbol.Name" />
-		/// </summary>
-		internal const int MaxNameLength = 2000;
-
-		/// <summary>
-		///     Size of <see cref="DebugSymbol" />
-		/// </summary>
-		internal static readonly int SizeOf = Marshal.SizeOf<DebugSymbol>();
-
-		internal static readonly int FullSize =
-			SizeOf + MaxNameLength * sizeof(byte) + sizeof(ulong) - 1 / sizeof(ulong);
-
-		/// <summary>
-		///     The name of the symbol. The name can be undecorated if the <see cref="SymbolOptions.UNDNAME" /> option is
-		///     used with the <see cref="Symbols.SetOptions" /> function.
-		/// </summary>
-		internal fixed sbyte Name[1];
-
-		/// <summary>
-		///     Reserved.
-		/// </summary>
-		private fixed ulong Reserved[2];
-
-		// https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/ns-dbghelp-symbol_info
-
-		/// <summary>
-		///     The size of the structure, in bytes. This member must be set to <see cref="SizeOf" />.
-		///     Note that the total size of the data is <see cref="GetSymbolInfoSize" />. The reason to subtract one is
-		///     that the first character in the name is accounted for in the size of the structure.
-		/// </summary>
-		internal uint SizeOfStruct { get; set; }
-
-		/// <summary>
-		///     A unique value that identifies the type data that describes the symbol.
-		///     This value does not persist between sessions.
-		/// </summary>
-		internal uint TypeIndex { get; set; }
-
-		/// <summary>
-		///     The unique value for the symbol. The value associated with a symbol is not guaranteed to be the same
-		///     each time you run the process. For PDB symbols, the index value for a symbol is not generated until the
-		///     symbol is enumerated or retrieved through a search by name or address. The index values for all
-		///     CodeView and COFF symbols are generated when the symbols are loaded.
-		/// </summary>
-		internal uint Index { get; set; }
-
-		/// <summary>
-		///     The symbol size, in bytes. This value is meaningful only if the module symbols are from a pdb file;
-		///     otherwise, this value is typically zero and should be ignored.
-		/// </summary>
-		internal uint Size { get; set; }
-
-		/// <summary>
-		///     The base address of the module that contains the symbol.
-		/// </summary>
-		internal ulong ModBase { get; set; }
-
-		/// <summary>
-		/// <see cref="SymbolFlag"/>
-		/// </summary>
-		internal SymbolFlag Flags { get; set; }
-
-		/// <summary>
-		///     The value of a constant.
-		/// </summary>
-		internal ulong Value { get; set; }
-
-		/// <summary>
-		///     The virtual address of the start of the symbol.
-		/// </summary>
-		internal ulong Address { get; set; }
-
-
-		/// <summary>
-		///     The register.
-		/// </summary>
-		internal uint Register { get; set; }
-
-		/// <summary>
-		///     DIA scope.
-		/// </summary>
-		internal uint Scope { get; set; }
-
-		/// <summary>
-		///     PDB classification.
-		/// </summary>
-		internal SymbolTag Tag { get; set; }
-
-		/// <summary>
-		///     The length of the name, in characters, not including the null-terminating character.
-		/// </summary>
-		internal uint NameLen { get; set; }
-
-		/// <summary>
-		///     The size of the <see cref="Name" /> buffer, in characters. If this member is 0,
-		///     the <see cref="Name" /> member is not used.
-		/// </summary>
-		internal uint MaxNameLen { get; set; }
-
-		public string NativeName => "SYMBOL_INFO";
-
-		// !
-		internal static int GetSymbolInfoSize(DebugSymbol* pSym)
-		{
-			// SizeOfStruct + (MaxNameLen - 1) * sizeof(TCHAR)
-			return (int) (pSym->SizeOfStruct + (pSym->MaxNameLen - 1) * sizeof(byte));
-		}
-
-		internal string ReadSymbolName()
-		{
-			/*while( (native.NameLen > 0) &&
-			       (0 == Marshal.ReadInt16( pNative + ((int) (native.NameLen - 1) * sizeof( char )) )) )
-			{
-				native.NameLen = native.NameLen - 1; // don't pull in trailing NULLs
-			}
-			Name = Marshal.PtrToStringUni( pNative, (int) native.NameLen );*/
-
-			/*fixed (NativeSymbol* pSym = &this) {
-				sbyte* namePtr = pSym->Name;
-				return Mem.ReadString(namePtr, (int) pSym->NameLen);
-			}*/
-
-			fixed (DebugSymbol* pSym = &this) {
-				sbyte* namePtr = pSym->Name;
-				return Marshal.PtrToStringUni((IntPtr) namePtr, (int) NameLen);
-			}
-		}
 	}
 
 	[Flags]

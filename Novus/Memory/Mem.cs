@@ -578,6 +578,15 @@ namespace Novus.Memory
 
 		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
 
+		public static string ReadString(sbyte* first, int len)
+		{
+			if (first == null || len <= 0) {
+				return null;
+			}
+
+			return new string(first, 0, len);
+		}
+
 		/// <summary>
 		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
 		///     hex number format
@@ -598,7 +607,7 @@ namespace Novus.Memory
 			return rg.ToArray();
 		}
 
-		
+
 		#region Virtual
 
 		public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize, AllocationType type,

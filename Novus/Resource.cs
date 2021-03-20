@@ -10,6 +10,8 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 using Novus.Imports;
+using Novus.Win32;
+using Novus.Win32.Wrappers;
 
 // ReSharper disable UnusedMember.Global
 
@@ -21,10 +23,13 @@ namespace Novus
 	/// <seealso cref="EmbeddedResources"/>
 	public class Resource
 	{
-		public Pointer<byte> Address    { get; }
-		public ProcessModule Module     { get; }
-		public string        ModuleName { get; }
-		public SigScanner    Scanner    { get; }
+		public Pointer<byte> Address { get; }
+
+		public ProcessModule Module { get; }
+
+		public string ModuleName { get; }
+
+		public SigScanner Scanner { get; }
 
 
 		public Resource(string moduleName)
@@ -64,8 +69,6 @@ namespace Novus
 		 * Normal delegates using the UnmanagedFunctionPointer attribute is also possible, but it's
 		 * better to use the new unmanaged function pointers.
 		 */
-
-		
 
 
 		/// <summary>
@@ -154,6 +157,18 @@ namespace Novus
 
 		}
 
+		//todo: add symbol access
+
+		public Pointer<byte> FindSignature(string resValue)
+		{
+			return Scanner.FindSignature(resValue);
+		}
+
+		public Pointer<byte> FindOffset(long ofs)
+		{
+			return Address + (ofs);
+		}
+
 		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
 		{
 			object fieldValue = null;
@@ -190,8 +205,8 @@ namespace Novus
 
 					var addr = unmanagedType switch
 					{
-						UnmanagedType.Signature => resource.Scanner.FindSignature(resValue),
-						UnmanagedType.Offset    => resource.Address + (Int32.Parse(resValue, NumberStyles.HexNumber)),
+						UnmanagedType.Signature => resource.FindSignature(resValue),
+						UnmanagedType.Offset    => resource.FindOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
 						_                       => throw new ArgumentOutOfRangeException()
 					};
 

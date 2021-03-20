@@ -98,7 +98,13 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			var s=Native.GetSymbol(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
+			string  cUsersDeciDesktopCoreclrPdb = @"C:\Users\Deci\Desktop\coreclr.pdb";
+
+			var moduleFileName              = Global.Clr.Module.FileName;
+
+			var     s                           =Native.GetSymbol(Native.GetCurrentProcess(), cUsersDeciDesktopCoreclrPdb, "g_pGCHeap");
+			
+			
 			Console.WriteLine(s);
 
 		}

@@ -52,8 +52,7 @@ namespace Novus.Win32.Wrappers
 
 		public override string ToString()
 		{
-			return String.Format("Name: {0} | Offset: {1:X} | Address: {2:X} | Tag: {3} | Flags: {4}",
-				Name, Offset, Address, Tag, Flags);
+			return $"Name: {Name} | Offset: {Offset:X} | Address: {Address:X} | Tag: {Tag} | Flags: {Flags}";
 		}
 	}
 }

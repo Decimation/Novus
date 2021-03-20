@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using Novus.Memory;
@@ -34,15 +35,14 @@ namespace Novus.Win32
 
 		#region Symbols
 
-		[SuppressUnmanagedCodeSecurity]
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymInitialize(IntPtr hProcess, IntPtr userSearchPath, bool fInvadeProcess);
 
-		[SuppressUnmanagedCodeSecurity]
+
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymCleanup(IntPtr hProcess);
+		
 
-		[SuppressUnmanagedCodeSecurity]
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase, string mask,
 			EnumSymbolsCallback callback, IntPtr pUserContext);
@@ -58,26 +58,32 @@ namespace Novus.Win32
 		[DllImport(DBGHELP_DLL)]
 		internal static extern bool SymFromName(IntPtr hProcess, string name, IntPtr pSymbol);
 
-		[SuppressUnmanagedCodeSecurity]
+
 		[DllImport(DBGHELP_DLL)]
 		internal static extern bool SymUnloadModule64(IntPtr hProc, ulong baseAddr);
 
-		[SuppressUnmanagedCodeSecurity]
+
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern ulong SymLoadModuleEx(IntPtr hProcess, IntPtr hFile, string imageName,
-			string moduleName, ulong baseOfDll, uint dllSize,
-			IntPtr data, uint flags);
+			string moduleName, ulong baseOfDll, uint dllSize, IntPtr data, uint flags);
 
-
+		[UnmanagedFunctionPointer(CallingConvention.Winapi)]
 		internal delegate bool EnumSymbolsCallback(IntPtr symInfo, uint symbolSize, IntPtr pUserContext);
 
-		
 
+		private static readonly List<Symbol> SymbolsCache = new();
 
 		internal static unsafe Symbol GetSymbol(IntPtr hProc, string img, string name)
 		{
 			//todo
+			//todo
+			//todo
 
+			/*
+			 *	| Method |     Mean |   Error |  StdDev |
+			 *	|------- |---------:|--------:|--------:|
+			 *	| Bench1 | 669.7 ms | 6.17 ms | 5.77 ms |
+			 */
 
 			/*
 			 * https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/ns-dbghelp-symbol_info
@@ -88,6 +94,8 @@ namespace Novus.Win32
 			 * https://stackoverflow.com/questions/12656737/how-to-obtain-the-dll-list-of-a-specified-process-and-loop-through-it-to-check-i
 			 */
 
+			//todo: slow
+
 
 			var options = SymGetOptions();
 
@@ -97,7 +105,7 @@ namespace Novus.Win32
 
 			// Initialize DbgHelp and load symbols for all modules of the current process 
 			SymInitialize(hProc, IntPtr.Zero, false);
-
+			
 
 			const int baseOfDll = 0x400000;
 
@@ -107,29 +115,39 @@ namespace Novus.Win32
 			var modBase = SymLoadModuleEx(hProc, IntPtr.Zero, img,
 				null, baseOfDll, dllSize, IntPtr.Zero, 0);
 
-
+			
 			const string mask = "*!*";
 
-			var rg = new List<Symbol>();
+
+			//delegate* unmanaged <IntPtr, uint, IntPtr,bool> foo =  &Callback;
+
+			//SymEnumSymbols(hProc, modBase, mask, &Callback, Marshal.StringToHGlobalUni(name));
+
+			SymEnumSymbols(hProc, modBase, mask, EnumSymCallback, Marshal.StringToHGlobalUni(name));
 
 
-			SymEnumSymbols(hProc, modBase, mask, delegate(IntPtr info, uint symbolSize, IntPtr pUserContext)
-			{
-				var symbol = (((DebugSymbol*) info));
+			var sym = (SymbolsCache.First(s => s.Name.Contains(name)));
 
-				rg.Add(new Symbol(symbol));
-
-				return true;
-			}, Marshal.StringToHGlobalUni(name));
-
-			var sym = (rg.First(s => s.Name.Contains(name)));
-			
 
 			SymCleanup(hProc);
 			SymUnloadModule64(hProc, modBase);
+			SymbolsCache.Clear();
 
+			//return sym;
 
 			return sym;
+		}
+
+		//[UnmanagedCallersOnly]
+		private static bool EnumSymCallback(IntPtr info, uint symbolSize, IntPtr pUserContext)
+		{
+			var symbol = (((DebugSymbol*) info));
+
+			var item = new Symbol(symbol);
+
+			SymbolsCache.Add(item);
+
+			return true;
 		}
 
 		#endregion

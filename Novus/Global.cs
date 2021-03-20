@@ -11,6 +11,7 @@ using SimpleCore.Diagnostics;
 // ReSharper disable UnusedMember.Global
 [assembly: InternalsVisibleTo("Ultrakiller")]
 [assembly: InternalsVisibleTo("Test")]
+[assembly: InternalsVisibleTo("TestBenchmark")]
 #nullable enable
 
 namespace Novus
@@ -122,7 +123,7 @@ namespace Novus
 			
 			AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 			{
-				Close();
+				//Close();
 			};
 		}
 

@@ -44,9 +44,8 @@ namespace Novus.Win32
 
 		[SuppressUnmanagedCodeSecurity]
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase,
-			string mask, EnumSymbolsCallback callback,
-			IntPtr pUserContext);
+		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase, string mask,
+			EnumSymbolsCallback callback, IntPtr pUserContext);
 
 
 		[DllImport(DBGHELP_DLL)]
@@ -69,29 +68,11 @@ namespace Novus.Win32
 			string moduleName, ulong baseOfDll, uint dllSize,
 			IntPtr data, uint flags);
 
+
 		internal delegate bool EnumSymbolsCallback(IntPtr symInfo, uint symbolSize, IntPtr pUserContext);
+
 		
 
-
-		internal static bool SymEnumSymbols(IntPtr hProcess, ulong modBase, EnumSymbolsCallback callback) =>
-			SymEnumSymbols(hProcess, modBase, null, callback, IntPtr.Zero);
-
-		internal static ulong SymLoadModuleEx(IntPtr hProc, string img, ulong dllBase, uint fileSize)
-		{
-			return SymLoadModuleEx(hProc, IntPtr.Zero, img, null, dllBase,
-				fileSize, IntPtr.Zero, default);
-		}
-
-		private static readonly List<Symbol> SymbolBuffer = new List<Symbol>();
-
-		internal static bool EnumSymCallback(IntPtr sym, uint symSize, IntPtr userCtx)
-		{
-			var symbol = (((DebugSymbol*) sym));
-
-			SymbolBuffer.Add(new Symbol(symbol));
-
-			return true;
-		}
 
 		internal static unsafe Symbol GetSymbol(IntPtr hProc, string img, string name)
 		{
@@ -107,7 +88,6 @@ namespace Novus.Win32
 			 * https://stackoverflow.com/questions/12656737/how-to-obtain-the-dll-list-of-a-specified-process-and-loop-through-it-to-check-i
 			 */
 
-			var sw = Stopwatch.StartNew();
 
 			var options = SymGetOptions();
 
@@ -130,17 +110,24 @@ namespace Novus.Win32
 
 			const string mask = "*!*";
 
-			SymEnumSymbols(hProc, modBase, mask, EnumSymCallback, Marshal.StringToHGlobalUni(name));
+			var rg = new List<Symbol>();
 
-			var sym = (SymbolBuffer.First(s => s.Name.Contains(name)));
 
-			SymbolBuffer.Clear();
+			SymEnumSymbols(hProc, modBase, mask, delegate(IntPtr info, uint symbolSize, IntPtr pUserContext)
+			{
+				var symbol = (((DebugSymbol*) info));
+
+				rg.Add(new Symbol(symbol));
+
+				return true;
+			}, Marshal.StringToHGlobalUni(name));
+
+			var sym = (rg.First(s => s.Name.Contains(name)));
+			
+
 			SymCleanup(hProc);
 			SymUnloadModule64(hProc, modBase);
 
-			sw.Stop();
-
-			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
 			return sym;
 		}

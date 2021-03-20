@@ -110,7 +110,7 @@ namespace Novus.Win32.Structures
 
 		/// <summary>
 		///     The name of the symbol. The name can be undecorated if the <see cref="SymbolOptions.UNDNAME" /> option is
-		///     used with the <see cref="Symbols.SetOptions" /> function.
+		///     used with the <see cref="Native.SymSetOptions" /> function.
 		/// </summary>
 		internal fixed sbyte Name[1];
 

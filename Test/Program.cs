@@ -18,6 +18,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using SimpleCore.Utilities;
+
 #nullable enable
 // ReSharper disable LocalizableElement
 
@@ -95,14 +96,11 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		
-		
 		private static void Main(string[] args)
 		{
+			Native.GetSymbol(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
+			Native.GetSymbol(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
 
-
-		Native.GetSymbol(Native.GetCurrentProcess(),@"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
-			
 		}
 	}
 }

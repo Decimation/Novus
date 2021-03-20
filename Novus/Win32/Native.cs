@@ -86,7 +86,7 @@ namespace Novus.Win32
 
 		private static List<Symbol> m_rgList = new List<Symbol>();
 
-		internal static bool AddSymCallback(IntPtr sym, uint symSize, IntPtr userCtx)
+		internal static bool EnumSymCallback(IntPtr sym, uint symSize, IntPtr userCtx)
 		{
 			var symName = (((DebugSymbol*) sym));
 
@@ -144,13 +144,12 @@ namespace Novus.Win32
 
 			//Console.WriteLine(fileSize);
 
-			var m_modBase = SymLoadModuleEx(hProc, IntPtr.Zero, img,
+			var modBase = SymLoadModuleEx(hProc, IntPtr.Zero, img,
 				null, 0x400000, 0x20000, IntPtr.Zero, 0);
+			
 
-			var methoddescReset = "MethodDesc::Reset";
-			SymEnumSymbols(hProc, m_modBase, "*!*", AddSymCallback, Marshal.StringToHGlobalUni(methoddescReset));
-
-			Console.WriteLine(m_modBase);
+			SymEnumSymbols(hProc, modBase, "*!*", EnumSymCallback, Marshal.StringToHGlobalUni(name));
+			
 
 
 			// byte* byteBuffer = stackalloc byte[DebugSymbol.FullSize];
@@ -162,7 +161,11 @@ namespace Novus.Win32
 			// Guard.Assert(FromName(hProc, name, (IntPtr) buffer),
 			// 	"Symbol \"{0}\" not found", name);
 
-			Console.WriteLine(m_rgList.First(s => s.Name.Contains(methoddescReset)));
+			Console.WriteLine(m_rgList.First(s => s.Name.Contains(name)));
+
+			m_rgList.Clear();
+			SymCleanup(hProc);
+			SymUnloadModule64(hProc, modBase);
 		}
 
 		#endregion

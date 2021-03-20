@@ -19,7 +19,7 @@ namespace Novus.Runtime.Meta.Jit
 	 * https://www.codeproject.com/Articles/463508/NET-CLR-Injection-Modify-IL-Code-during-Run-time
 	 */
 
-	public interface ICorStaticInfo
+	/*public interface ICorStaticInfo
 	{
 		CorInfoFlag GetMethodAttribs(IntPtr thisPtr, [In] IntPtr methodHandle);
 		CorInfoFlag GetMethodAttribsInternal(IntPtr thisPtr, [In] IntPtr methodHandle);
@@ -691,5 +691,5 @@ namespace Novus.Runtime.Meta.Jit
 			FAST_CODE,
 			COUNT_OPT_CODE
 		};
-	}
+	}*/
 }

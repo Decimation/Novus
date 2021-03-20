@@ -1,6 +1,7 @@
 ﻿using System;
+using Novus.Win32.Structures;
 
-namespace Novus.Win32
+namespace Novus.Win32.Wrappers
 {
 	public unsafe class Symbol
 	{

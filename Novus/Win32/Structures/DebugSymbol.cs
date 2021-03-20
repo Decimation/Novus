@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Novus.Imports;
 
-namespace Novus.Win32
+namespace Novus.Win32.Structures
 {
 	/// <summary>
 	/// Contains symbol information.

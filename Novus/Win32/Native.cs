@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security;
 using Novus.Memory;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
@@ -30,18 +31,18 @@ namespace Novus.Win32
 
 		public const int INVALID = -1;
 
-		//todo
 
+		#region Symbols
 
-		#region Sym
-
+		[SuppressUnmanagedCodeSecurity]
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymInitialize(IntPtr hProcess, IntPtr userSearchPath, bool fInvadeProcess);
 
+		[SuppressUnmanagedCodeSecurity]
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymCleanup(IntPtr hProcess);
 
-
+		[SuppressUnmanagedCodeSecurity]
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase,
 			string mask, EnumSymbolsCallback callback,
@@ -56,23 +57,20 @@ namespace Novus.Win32
 
 
 		[DllImport(DBGHELP_DLL)]
-		private static extern bool SymFromName(IntPtr hProcess, string name, IntPtr pSymbol);
+		internal static extern bool SymFromName(IntPtr hProcess, string name, IntPtr pSymbol);
 
-
+		[SuppressUnmanagedCodeSecurity]
 		[DllImport(DBGHELP_DLL)]
 		internal static extern bool SymUnloadModule64(IntPtr hProc, ulong baseAddr);
 
-
+		[SuppressUnmanagedCodeSecurity]
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern ulong SymLoadModuleEx(IntPtr hProcess, IntPtr hFile, string imageName,
 			string moduleName, ulong baseOfDll, uint dllSize,
 			IntPtr data, uint flags);
 
 		internal delegate bool EnumSymbolsCallback(IntPtr symInfo, uint symbolSize, IntPtr pUserContext);
-
-
-		internal static void SymInitialize(IntPtr hProcess) =>
-			SymInitialize(hProcess, IntPtr.Zero, false);
+		
 
 
 		internal static bool SymEnumSymbols(IntPtr hProcess, ulong modBase, EnumSymbolsCallback callback) =>
@@ -84,97 +82,75 @@ namespace Novus.Win32
 				fileSize, IntPtr.Zero, default);
 		}
 
-		private static List<Symbol> m_rgList = new List<Symbol>();
+		private static readonly List<Symbol> SymbolBuffer = new List<Symbol>();
 
 		internal static bool EnumSymCallback(IntPtr sym, uint symSize, IntPtr userCtx)
 		{
-			var symName = (((DebugSymbol*) sym));
+			var symbol = (((DebugSymbol*) sym));
 
-			//size_t maxcmplen = strlen((PCHAR)UserContext);
-			//if (maxcmplen == pSymInfo->NameLen)
-			//{
-			//	if ((strncmp(pSymInfo->Name, (PCHAR)UserContext, pSymInfo->NameLen)) == 0)
-			//	{
-			//		TI_FINDCHILDREN_PARAMS childs = { 0 };
-			//		SymGetTypeInfo(hProcess, pSymInfo->ModBase, pSymInfo->TypeIndex,
-			//			TI_GET_CHILDRENCOUNT, &childs.Count);
-			//		printf("%8s%10s%10s%16s %s", "Size", "TypeIndex", "Childs", "Address", "Name\n");
-			//		printf("%8x %8x %8x %16I64x %10s\n", pSymInfo->Size, pSymInfo->TypeIndex,
-			//			childs.Count, pSymInfo->Address, pSymInfo->Name);
-			//	}
-			//}
-
-
-			m_rgList.Add(new Symbol(symName));
-			//Console.WriteLine($">> {symName->ReadSymbolName()}");
-
+			SymbolBuffer.Add(new Symbol(symbol));
 
 			return true;
 		}
 
-		internal static unsafe void GetSymbol(IntPtr hProc, string img, string name)
+		internal static unsafe Symbol GetSymbol(IntPtr hProc, string img, string name)
 		{
-			//var options = GetOptions();
+			//todo
 
-			// SYMOPT_DEBUG option asks DbgHelp to print additional troubleshooting
-			// messages to debug output - use the debugger's Debug Output window
-			// to view the messages
 
-			//options |= SymbolOptions.DEBUG;
+			/*
+			 * https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/ns-dbghelp-symbol_info
+			 *
+			 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/Win32/Symbols.cs
+			 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/Win32/Structures/SymbolStructures.cs
+			 * https://stackoverflow.com/questions/18249566/c-sharp-get-the-list-of-unmanaged-c-dll-exports
+			 * https://stackoverflow.com/questions/12656737/how-to-obtain-the-dll-list-of-a-specified-process-and-loop-through-it-to-check-i
+			 */
 
-			//SetOptions(options);
+			var sw = Stopwatch.StartNew();
+
+			var options = SymGetOptions();
+
+			options |= SymbolOptions.DEBUG;
+
+			SymSetOptions(options);
 
 			// Initialize DbgHelp and load symbols for all modules of the current process 
-			SymInitialize(hProc);
+			SymInitialize(hProc, IntPtr.Zero, false);
 
-			//....
 
-			//hProcess = GetCurrentProcess();
-			//SymInitialize(hProcess, NULL, FALSE);
-			//DWORD64 BaseOfDll = SymLoadModuleEx(hProcess, NULL, pdb, NULL,
-			//	0x400000, 0x20000, NULL, 0);
-			//SymEnumSymbols(hProcess, BaseOfDll, "*!*", EnumSymProc, ctcx);
-			//SymEnumTypes(hProcess, BaseOfDll, EnumSymProc, ctcx);
-			//SymCleanup(hProcess);
+			const int baseOfDll = 0x400000;
 
-			//var hFile = CreateFile(img, FileAccess.Read, FileShare.Read,
-			//	FileMode.Open, default);
+			const int dllSize = 0x20000;
 
-			//var fileSize = GetFileSize(hFile);
-
-			//Console.WriteLine(fileSize);
 
 			var modBase = SymLoadModuleEx(hProc, IntPtr.Zero, img,
-				null, 0x400000, 0x20000, IntPtr.Zero, 0);
-			
-
-			SymEnumSymbols(hProc, modBase, "*!*", EnumSymCallback, Marshal.StringToHGlobalUni(name));
-			
+				null, baseOfDll, dllSize, IntPtr.Zero, 0);
 
 
-			// byte* byteBuffer = stackalloc byte[DebugSymbol.FullSize];
-			// var   buffer     = (DebugSymbol*) byteBuffer;
-			//
-			// buffer->SizeOfStruct = (uint) DebugSymbol.SizeOf;
-			// buffer->MaxNameLen   = DebugSymbol.MaxNameLength;
-			//
-			// Guard.Assert(FromName(hProc, name, (IntPtr) buffer),
-			// 	"Symbol \"{0}\" not found", name);
+			const string mask = "*!*";
 
-			Console.WriteLine(m_rgList.First(s => s.Name.Contains(name)));
+			SymEnumSymbols(hProc, modBase, mask, EnumSymCallback, Marshal.StringToHGlobalUni(name));
 
-			m_rgList.Clear();
+			var sym = (SymbolBuffer.First(s => s.Name.Contains(name)));
+
+			SymbolBuffer.Clear();
 			SymCleanup(hProc);
 			SymUnloadModule64(hProc, modBase);
+
+			sw.Stop();
+
+			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
+
+			return sym;
 		}
 
 		#endregion
 
 
-		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		public static extern void GetSystemInfo(ref SystemInfo Info);
+		#region File
 
-		public static uint GetFileSize(IntPtr hFile) => GetFileSize(hFile, IntPtr.Zero);
+		internal static uint GetFileSize(IntPtr hFile) => GetFileSize(hFile, IntPtr.Zero);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 		private static extern IntPtr CreateFile(string fileName, FileAccess fileAccess,
@@ -187,19 +163,13 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL)]
 		private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
 
-		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		internal static extern IntPtr GetCurrentProcess();
-
-		//TODO
-		public static IntPtr CreateFile(string fileName,
-			FileAccess access,
-			FileShare share,
-			FileMode mode,
+		internal static IntPtr CreateFile(string fileName, FileAccess access, FileShare share, FileMode mode,
 			FileAttributes attributes)
 		{
-			return CreateFile(fileName, access, share, IntPtr.Zero,
-				mode, attributes, IntPtr.Zero);
+			return CreateFile(fileName, access, share, IntPtr.Zero, mode, attributes, IntPtr.Zero);
 		}
+
+		#endregion
 
 		#region Memory
 
@@ -237,13 +207,16 @@ namespace Novus.Win32
 
 		#region Handle
 
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern IntPtr GetCurrentProcess();
+
 		[DllImport(KERNEL32_DLL)]
-		internal static extern IntPtr OpenProcess(ProcessAccess dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+		public static extern IntPtr OpenProcess(ProcessAccess dwDesiredAccess, bool bInheritHandle, int dwProcessId);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true, PreserveSig = true)]
-		internal static extern bool CloseHandle(IntPtr obj);
+		public static extern bool CloseHandle(IntPtr obj);
 
-		internal static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
+		public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
 
 		[DllImport(USER32_DLL, EntryPoint = "FindWindow", SetLastError = true, CharSet = CharSet.Unicode)]
 		private static extern IntPtr FindWindowByCaption(IntPtr zeroOnly, string lpWindowName);
@@ -338,6 +311,9 @@ namespace Novus.Win32
 		/*
 		 * CsWin32 and Microsoft.Windows.Sdk tanks VS performance; won't use it for now
 		 */
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern void GetSystemInfo(ref SystemInfo Info);
 
 		[DllImport(SHELL32_DLL)]
 		internal static extern int SHGetKnownFolderPath(

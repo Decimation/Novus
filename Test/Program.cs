@@ -98,8 +98,8 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			Native.GetSymbol(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
-			Native.GetSymbol(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
+			var s=Native.GetSymbol(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
+			Console.WriteLine(s);
 
 		}
 	}

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -62,6 +65,9 @@ namespace Novus.Memory
 
 		#region Write
 
+		/// <summary>
+		/// Writes a value of type <typeparamref name="T"/> with value <paramref name="value"/> to <paramref name="baseAddr"/> in <paramref name="proc"/>
+		/// </summary>
 		public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 		{
 			int dwSize = Unsafe.SizeOf<T>();
@@ -73,21 +79,24 @@ namespace Novus.Memory
 		/// <summary>
 		///     Root abstraction of <see cref="Native.WriteProcessMemory" />
 		/// </summary>
-		public static void WriteProcessMemory(Process proc, Pointer<byte> ptrBase, Pointer<byte> ptrBuffer, int dwSize)
+		public static void WriteProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> ptrBuffer, int dwSize)
 		{
 			var hProc = Native.OpenProcess(proc);
 
 
-			Native.WriteProcessMemory(hProc, ptrBase.Address, ptrBuffer.Address, dwSize, out _);
+			Native.WriteProcessMemory(hProc, addr.Address, ptrBuffer.Address, dwSize, out _);
 
 
 			Native.CloseHandle(hProc);
 		}
 
-		public static void WriteProcessMemory(Process proc, Pointer<byte> ptrBase, byte[] value)
+		/// <summary>
+		/// Writes <paramref name="value"/> bytes to <paramref name="addr"/> in <paramref name="proc"/>
+		/// </summary>
+		public static void WriteProcessMemory(Process proc, Pointer<byte> addr, byte[] value)
 		{
 			fixed (byte* rg = value) {
-				WriteProcessMemory(proc, ptrBase, (IntPtr) rg, value.Length);
+				WriteProcessMemory(proc, addr, (IntPtr) rg, value.Length);
 			}
 		}
 
@@ -99,44 +108,81 @@ namespace Novus.Memory
 		///     Root abstraction of <see cref="Native.ReadProcessMemory" />
 		/// </summary>
 		/// <param name="proc"><see cref="Process" /> whose memory is being read</param>
-		/// <param name="baseAddr">Address within the specified process from which to read</param>
+		/// <param name="addr">Address within the specified process from which to read</param>
 		/// <param name="buffer">Buffer that receives the read contents from the address space</param>
 		/// <param name="cb">Number of bytes to read</param>
-		public static void ReadProcessMemory(Process proc, Pointer<byte> baseAddr, Pointer<byte> buffer, int cb)
+		public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, int cb)
 		{
 			var h = Native.OpenProcess(proc);
 
-			Native.ReadProcessMemory(h, baseAddr.Address, buffer.Address, cb, out _);
+			Native.ReadProcessMemory(h, addr.Address, buffer.Address, cb, out _);
 
 			Native.CloseHandle(h);
 		}
 
-		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> ptrBase, int cb)
+
+		/// <summary>
+		/// Reads <paramref name="cb"/> bytes at <paramref name="addr"/> in <paramref name="proc"/>
+		/// </summary>
+		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> addr, int cb)
 		{
 			byte[] mem = new byte[cb];
 
 			fixed (byte* p = mem) {
-				ReadProcessMemory(proc, ptrBase, p, cb);
+				ReadProcessMemory(proc, addr, p, cb);
 			}
 
 			return mem;
 		}
 
-		public static T ReadProcessMemory<T>(Process proc, Pointer<byte> baseAddr)
+		/// <summary>
+		/// Reads a value of type <typeparamref name="T"/> in <paramref name="proc"/> at <paramref name="addr"/>
+		/// </summary>
+		public static T ReadProcessMemory<T>(Process proc, Pointer<byte> addr)
 		{
-
-			T t = default!;
+			T value = default!;
 
 			int size = Unsafe.SizeOf<T>();
-			var ptr  = AddressOf(ref t);
 
-			ReadProcessMemory(proc, baseAddr.Address, ptr.Address, size);
+			var ptr = AddressOf(ref value);
 
-			return t;
+			ReadProcessMemory(proc, addr.Address, ptr.Address, size);
+
+			return value;
+		}
+
+		/// <summary>
+		/// Reads a value of type <paramref name="mt"/> in <paramref name="proc"/> at <paramref name="addr"/>
+		/// </summary>
+		[CanBeNull]
+		public static object ReadProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
+		{
+			//todo
+			
+
+			var valueType = mt.RuntimeType.IsValueType;
+			var size         = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
+
+			Debug.WriteLine($"{size} for {mt.Name}");
+
+			//var i = Activator.CreateInstance(t);
+
+			byte[]    rg  = Mem.ReadProcessMemory(proc, addr, size);
+			object val = null;
+
+			if (valueType) {
+				val = ReadStructure(mt.RuntimeType, rg);
+			}
+			else {
+				fixed (byte* ptr = rg) {
+					val = Unsafe.Read<object>(ptr);
+				}
+			}
+
+			return val;
 		}
 
 		#endregion
-
 
 		#region Size
 
@@ -287,7 +333,16 @@ namespace Novus.Memory
 			var mtx = (MetaType) type;
 
 			if (mtx.RuntimeType.IsValueType) {
-				return (int) ReflectionHelper.CallGeneric(typeof(Mem).GetMethod(nameof(SizeOf)), type, null);
+
+				var m = typeof(Mem).GetAllMethods().First(delegate(MethodInfo n)
+				{
+					var infos = n.GetParameters();
+
+					return n.Name                 == nameof(SizeOf) && infos.Length == 2 &&
+					       infos[1].ParameterType == typeof(SizeOfOptions);
+				});
+
+				return (int) ReflectionHelper.CallGeneric(m, type, null, null, SizeOfOptions.Intrinsic);
 			}
 
 			// Subtract the size of the ObjHeader and MethodTable*
@@ -539,14 +594,6 @@ namespace Novus.Memory
 			return p >= lo && p <= lo + size;
 		}
 
-		public static Pointer<byte> FindSignature(string moduleName, string sig)
-		{
-			var res = new Resource(moduleName);
-			var p   = res.Scanner.FindSignature(sig);
-
-
-			return p;
-		}
 
 		/// <summary>
 		///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
@@ -578,6 +625,21 @@ namespace Novus.Memory
 
 		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
 
+		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)
+		{
+			//todo
+			var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
+			//var stackAlloc = stackalloc byte[byteArray.Length];
+
+			var objAddr = (handle.AddrOfPinnedObject() + ofs);
+			var value   = Marshal.PtrToStructure((IntPtr) objAddr, t.RuntimeType);
+
+			handle.Free();
+
+			return value;
+		}
+
+
 		public static string ReadString(sbyte* first, int len)
 		{
 			if (first == null || len <= 0) {
@@ -606,7 +668,6 @@ namespace Novus.Memory
 
 			return rg.ToArray();
 		}
-
 
 		#region Virtual
 

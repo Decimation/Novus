@@ -71,6 +71,32 @@ namespace Novus.Runtime
 			propTable.Write();
 		}
 
+		public static void DumpSizes<T>(ref T value)
+		{
+			var layoutTable = new ConsoleTable("Type", "Value");
+
+
+			// TODO
+			layoutTable.AddRow(nameof(SizeOfOptions.Auto), Mem.SizeOf<T>(value, SizeOfOptions.Auto));
+			layoutTable.AddRow(nameof(SizeOfOptions.BaseData), Mem.SizeOf<T>(value, SizeOfOptions.BaseData));
+			layoutTable.AddRow(nameof(SizeOfOptions.BaseInstance), Mem.SizeOf<T>(value, SizeOfOptions.BaseInstance));
+			layoutTable.AddRow(nameof(SizeOfOptions.BaseFields), Mem.SizeOf<T>(value, SizeOfOptions.BaseFields));
+			layoutTable.AddRow(nameof(SizeOfOptions.Data), Mem.SizeOf<T>(value, SizeOfOptions.Data));
+
+			var mt = value.GetMetaType();
+
+			if (!mt.RuntimeType.IsValueType) {
+				layoutTable.AddRow(nameof(SizeOfOptions.Heap), Mem.SizeOf<T>(value, SizeOfOptions.Heap));
+
+			}
+
+			layoutTable.AddRow(nameof(SizeOfOptions.Managed), Mem.SizeOf<T>(value, SizeOfOptions.Managed));
+			layoutTable.AddRow(nameof(SizeOfOptions.Native), Mem.SizeOf<T>(value, SizeOfOptions.Native));
+			layoutTable.AddRow(nameof(SizeOfOptions.Intrinsic), Mem.SizeOf<T>(value, SizeOfOptions.Intrinsic));
+
+			layoutTable.Write();
+		}
+
 		public static void DumpLayout<T>(ref T value, InspectorOptions options = DEFAULT)
 		{
 			var layoutTable = new ConsoleTable();

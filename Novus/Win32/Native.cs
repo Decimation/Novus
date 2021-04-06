@@ -41,7 +41,7 @@ namespace Novus.Win32
 
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymCleanup(IntPtr hProcess);
-		
+
 
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase, string mask,
@@ -50,6 +50,11 @@ namespace Novus.Win32
 
 		[DllImport(DBGHELP_DLL)]
 		internal static extern SymbolOptions SymGetOptions();
+
+
+		[DllImport(DBGHELP_DLL)]
+		internal static extern bool SymGetSearchPath(IntPtr hProcess, sbyte* p, uint sz);
+
 
 		[DllImport(DBGHELP_DLL)]
 		internal static extern SymbolOptions SymSetOptions(SymbolOptions options);
@@ -73,7 +78,7 @@ namespace Novus.Win32
 
 		private static readonly List<Symbol> SymbolsCache = new();
 
-		internal static unsafe Symbol GetSymbol(IntPtr hProc, string img, string name)
+		public static unsafe Symbol GetSymbol(IntPtr hProc, string img, string name)
 		{
 			//todo
 			//todo
@@ -105,7 +110,7 @@ namespace Novus.Win32
 
 			// Initialize DbgHelp and load symbols for all modules of the current process 
 			SymInitialize(hProc, IntPtr.Zero, false);
-			
+
 
 			const int baseOfDll = 0x400000;
 
@@ -115,7 +120,7 @@ namespace Novus.Win32
 			var modBase = SymLoadModuleEx(hProc, IntPtr.Zero, img,
 				null, baseOfDll, dllSize, IntPtr.Zero, 0);
 
-			
+
 			const string mask = "*!*";
 
 
@@ -141,7 +146,7 @@ namespace Novus.Win32
 		//[UnmanagedCallersOnly]
 		private static bool EnumSymCallback(IntPtr info, uint symbolSize, IntPtr pUserContext)
 		{
-			var symbol = (((DebugSymbol*) info));
+			var symbol = (DebugSymbol*) info;
 
 			var item = new Symbol(symbol);
 
@@ -168,8 +173,8 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL)]
 		private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
 
-		internal static IntPtr CreateFile(string fileName, FileAccess access, FileShare share, FileMode mode,
-			FileAttributes attributes)
+		internal static IntPtr CreateFile(string fileName,
+			FileAccess access, FileShare share, FileMode mode, FileAttributes attributes)
 		{
 			return CreateFile(fileName, access, share, IntPtr.Zero, mode, attributes, IntPtr.Zero);
 		}
@@ -292,6 +297,8 @@ namespace Novus.Win32
 
 		public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
 		{
+			//todo
+
 			// get the location of the module's IMAGE_NT_HEADERS structure
 			var pNtHdr = ImageNtHeader(hModule);
 

@@ -81,6 +81,7 @@ namespace Novus
 				return;
 			}
 
+
 			var mgr = GetManager(t.Assembly);
 
 			if (!Managers.Contains(mgr)) {
@@ -105,6 +106,7 @@ namespace Novus
 			}
 
 			LoadedTypes.Add(t);
+
 		}
 
 		private static readonly List<Type> LoadedTypes = new();
@@ -159,12 +161,12 @@ namespace Novus
 
 		//todo: add symbol access
 
-		public Pointer<byte> FindSignature(string resValue)
+		public Pointer<byte> FindSignature(string signature)
 		{
-			return Scanner.FindSignature(resValue);
+			return Scanner.FindSignature(signature);
 		}
 
-		public Pointer<byte> FindOffset(long ofs)
+		public Pointer<byte> GetOffset(long ofs)
 		{
 			return Address + (ofs);
 		}
@@ -206,7 +208,7 @@ namespace Novus
 					var addr = unmanagedType switch
 					{
 						UnmanagedType.Signature => resource.FindSignature(resValue),
-						UnmanagedType.Offset    => resource.FindOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
+						UnmanagedType.Offset    => resource.GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
 						_                       => throw new ArgumentOutOfRangeException()
 					};
 

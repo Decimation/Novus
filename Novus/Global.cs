@@ -44,7 +44,7 @@ namespace Novus
 	///         </item>
 	///         <item>
 	///             <description>
-	///                 <see cref="Functions" />
+	///                 <see cref="Pointer{T}" />
 	///             </description>
 	///         </item>
 	///         <item>
@@ -65,6 +65,11 @@ namespace Novus
 	///     </list>
 	///     OS utilities:
 	///     <list type="bullet">
+	/// <item>
+	///             <description>
+	///                 <see cref="Native" />
+	///             </description>
+	///         </item>
 	///         <item>
 	///             <description>
 	///                 <see cref="FileSystem" />

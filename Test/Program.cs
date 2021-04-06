@@ -96,17 +96,12 @@ namespace Test
 
 	public static unsafe class Program
 	{
+		
 		private static void Main(string[] args)
 		{
-			string  cUsersDeciDesktopCoreclrPdb = @"C:\Users\Deci\Desktop\coreclr.pdb";
-
-			var moduleFileName              = Global.Clr.Module.FileName;
-
-			var     s                           =Native.GetSymbol(Native.GetCurrentProcess(), cUsersDeciDesktopCoreclrPdb, "g_pGCHeap");
 			
-			
-			Console.WriteLine(s);
 
+			
 		}
 	}
 }

@@ -373,6 +373,7 @@ namespace UnitTest
 			Assert.AreEqual(s, "goo");
 
 		}
+
 		[Test]
 		public void ArrayTest()
 		{
@@ -380,17 +381,25 @@ namespace UnitTest
 
 			var ptr = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
 
-			unsafe
-			{
-				fixed (int* p = rg)
-				{
-					Assert.AreEqual((ulong)p, ptr.ToUInt64());
+			unsafe {
+				fixed (int* p = rg) {
+					Assert.AreEqual((ulong) p, ptr.ToUInt64());
 				}
 			}
 
 			ptr[0] = 100;
 
-			Assert.True(rg.SequenceEqual(new[]{100,2,3}));
+			Assert.True(rg.SequenceEqual(new[] {100, 2, 3}));
+		}
+
+		[Test]
+		public void TestRuntimeInfo()
+		{
+			Assert.True(RuntimeInfo.IsBlank(Array.Empty<int>()));
+
+			Assert.True(RuntimeInfo.IsBoxed((object) 1));
+
+			Assert.True(RuntimeInfo.IsNil(default(object)));
 		}
 
 		[Test]
@@ -420,6 +429,77 @@ namespace UnitTest
 			Assert.True(Allocator.ReAlloc(h, -1) == null);
 
 
+		}
+
+		[Test]
+		public void KernelReadWriteTest()
+		{
+			/*
+			 *
+			 */
+			string s1 = "foo";
+
+			var proc = Process.GetCurrentProcess();
+			var addr = Mem.AddressOf(ref s1);
+
+			var s1New = "bar";
+
+			Mem.WriteProcessMemory(proc, addr, s1New);
+			Assert.AreEqual(s1, s1New);
+
+
+			var s2 = Mem.ReadProcessMemory<string>(proc, addr);
+			Assert.AreEqual(s2, s1New);
+
+			/*
+			 *
+			 */
+
+			int i1    = 123;
+			var addr2 = Mem.AddressOf(ref i1);
+			var i1New = 321;
+			Mem.WriteProcessMemory(proc, addr2, i1New);
+
+			Assert.AreEqual(i1, i1New);
+
+			var i2 = Mem.ReadProcessMemory<int>(proc, addr2);
+
+			Assert.AreEqual(i2, i1New);
+		}
+
+		[Test]
+		public void SpecialReadTest()
+		{
+			Clazz  a = new Clazz() {a  = 321};
+			Struct b = new Struct() {a = 123};
+
+			var proc = Process.GetCurrentProcess();
+			var a1   = Mem.AddressOf(ref a);
+			var b1   = Mem.AddressOf(ref b);
+
+			Assert.AreEqual(((Clazz) Mem.ReadProcessMemory(proc, a1, typeof(Clazz))).a, a.a);
+
+			Assert.AreEqual(((Struct) Mem.ReadProcessMemory(proc, b1, typeof(Struct))).a, b.a);
+		}
+	}
+
+	class Clazz
+	{
+		public int a;
+
+		public override string ToString()
+		{
+			return $"{a}";
+		}
+	}
+
+	struct Struct
+	{
+		public int a;
+
+		public override string ToString()
+		{
+			return $"{a}";
 		}
 	}
 }

@@ -251,13 +251,13 @@ namespace Novus.Runtime
 				return true;
 			}
 
-			if (IsBoxed(value)) {
-				return false;
-			}
+			//if (IsBoxed(value)) {
+			//	return false;
+			//}
 
 
 			// As for strings, IsNullOrWhiteSpace should always be true when
-			// IsNullOrEmpty is true, and vise versa
+			// IsNullOrEmpty is true
 
 			bool test = value switch
 			{

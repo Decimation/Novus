@@ -114,9 +114,7 @@ namespace Novus.Memory
 		public static explicit operator Pointer<T>(long value) => new((void*) value);
 
 		public static implicit operator Pointer<T>(void* value) => new(value);
-
-		//public static implicit operator Pointer<T>(nint value) => new(value);
-
+		
 		public static implicit operator Pointer<T>(IntPtr value) => new(value);
 
 		public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
@@ -127,10 +125,7 @@ namespace Novus.Memory
 		/// </summary>
 		/// <typeparam name="TNew">Type to point to</typeparam>
 		/// <returns>A new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" /></returns>
-		public Pointer<TNew> Cast<TNew>()
-		{
-			return m_value;
-		}
+		public Pointer<TNew> Cast<TNew>() => m_value;
 
 		/// <summary>
 		///     Creates a new <see cref="Pointer{T}" /> of type <see cref="Byte" />, pointing to
@@ -182,10 +177,7 @@ namespace Novus.Memory
 		/// </summary>
 		/// <param name="other">Other <see cref="Pointer{T}" />.</param>
 		/// <returns></returns>
-		public bool Equals(Pointer<T> other)
-		{
-			return Address == other.Address;
-		}
+		public bool Equals(Pointer<T> other) => Address == other.Address;
 
 		public override bool Equals(object? obj)
 		{
@@ -202,25 +194,13 @@ namespace Novus.Memory
 			return unchecked((int) (long) m_value);
 		}
 
-		public static bool operator ==(Pointer<T> left, Pointer<byte> right)
-		{
-			return left.Equals(right);
-		}
+		public static bool operator ==(Pointer<T> left, Pointer<byte> right) => left.Equals(right);
 
-		public static bool operator !=(Pointer<T> left, Pointer<byte> right)
-		{
-			return !left.Equals(right);
-		}
+		public static bool operator !=(Pointer<T> left, Pointer<byte> right) => !left.Equals(right);
 
-		public static bool operator ==(Pointer<T> left, Pointer<T> right)
-		{
-			return left.Equals(right);
-		}
+		public static bool operator ==(Pointer<T> left, Pointer<T> right) => left.Equals(right);
 
-		public static bool operator !=(Pointer<T> left, Pointer<T> right)
-		{
-			return !left.Equals(right);
-		}
+		public static bool operator !=(Pointer<T> left, Pointer<T> right) => !left.Equals(right);
 
 		public static bool operator >(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64()  > b.ToInt64();
 		public static bool operator >=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() >= b.ToInt64();

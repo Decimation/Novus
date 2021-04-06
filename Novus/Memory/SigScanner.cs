@@ -22,30 +22,45 @@ namespace Novus.Memory
 		 */
 
 
+		/// <summary>
+		/// Memory of the module
+		/// </summary>
 		public byte[] Buffer { get; }
 
+		/// <summary>
+		/// Module pointer
+		/// </summary>
 		public Pointer<byte> Address { get; }
 
 
+		/// <summary>
+		/// Module size
+		/// </summary>
 		public ulong Size { get; }
-		
-		public SigScanner(Process proc, ProcessModule module) 
+
+		#region Constructors
+
+		public SigScanner(Process proc, ProcessModule module)
 			: this(module.BaseAddress, (ulong) module.ModuleMemorySize,
-			Mem.ReadProcessMemory(proc, module.BaseAddress, module.ModuleMemorySize)) { }
+				Mem.ReadProcessMemory(proc, module.BaseAddress, module.ModuleMemorySize)) { }
 
 
 		public SigScanner(ProcessModule module)
-			: this(module.BaseAddress, (ulong) module.ModuleMemorySize)
-		{ }
+			: this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
 
-		public SigScanner(Pointer<byte> p, ulong c) : this(p,c, p.Copy((int)c)) { }
+		public SigScanner(Pointer<byte> p, ulong c) : this(p, c, p.Copy((int) c)) { }
 
+		/// <summary>
+		/// Root constructor
+		/// </summary>
 		public SigScanner(Pointer<byte> ptr, ulong size, byte[] buffer)
 		{
 			Buffer  = buffer;
-			Size = size;
+			Size    = size;
 			Address = ptr;
 		}
+
+		#endregion
 
 
 		private bool PatternCheck(int nOffset, IReadOnlyList<byte> arrPattern)
@@ -90,6 +105,12 @@ namespace Novus.Memory
 
 		public Pointer<byte> FindSignature(string pattern) => FindSignature(ReadSignature(pattern));
 
+
+		/// <summary>
+		/// Searches for the location of a signature within the module
+		/// </summary>
+		/// <param name="pattern">Signature</param>
+		/// <returns><see cref="Mem.Nullptr"/> if the signature was not found</returns>
 		public Pointer<byte> FindSignature(byte[] pattern)
 		{
 			for (int i = 0; i < Buffer.Length; i++) {

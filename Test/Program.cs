@@ -96,12 +96,36 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		
+		class Clazz
+		{
+			public int a;
+
+			public override string ToString()
+			{
+				return $"{a}";
+			}
+		}
+
+		struct Struct
+		{
+			public int a;
+
+			public override string ToString()
+			{
+				return $"{a}";
+			}
+		}
 		private static void Main(string[] args)
 		{
+			var c = new Clazz();
+			var s = new Struct();
+
+			Inspector.DumpSizes(ref c);
+			Inspector.DumpSizes(ref s);
+
+			Inspector.DumpLayout(ref s);
 			
 
-			
 		}
 	}
 }

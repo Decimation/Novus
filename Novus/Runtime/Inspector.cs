@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
+using Novus.Win32;
 using SimpleCore.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -73,26 +74,27 @@ namespace Novus.Runtime
 
 		public static void DumpSizes<T>(ref T value)
 		{
-			var layoutTable = new ConsoleTable("Type", "Value");
+			var layoutTable = new ConsoleTable("Size Type", "Value");
+
+			var options = Enum.GetValues<SizeOfOptions>().ToList();
+			options.Remove(SizeOfOptions.Heap);
 
 
-			// TODO
-			layoutTable.AddRow(nameof(SizeOfOptions.Auto), Mem.SizeOf<T>(value, SizeOfOptions.Auto));
-			layoutTable.AddRow(nameof(SizeOfOptions.BaseData), Mem.SizeOf<T>(value, SizeOfOptions.BaseData));
-			layoutTable.AddRow(nameof(SizeOfOptions.BaseInstance), Mem.SizeOf<T>(value, SizeOfOptions.BaseInstance));
-			layoutTable.AddRow(nameof(SizeOfOptions.BaseFields), Mem.SizeOf<T>(value, SizeOfOptions.BaseFields));
-			layoutTable.AddRow(nameof(SizeOfOptions.Data), Mem.SizeOf<T>(value, SizeOfOptions.Data));
+			foreach (var option in options) {
+				var sizeOf = Mem.SizeOf<T>(value, option);
+
+				if (sizeOf == Native.INVALID) {
+					continue;
+				}
+
+				layoutTable.AddRow(Enum.GetName(option), sizeOf);
+			}
 
 			var mt = value.GetMetaType();
 
 			if (!mt.RuntimeType.IsValueType) {
 				layoutTable.AddRow(nameof(SizeOfOptions.Heap), Mem.SizeOf<T>(value, SizeOfOptions.Heap));
-
 			}
-
-			layoutTable.AddRow(nameof(SizeOfOptions.Managed), Mem.SizeOf<T>(value, SizeOfOptions.Managed));
-			layoutTable.AddRow(nameof(SizeOfOptions.Native), Mem.SizeOf<T>(value, SizeOfOptions.Native));
-			layoutTable.AddRow(nameof(SizeOfOptions.Intrinsic), Mem.SizeOf<T>(value, SizeOfOptions.Intrinsic));
 
 			layoutTable.Write();
 		}
@@ -109,6 +111,13 @@ namespace Novus.Runtime
 
 			Debug.WriteLine($"{flags.QuickJoin()}");
 
+			// Rewrite options
+
+			options = default;
+
+			foreach (var flag in flags) {
+				options |= flag;
+			}
 
 			var mt     = value.GetMetaType();
 			var fields = mt.Fields.Where(x => !x.IsStatic);

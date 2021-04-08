@@ -17,6 +17,7 @@ using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
+using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
 #nullable enable
@@ -124,8 +125,12 @@ namespace Test
 			Inspector.DumpSizes(ref s);
 
 			Inspector.DumpLayout(ref s);
-			
 
+			var str = "foo";
+			Inspector.DumpLayout(ref str);
+
+
+			Inspector.DumpSections(Global.Clr.Module.BaseAddress);
 		}
 	}
 }

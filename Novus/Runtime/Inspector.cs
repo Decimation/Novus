@@ -161,7 +161,64 @@ namespace Novus.Runtime
 			}
 
 
+			if (value is string str) {
+				for (int i = 1; i < str.Length; i++) {
+					char c          = str[i];
+					var  rowValues  = new List<object>();
+					int  offsetBase = (i * sizeof(char));
+
+					if (options.HasFlag(InspectorOptions.Offset)) {
+						rowValues.Add($"{offsetBase + RuntimeInfo.StringOverhead - sizeof(char):X}");
+					}
+
+					if (options.HasFlag(InspectorOptions.Size)) {
+						rowValues.Add(sizeof(char));
+					}
+
+					if (options.HasFlag(InspectorOptions.Type)) {
+						rowValues.Add(nameof(Char));
+					}
+
+					if (options.HasFlag(InspectorOptions.Name)) {
+						rowValues.Add($"Char #{i + 1}");
+					}
+
+					if (options.HasFlag(InspectorOptions.Address)) {
+
+						if (Mem.TryGetAddressOfHeap(value, OffsetOptions.StringData, out var addr)) {
+							addr += offsetBase
+								;
+							rowValues.Add(addr.ToString(PointerFormatting.FMT_HEX));
+
+						}
+
+
+					}
+
+					if (options.HasFlag(InspectorOptions.Value)) {
+						var fieldVal = c;
+						rowValues.Add($"{fieldVal}");
+					}
+
+					layoutTable.AddRow(rowValues.ToArray());
+				}
+			}
+
+
 			layoutTable.Write();
+		}
+
+		public static void DumpSections(IntPtr hModule)
+		{
+			var s = Native.GetPESectionInfo(hModule);
+
+			var table = new ConsoleTable("Number", "Name", "Address", "Size", "Characteristics");
+
+			foreach (var info in s) {
+				table.AddRow(info.Number, info.Name, $"{info.Address.ToInt64():X}", info.Size, info.Characteristics);
+			}
+
+			table.Write();
 		}
 	}
 }

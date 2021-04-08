@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+// ReSharper disable UnassignedGetOnlyAutoProperty
 
 // ReSharper disable StructCanBeMadeReadOnly
 // ReSharper disable IdentifierTypo
@@ -17,31 +18,31 @@ namespace Novus.Win32.Structures
 		public string Name { get; }
 
 		[field: FieldOffset(8)]
-		public UInt32 PhysicalAddress { get; }
+		public uint PhysicalAddress { get; }
 
 		[field: FieldOffset(8)]
-		public UInt32 VirtualSize { get; }
+		public uint VirtualSize { get; }
 
 		[field: FieldOffset(12)]
-		public UInt32 VirtualAddress { get; }
+		public uint VirtualAddress { get; }
 
 		[field: FieldOffset(14)]
-		public UInt32 SizeOfRawData { get; }
+		public uint SizeOfRawData { get; }
 
 		[field: FieldOffset(18)]
-		public UInt32 PointerToRawData { get; }
+		public uint PointerToRawData { get; }
 
 		[field: FieldOffset(22)]
-		public UInt32 PointerToRelocations { get; }
+		public uint PointerToRelocations { get; }
 
 		[field: FieldOffset(26)]
-		public UInt32 PointerToLineNumbers { get; }
+		public uint PointerToLineNumbers { get; }
 
 		[field: FieldOffset(30)]
-		public UInt16 NumberOfRelocations { get; }
+		public ushort NumberOfRelocations { get; }
 
 		[field: FieldOffset(32)]
-		public UInt16 NumberOfLineNumbers { get; }
+		public ushort NumberOfLineNumbers { get; }
 
 		[field: FieldOffset(36)]
 		public ImageSectionCharacteristics Characteristics { get; }

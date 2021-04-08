@@ -210,35 +210,10 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		///     Calculates the size of <typeparamref name="T" /> with <paramref name="options" />
-		///     <list type="bullet">
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.Native" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.Managed" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.Intrinsic" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.BaseFields" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.BaseInstance" />
-		///             </description>
-		///         </item>
-		///     </list>
+		/// Calculates the size of <typeparamref name="T"/>
 		/// </summary>
+		/// <param name="options">Size options</param>
+		/// <returns>The size of <typeparamref name="T"/>; <see cref="Native.INVALID"/> otherwise</returns>
 		public static int SizeOf<T>(SizeOfOptions options)
 		{
 			MetaType mt = typeof(T);
@@ -259,40 +234,11 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		///     Calculates the size of <paramref name="value" /> with <paramref name="options" />
-		///     <list type="bullet">
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.BaseFields" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.BaseInstance" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.Heap" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.Data" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.BaseData" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SizeOfOptions.Auto" />
-		///             </description>
-		///         </item>
-		///     </list>
+		/// Calculates the size of <paramref name="value"/>
 		/// </summary>
+		/// <param name="value">Value</param>
+		/// <param name="options">Size options</param>
+		/// <returns>The size of <paramref name="value"/>; <see cref="Native.INVALID"/> otherwise</returns>
 		public static int SizeOf<T>(T value, SizeOfOptions options)
 		{
 			Guard.AssertArgumentNotNull(value, nameof(value));
@@ -543,7 +489,7 @@ namespace Novus.Memory
 		/// </summary>
 		public static Pointer<byte> AddressOfFields<T>(ref T value)
 		{
-			Pointer<T> addr = AddressOf(ref value);
+			var addr = AddressOf(ref value);
 
 			if (RuntimeInfo.IsStruct(value)) {
 				return addr.Cast();

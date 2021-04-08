@@ -98,7 +98,7 @@ namespace Novus
 
 				var fieldValue = GetImportValue(attribute, field);
 
-				Debug.WriteLine($"[debug] Loading {member.Name} ({attribute.Name})");
+				Debug.WriteLine($"[debug] Loading {member.Name} ({attribute.Name}) with {fieldValue}");
 
 				// Set value
 
@@ -239,6 +239,8 @@ namespace Novus
 					break;
 				}
 			}
+
+
 
 			return fieldValue;
 		}

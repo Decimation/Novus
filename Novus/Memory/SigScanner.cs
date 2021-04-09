@@ -16,9 +16,16 @@ namespace Novus.Memory
 	public class SigScanner
 	{
 		/*
-		 * Other implementation:
+		 * Signature scanning
+		 *
+		 * https://wiki.alliedmods.net/Signature_scanning
+		 * https://github.com/alliedmodders/sourcemod/blob/master/tools/ida_scripts/makesig.idc
+		 *
+		 * Other implementations:
 		 * https://github.com/LiveSplit/LiveSplit/blob/master/LiveSplit/LiveSplit.Core/ComponentUtil/SignatureScanner.cs
 		 * https://github.com/LiveSplit/LiveSplit/blob/master/LiveSplit/LiveSplit.Core/ComponentUtil/ProcessExtensions.cs
+		 *
+		 * https://github.com/Zer0Mem0ry/SignatureScanner
 		 */
 
 
@@ -41,18 +48,15 @@ namespace Novus.Memory
 		#region Constructors
 
 		public SigScanner(Process proc, ProcessModule module)
-			: this(module.BaseAddress, (ulong) module.ModuleMemorySize,
-				Mem.ReadProcessMemory(proc, module.BaseAddress, module.ModuleMemorySize)) { }
+		{
+			Address = module.BaseAddress;
 
+			Size = (ulong) module.ModuleMemorySize;
 
-		public SigScanner(ProcessModule module)
-			: this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
+			Buffer = Mem.ReadProcessMemory(proc, Address, (int) Size);
+		}
 
-		public SigScanner(Pointer<byte> p, ulong c) : this(p, c, p.Copy((int) c)) { }
-
-		/// <summary>
-		/// Root constructor
-		/// </summary>
+		
 		public SigScanner(Pointer<byte> ptr, ulong size, byte[] buffer)
 		{
 			Buffer  = buffer;

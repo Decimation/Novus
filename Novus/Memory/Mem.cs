@@ -186,6 +186,31 @@ namespace Novus.Memory
 
 		#endregion
 
+		public static T AllocU<T>(params object[] args)
+		{
+			// TODO: WIP
+
+			var mt = typeof(T).AsMetaType();
+
+			var alloc = Allocator.Alloc(mt.BaseSize);
+
+			alloc += Mem.Size;
+
+			alloc.WritePointer(mt.Value);
+
+			var alloc2 = Allocator.Alloc<T>(1);
+
+			alloc2.WritePointer(alloc);
+
+
+			var val = alloc2.Value;
+
+
+			ReflectionHelper.CallConstructor(val, args);
+
+			return val;
+		}
+
 		/*
 		/// <summary>
 		/// Stack allocation size needed for <see cref="AllocRefOnStack{T}"/>

@@ -108,8 +108,7 @@ namespace Novus.Runtime
 			flags.RemoveAt(flags.Count - 1);
 
 			layoutTable.AddColumn(flags.Select(Enum.GetName));
-
-			Debug.WriteLine($"{flags.QuickJoin()}");
+			
 
 			// Rewrite options
 
@@ -186,8 +185,7 @@ namespace Novus.Runtime
 					if (options.HasFlag(InspectorOptions.Address)) {
 
 						if (Mem.TryGetAddressOfHeap(value, OffsetOptions.StringData, out var addr)) {
-							addr += offsetBase
-								;
+							addr += offsetBase;
 							rowValues.Add(addr.ToString(PointerFormatting.FMT_HEX));
 
 						}

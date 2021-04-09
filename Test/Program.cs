@@ -97,40 +97,15 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		class Clazz
-		{
-			public int a;
-
-			public override string ToString()
-			{
-				return $"{a}";
-			}
-		}
-
-		struct Struct
-		{
-			public int a;
-
-			public override string ToString()
-			{
-				return $"{a}";
-			}
-		}
+		
 		private static void Main(string[] args)
 		{
-			var c = new Clazz();
-			var s = new Struct();
-
-			Inspector.DumpSizes(ref c);
-			Inspector.DumpSizes(ref s);
-
-			Inspector.DumpLayout(ref s);
-
-			var str = "foo";
-			Inspector.DumpLayout(ref str);
+			
+			var s  = stackalloc byte[Mem.AllocRefStackSize<string>()+RuntimeInfo.StringOverhead+10];
+			var l1 = Mem.AllocRefOnStack<string>(ref s,'g',3);
 
 
-			Inspector.DumpSections(Global.Clr.Module.BaseAddress);
+			Console.WriteLine(l1);
 		}
 	}
 }

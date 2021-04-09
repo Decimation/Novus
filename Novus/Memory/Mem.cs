@@ -63,6 +63,8 @@ namespace Novus.Memory
 
 		public static bool Is64Bit => Environment.Is64BitProcess;
 
+		#region Read/write
+
 		#region Write
 
 		/// <summary>
@@ -158,16 +160,16 @@ namespace Novus.Memory
 		public static object ReadProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
 		{
 			//todo
-			
+
 
 			var valueType = mt.RuntimeType.IsValueType;
-			var size         = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
+			var size      = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
 
 			Debug.WriteLine($"{size} for {mt.Name}");
 
 			//var i = Activator.CreateInstance(t);
 
-			byte[]    rg  = Mem.ReadProcessMemory(proc, addr, size);
+			byte[] rg  = Mem.ReadProcessMemory(proc, addr, size);
 			object val = null;
 
 			if (valueType) {
@@ -181,6 +183,113 @@ namespace Novus.Memory
 
 			return val;
 		}
+
+		#endregion
+
+		/*
+		/// <summary>
+		/// Stack allocation size needed for <see cref="AllocRefOnStack{T}"/>
+		/// </summary>
+		public static int AllocRefStackSize<T>() where T : class
+		{
+			// TODO: WIP
+			return typeof(T).AsMetaType().BaseSize + Mem.Size;
+		}
+
+		/// <summary>
+		/// Allocates an object of type <typeparamref name="T"/> on the stack.
+		/// The allocation size must equal <see cref="AllocRefStackSize{T}"/>.
+		/// 
+		/// </summary>
+		/// <param name="b">Stack allocation pointer</param>
+		/// <param name="args">Constructor arguments</param>
+		public static T AllocRefOnStack<T>(ref byte* b, params object[] args) where T : class
+		{
+			// TODO: WIP
+
+			//
+			//	0	Dummy pointer to +16
+			//	8	Obj header
+			//	16	MethodTable pointer
+			//	24	Fields
+			//
+
+			var mt = typeof(T).AsMetaType();
+
+			Pointer<byte> stack = b;
+
+			var dummy = stack + RuntimeInfo.ObjectBaseSize;
+
+			stack.WritePointer(dummy);
+
+			stack += sizeof(ObjHeader);
+
+			stack.Cast<ObjHeader>().Write(default);
+
+			stack += Mem.Size;
+
+			stack.WritePointer(mt.Value);
+
+			var val = Unsafe.AsRef<T>(b);
+			
+
+			//var ctor = mt.RuntimeType.GetConstructor(Type.EmptyTypes);
+			//ctor?.Invoke(val, null);
+
+
+
+			ReflectionHelper.CallConstructor(val, args);
+
+			return val;
+		}*/
+
+		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)
+		{
+			//todo
+			var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
+			//var stackAlloc = stackalloc byte[byteArray.Length];
+
+			var objAddr = (handle.AddrOfPinnedObject() + ofs);
+			var value   = Marshal.PtrToStructure((IntPtr) objAddr, t.RuntimeType);
+
+			handle.Free();
+
+			return value;
+		}
+
+
+		public static string ReadString(sbyte* first, int len)
+		{
+			if (first == null || len <= 0) {
+				return null;
+			}
+
+			return new string(first, 0, len);
+		}
+
+		/// <summary>
+		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
+		///     hex number format
+		/// </summary>
+		/// <seealso cref="SigScanner.ReadSignature"/>
+		public static byte[] ReadBinaryString(string s)
+		{
+			var rg = new List<byte>();
+
+			string[] bytes = s.Split(Formatting.SPACE);
+
+			foreach (string b in bytes) {
+				byte n = Byte.Parse(b, NumberStyles.HexNumber);
+
+				rg.Add(n);
+			}
+
+			return rg.ToArray();
+		}
+
+		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
+
+		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
 
 		#endregion
 
@@ -566,54 +675,6 @@ namespace Novus.Memory
 			return null;
 		}
 
-
-		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
-
-		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
-
-		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)
-		{
-			//todo
-			var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
-			//var stackAlloc = stackalloc byte[byteArray.Length];
-
-			var objAddr = (handle.AddrOfPinnedObject() + ofs);
-			var value   = Marshal.PtrToStructure((IntPtr) objAddr, t.RuntimeType);
-
-			handle.Free();
-
-			return value;
-		}
-
-
-		public static string ReadString(sbyte* first, int len)
-		{
-			if (first == null || len <= 0) {
-				return null;
-			}
-
-			return new string(first, 0, len);
-		}
-
-		/// <summary>
-		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
-		///     hex number format
-		/// </summary>
-		/// <seealso cref="SigScanner.ReadSignature"/>
-		public static byte[] ReadBinaryString(string s)
-		{
-			var rg = new List<byte>();
-
-			string[] bytes = s.Split(Formatting.SPACE);
-
-			foreach (string b in bytes) {
-				byte n = Byte.Parse(b, NumberStyles.HexNumber);
-
-				rg.Add(n);
-			}
-
-			return rg.ToArray();
-		}
 
 		#region Virtual
 

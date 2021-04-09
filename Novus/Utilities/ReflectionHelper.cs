@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Novus.Memory;
+using SimpleCore.Utilities;
 
 // ReSharper disable InconsistentNaming
 
@@ -197,6 +199,39 @@ namespace Novus.Utilities
 		{
 			var body = (MethodCallExpression) expression.Body;
 			return body.Method;
+		}
+
+		/// <summary>
+		///     Runs a constructor whose parameters match <paramref name="args" />
+		/// </summary>
+		/// <param name="value">Instance</param>
+		/// <param name="args">Constructor arguments</param>
+		/// <returns>
+		///     <c>true</c> if a matching constructor was found and executed;
+		///     <c>false</c> if a constructor couldn't be found
+		/// </returns>
+		public static bool CallConstructor<T>(T value, params object[] args)
+		{
+			ConstructorInfo[] ctors    = value.GetType().GetConstructors();
+			Type[]            argTypes = args.Select(x => x.GetType()).ToArray();
+
+			foreach (var ctor in ctors)
+			{
+				ParameterInfo[] paramz = ctor.GetParameters();
+
+				
+
+				if (paramz.Length == args.Length)
+				{
+					if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes))
+					{
+						ctor.Invoke(value, args);
+						return true;
+					}
+				}
+			}
+
+			return false;
 		}
 	}
 }

@@ -481,11 +481,30 @@ namespace UnitTest
 
 			Assert.AreEqual(((Struct) Mem.ReadProcessMemory(proc, b1, typeof(Struct))).a, b.a);
 		}
+
+		/*[Test]
+		public unsafe void RSTest()
+		{
+			var s = Mem.AllocRefStackSize<Clazz>();
+
+			var stack = stackalloc byte[s];
+
+			var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
+
+			Assert.AreEqual(obj.a, Clazz.i);
+		}*/
 	}
 
 	class Clazz
 	{
-		public int a;
+		public       int a;
+		public const int i = 123_321;
+
+		public Clazz()
+		{
+
+			a = i;
+		}
 
 		public override string ToString()
 		{

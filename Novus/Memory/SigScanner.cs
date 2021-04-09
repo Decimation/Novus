@@ -56,7 +56,10 @@ namespace Novus.Memory
 			Buffer = Mem.ReadProcessMemory(proc, Address, (int) Size);
 		}
 
-		
+		public SigScanner(ProcessModule module) : this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
+
+		public SigScanner(Pointer<byte> p, ulong c) : this(p, c, p.Copy((int) c)) { }
+
 		public SigScanner(Pointer<byte> ptr, ulong size, byte[] buffer)
 		{
 			Buffer  = buffer;
@@ -87,10 +90,10 @@ namespace Novus.Memory
 
 		public static byte[] ReadSignature(string szPattern)
 		{
-			//			List<byte> patternbytes = new List<byte>();
-			//			foreach (string szByte in szPattern.Split(' '))
-			//				patternbytes.Add(szByte == "?" ? (byte) 0x0 : Convert.ToByte(szByte, 16));
-			//			return patternbytes.ToArray();
+			// List<byte> patternbytes = new List<byte>();
+			// foreach (string szByte in szPattern.Split(' '))
+			// 	patternbytes.Add(szByte == "?" ? (byte)0x0 : Convert.ToByte(szByte, 16));
+			// return patternbytes.ToArray();
 
 
 			string[] strByteArr   = szPattern.Split(' ');
@@ -114,7 +117,7 @@ namespace Novus.Memory
 		/// Searches for the location of a signature within the module
 		/// </summary>
 		/// <param name="pattern">Signature</param>
-		/// <returns><see cref="Mem.Nullptr"/> if the signature was not found</returns>
+		/// <returns>Address of the located signature; <see cref="Mem.Nullptr"/> if the signature was not found</returns>
 		public Pointer<byte> FindSignature(byte[] pattern)
 		{
 			for (int i = 0; i < Buffer.Length; i++) {

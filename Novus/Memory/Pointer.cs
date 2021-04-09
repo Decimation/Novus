@@ -355,36 +355,6 @@ namespace Novus.Memory
 		[Pure]
 		public T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
 
-		#region Kernel
-
-		//todo
-
-		public byte[] KernelRead(Process proc, int cb)
-		{
-			var rg = Mem.ReadProcessMemory(proc, Address, cb);
-
-			return rg;
-		}
-
-		public T KernelRead(Process proc)
-		{
-			var t = Mem.ReadProcessMemory<T>(proc, Address);
-
-			return t;
-		}
-
-		public void KernelWrite(Process p, byte[] rg)
-		{
-			Mem.WriteProcessMemory(p, Address, rg);
-		}
-
-		public void KernelWrite(Process p, T t)
-		{
-			Mem.WriteProcessMemory(p, Address, t);
-		}
-
-		#endregion
-
 
 		/// <summary>
 		///     Reinterprets <see cref="Address" /> as a reference to a value of type <typeparamref name="T" />.

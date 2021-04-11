@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace Novus.Imports
 {
@@ -7,6 +8,7 @@ namespace Novus.Imports
 	///     <see cref="Global.CLR_MODULE" />
 	/// </summary>
 	/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
+	[MeansImplicitUse]
 	[AttributeUsage(AttributeTargets.Field)]
 	public class ImportClrAttribute : ImportUnmanagedAttribute
 	{

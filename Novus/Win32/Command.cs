@@ -43,7 +43,8 @@ namespace Novus.Win32
 
 		public static void RunBatch(string[] commands, bool dispose)
 		{
-			var fname = FileSystem.CreateRandomName() + ".bat";
+			const string s   = ".bat";
+			var    fname = FileSystem.CreateRandomName() + s;
 			RunBatch(commands, dispose, fname);
 		}
 

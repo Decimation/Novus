@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
+using System.Runtime.CompilerServices;
 using Novus.Imports;
 using Novus.Win32;
 using Novus.Win32.Wrappers;
@@ -73,6 +74,28 @@ namespace Novus
 
 		#region Import
 
+		public static void Close()
+		{
+			foreach (var type in LoadedTypes) {
+				Unload(type);
+			}
+		}
+
+		public static void Unload(Type t)
+		{
+			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
+
+			foreach (var (attr, member) in annotatedTuples) {
+				var field = (FieldInfo) member;
+
+				field.SetValue(null, null);
+			}
+
+			LoadedTypes.Remove(t);
+
+			Trace.WriteLine($"Unloaded {t.Name}");
+		}
+
 		/// <summary>
 		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
 		/// </summary>
@@ -108,6 +131,8 @@ namespace Novus
 			}
 
 			LoadedTypes.Add(t);
+
+			Trace.WriteLine($"Loaded {t.Name}");
 
 		}
 

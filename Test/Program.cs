@@ -97,30 +97,11 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		class Clazz
-		{
-			public       int a;
-			public const int i = 123_321;
+		
 
-			public Clazz()
-			{
-
-				a = i;
-			}
-
-			public override string ToString()
-			{
-				return $"{a}";
-			}
-		}
 		private static void Main(string[] args)
 		{
-
-			var o = Mem.AllocU<Clazz>();
-
-			Console.WriteLine(o);
-			new List<int>();
-			Mem.AllocU<List<int>>(123);
+			
 		}
 	}
 }

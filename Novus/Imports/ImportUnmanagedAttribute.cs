@@ -1,4 +1,6 @@
 ﻿using System;
+using JetBrains.Annotations;
+
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Imports
@@ -9,6 +11,7 @@ namespace Novus.Imports
 	///     for the signature to scan using <see cref="Resource.Scanner" />.
 	/// </summary>
 	/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
+	[MeansImplicitUse]
 	[AttributeUsage(AttributeTargets.Field)]
 	public class ImportUnmanagedAttribute : ImportAttribute
 	{

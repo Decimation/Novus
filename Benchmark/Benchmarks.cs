@@ -6,6 +6,7 @@ using Novus.Win32;
 
 namespace TestBenchmark
 {
+
 	public unsafe class Benchmarks
 	{
 		//[Benchmark]

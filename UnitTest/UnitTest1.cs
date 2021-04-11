@@ -482,17 +482,16 @@ namespace UnitTest
 			Assert.AreEqual(((Struct) Mem.ReadProcessMemory(proc, b1, typeof(Struct))).a, b.a);
 		}
 
-		/*[Test]
-		public unsafe void RSTest()
+		[Test]
+		public unsafe void AllocUTest()
 		{
-			var s = Mem.AllocRefStackSize<Clazz>();
+			var s = Mem.AllocU<Clazz>();
+			
 
-			var stack = stackalloc byte[s];
+			//var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
 
-			var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
-
-			Assert.AreEqual(obj.a, Clazz.i);
-		}*/
+			Assert.AreEqual(s.a, Clazz.i);
+		}
 	}
 
 	class Clazz

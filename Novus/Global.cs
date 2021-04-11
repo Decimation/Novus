@@ -111,7 +111,7 @@ namespace Novus
 			 * Setup
 			 */
 
-			Debug.WriteLine($">>> Module init <<<");
+			Trace.WriteLine($">>> Module init <<<");
 			
 			bool compatible = IsCompatible();
 
@@ -130,7 +130,11 @@ namespace Novus
 			{
 				//Close();
 			};
+
+			Trace.WriteLine($">>> {LIB_NAME} loaded <<<");
 		}
+
+		public const string LIB_NAME = "Novus";
 
 		public static void Close()
 		{

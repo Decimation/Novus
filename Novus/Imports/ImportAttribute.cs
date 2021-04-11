@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.Imports
 {
@@ -9,14 +10,17 @@ namespace Novus.Imports
 	/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
 	[AttributeUsage(AttributeTargets.Field)]
 	[MeansImplicitUse(ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors)]
-	public class ImportAttribute : Attribute
+	public abstract class ImportAttribute : Attribute
 	{
-		public ImportAttribute(string name, ManageType manageType)
+		protected ImportAttribute(string name, ManageType manageType)
 		{
 			Name       = name;
 			ManageType = manageType;
 		}
 
+		protected ImportAttribute(ManageType manageType) : this(null, manageType) { }
+
+		[CanBeNull]
 		public string Name { get; set; }
 
 		public ManageType ManageType { get; set; }

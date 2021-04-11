@@ -18,7 +18,7 @@ namespace Novus.Runtime.Meta
 		/// <summary>
 		/// <c>g_pGCHeap</c>
 		/// </summary>
-		[field: ImportClrComponent("g_pGCHeap", UnmanagedType.Offset)]
+		[field: ImportClr("g_pGCHeap", UnmanagedType.Offset)]
 		public static Pointer<byte> GlobalHeap { get; }
 
 		public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class =>
@@ -35,7 +35,7 @@ namespace Novus.Runtime.Meta
 		/// <summary>
 		/// <see cref="GCHeap.IsHeapPointer"/>
 		/// </summary>
-		[field: ImportClrComponent("Ofs_IsHeapPointer", UnmanagedType.Offset)]
+		[field: ImportClr("Ofs_IsHeapPointer", UnmanagedType.Offset)]
 		private static delegate* unmanaged<void*, void*, bool, bool> Func_IsHeapPointer { get; }
 	}
 }

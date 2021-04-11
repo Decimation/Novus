@@ -5,13 +5,13 @@ namespace Novus.Imports
 	/// <summary>
 	///     Describes an imported managed function.
 	///     The <see cref="ImportAttribute.Name" /> is the name of the managed function which is enclosed by
-	///     <see cref="ImportManagedComponentAttribute.Type" />.
+	///     <see cref="ImportManagedAttribute.Type" />.
 	/// </summary>
 	/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
 	[AttributeUsage(AttributeTargets.Field)]
-	public class ImportManagedComponentAttribute : ImportAttribute
+	public class ImportManagedAttribute : ImportAttribute
 	{
-		public ImportManagedComponentAttribute(Type type, string name) : base(name, ManageType.Managed)
+		public ImportManagedAttribute(Type type, string name = null) : base(name, ManageType.Managed)
 		{
 			Type = type;
 

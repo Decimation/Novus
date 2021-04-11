@@ -135,13 +135,13 @@ namespace Novus.Runtime.VM
 		/// <summary>
 		/// <see cref="MethodTable.EEClass"/>
 		/// </summary>
-		[field: ImportClrComponent("Sig_GetEEClass")]
+		[field: ImportClr("Sig_GetEEClass")]
 		private static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
 
 		/// <summary>
 		/// <see cref="MethodTable.NativeLayoutInfo"/>
 		/// </summary>
-		[field: ImportClrComponent("Sig_GetNativeLayoutInfo")]
+		[field: ImportClr("Sig_GetNativeLayoutInfo")]
 		private static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 	}
 

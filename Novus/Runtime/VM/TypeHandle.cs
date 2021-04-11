@@ -37,7 +37,7 @@ namespace Novus.Runtime.VM
 		/// <summary>
 		/// <see cref="TypeHandle.MethodTable"/>
 		/// </summary>
-		[field: ImportClrComponent("Sig_GetMethodTable")]
+		[field: ImportClr("Sig_GetMethodTable")]
 		private static delegate* unmanaged<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
 	}
 }

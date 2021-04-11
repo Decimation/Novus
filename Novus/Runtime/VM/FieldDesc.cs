@@ -91,7 +91,7 @@ namespace Novus.Runtime.VM
 		/// <summary>
 		/// <see cref="FieldDesc.Size"/>
 		/// </summary>
-		[field: ImportClrComponent("Sig_GetSize")]
+		[field: ImportClr("Sig_GetSize")]
 		private static delegate* unmanaged<FieldDesc*, int> Func_GetSize { get; }
 	}
 

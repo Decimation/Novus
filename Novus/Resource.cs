@@ -71,6 +71,8 @@ namespace Novus
 		 */
 
 
+		#region Import
+
 		/// <summary>
 		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
 		/// </summary>
@@ -161,29 +163,25 @@ namespace Novus
 
 		//todo: add symbol access
 
-		public Pointer<byte> FindSignature(string signature)
-		{
-			return Scanner.FindSignature(signature);
-		}
-
-		public Pointer<byte> GetOffset(long ofs)
-		{
-			return Address + (ofs);
-		}
-
 		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
 		{
 			object fieldValue = null;
 
+			var name = attribute.Name ?? field.Name;
+
 			switch (attribute) {
-				case ImportUnmanagedComponentAttribute unmanagedAttr:
+				case ImportUnmanagedAttribute unmanagedAttr:
 				{
+					/*
+					 * Name is the name of the resource file key
+					 */
+
 					Guard.Assert(unmanagedAttr.ManageType == ManageType.Unmanaged);
 
 					// Get value
 
 
-					var resValue = (string) GetObject(unmanagedAttr.Name);
+					var resValue = (string) GetObject(name);
 
 
 					Guard.AssertNotNull(resValue);
@@ -196,7 +194,7 @@ namespace Novus
 					Resource resource;
 
 					// NOTE: Unique case for CLR
-					if (mod == Global.CLR_MODULE && unmanagedAttr is ImportClrComponentAttribute) {
+					if (mod == Global.CLR_MODULE && unmanagedAttr is ImportClrAttribute) {
 						resource = Global.Clr;
 					}
 					else {
@@ -225,11 +223,15 @@ namespace Novus
 					break;
 				}
 
-				case ImportManagedComponentAttribute managedAttr:
+				case ImportManagedAttribute managedAttr:
 				{
+					/*
+					 * Name is the name of the member
+					 */
+
 					Guard.Assert(managedAttr.ManageType == ManageType.Managed);
 
-					var fn = managedAttr.Type.GetAnyMethod(managedAttr.Name);
+					var fn = managedAttr.Type.GetAnyMethod(name);
 
 					var ptr = fn.MethodHandle.GetFunctionPointer();
 
@@ -241,8 +243,19 @@ namespace Novus
 			}
 
 
-
 			return fieldValue;
+		}
+
+		#endregion
+
+		public Pointer<byte> FindSignature(string signature)
+		{
+			return Scanner.FindSignature(signature);
+		}
+
+		public Pointer<byte> GetOffset(long ofs)
+		{
+			return Address + (ofs);
 		}
 	}
 }

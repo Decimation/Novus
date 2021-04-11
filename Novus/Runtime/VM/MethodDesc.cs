@@ -125,25 +125,25 @@ namespace Novus.Runtime.VM
 		/// <summary>
 		/// <see cref="MethodDesc.IsPointingToNativeCode"/>
 		/// </summary>
-		[field: ImportClrComponent("Sig_IsPointingToNativeCode")]
+		[field: ImportClr("Sig_IsPointingToNativeCode")]
 		private static delegate* unmanaged<MethodDesc*, int> Func_IsPointingToNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.NativeCode"/>
 		/// </summary>
-		[field: ImportClrComponent("Sig_GetNativeCode")]
+		[field: ImportClr("Sig_GetNativeCode")]
 		private static delegate* unmanaged<MethodDesc*, void*> Func_GetNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.Token"/>
 		/// </summary>
-		[field: ImportClrComponent("Sig_GetMemberDef")]
+		[field: ImportClr("Sig_GetMemberDef")]
 		private static delegate* unmanaged<MethodDesc*, int> Func_GetToken { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.RVA"/>
 		/// </summary>
-		[field: ImportClrComponent("Sig_GetRVA")]
+		[field: ImportClr("Sig_GetRVA")]
 		private static delegate* unmanaged<MethodDesc*, long> Func_GetRVA { get; }
 	}
 

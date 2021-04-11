@@ -343,13 +343,13 @@ namespace Novus.Runtime
 		/// <summary>
 		/// <see cref="RuntimeInfo.ResolveType"/>
 		/// </summary>
-		[field: ImportManagedComponent(typeof(Type), "GetTypeFromHandleUnsafe")]
+		[field: ImportManaged(typeof(Type), "GetTypeFromHandleUnsafe")]
 		private static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
 
 		/// <summary>
 		/// <see cref="RuntimeInfo.IsPinnable"/>
 		/// </summary>
-		[field: ImportManagedComponent(typeof(Marshal), "IsPinnable")]
+		[field: ImportManaged(typeof(Marshal), "IsPinnable")]
 		private static delegate* managed<object, bool> Func_IsPinnable { get; }
 	}
 }

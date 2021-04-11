@@ -71,9 +71,8 @@ namespace Novus.Utilities
 
 			return fv;
 		}
-		
-		
-		
+
+
 		public static FieldInfo GetFieldAuto(this Type t, string fname)
 		{
 			var member = t.GetAnyMember(fname).First();
@@ -183,6 +182,22 @@ namespace Novus.Utilities
 		public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
 
 
+		public static Type[] GetAllImplementations<T>() => GetAllImplementations(typeof(T));
+
+		public static Type[] GetAllImplementations(Type t)
+		{
+			var rg = new List<Type>();
+
+			var asmTypes = Assembly.GetAssembly(t).GetTypes();
+
+			var types = asmTypes.Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(t));
+
+			rg.AddRange(types);
+
+			return rg.ToArray();
+		}
+
+
 		public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
 		{
 			var body = (MemberExpression) expression.Body;
@@ -215,16 +230,12 @@ namespace Novus.Utilities
 			ConstructorInfo[] ctors    = value.GetType().GetConstructors();
 			Type[]            argTypes = args.Select(x => x.GetType()).ToArray();
 
-			foreach (var ctor in ctors)
-			{
+			foreach (var ctor in ctors) {
 				ParameterInfo[] paramz = ctor.GetParameters();
 
-				
 
-				if (paramz.Length == args.Length)
-				{
-					if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes))
-					{
+				if (paramz.Length == args.Length) {
+					if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
 						ctor.Invoke(value, args);
 						return true;
 					}

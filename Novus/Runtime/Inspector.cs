@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using JetBrains.Annotations;
 using Novus.Memory;
@@ -206,6 +207,24 @@ namespace Novus.Runtime
 			layoutTable.Write();
 		}
 
+		public static string DumpObject<T>(ref T value)
+		{
+			var mt = value.GetMetaType();
+
+			var fields = mt.RuntimeType.GetRuntimeFields().Where(f=>!f.IsStatic);
+
+			var sb = new StringBuilder();
+			sb.Append($"[{mt.Name}]:\n");
+			foreach (var field in fields) {
+				sb.Append($"{field.Name}: {field.GetValue(value)}\n");
+			}
+
+			return sb.ToString();
+
+		}
+
+		#region Native
+
 		public static void DumpSections(IntPtr hModule)
 		{
 			var s = Native.GetPESectionInfo(hModule);
@@ -218,5 +237,7 @@ namespace Novus.Runtime
 
 			table.Write();
 		}
+
+		#endregion
 	}
 }

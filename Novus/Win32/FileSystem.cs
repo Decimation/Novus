@@ -200,7 +200,7 @@ namespace Novus.Win32
 		public static long GetFileSize(string file) => new FileInfo(file).Length;
 
 		#region File types
-
+		//todo
 		public static string ResolveMimeType(string file, string? mimeProposed = null) =>
 			ResolveMimeType(File.ReadAllBytes(file), mimeProposed);
 
@@ -210,6 +210,7 @@ namespace Novus.Win32
 			//https://stackoverflow.com/questions/2826808/how-to-identify-the-extension-type-of-the-file-using-c/2826884#2826884
 			//https://stackoverflow.com/questions/18358548/urlmon-dll-findmimefromdata-works-perfectly-on-64bit-desktop-console-but-gener
 			//https://stackoverflow.com/questions/11547654/determine-the-file-type-using-c-sharp
+			//https://github.com/GetoXs/MimeDetect/blob/master/src/Winista.MimeDetect/URLMONMimeDetect/urlmonMimeDetect.cs
 
 			Guard.AssertArgumentNotNull(dataBytes, nameof(dataBytes));
 

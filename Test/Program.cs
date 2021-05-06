@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Xml;
 using Novus;
 using Novus.Memory;
@@ -103,6 +104,8 @@ namespace Test
 		{
 			string s = "foo";
 			Console.WriteLine(Inspector.DumpObject(ref s));
+
+
 		}
 	}
 }

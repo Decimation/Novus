@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Novus.Win32.Structures;
@@ -80,24 +79,82 @@ namespace Novus.Win32
 				Marshal.FreeCoTaskMem(outPath);
 				return path;
 			}
-			else {
-				throw new ExternalException(
-					"Unable to retrieve the known folder path. It may not be available on this system.", result);
-			}
+
+			throw new ExternalException(
+				"Unable to retrieve the known folder path. It may not be available on this system.", result);
 		}
 
 		#endregion
 
+		private const string RELATIVE_PATH = "..";
 
 		public static string GetRelativeParent([NotNull] string fi, int n)
 		{
+
 			var i = new string[n + 1];
 
-			Array.Fill(i, "..");
+			Array.Fill(i, RELATIVE_PATH);
 			i[0] = fi;
 			var p = Path.Combine(i);
 
 			return p;
+		}
+
+		public static string? GetRelativePath(string fromPath, string toPath)
+		{
+			//https://github.com/gibbed/Gibbed.IO/blob/main/PathHelper.cs
+
+			if (fromPath == null) {
+				throw new ArgumentNullException(nameof(fromPath));
+			}
+
+			if (toPath == null) {
+				throw new ArgumentNullException(nameof(toPath));
+			}
+
+			if (Path.IsPathRooted(fromPath) && Path.IsPathRooted(toPath)) {
+				if (string.Compare(Path.GetPathRoot(fromPath),
+					Path.GetPathRoot(toPath), 
+					StringComparison.OrdinalIgnoreCase) != 0) {
+					return null;
+				}
+			}
+
+			var relativePath    = new List<string>();
+			var fromDirectories = fromPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+			var toDirectories   = toPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+			int length = Math.Min(fromDirectories.Length, toDirectories.Length);
+
+			int lastCommonRoot = -1;
+
+			// find common root
+			for (int x = 0; x < length; x++) {
+				if (string.Compare(fromDirectories[x], toDirectories[x], StringComparison.OrdinalIgnoreCase) != 0) {
+					break;
+				}
+
+				lastCommonRoot = x;
+			}
+
+			if (lastCommonRoot == -1) {
+				return toPath;
+			}
+
+			// add relative folders in from path
+			for (int x = lastCommonRoot + 1; x < fromDirectories.Length; x++) {
+				if (fromDirectories[x].Length > 0) {
+					relativePath.Add(RELATIVE_PATH);
+				}
+			}
+
+			// add to folders to path
+			for (int x = lastCommonRoot + 1; x < toDirectories.Length; x++) {
+				relativePath.Add(toDirectories[x]);
+			}
+
+			// create relative path
+			return Path.Combine(relativePath.ToArray());
 		}
 
 		public static string GetParent([NotNull] string fi, int n)
@@ -200,6 +257,7 @@ namespace Novus.Win32
 		public static long GetFileSize(string file) => new FileInfo(file).Length;
 
 		#region File types
+
 		//todo
 		public static string ResolveMimeType(string file, string? mimeProposed = null) =>
 			ResolveMimeType(File.ReadAllBytes(file), mimeProposed);

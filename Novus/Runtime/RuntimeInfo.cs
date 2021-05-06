@@ -11,6 +11,8 @@ using Novus.Imports;
 using Novus.Memory;
 using Novus.Runtime.VM;
 using SimpleCore.Diagnostics;
+// ReSharper disable ConvertIfStatementToReturnStatement
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
@@ -201,6 +203,27 @@ namespace Novus.Runtime
 			var handle          = t.TypeHandle.Value;
 			var typeHandleValue = *(TypeHandle*) &handle;
 			return typeHandleValue.MethodTable;
+		}
+
+		public static bool IsNullable<T>(T obj)
+		{
+			//https://stackoverflow.com/questions/374651/how-to-check-if-an-object-is-nullable
+
+			if (obj == null) {
+				return true; // obvious
+			}
+
+			var type = typeof(T);
+
+			if (!type.IsValueType) {
+				return true; // ref-type
+			}
+
+			if (Nullable.GetUnderlyingType(type) != null) {
+				return true; // Nullable<T>
+			}
+
+			return false; // value-type
 		}
 
 		/// <summary>

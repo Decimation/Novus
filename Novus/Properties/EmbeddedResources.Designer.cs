@@ -70,7 +70,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 348C40.
+        ///   Looks up a localized string similar to 348C00.
         /// </summary>
         internal static string Ofs_IsHeapPointer {
             get {

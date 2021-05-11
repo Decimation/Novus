@@ -122,7 +122,7 @@
     <comment>g_pGCHeap</comment>
   </data>
   <data name="Ofs_IsHeapPointer" xml:space="preserve">
-    <value>348C40</value>
+    <value>348C00</value>
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="Sig_GetEEClass" xml:space="preserve">

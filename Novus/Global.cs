@@ -92,7 +92,7 @@ namespace Novus
 		/// <summary>
 		///     Runtime CLR version
 		/// </summary>
-		public static readonly Version ClrVersion = new(5, 0, 4);
+		public static readonly Version ClrVersion = new(5, 0, 5);
 
 		/// <summary>
 		///     Runtime CLR resources
@@ -148,9 +148,11 @@ namespace Novus
 		{
 			bool ver = Environment.Version == ClrVersion;
 			bool gc  = !GCSettings.IsServerGC;
-			bool os  = OperatingSystem.IsWindows();
+			//bool os  = OperatingSystem.IsWindows();
 		
-			return ver && gc && os;
+			//return ver && gc && os;
+
+			return ver && gc;
 		}
 	}
 }

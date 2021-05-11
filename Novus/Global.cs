@@ -116,7 +116,8 @@ namespace Novus
 			bool compatible = IsCompatible();
 
 			if (!compatible) {
-				Guard.Fail();
+				//Guard.Fail();
+				Trace.WriteLine($"[WARNING] compatibility check failed!");
 			}
 			
 
@@ -148,11 +149,9 @@ namespace Novus
 		{
 			bool ver = Environment.Version == ClrVersion;
 			bool gc  = !GCSettings.IsServerGC;
-			//bool os  = OperatingSystem.IsWindows();
+			bool os  = OperatingSystem.IsWindows();
 		
-			//return ver && gc && os;
-
-			return ver && gc;
+			return ver && gc && os;
 		}
 	}
 }

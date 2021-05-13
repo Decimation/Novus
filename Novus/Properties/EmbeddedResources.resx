@@ -150,7 +150,7 @@
     <comment>MethodDesc::GetRVA</comment>
   </data>
   <data name="Sig_GetSize" xml:space="preserve">
-    <value>40 53 48 83 EC 20 8B 41 0C 48 8D 15 E4 08 3E 00</value>
+    <value>40 53 48 83 EC 20 8B 41 0C 48 8B D9</value>
     <comment>FieldDesc::GetSize</comment>
   </data>
   <data name="Sig_IsPointingToNativeCode" xml:space="preserve">

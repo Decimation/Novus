@@ -106,7 +106,8 @@ namespace Test
 			string s = "foo";
 			Console.WriteLine(Inspector.DumpObject(ref s));
 
-
+			Console.ReadLine();
+			new object();
 		}
 	}
 }

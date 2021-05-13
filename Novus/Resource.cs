@@ -76,6 +76,9 @@ namespace Novus
 
 		public static void Close()
 		{
+			
+
+
 			foreach (var type in LoadedTypes) {
 				Unload(type);
 			}

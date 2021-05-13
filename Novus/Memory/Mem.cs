@@ -418,8 +418,9 @@ namespace Novus.Memory
 				{
 					var infos = n.GetParameters();
 
-					return n.Name                 == nameof(SizeOf) && infos.Length == 2 &&
-					       infos[1].ParameterType == typeof(SizeOfOptions);
+					return n.Name                    == nameof(SizeOf)
+					       && infos.Length           == 2
+					       && infos[1].ParameterType == typeof(SizeOfOptions);
 				});
 
 				return (int) ReflectionHelper.CallGeneric(m, type, null, null, SizeOfOptions.Intrinsic);

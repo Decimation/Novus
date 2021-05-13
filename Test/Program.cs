@@ -27,6 +27,7 @@ using SimpleCore.Utilities;
 namespace Test
 {
 	/*
+	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.6
 	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.5
 	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.4
 	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.2
@@ -36,6 +37,7 @@ namespace Test
 	 *
 	 * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
 	 *
+	 * todo: .NET 5.0.6 (5.0.203) coreclr.pdb
 	 * todo: integrate pdbex
 	 * todo: IL, ILSupport
 	 * todo: fully migrate NeoCore and RazorSharp

@@ -92,7 +92,7 @@ namespace Novus
 		/// <summary>
 		///     Runtime CLR version
 		/// </summary>
-		public static readonly Version ClrVersion = new(5, 0, 5);
+		public static readonly Version ClrVersion = new(5, 0, 6);
 
 		/// <summary>
 		///     Runtime CLR resources
@@ -144,6 +144,8 @@ namespace Novus
 
 			IsSetup = false;
 		}
+		
+		// TODO: .NET 5.0.6 coreclr symbols (pdb) file
 
 		public static bool IsCompatible()
 		{

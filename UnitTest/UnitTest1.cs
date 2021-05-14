@@ -198,7 +198,6 @@ namespace UnitTest
 		[Test]
 		public unsafe void GCTest()
 		{
-			Assert.Pass();//todo
 
 			var s   = "bar";
 			var ptr = Mem.AddressOfHeap(s).ToPointer();

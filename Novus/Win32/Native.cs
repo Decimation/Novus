@@ -80,9 +80,7 @@ namespace Novus.Win32
 
 		public static unsafe Symbol GetSymbol(IntPtr hProc, string img, string name)
 		{
-			//todo
-			//todo
-			//todo
+			//todo: slow
 
 			/*
 			 *	| Method |     Mean |   Error |  StdDev |
@@ -98,8 +96,6 @@ namespace Novus.Win32
 			 * https://stackoverflow.com/questions/18249566/c-sharp-get-the-list-of-unmanaged-c-dll-exports
 			 * https://stackoverflow.com/questions/12656737/how-to-obtain-the-dll-list-of-a-specified-process-and-loop-through-it-to-check-i
 			 */
-
-			//todo: slow
 
 
 			var options = SymGetOptions();

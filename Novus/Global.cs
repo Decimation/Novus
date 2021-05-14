@@ -145,7 +145,6 @@ namespace Novus
 			IsSetup = false;
 		}
 		
-		// TODO: .NET 5.0.6 coreclr symbols (pdb) file
 
 		public static bool IsCompatible()
 		{

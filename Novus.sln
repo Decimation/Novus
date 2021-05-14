@@ -9,7 +9,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTest", "UnitTest\UnitTest.csproj", "{A54DEDD8-2B48-47A5-A81D-93FD984E56BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestBenchmark", "Benchmark\TestBenchmark.csproj", "{BE4827B3-5517-4E57-BF09-B2DAEC52DBDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestBenchmark", "Benchmark\TestBenchmark.csproj", "{BE4827B3-5517-4E57-BF09-B2DAEC52DBDF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9256099B-2CBD-4765-8A42-063DE1505FB8}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

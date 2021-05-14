@@ -37,7 +37,6 @@ namespace Test
 	 *
 	 * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
 	 *
-	 * todo: .NET 5.0.6 (5.0.203) coreclr.pdb
 	 * todo: integrate pdbex
 	 * todo: IL, ILSupport
 	 * todo: fully migrate NeoCore and RazorSharp
@@ -105,11 +104,9 @@ namespace Test
 
 		private static void Main(string[] args)
 		{
-			string s = "foo";
-			Console.WriteLine(Inspector.DumpObject(ref s));
+			
 
-			Console.ReadLine();
-			new object();
+			Console.WriteLine(Native.GetSymbol(Native.GetCurrentProcess(),@"C:\Users\Deci\Desktop\coreclr.pdb", "FieldDesc::GetSize"));
 		}
 	}
 }

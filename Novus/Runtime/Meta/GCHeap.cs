@@ -29,8 +29,6 @@ namespace Novus.Runtime.Meta
 
 		static GCHeap()
 		{
-			throw new NotImplementedException(); //todo
-
 			Resource.LoadImports(typeof(GCHeap));
 		}
 

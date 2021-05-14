@@ -8,7 +8,7 @@ namespace Novus.Win32.Wrappers
 		internal Symbol(DebugSymbol* pSymInfo)
 		{
 			Name = pSymInfo->ReadSymbolName();
-
+			//Name         = new string(pSymInfo->Name);
 			SizeOfStruct = (int) pSymInfo->SizeOfStruct;
 			TypeIndex    = (int) pSymInfo->TypeIndex;
 			Index        = (int) pSymInfo->Index;

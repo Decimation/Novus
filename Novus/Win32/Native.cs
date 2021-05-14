@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -81,6 +82,13 @@ namespace Novus.Win32
 		public static unsafe Symbol GetSymbol(IntPtr hProc, string img, string name)
 		{
 			//todo: slow
+			//todo
+
+
+			/*
+			 * https://github.com/southpolenator/SharpPdb
+			 */
+
 
 			/*
 			 *	| Method |     Mean |   Error |  StdDev |
@@ -95,6 +103,12 @@ namespace Novus.Win32
 			 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/Win32/Structures/SymbolStructures.cs
 			 * https://stackoverflow.com/questions/18249566/c-sharp-get-the-list-of-unmanaged-c-dll-exports
 			 * https://stackoverflow.com/questions/12656737/how-to-obtain-the-dll-list-of-a-specified-process-and-loop-through-it-to-check-i
+			 *
+			 *
+			 * https://github.com/southpolenator/SharpPdb
+			 * https://github.com/horsicq/PDBRipper
+			 * https://github.com/Broihon/Symbol-Parser
+			 * https://github.com/moyix/pdbparse
 			 */
 
 
@@ -129,17 +143,27 @@ namespace Novus.Win32
 
 			var sym = (SymbolsCache.First(s => s.Name.Contains(name)));
 
+			//todo: symfromname...
+			/*var d = new DebugSymbol();
+			d.SizeOfStruct = (uint)Marshal.SizeOf<DebugSymbol>();
+			d.MaxNameLen = 1000;
+
+			if (!SymFromName(hProc, name, new IntPtr(&d)))
+			{
+				Debug.WriteLine("ERROR");
+			}
+			
+			var sym = new Symbol(&d);*/
 
 			SymCleanup(hProc);
 			SymUnloadModule64(hProc, modBase);
 			SymbolsCache.Clear();
-
-			//return sym;
+			
 
 			return sym;
 		}
 
-		//[UnmanagedCallersOnly]
+		
 		private static bool EnumSymCallback(IntPtr info, uint symbolSize, IntPtr pUserContext)
 		{
 			var symbol = (DebugSymbol*) info;

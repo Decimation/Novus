@@ -35,5 +35,6 @@ namespace Novus.Imports
 	{
 		Signature,
 		Offset,
+		Symbol
 	}
 }

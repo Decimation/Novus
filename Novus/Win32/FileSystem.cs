@@ -422,6 +422,10 @@ namespace Novus.Win32
 			EnvironmentPath = oldValue.Replace(PATH_DELIM + location, String.Empty);
 		}
 
+		public static string? SymbolPath =>
+			Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
+
+
 		/// <summary>
 		///     Determines whether <paramref name="location" /> is in <see cref="PathDirectories" />
 		/// </summary>

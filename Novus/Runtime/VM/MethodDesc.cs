@@ -1,7 +1,7 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using Novus.Imports;
+﻿using Novus.Imports;
 using Novus.Memory;
+using System;
+using System.Runtime.InteropServices;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
@@ -19,7 +19,6 @@ namespace Novus.Runtime.VM
 
 		internal MethodClassification Classification =>
 			(MethodClassification) ((ushort) Properties & (ushort) MethodProperties.Classification);
-
 
 		internal ParamFlags Flags3AndTokenRemainder { get; }
 
@@ -49,30 +48,25 @@ namespace Novus.Runtime.VM
 			}
 		}
 
-
 		internal void* NativeCode
 		{
 			get
 			{
 				fixed (MethodDesc* p = &this) {
-
 					return Func_GetNativeCode(p);
 				}
 			}
 		}
-
 
 		internal int Token
 		{
 			get
 			{
 				fixed (MethodDesc* p = &this) {
-
 					return Func_GetToken(p);
 				}
 			}
 		}
-
 
 		/*[ImportCall(ImportCallOptions.Map)]
 		internal CorMethod* GetILHeader(int fAllowOverrides)
@@ -83,14 +77,13 @@ namespace Novus.Runtime.VM
 			}
 		}
 
-
 		*/
+
 		internal long RVA
 		{
 			get
 			{
 				fixed (MethodDesc* p = &this) {
-
 					return Func_GetRVA(p);
 				}
 			}
@@ -146,7 +139,6 @@ namespace Novus.Runtime.VM
 		[field: ImportClr("Sig_GetRVA")]
 		private static delegate* unmanaged<MethodDesc*, long> Func_GetRVA { get; }
 	}
-
 
 	/// <summary>
 	///     Describes <see cref="MethodDesc" /> JIT/entry point status
@@ -207,7 +199,6 @@ namespace Novus.Runtime.VM
 		DoesNotHaveEquivalentValueTypeParameters = 0x8000
 	}
 
-
 	/// <summary>
 	///     Describes the type of <see cref="MethodDesc" />
 	/// </summary>
@@ -228,7 +219,6 @@ namespace Novus.Runtime.VM
 		/// </summary>
 		NDirect = 2,
 
-
 		/// <summary>
 		///     Special method; implementation provided by EE (like Delegate Invoke)
 		/// </summary>
@@ -244,7 +234,6 @@ namespace Novus.Runtime.VM
 		///     for both shared and unshared code (see InstantiatedMethodDesc)
 		/// </summary>
 		Instantiated = 5,
-
 
 		//#ifdef FEATURE_COMINTEROP
 		// This needs a little explanation.  There are MethodDescs on MethodTables
@@ -264,6 +253,7 @@ namespace Novus.Runtime.VM
 		///     For <see cref="MethodDesc" /> with no metadata behind
 		/// </summary>
 		Dynamic = 7,
+
 		Count
 	}
 

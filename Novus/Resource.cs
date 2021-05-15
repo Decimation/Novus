@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Novus.Imports;
 using Novus.Win32;
 using Novus.Win32.Wrappers;
@@ -32,8 +34,10 @@ namespace Novus
 
 		public SigScanner Scanner { get; }
 
+		[CanBeNull]
+		public SymbolLoader Symbols { get; }
 
-		public Resource(string moduleName)
+		public Resource(string moduleName, string pdb = null)
 		{
 			ModuleName = moduleName;
 
@@ -46,6 +50,15 @@ namespace Novus
 			Scanner = new SigScanner(Module);
 
 			Address = Module.BaseAddress;
+
+			if (pdb is not null) {
+
+				Symbols = new SymbolLoader(Native.GetCurrentProcess(), pdb);
+			}
+			else {
+				Symbols = null;
+			}
+
 		}
 
 		public override string ToString()
@@ -76,7 +89,6 @@ namespace Novus
 
 		public static void Close()
 		{
-			
 
 
 			foreach (var type in LoadedTypes) {
@@ -189,7 +201,6 @@ namespace Novus
 
 		}
 
-		//todo: add symbol access
 
 		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
 		{
@@ -235,7 +246,9 @@ namespace Novus
 					{
 						UnmanagedType.Signature => resource.FindSignature(resValue),
 						UnmanagedType.Offset    => resource.GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
-						_                       => throw new ArgumentOutOfRangeException()
+						UnmanagedType.Symbol => ((Pointer<byte>) resource.Module.BaseAddress) +
+						                        resource.Symbols.GetSymbol(name).Offset,
+						_ => throw new ArgumentOutOfRangeException()
 					};
 
 					Guard.Assert(!addr.IsNull);

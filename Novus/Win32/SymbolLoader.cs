@@ -28,6 +28,8 @@ namespace Novus.Win32
 			SymbolsCache = new List<Symbol>();
 			m_modBase    = LoadModule();
 			m_disposed   = false;
+
+			LoadAll();
 		}
 
 		public void Dispose()

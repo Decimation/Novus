@@ -92,7 +92,7 @@ namespace Novus
 		///     Runtime CLR module name
 		/// </summary>
 		public const string CLR_MODULE = "coreclr.dll";
-
+		
 		public const string LIB_NAME = "Novus";
 
 		/// <summary>

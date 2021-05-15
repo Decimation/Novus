@@ -102,7 +102,11 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
+			Console.WriteLine(Global.Clr);
 
+			Console.WriteLine();
+
+			Console.WriteLine(GCHeap.IsHeapPointer("foo"));
 		}
 	}
 }

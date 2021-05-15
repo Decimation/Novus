@@ -28,7 +28,7 @@ namespace Novus.Runtime.Meta.Base
 
 		public override string ToString()
 		{
-			return String.Format("Handle: {0} | Name: {1}", Value, Name);
+			return $"Handle: {Value} | Name: {Name}";
 		}
 
 		public override bool Equals(object? obj)

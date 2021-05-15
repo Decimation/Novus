@@ -109,11 +109,20 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			Console.WriteLine(Global.Clr);
 
-			var o = FormatterServices.GetUninitializedObject(typeof(List<int>));
 
-			Console.WriteLine(Inspector.DumpObject(ref o));
+			var u = Mem.AllocU<List<int>>();
+
+
+			Console.WriteLine(u);
+			u.Add(123);
+			Console.WriteLine(u.Count);
+			Console.WriteLine(u.First());
+			u.Add(321);
+
+			var u2 = new List<int>();
+
+			Console.WriteLine(Inspector.DumpObject(ref u));
 		}
 	}
 }

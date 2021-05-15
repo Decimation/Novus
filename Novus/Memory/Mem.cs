@@ -46,6 +46,7 @@ namespace Novus.Memory
 	/// <seealso cref="Unsafe" />
 	/// <seealso cref="RuntimeHelpers" />
 	/// <seealso cref="FormatterServices"/>
+	/// <seealso cref="Activator"/>
 	/// <seealso cref="GCHeap"/>
 	/// <seealso cref="RuntimeInfo" />
 	/// <seealso cref="Inspector" />
@@ -310,68 +311,26 @@ namespace Novus.Memory
 
 			var val = alloc2.Value;
 
-
+			//RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
 			ReflectionHelper.CallConstructor(val, args);
+
+
+			/*var def = Activator.CreateInstance<T>();
+
+			var flds = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+
+			var vals = flds.Select(f => f.GetValue(def)).ToArray();
+
+			var val2 = FormatterServices.PopulateObjectMembers(val, flds, vals);*/
+
+			//FormatterServices?
+
+			//return (T) val2;
 
 			return val;
 		}
 
-		/*
-		/// <summary>
-		/// Stack allocation size needed for <see cref="AllocRefOnStack{T}"/>
-		/// </summary>
-		public static int AllocRefStackSize<T>() where T : class
-		{
-			// TODO: WIP
-			return typeof(T).AsMetaType().BaseSize + Mem.Size;
-		}
-
-		/// <summary>
-		/// Allocates an object of type <typeparamref name="T"/> on the stack.
-		/// The allocation size must equal <see cref="AllocRefStackSize{T}"/>.
-		/// 
-		/// </summary>
-		/// <param name="b">Stack allocation pointer</param>
-		/// <param name="args">Constructor arguments</param>
-		public static T AllocRefOnStack<T>(ref byte* b, params object[] args) where T : class
-		{
-			// TODO: WIP
-
-			//
-			//	0	Dummy pointer to +16
-			//	8	Obj header
-			//	16	MethodTable pointer
-			//	24	Fields
-			//
-
-			var mt = typeof(T).AsMetaType();
-
-			Pointer<byte> stack = b;
-
-			var dummy = stack + RuntimeInfo.ObjectBaseSize;
-
-			stack.WritePointer(dummy);
-
-			stack += sizeof(ObjHeader);
-
-			stack.Cast<ObjHeader>().Write(default);
-
-			stack += Mem.Size;
-
-			stack.WritePointer(mt.Value);
-
-			var val = Unsafe.AsRef<T>(b);
-			
-
-			//var ctor = mt.RuntimeType.GetConstructor(Type.EmptyTypes);
-			//ctor?.Invoke(val, null);
-
-
-
-			ReflectionHelper.CallConstructor(val, args);
-
-			return val;
-		}*/
+		
 
 		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)
 		{

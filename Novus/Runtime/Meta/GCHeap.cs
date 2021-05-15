@@ -15,6 +15,7 @@ namespace Novus.Runtime.Meta
 	/// </summary>
 	/// <seealso cref="GC"/>
 	/// <seealso cref="FormatterServices"/>
+	/// <seealso cref="Activator"/>
 	/// <seealso cref="RuntimeHelpers"/>
 	/// <seealso cref="System.Runtime.InteropServices.GCHandle"/>
 	public static unsafe class GCHeap

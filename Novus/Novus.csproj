@@ -25,6 +25,11 @@
       CA1416,
     </NoWarn>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Low-level utilities and tools for working with the CLR and memory.</Description>
+    <PackageProjectUrl>https://github.com/Decimation/Novus</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Decimation/Novus</RepositoryUrl>
+    <PackageTags>clr low-level memory hack library</PackageTags>
+    <PackageIcon>icon64.png</PackageIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -61,6 +66,13 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>EmbeddedResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\icon64.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

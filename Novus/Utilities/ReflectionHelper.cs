@@ -227,11 +227,11 @@ namespace Novus.Utilities
 		/// </returns>
 		public static bool CallConstructor<T>(T value, params object[] args)
 		{
-			ConstructorInfo[] ctors    = value.GetType().GetConstructors();
-			Type[]            argTypes = args.Select(x => x.GetType()).ToArray();
+			var ctors    = value.GetType().GetConstructors();
+			var            argTypes = args.Select(x => x.GetType()).ToArray();
 
 			foreach (var ctor in ctors) {
-				ParameterInfo[] paramz = ctor.GetParameters();
+				var paramz = ctor.GetParameters();
 
 
 				if (paramz.Length == args.Length) {

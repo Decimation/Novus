@@ -3,40 +3,33 @@ using BenchmarkDotNet.Attributes;
 using Novus;
 using Novus.Memory;
 using Novus.Win32;
+using Novus.Win32.Wrappers;
 
 namespace TestBenchmark
 {
-
 	public unsafe class Benchmarks
 	{
-		//[Benchmark]
-		//public void Bench1()
-		//{
-		//	Native.GetSymbol(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb", "g_pGCHeap");
-		//}
+		[Benchmark]
+		public Symbol Bench1()
+		{
+			return sl.GetSymbol("g_pGCHeap");
+		}
 
-		private Pointer<int> p2;
-		private int*         p1;
+		private SymbolLoader sl;
 
 		[GlobalSetup]
 		public void GlobalSetup()
 		{
-			p1  = (int*) Marshal.AllocHGlobal(sizeof(int));
-			*p1 = 123;
-			p2  = p1;
-			//Global.Setup();
+
+			Global.Setup();
+			sl = new SymbolLoader(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb");
+			sl.LoadAll();
 		}
 
-		[Benchmark]
-		public int Read1()
-		{
-			return *p1;
-		}
-
-		[Benchmark]
-		public int Read2()
-		{
-			return p2.Reference;
-		}
+		// [IterationCleanup]
+		// public void IterationCleanup()
+		// {
+		//
+		// }
 	}
 }

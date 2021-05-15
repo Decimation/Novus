@@ -5,7 +5,7 @@ namespace Novus.Win32.Wrappers
 {
 	public unsafe class Symbol
 	{
-		internal Symbol(DebugSymbol* pSymInfo)
+		internal Symbol(SymbolInfo* pSymInfo)
 		{
 			Name = pSymInfo->ReadSymbolName();
 			//Name         = new string(pSymInfo->Name);

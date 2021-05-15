@@ -103,9 +103,6 @@ namespace Test
 		private static void Main(string[] args)
 		{
 
-
-			Console.WriteLine(Native.GetSymbol(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb",
-				"FieldDesc::GetSize"));
 		}
 	}
 }

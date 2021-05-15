@@ -6,7 +6,6 @@ using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
 using Novus.Win32;
-using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 [assembly: InternalsVisibleTo("Ultrakiller")]
@@ -57,7 +56,7 @@ namespace Novus
 	///                 <see cref="Resource" />
 	///             </description>
 	///         </item>
-	/// <item>
+	///         <item>
 	///             <description>
 	///                 <see cref="SigScanner" />
 	///             </description>
@@ -65,9 +64,14 @@ namespace Novus
 	///     </list>
 	///     OS utilities:
 	///     <list type="bullet">
-	/// <item>
+	///         <item>
 	///             <description>
 	///                 <see cref="Native" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="SymbolLoader" />
 	///             </description>
 	///         </item>
 	///         <item>
@@ -88,6 +92,8 @@ namespace Novus
 		///     Runtime CLR module name
 		/// </summary>
 		public const string CLR_MODULE = "coreclr.dll";
+
+		public const string LIB_NAME = "Novus";
 
 		/// <summary>
 		///     Runtime CLR version
@@ -111,22 +117,22 @@ namespace Novus
 			 * Setup
 			 */
 
-			Trace.WriteLine($">>> Module init <<<");
-			
+			Trace.WriteLine(">>> Module init <<<");
+
 			bool compatible = IsCompatible();
 
 			if (!compatible) {
 				//Guard.Fail();
-				Trace.WriteLine($"[WARNING] compatibility check failed!");
+				Trace.WriteLine("[WARNING] compatibility check failed!");
 			}
-			
+
 
 			IsSetup = true;
-			
+
 			/*
 			 * Close
 			 */
-			
+
 			AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 			{
 				//Close();
@@ -135,8 +141,6 @@ namespace Novus
 			Trace.WriteLine($">>> {LIB_NAME} loaded <<<");
 		}
 
-		public const string LIB_NAME = "Novus";
-
 		public static void Close()
 		{
 			Allocator.Close();
@@ -144,14 +148,14 @@ namespace Novus
 
 			IsSetup = false;
 		}
-		
+
 
 		public static bool IsCompatible()
 		{
 			bool ver = Environment.Version == ClrVersion;
 			bool gc  = !GCSettings.IsServerGC;
 			bool os  = OperatingSystem.IsWindows();
-		
+
 			return ver && gc && os;
 		}
 	}

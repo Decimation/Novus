@@ -9,17 +9,17 @@ namespace Novus.Win32.Structures
 	/// </summary>
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
-	internal unsafe struct DebugSymbol
+	internal unsafe struct SymbolInfo
 	{
 		/// <summary>
-		///     Max string length for <see cref="DebugSymbol.Name" />
+		///     Max string length for <see cref="SymbolInfo.Name" />
 		/// </summary>
 		internal const int MaxNameLength = 2000;
 
 		/// <summary>
-		///     Size of <see cref="DebugSymbol" />
+		///     Size of <see cref="SymbolInfo" />
 		/// </summary>
-		internal static readonly int SizeOf = Marshal.SizeOf<DebugSymbol>();
+		internal static readonly int SizeOf = Marshal.SizeOf<SymbolInfo>();
 
 		internal static readonly int FullSize =
 			SizeOf + MaxNameLength * sizeof(byte) + sizeof(ulong) - 1 / sizeof(ulong);
@@ -139,7 +139,7 @@ namespace Novus.Win32.Structures
 			//	return Marshal.PtrToStringUni((IntPtr) namePtr, (int) NameLen);
 			//}
 
-			fixed (DebugSymbol* pSym = &this) {
+			fixed (SymbolInfo* pSym = &this) {
 				sbyte* namePtr = pSym->Name;
 				return Marshal.PtrToStringUni((IntPtr) namePtr, (int) NameLen);
 			}

@@ -1,4 +1,10 @@
-﻿using System;
+﻿// ReSharper disable LocalizableElement
+// ReSharper disable RedundantUsingDirective
+// ReSharper disable RedundantUnsafeContext
+
+#pragma warning disable IDE0005
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -7,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
 using Novus;
@@ -22,7 +29,7 @@ using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
 #nullable enable
-// ReSharper disable LocalizableElement
+
 
 namespace Test
 {
@@ -104,9 +111,9 @@ namespace Test
 		{
 			Console.WriteLine(Global.Clr);
 
-			Console.WriteLine();
+			var o = FormatterServices.GetUninitializedObject(typeof(List<int>));
 
-			Console.WriteLine(GCHeap.IsHeapPointer("foo"));
+			Console.WriteLine(Inspector.DumpObject(ref o));
 		}
 	}
 }

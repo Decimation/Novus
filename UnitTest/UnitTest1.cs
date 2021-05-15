@@ -255,9 +255,18 @@ namespace UnitTest
 				strFixed = (IntPtr) c;
 			}
 
+
+			IntPtr strPin;
+
+			fixed (char* c = &s.GetPinnableReference()) {
+				strPin = (IntPtr) c;
+			}
+
 			var strMem = Mem.AddressOfHeap(s, OffsetOptions.StringData).Address;
 
 			Assert.AreEqual(strFixed, strMem);
+			Assert.AreEqual(strPin, strMem);
+
 
 			/*
 			 * Array

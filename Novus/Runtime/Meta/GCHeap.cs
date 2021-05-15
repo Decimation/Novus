@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using Novus.Imports;
 using Novus.Memory;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
-
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 
@@ -13,6 +14,9 @@ namespace Novus.Runtime.Meta
 	/// GC heap
 	/// </summary>
 	/// <seealso cref="GC"/>
+	/// <seealso cref="FormatterServices"/>
+	/// <seealso cref="RuntimeHelpers"/>
+	/// <seealso cref="System.Runtime.InteropServices.GCHandle"/>
 	public static unsafe class GCHeap
 	{
 		/// <summary>
@@ -27,13 +31,15 @@ namespace Novus.Runtime.Meta
 		public static bool IsHeapPointer(Pointer<byte> ptr, bool smallHeapOnly = false) =>
 			Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
+
 		static GCHeap()
 		{
+
 			Resource.LoadImports(typeof(GCHeap));
 		}
 
 		/// <summary>
-		/// <see cref="GCHeap.IsHeapPointer"/>
+		/// <see cref="IsHeapPointer"/>
 		/// </summary>
 		[field: ImportClr("Ofs_IsHeapPointer", UnmanagedType.Offset)]
 		private static delegate* unmanaged<void*, void*, bool, bool> Func_IsHeapPointer { get; }

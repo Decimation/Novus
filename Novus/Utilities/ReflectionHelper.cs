@@ -8,12 +8,13 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Novus.Memory;
 using SimpleCore.Utilities;
+using System.Reflection.PortableExecutable;
 
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedTypeParameter
 // ReSharper disable UnusedMember.Global
-#pragma warning disable	IDE1006
+#pragma warning disable IDE1006
 
 namespace Novus.Utilities
 {

@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Text;
 using JetBrains.Annotations;
 using Novus.Runtime;
@@ -19,7 +20,6 @@ using Novus.Win32;
 using Novus.Win32.Structures;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
-
 
 // ReSharper disable SwitchStatementMissingSomeEnumCasesNoDefault
 // ReSharper disable SwitchStatementHandlesSomeKnownEnumValuesWithDefault
@@ -32,8 +32,9 @@ namespace Novus.Memory
 {
 	/// <summary>
 	///     Provides utilities for manipulating pointers, memory, and types.
-	///		<para>Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.</para>
+	///     <para>Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.</para>
 	/// </summary>
+	/// <seealso cref="Mem" />
 	/// <seealso cref="BitConverter" />
 	/// <seealso cref="Convert" />
 	/// <seealso cref="MemoryMarshal" />
@@ -41,18 +42,21 @@ namespace Novus.Memory
 	/// <seealso cref="Span{T}" />
 	/// <seealso cref="Memory{T}" />
 	/// <seealso cref="Buffer" />
-	/// <seealso cref="Mem" />
-	/// <seealso cref="Allocator"/>
+	/// <seealso cref="Allocator" />
 	/// <seealso cref="Unsafe" />
 	/// <seealso cref="RuntimeHelpers" />
+	/// <seealso cref="FormatterServices"/>
+	/// <seealso cref="GCHeap"/>
 	/// <seealso cref="RuntimeInfo" />
-	/// <seealso cref="Inspector"/>
-	/// <seealso cref="Native"/>
+	/// <seealso cref="Inspector" />
+	/// <seealso cref="Native" />
+	/// <seealso cref="PEReader" />
+	/// <seealso cref="GCHandle"/>
 	/// <seealso cref="System.Runtime.CompilerServices" />
 	public static unsafe class Mem
 	{
 		/// <summary>
-		/// Address size
+		///     Address size
 		/// </summary>
 		public static readonly int Size = sizeof(nint);
 
@@ -63,12 +67,113 @@ namespace Novus.Memory
 
 		public static bool Is64Bit => Environment.Is64BitProcess;
 
+		/// <summary>
+		///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
+		/// </summary>
+		/// <param name="name">Field name</param>
+		public static int OffsetOf<T>(string name)
+		{
+			return OffsetOf(typeof(T), name);
+		}
+
+		/// <summary>
+		///     Returns the offset of the field <paramref name="name" /> within the type <paramref name="t" />.
+		/// </summary>
+		/// <param name="t">Enclosing type</param>
+		/// <param name="name">Field name</param>
+		public static int OffsetOf(MetaType t, string name)
+		{
+			var f = t.GetField(name);
+
+			return f.Offset;
+		}
+
+		/// <param name="p">Operand</param>
+		/// <param name="lo">Start address (inclusive)</param>
+		/// <param name="hi">End address (inclusive)</param>
+		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, Pointer<byte> hi)
+		{
+			// [lo, hi]
+
+			// if ((ptrStack < stackBase) && (ptrStack > (stackBase - stackSize)))
+			// (p >= regionStart && p < regionStart + regionSize) ;
+			// return target >= start && target < end;
+			// return m_CacheStackLimit < addr && addr <= m_CacheStackBase;
+			// if (!((object < g_gc_highest_address) && (object >= g_gc_lowest_address)))
+			// return max.ToInt64() < p.ToInt64() && p.ToInt64() <= min.ToInt64();
+
+			return p <= hi && p >= lo;
+		}
+
+		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, long size)
+		{
+			return p >= lo && p <= lo + size;
+		}
+
+
+		/// <summary>
+		///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
+		///     <paramref name="moduleName" />
+		/// </summary>
+		/// <param name="moduleName">
+		///     <see cref="ProcessModule.ModuleName" />
+		/// </param>
+		/// <returns>The found <see cref="ProcessModule" />; <c>null</c> otherwise</returns>
+		[CanBeNull]
+		public static ProcessModule FindModule(string moduleName)
+		{
+			var modules = Process.GetCurrentProcess().Modules;
+
+			foreach (ProcessModule module in modules) {
+				if (module != null) {
+					if (module.ModuleName == moduleName) {
+						return module;
+					}
+				}
+
+			}
+
+			return null;
+		}
+
+		public static string ReadCString(this BinaryReader br, int count)
+		{
+			string s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
+
+
+			return s;
+		}
+
+		/// <summary>
+		///     Forcefully kills a <see cref="Process" /> and ensures the process has exited.
+		/// </summary>
+		/// <param name="p"><see cref="Process" /> to forcefully kill.</param>
+		/// <returns><c>true</c> if <paramref name="p" /> was killed; <c>false</c> otherwise</returns>
+		public static bool ForceKill(this Process p)
+		{
+			p.WaitForExit();
+			p.Dispose();
+
+			try {
+				if (!p.HasExited) {
+					p.Kill();
+				}
+
+				return true;
+			}
+			catch (Exception) {
+
+				return false;
+			}
+		}
+
 		#region Read/write
 
 		#region Write
 
 		/// <summary>
-		/// Writes a value of type <typeparamref name="T"/> with value <paramref name="value"/> to <paramref name="baseAddr"/> in <paramref name="proc"/>
+		///     Writes a value of type <typeparamref name="T" /> with value <paramref name="value" /> to
+		///     <paramref name="baseAddr" /> in <paramref name="proc" />
 		/// </summary>
 		public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 		{
@@ -93,7 +198,7 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		/// Writes <paramref name="value"/> bytes to <paramref name="addr"/> in <paramref name="proc"/>
+		///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 		/// </summary>
 		public static void WriteProcessMemory(Process proc, Pointer<byte> addr, byte[] value)
 		{
@@ -107,7 +212,7 @@ namespace Novus.Memory
 		#region Read
 
 		/// <summary>
-		///     Root abstraction of <see cref="Native.ReadProcessMemory" />
+		///     Root abstraction of <see cref="Native.ReadProcessMemory(IntPtr,IntPtr,IntPtr,int,out int)" />
 		/// </summary>
 		/// <param name="proc"><see cref="Process" /> whose memory is being read</param>
 		/// <param name="addr">Address within the specified process from which to read</param>
@@ -124,7 +229,7 @@ namespace Novus.Memory
 
 
 		/// <summary>
-		/// Reads <paramref name="cb"/> bytes at <paramref name="addr"/> in <paramref name="proc"/>
+		///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
 		/// </summary>
 		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> addr, int cb)
 		{
@@ -138,7 +243,7 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		/// Reads a value of type <typeparamref name="T"/> in <paramref name="proc"/> at <paramref name="addr"/>
+		///     Reads a value of type <typeparamref name="T" /> in <paramref name="proc" /> at <paramref name="addr" />
 		/// </summary>
 		public static T ReadProcessMemory<T>(Process proc, Pointer<byte> addr)
 		{
@@ -154,7 +259,7 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		/// Reads a value of type <paramref name="mt"/> in <paramref name="proc"/> at <paramref name="addr"/>
+		///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
 		/// </summary>
 		[CanBeNull]
 		public static object ReadProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
@@ -162,14 +267,14 @@ namespace Novus.Memory
 			//todo
 
 
-			var valueType = mt.RuntimeType.IsValueType;
-			var size      = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
+			bool valueType = mt.RuntimeType.IsValueType;
+			int  size      = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
 
 			Debug.WriteLine($"{size} for {mt.Name}");
 
 			//var i = Activator.CreateInstance(t);
 
-			byte[] rg  = Mem.ReadProcessMemory(proc, addr, size);
+			byte[] rg  = ReadProcessMemory(proc, addr, size);
 			object val = null;
 
 			if (valueType) {
@@ -194,7 +299,7 @@ namespace Novus.Memory
 
 			var alloc = Allocator.Alloc(mt.BaseSize);
 
-			alloc += Mem.Size;
+			alloc += Size;
 
 			alloc.WritePointer(mt.Value);
 
@@ -274,8 +379,8 @@ namespace Novus.Memory
 			var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
 			//var stackAlloc = stackalloc byte[byteArray.Length];
 
-			var objAddr = (handle.AddrOfPinnedObject() + ofs);
-			var value   = Marshal.PtrToStructure((IntPtr) objAddr, t.RuntimeType);
+			var    objAddr = handle.AddrOfPinnedObject() + ofs;
+			object value   = Marshal.PtrToStructure(objAddr, t.RuntimeType);
 
 			handle.Free();
 
@@ -296,7 +401,7 @@ namespace Novus.Memory
 		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
 		///     hex number format
 		/// </summary>
-		/// <seealso cref="SigScanner.ReadSignature"/>
+		/// <seealso cref="SigScanner.ReadSignature" />
 		public static byte[] ReadBinaryString(string s)
 		{
 			var rg = new List<byte>();
@@ -312,9 +417,15 @@ namespace Novus.Memory
 			return rg.ToArray();
 		}
 
-		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
+		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb)
+		{
+			return p.Copy(startIndex, cb);
+		}
 
-		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
+		public static byte[] Copy(Pointer<byte> p, int cb)
+		{
+			return p.Copy(cb);
+		}
 
 		#endregion
 
@@ -344,10 +455,10 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		/// Calculates the size of <typeparamref name="T"/>
+		///     Calculates the size of <typeparamref name="T" />
 		/// </summary>
 		/// <param name="options">Size options</param>
-		/// <returns>The size of <typeparamref name="T"/>; <see cref="Native.INVALID"/> otherwise</returns>
+		/// <returns>The size of <typeparamref name="T" />; <see cref="Native.INVALID" /> otherwise</returns>
 		public static int SizeOf<T>(SizeOfOptions options)
 		{
 			MetaType mt = typeof(T);
@@ -368,11 +479,11 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		/// Calculates the size of <paramref name="value"/>
+		///     Calculates the size of <paramref name="value" />
 		/// </summary>
 		/// <param name="value">Value</param>
 		/// <param name="options">Size options</param>
-		/// <returns>The size of <paramref name="value"/>; <see cref="Native.INVALID"/> otherwise</returns>
+		/// <returns>The size of <paramref name="value" />; <see cref="Native.INVALID" /> otherwise</returns>
 		public static int SizeOf<T>(T value, SizeOfOptions options)
 		{
 			Guard.AssertArgumentNotNull(value, nameof(value));
@@ -471,7 +582,10 @@ namespace Novus.Memory
 		///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 		/// </remarks>
 		/// <returns>The size of the type in heap memory, in bytes</returns>
-		public static int HeapSizeOf<T>(T value) where T : class => HeapSizeOfInternal(value);
+		public static int HeapSizeOf<T>(T value) where T : class
+		{
+			return HeapSizeOfInternal(value);
+		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static int HeapSizeOfInternal<T>(T value)
@@ -546,8 +660,10 @@ namespace Novus.Memory
 			return true;
 		}
 
-		public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr) =>
-			TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
+		public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr)
+		{
+			return TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
+		}
 
 		/// <summary>
 		///     Returns the address of reference type <paramref name="value" />'s heap memory, offset by the specified
@@ -558,7 +674,7 @@ namespace Novus.Memory
 		///             This may require pinning to prevent the GC from moving the object.
 		///             If the GC compacts the heap, this pointer may become invalid.
 		///         </para>
-		/// <seealso cref="RuntimeInfo.GetPinningHelper"/>
+		///         <seealso cref="RuntimeInfo.GetPinningHelper" />
 		///     </remarks>
 		/// </summary>
 		/// <param name="value">Reference type to return the heap address of</param>
@@ -582,7 +698,7 @@ namespace Novus.Memory
 
 
 			// NOTE:
-			// Strings have their data offset by Offsets.OffsetToStringData
+			// Strings have their data offset by RuntimeInfo.OffsetToStringData
 			// Arrays have their data offset by IntPtr.Size * 2 bytes (may be different for 32 bit)
 
 			int offsetValue = 0;
@@ -617,7 +733,7 @@ namespace Novus.Memory
 		}
 
 		/// <summary>
-		///     Returns the address of the data of <paramref name="value"/>. If <typeparamref name="T" /> is a value type,
+		///     Returns the address of the data of <paramref name="value" />. If <typeparamref name="T" /> is a value type,
 		///     this will return <see cref="AddressOf{T}" />. If <typeparamref name="T" /> is a reference type,
 		///     this will return the equivalent of <see cref="AddressOfHeap{T}(T, OffsetOptions)" /> with
 		///     <see cref="OffsetOptions.Fields" />.
@@ -635,72 +751,6 @@ namespace Novus.Memory
 
 		#endregion
 
-		/// <summary>
-		/// Returns the offset of the field <paramref name="name"/> within the type <typeparamref name="T"/>.
-		/// </summary>
-		/// <param name="name">Field name</param>
-		public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
-
-		/// <summary>
-		/// Returns the offset of the field <paramref name="name"/> within the type <paramref name="t"/>.
-		/// </summary>
-		/// <param name="t">Enclosing type</param>
-		/// <param name="name">Field name</param>
-		public static int OffsetOf(MetaType t, string name)
-		{
-			var f = t.GetField(name);
-
-			return f.Offset;
-		}
-
-		/// <param name="p">Operand</param>
-		/// <param name="lo">Start address (inclusive)</param>
-		/// <param name="hi">End address (inclusive)</param>
-		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, Pointer<byte> hi)
-		{
-			// [lo, hi]
-
-			// if ((ptrStack < stackBase) && (ptrStack > (stackBase - stackSize)))
-			// (p >= regionStart && p < regionStart + regionSize) ;
-			// return target >= start && target < end;
-			// return m_CacheStackLimit < addr && addr <= m_CacheStackBase;
-			// if (!((object < g_gc_highest_address) && (object >= g_gc_lowest_address)))
-			// return max.ToInt64() < p.ToInt64() && p.ToInt64() <= min.ToInt64();
-
-			return p <= hi && p >= lo;
-		}
-
-		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, long size)
-		{
-			return p >= lo && p <= lo + size;
-		}
-
-
-		/// <summary>
-		///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
-		///     <paramref name="moduleName" />
-		/// </summary>
-		/// <param name="moduleName">
-		///     <see cref="ProcessModule.ModuleName" />
-		/// </param>
-		/// <returns>The found <see cref="ProcessModule" />; <c>null</c> otherwise</returns>
-		[CanBeNull]
-		public static ProcessModule FindModule(string moduleName)
-		{
-			var modules = Process.GetCurrentProcess().Modules;
-
-			foreach (ProcessModule module in modules) {
-				if (module != null) {
-					if (module.ModuleName == moduleName) {
-						return module;
-					}
-				}
-
-			}
-
-			return null;
-		}
-
 
 		#region Virtual
 
@@ -715,7 +765,7 @@ namespace Novus.Memory
 		public static bool VirtualFree(Process hProcess, Pointer<byte> lpAddress,
 			int dwSize, AllocationType dwFreeType)
 		{
-			var p = Native.VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
+			bool p = Native.VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
 
 			return p;
 		}
@@ -723,7 +773,7 @@ namespace Novus.Memory
 		public static bool VirtualProtect(Process hProcess, Pointer<byte> lpAddress,
 			int dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
 		{
-			var p = Native.VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
+			bool p = Native.VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
 				out lpflOldProtect);
 
 			return p;
@@ -733,7 +783,7 @@ namespace Novus.Memory
 		{
 			var mbi = new MemoryBasicInformation();
 
-			var v = Native.VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
+			int v = Native.VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
 				(uint) Marshal.SizeOf<MemoryBasicInformation>());
 
 			return mbi;
@@ -763,37 +813,6 @@ namespace Novus.Memory
 			(data & ~GetBitMask(index, size)) | (value << index);
 
 		#endregion
-
-		public static string ReadCString(this BinaryReader br, int count)
-		{
-			string s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
-
-
-			return s;
-		}
-
-		/// <summary>
-		///     Forcefully kills a <see cref="Process" /> and ensures the process has exited.
-		/// </summary>
-		/// <param name="p"><see cref="Process" /> to forcefully kill.</param>
-		/// <returns><c>true</c> if <paramref name="p" /> was killed; <c>false</c> otherwise</returns>
-		public static bool ForceKill(this Process p)
-		{
-			p.WaitForExit();
-			p.Dispose();
-
-			try {
-				if (!p.HasExited) {
-					p.Kill();
-				}
-
-				return true;
-			}
-			catch (Exception) {
-
-				return false;
-			}
-		}
 	}
 
 	/// <summary>

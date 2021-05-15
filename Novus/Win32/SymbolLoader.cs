@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Reflection.PortableExecutable;
 using JetBrains.Annotations;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.Win32
 {
@@ -36,6 +41,7 @@ namespace Novus.Win32
 		{
 			Cleanup();
 		}
+
 
 		[CanBeNull]
 		public Symbol GetSymbol(string name)
@@ -136,6 +142,59 @@ namespace Novus.Win32
 				null, baseOfDll, dllSize, IntPtr.Zero, 0);
 
 			return modBase;
+		}
+
+		/// <summary>
+		/// Searches for symbol file or downloads it
+		/// </summary>
+		/// <param name="fname">PE file</param>
+		public static string FindOrDownloadSymbolFile(string fname)
+		{
+			using var peReader = new PEReader(File.OpenRead(fname));
+
+			var codeViewEntry = peReader.ReadDebugDirectory()
+				.First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+
+			var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
+
+			var cacheDirectoryPath = Global.ProgramData;
+
+			using var wc = new WebClient();
+
+			// Check if the correct version of the PDB is already cached
+			var path       = Path.ChangeExtension(fname, "pdb");
+			var fileName   = Path.GetFileName(path);
+			var pdbDirPath = Path.Combine(cacheDirectoryPath, fileName);
+
+			if (!Directory.Exists(pdbDirPath)) {
+				Directory.CreateDirectory(pdbDirPath);
+			}
+
+			var pdbPlusGuidDirPath = Path.Combine(pdbDirPath, pdbData.Guid.ToString());
+
+			if (!Directory.Exists(pdbPlusGuidDirPath)) {
+				Directory.CreateDirectory(pdbPlusGuidDirPath);
+			}
+
+			//var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, path);
+			var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
+
+			if (File.Exists(pdbFilePath)) {
+				Debug.WriteLine($"Using {pdbFilePath}");
+				return pdbFilePath;
+			}
+
+
+			var uriString =
+				$"https://msdl.microsoft.com/download/symbols/{fileName}/{pdbData.Guid:N}{pdbData.Age}/{fileName}";
+
+			Debug.WriteLine($"Downloading {uriString}");
+
+			//await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
+			wc.DownloadFile(new Uri(uriString), pdbFilePath);
+			Debug.WriteLine($"Downloaded to {pdbFilePath}");
+
+			return pdbFilePath;
 		}
 	}
 }

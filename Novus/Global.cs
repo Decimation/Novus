@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using Novus.Memory;
@@ -92,7 +93,7 @@ namespace Novus
 		///     Runtime CLR module name
 		/// </summary>
 		public const string CLR_MODULE = "coreclr.dll";
-		
+
 		public const string LIB_NAME = "Novus";
 
 		/// <summary>
@@ -106,6 +107,10 @@ namespace Novus
 		public static Resource Clr { get; } = new(CLR_MODULE);
 
 		public static bool IsSetup { get; private set; }
+
+		public static string ProgramData { get; } =
+			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Global.LIB_NAME);
+
 
 		/// <summary>
 		///     Module initializer

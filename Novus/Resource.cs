@@ -8,9 +8,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Novus.Imports;
 using Novus.Win32;
@@ -51,13 +54,7 @@ namespace Novus
 
 			Address = Module.BaseAddress;
 
-			if (pdb is not null) {
-
-				Symbols = new SymbolLoader(Native.GetCurrentProcess(), pdb);
-			}
-			else {
-				Symbols = null;
-			}
+			Symbols = pdb is not null ? new SymbolLoader(Native.GetCurrentProcess(), pdb) : null;
 
 		}
 
@@ -89,8 +86,6 @@ namespace Novus
 
 		public static void Close()
 		{
-
-
 			foreach (var type in LoadedTypes) {
 				Unload(type);
 			}
@@ -108,7 +103,7 @@ namespace Novus
 
 			LoadedTypes.Remove(t);
 
-			Trace.WriteLine($"Unloaded {t.Name}");
+			Trace.WriteLine($"[info] Unloaded {t.Name}");
 		}
 
 		/// <summary>
@@ -147,7 +142,7 @@ namespace Novus
 
 			LoadedTypes.Add(t);
 
-			Trace.WriteLine($"Loaded {t.Name}");
+			Trace.WriteLine($"[info] Loaded {t.Name}");
 
 		}
 
@@ -162,11 +157,11 @@ namespace Novus
 		{
 			string name = null;
 
-			foreach (var v in assembly.GetManifestResourceNames()) {
+			foreach (string v in assembly.GetManifestResourceNames()) {
 
 				var value = assembly.GetName().Name;
 
-				if (v.Contains(value) || v.Contains("EmbeddedResources")) {
+				if (v.Contains(value!) || v.Contains("EmbeddedResources")) {
 					name = v;
 					break;
 				}
@@ -176,7 +171,7 @@ namespace Novus
 				return null;
 			}
 
-			name = name.Substring(0, name.LastIndexOf('.'));
+			name = name[..name.LastIndexOf('.')];
 
 
 			var resourceManager = new ResourceManager(name, assembly);
@@ -192,7 +187,7 @@ namespace Novus
 				var v = manager.GetObject(s);
 
 				if (v != null) {
-					Trace.WriteLine($"{manager.BaseName}:: {v}");
+					Debug.WriteLine($"[debug] {manager.BaseName}:: {v}");
 					return v;
 				}
 			}
@@ -200,7 +195,6 @@ namespace Novus
 			return null;
 
 		}
-
 
 		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
 		{

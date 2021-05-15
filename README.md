@@ -1,5 +1,9 @@
 # Novus
 
+[![nuget](https://img.shields.io/nuget/v/Novus?style=flat-square)](https://www.nuget.org/packages/Novus/)
+[![nuget dl](https://img.shields.io/nuget/dt/Novus?style=flat-square)](https://www.nuget.org/packages/Novus/)
+
+![Icon](https://github.com/Decimation/Novus/raw/master/icon64.png)
 
 Low-level utilities and tools for working with the CLR, CLR internal structures, and memory. Improved version 
 of **[NeoCore](https://github.com/Decimation/NeoCore)**.

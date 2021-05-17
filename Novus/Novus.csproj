@@ -30,6 +30,7 @@
     <RepositoryUrl>https://github.com/Decimation/Novus</RepositoryUrl>
     <PackageTags>clr low-level memory hack library</PackageTags>
     <PackageIcon>icon64.png</PackageIcon>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -44,22 +45,35 @@
     <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="6.0.0-preview.3.21201.4" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
+
+    <!-- ??? -->
+    <PackageReference Include="SimpleCore" Version="1.2.1" />
+
     <!--<Reference Include="Functions">
       <HintPath>Native\Functions.dll</HintPath>
     </Reference>-->
+
+
   </ItemGroup>
   <ItemGroup>
+
+    <!-- ??? -->
     <Reference Include="SimpleCore">
       <HintPath>..\..\..\RiderProjects\SimpleCore\SimpleCore\bin\Release\net5.0\SimpleCore.dll</HintPath>
+      <PrivateAssets>all</PrivateAssets>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
+    
+      
+    
+  
     <Compile Update="Properties\EmbeddedResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>EmbeddedResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
+
+  
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\EmbeddedResources.resx">
@@ -74,5 +88,5 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-
+  
 </Project>

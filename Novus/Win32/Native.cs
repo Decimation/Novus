@@ -48,7 +48,7 @@ namespace Novus.Win32
 
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase, string mask,
-			EnumSymbolsCallback callback, IntPtr pUserContext);
+		                                           EnumSymbolsCallback callback, IntPtr pUserContext);
 
 
 		[DllImport(DBGHELP_DLL)]
@@ -73,7 +73,8 @@ namespace Novus.Win32
 
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern ulong SymLoadModuleEx(IntPtr hProcess, IntPtr hFile, string imageName,
-			string moduleName, ulong baseOfDll, uint dllSize, IntPtr data, uint flags);
+		                                             string moduleName, ulong baseOfDll, uint dllSize, IntPtr data,
+		                                             uint flags);
 
 		#endregion
 
@@ -84,17 +85,17 @@ namespace Novus.Win32
 
 		[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 		private static extern IntPtr CreateFile(string fileName, FileAccess fileAccess,
-			FileShare fileShare,
-			IntPtr securityAttributes,
-			FileMode creationDisposition,
-			FileAttributes flagsAndAttributes,
-			IntPtr template);
+		                                        FileShare fileShare,
+		                                        IntPtr securityAttributes,
+		                                        FileMode creationDisposition,
+		                                        FileAttributes flagsAndAttributes,
+		                                        IntPtr template);
 
 		[DllImport(KERNEL32_DLL)]
 		private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
 
 		internal static IntPtr CreateFile(string fileName,
-			FileAccess access, FileShare share, FileMode mode, FileAttributes attributes)
+		                                  FileAccess access, FileShare share, FileMode mode, FileAttributes attributes)
 		{
 			return CreateFile(fileName, access, share, IntPtr.Zero, mode, attributes, IntPtr.Zero);
 		}
@@ -105,20 +106,20 @@ namespace Novus.Win32
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
-			int size, out int numBytesRead);
+		                                              int size, out int numBytesRead);
 
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
-			int size, out int numBytesRead);
+		                                              int size, out int numBytesRead);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
-			IntPtr size, out IntPtr numBytesRead);
+		                                              IntPtr size, out IntPtr numBytesRead);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
-			int size, out int numberBytesWritten);
+		                                               int size, out int numberBytesWritten);
 
 		#endregion
 
@@ -160,19 +161,26 @@ namespace Novus.Win32
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
-			uint dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
+		                                             uint dwSize, AllocationType flAllocationType,
+		                                             MemoryProtection flProtect);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
-			int dwSize, AllocationType dwFreeType);
+		                                          int dwSize, AllocationType dwFreeType);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress,
-			uint dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect);
+		                                             uint dwSize, MemoryProtection flNewProtect,
+		                                             out MemoryProtection lpflOldProtect);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
-			ref MemoryBasicInformation lpBuffer, uint dwLength);
+		                                          ref MemoryBasicInformation lpBuffer, uint dwLength);
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern int VirtualQuery(IntPtr lpAddress,
+		                                        ref MemoryBasicInformation lpBuffer,
+		                                        int dwLength);
 
 		#endregion
 
@@ -256,15 +264,15 @@ namespace Novus.Win32
 		internal static extern uint LocalSize(IntPtr p);
 
 		[DllImport(URLMON_DLL, CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-		internal static extern int FindMimeFromData(IntPtr pBC,
-			[MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
-			[MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1, SizeParamIndex = 3)]
-			byte[] pBuffer,
-			int cbSize,
-			[MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
-			int dwMimeFlags,
-			out IntPtr ppwzMimeOut,
-			int dwReserved);
+		internal static extern int FindMimeFromData(IntPtr pBC, [MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
+		                                            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1,
+		                                                       SizeParamIndex                      = 3)]
+		                                            byte[] pBuffer,
+		                                            int cbSize,
+		                                            [MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
+		                                            int dwMimeFlags,
+		                                            out IntPtr ppwzMimeOut,
+		                                            int dwReserved);
 
 		#region DLL
 

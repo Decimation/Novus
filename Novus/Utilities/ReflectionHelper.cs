@@ -33,6 +33,8 @@ namespace Novus.Utilities
 			BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
 
 
+		#region Members
+
 		public static IEnumerable<MemberInfo> GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
 
 		public static IEnumerable<MemberInfo> GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);
@@ -44,27 +46,7 @@ namespace Novus.Utilities
 		public static IEnumerable<MethodInfo> GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
 
 		public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
-
-
-		/// <summary>
-		///     Executes a generic method
-		/// </summary>
-		/// <param name="method">Method to execute</param>
-		/// <param name="args">Generic type parameters</param>
-		/// <param name="value">Instance of type; <c>null</c> if the method is static</param>
-		/// <param name="fnArgs">Method arguments</param>
-		/// <returns>Return value of the method specified by <paramref name="method"/></returns>
-		public static object CallGeneric(MethodInfo method, Type[] args, object value, params object[] fnArgs)
-		{
-			return method.MakeGenericMethod(args).Invoke(value, fnArgs);
-		}
-
-		public static object CallGeneric(MethodInfo method, Type arg, object value, params object[] fnArgs)
-		{
-			return CallGeneric(method, new[] {arg}, value, fnArgs);
-		}
-
-		private const string BACKING_FIELD = "k__BackingField";
+		private const string     BACKING_FIELD_NAME = "k__BackingField";
 
 		public static FieldInfo GetBackingField(this MemberInfo m)
 		{
@@ -88,7 +70,7 @@ namespace Novus.Utilities
 
 		public static IEnumerable<FieldInfo> GetAllBackingFields(this Type t)
 		{
-			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD)).ToArray();
+			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD_NAME)).ToArray();
 
 
 			return rg;
@@ -97,7 +79,7 @@ namespace Novus.Utilities
 		public static FieldInfo GetBackingField(this Type t, string name)
 		{
 			var fi = t.GetRuntimeFields()
-				.FirstOrDefault(a => Regex.IsMatch(a.Name, $"\\A<{name}>{BACKING_FIELD}\\Z"));
+			          .FirstOrDefault(a => Regex.IsMatch(a.Name, $"\\A<{name}>{BACKING_FIELD_NAME}\\Z"));
 
 			return fi;
 		}
@@ -107,21 +89,23 @@ namespace Novus.Utilities
 			where TAttribute : Attribute
 		{
 			return (from member in t.GetAllMembers()
-				where Attribute.IsDefined(member, typeof(TAttribute))
-				select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
+			        where Attribute.IsDefined(member, typeof(TAttribute))
+			        select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
 		}
 
-		public static bool ImplementsInterface(this Type type, string interfaceName) =>
-			type.GetInterface(interfaceName) != null;
+		#endregion
+
+
+		#region Properties
+
+		public static bool ImplementsInterface(this Type type, string interfaceName)
+		{
+			return type.GetInterface(interfaceName) != null;
+		}
 
 		public static bool ImplementsGenericInterface(this Type type, Type genericType)
 		{
-			bool IsMatch(Type t)
-			{
-				return t.IsGenericType && t.GetGenericTypeDefinition() == genericType;
-			}
-
-			return type.GetInterfaces().Any(IsMatch);
+			return type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericType);
 		}
 
 		public static bool IsNumeric(this Type t) => t.IsReal() || t.IsInteger();
@@ -133,7 +117,7 @@ namespace Novus.Utilities
 			const int INT_MIN = (int) TypeCode.SByte;
 			const int INT_MAX = (int) TypeCode.UInt64;
 
-			return c <= INT_MAX && c >= INT_MIN;
+			return c is <= INT_MAX and >= INT_MIN;
 		}
 
 		public static bool IsReal(this Type t)
@@ -143,7 +127,7 @@ namespace Novus.Utilities
 			const int REAL_MIN = (int) TypeCode.Single;
 			const int REAL_MAX = (int) TypeCode.Decimal;
 
-			var case1 = c <= REAL_MAX && c >= REAL_MIN;
+			var case1 = c is <= REAL_MAX and >= REAL_MIN;
 
 			// Special case (?)
 			var case2 = t == typeof(Half);
@@ -182,6 +166,63 @@ namespace Novus.Utilities
 
 		public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
 
+		#endregion
+
+
+		#region Invocation
+
+		/// <summary>
+		///     Executes a generic method
+		/// </summary>
+		/// <param name="method">Method to execute</param>
+		/// <param name="args">Generic type parameters</param>
+		/// <param name="value">Instance of type; <c>null</c> if the method is static</param>
+		/// <param name="fnArgs">Method arguments</param>
+		/// <returns>Return value of the method specified by <paramref name="method"/></returns>
+		public static object CallGeneric(MethodInfo method, Type[] args, object value, params object[] fnArgs)
+		{
+			return method.MakeGenericMethod(args).Invoke(value, fnArgs);
+		}
+
+		public static object CallGeneric(MethodInfo method, Type arg, object value, params object[] fnArgs)
+		{
+			return CallGeneric(method, new[] {arg}, value, fnArgs);
+		}
+
+		/// <summary>
+		///     Runs a constructor whose parameters match <paramref name="args" />
+		/// </summary>
+		/// <param name="value">Instance</param>
+		/// <param name="args">Constructor arguments</param>
+		/// <returns>
+		///     <c>true</c> if a matching constructor was found and executed;
+		///     <c>false</c> if a constructor couldn't be found
+		/// </returns>
+		public static bool CallConstructor<T>(T value, params object[] args)
+		{
+			/*
+			 * https://stackoverflow.com/questions/142356/most-efficient-way-to-get-default-constructor-of-a-type
+			 */
+
+			var ctors    = value.GetType().GetConstructors();
+			var argTypes = args.Select(x => x.GetType()).ToArray();
+
+			foreach (var ctor in ctors) {
+				var paramz = ctor.GetParameters();
+
+
+				if (paramz.Length == args.Length) {
+					if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
+						ctor.Invoke(value, args);
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		#endregion
 
 		public static Type[] GetAllImplementations<T>() => GetAllImplementations(typeof(T));
 
@@ -215,35 +256,6 @@ namespace Novus.Utilities
 		{
 			var body = (MethodCallExpression) expression.Body;
 			return body.Method;
-		}
-
-		/// <summary>
-		///     Runs a constructor whose parameters match <paramref name="args" />
-		/// </summary>
-		/// <param name="value">Instance</param>
-		/// <param name="args">Constructor arguments</param>
-		/// <returns>
-		///     <c>true</c> if a matching constructor was found and executed;
-		///     <c>false</c> if a constructor couldn't be found
-		/// </returns>
-		public static bool CallConstructor<T>(T value, params object[] args)
-		{
-			var ctors    = value.GetType().GetConstructors();
-			var            argTypes = args.Select(x => x.GetType()).ToArray();
-
-			foreach (var ctor in ctors) {
-				var paramz = ctor.GetParameters();
-
-
-				if (paramz.Length == args.Length) {
-					if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
-						ctor.Invoke(value, args);
-						return true;
-					}
-				}
-			}
-
-			return false;
 		}
 	}
 }

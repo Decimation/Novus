@@ -1,23 +1,17 @@
-﻿using Novus.Memory;
+﻿using JetBrains.Annotations;
+using Novus.Imports;
+using Novus.Memory;
 using Novus.Properties;
 using Novus.Utilities;
+using Novus.Win32;
 using SimpleCore.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net;
 using System.Reflection;
-using System.Reflection.PortableExecutable;
 using System.Resources;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
-using Novus.Imports;
-using Novus.Win32;
-using Novus.Win32.Wrappers;
+// ReSharper disable LoopCanBeConvertedToQuery
 
 // ReSharper disable UnusedMember.Global
 
@@ -55,7 +49,6 @@ namespace Novus
 			Address = Module.BaseAddress;
 
 			Symbols = pdb is not null ? new SymbolLoader(Native.GetCurrentProcess(), pdb) : null;
-
 		}
 
 		public override string ToString()
@@ -80,7 +73,6 @@ namespace Novus
 		 * Normal delegates using the UnmanagedFunctionPointer attribute is also possible, but it's
 		 * better to use the new unmanaged function pointers.
 		 */
-
 
 		#region Import
 
@@ -116,7 +108,6 @@ namespace Novus
 				return;
 			}
 
-
 			var mgr = GetManager(t.Assembly);
 
 			if (!Managers.Contains(mgr)) {
@@ -130,7 +121,6 @@ namespace Novus
 			foreach (var (attribute, member) in annotatedTuples) {
 				var field = (FieldInfo) member;
 
-
 				var fieldValue = GetImportValue(attribute, field);
 
 				Debug.WriteLine($"[debug] Loading {member.Name} ({attribute.Name}) with {fieldValue}");
@@ -143,7 +133,6 @@ namespace Novus
 			LoadedTypes.Add(t);
 
 			Trace.WriteLine($"[info] Loaded {t.Name}");
-
 		}
 
 		private static readonly List<Type> LoadedTypes = new();
@@ -158,8 +147,7 @@ namespace Novus
 			string name = null;
 
 			foreach (string v in assembly.GetManifestResourceNames()) {
-
-				var value = assembly.GetName().Name;
+				string value = assembly.GetName().Name;
 
 				if (v.Contains(value!) || v.Contains("EmbeddedResources")) {
 					name = v;
@@ -173,13 +161,10 @@ namespace Novus
 
 			name = name[..name.LastIndexOf('.')];
 
-
 			var resourceManager = new ResourceManager(name, assembly);
-
 
 			return resourceManager;
 		}
-
 
 		private static object GetObject(string s)
 		{
@@ -193,7 +178,6 @@ namespace Novus
 			}
 
 			return null;
-
 		}
 
 		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
@@ -213,9 +197,7 @@ namespace Novus
 
 					// Get value
 
-
 					var resValue = (string) GetObject(name);
-
 
 					Guard.AssertNotNull(resValue);
 
@@ -254,7 +236,6 @@ namespace Novus
 						fieldValue = (IntPtr) addr;
 					}
 
-
 					break;
 				}
 
@@ -272,16 +253,14 @@ namespace Novus
 
 					fieldValue = ptr;
 
-
 					break;
 				}
 			}
 
-
 			return fieldValue;
 		}
 
-		#endregion
+		#endregion Import
 
 		public Pointer<byte> FindSignature(string signature)
 		{

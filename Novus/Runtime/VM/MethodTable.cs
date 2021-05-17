@@ -12,7 +12,7 @@ using Novus.Runtime.VM.EE;
 
 namespace Novus.Runtime.VM
 {
-	//todo
+	
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct MethodTable

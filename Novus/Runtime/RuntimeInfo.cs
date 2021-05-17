@@ -37,6 +37,8 @@ namespace Novus.Runtime
 			Resource.LoadImports(typeof(RuntimeInfo));
 		}
 
+		#region Constants
+
 		/// <summary>
 		///     Size of the length field and first character
 		///     <list type="bullet">
@@ -116,6 +118,8 @@ namespace Novus.Runtime
 		///     <para>Minimum GC object heap size</para>
 		/// </summary>
 		public static readonly int MinObjectSize = Mem.Size * 2 + ObjHeaderSize;
+
+		#endregion
 
 
 		internal static Pointer<byte> FieldOffset<TField>(TField* field, int offset) where TField : unmanaged

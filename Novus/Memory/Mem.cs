@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
@@ -21,6 +22,8 @@ using Novus.Win32.Structures;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 
+// ReSharper disable ConvertIfToOrExpression
+// ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable SwitchStatementMissingSomeEnumCasesNoDefault
 // ReSharper disable SwitchStatementHandlesSomeKnownEnumValuesWithDefault
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -125,16 +128,9 @@ namespace Novus.Memory
 		{
 			var modules = Process.GetCurrentProcess().Modules;
 
-			foreach (ProcessModule module in modules) {
-				if (module != null) {
-					if (module.ModuleName == moduleName) {
-						return module;
-					}
-				}
+			return modules.Cast<ProcessModule>().Where(module => module != null)
+			              .FirstOrDefault(module => module.ModuleName   == moduleName);
 
-			}
-
-			return null;
 		}
 
 		public static string ReadCString(this BinaryReader br, int count)
@@ -292,6 +288,40 @@ namespace Novus.Memory
 
 		#endregion
 
+#if EXPERIMENTAL
+		public static bool IsBadReadPointer(Pointer<byte> p)
+		{
+			//todo
+
+			/*
+			 * https://stackoverflow.com/questions/496034/most-efficient-replacement-for-isbadreadptr
+			 * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-isbadreadptr
+			 */
+
+			MemoryBasicInformation mbi = default;
+
+			if (Native.VirtualQuery(p.Address, ref mbi, Marshal.SizeOf<MemoryBasicInformation>()) != 0) {
+
+				//DWORD mask = (PAGE_READONLY|PAGE_READWRITE|PAGE_WRITECOPY|PAGE_EXECUTE_READ|PAGE_EXECUTE_READWRITE|PAGE_EXECUTE_WRITECOPY);
+
+				const MemoryProtection mask = (MemoryProtection.ReadOnly         | MemoryProtection.ReadWrite   |
+				                               MemoryProtection.WriteCopy        | MemoryProtection.ExecuteRead |
+				                               MemoryProtection.ExecuteReadWrite | MemoryProtection.ExecuteWriteCopy);
+
+
+				var b = !Convert.ToBoolean((mbi.Protect & mask));
+
+				// check the page is not a guard page
+				if (Convert.ToBoolean(mbi.Protect & (MemoryProtection.GuardModifierFlag | MemoryProtection.NoAccess)))
+					b = true;
+
+				return b;
+			}
+
+			return true;
+
+		}
+#endif
 		public static T AllocU<T>(params object[] args)
 		{
 			// TODO: WIP
@@ -330,7 +360,6 @@ namespace Novus.Memory
 			return val;
 		}
 
-		
 
 		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)
 		{
@@ -376,15 +405,9 @@ namespace Novus.Memory
 			return rg.ToArray();
 		}
 
-		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb)
-		{
-			return p.Copy(startIndex, cb);
-		}
+		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
 
-		public static byte[] Copy(Pointer<byte> p, int cb)
-		{
-			return p.Copy(cb);
-		}
+		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
 
 		#endregion
 
@@ -400,6 +423,7 @@ namespace Novus.Memory
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static int FlatSize(int elemSize, int elemCnt)
 		{
+			//todo: this is over-engineering
 			// (void*) (((long) m_value) + byteOffset)
 			// (void*) (((long) m_value) + (elemOffset * ElementSize))
 			return elemCnt * elemSize;
@@ -408,10 +432,7 @@ namespace Novus.Memory
 		/// <summary>
 		///     Calculates the size of <typeparamref name="T" />
 		/// </summary>
-		public static int SizeOf<T>()
-		{
-			return Unsafe.SizeOf<T>();
-		}
+		public static int SizeOf<T>() => Unsafe.SizeOf<T>();
 
 		/// <summary>
 		///     Calculates the size of <typeparamref name="T" />
@@ -454,16 +475,11 @@ namespace Novus.Memory
 			var mt = new MetaType(value.GetType());
 
 			switch (options) {
-				case SizeOfOptions.BaseFields:
-					return mt.InstanceFieldsSize;
-				case SizeOfOptions.BaseInstance:
-					return mt.BaseSize;
-				case SizeOfOptions.Heap:
-					return HeapSizeOfInternal(value);
-				case SizeOfOptions.Data:
-					return DataSizeOf(value);
-				case SizeOfOptions.BaseData:
-					return BaseDataSizeOf(mt.RuntimeType);
+				case SizeOfOptions.BaseFields:   return mt.InstanceFieldsSize;
+				case SizeOfOptions.BaseInstance: return mt.BaseSize;
+				case SizeOfOptions.Heap:         return HeapSizeOfInternal(value);
+				case SizeOfOptions.Data:         return DataSizeOf(value);
+				case SizeOfOptions.BaseData:     return BaseDataSizeOf(mt.RuntimeType);
 				case SizeOfOptions.Auto:
 
 					if (RuntimeInfo.IsStruct(value)) {
@@ -541,10 +557,7 @@ namespace Novus.Memory
 		///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 		/// </remarks>
 		/// <returns>The size of the type in heap memory, in bytes</returns>
-		public static int HeapSizeOf<T>(T value) where T : class
-		{
-			return HeapSizeOfInternal(value);
-		}
+		public static int HeapSizeOf<T>(T value) where T : class => HeapSizeOfInternal(value);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static int HeapSizeOfInternal<T>(T value)
@@ -619,10 +632,8 @@ namespace Novus.Memory
 			return true;
 		}
 
-		public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr)
-		{
-			return TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
-		}
+		public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr) =>
+			TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
 
 		/// <summary>
 		///     Returns the address of reference type <paramref name="value" />'s heap memory, offset by the specified
@@ -713,27 +724,26 @@ namespace Novus.Memory
 
 		#region Virtual
 
-		public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize, AllocationType type,
-			MemoryProtection mp)
+		public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize,
+		                                         AllocationType type, MemoryProtection mp)
 		{
 			var ptr = Native.VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
 
 			return ptr;
 		}
 
-		public static bool VirtualFree(Process hProcess, Pointer<byte> lpAddress,
-			int dwSize, AllocationType dwFreeType)
+		public static bool VirtualFree(Process hProcess, Pointer<byte> lpAddress, int dwSize, AllocationType dwFreeType)
 		{
 			bool p = Native.VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
 
 			return p;
 		}
 
-		public static bool VirtualProtect(Process hProcess, Pointer<byte> lpAddress,
-			int dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
+		public static bool VirtualProtect(Process hProcess, Pointer<byte> lpAddress, int dwSize,
+		                                  MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
 		{
 			bool p = Native.VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
-				out lpflOldProtect);
+			                                 out lpflOldProtect);
 
 			return p;
 		}
@@ -743,7 +753,7 @@ namespace Novus.Memory
 			var mbi = new MemoryBasicInformation();
 
 			int v = Native.VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
-				(uint) Marshal.SizeOf<MemoryBasicInformation>());
+			                              (uint) Marshal.SizeOf<MemoryBasicInformation>());
 
 			return mbi;
 		}

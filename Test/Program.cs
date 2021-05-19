@@ -108,9 +108,19 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			string s = "foo";
-			Console.WriteLine(GCHeap.IsHeapPointer(s));
+			var rg = new int[] {1, 2, 3};
 
+			Console.WriteLine(GCHeap.IsHeapPointer(rg));
+
+			var ptr = Mem.AddressOfHeap(rg);
+			Console.WriteLine(GCHeap.IsHeapPointer(ptr));
+
+			var ptr1 = ptr.AddressOfIndex(1);
+
+			Console.WriteLine(GCHeap.CurrentObjSize);
+			var _=GC.AllocateArray<int>(100);
+
+			Console.WriteLine(GCHeap.CurrentObjSize);
 		}
 	}
 }

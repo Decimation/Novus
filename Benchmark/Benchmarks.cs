@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using Novus;
 using Novus.Memory;
@@ -7,6 +8,25 @@ using Novus.Win32.Wrappers;
 
 namespace TestBenchmark
 {
+
+	public unsafe class Benchmarks2
+	{
+		private Pointer<int> p;
+
+		private int i = 123;
+		[GlobalSetup]
+		public void setup()
+		{
+			p = Mem.AddressOf(ref i);
+		}
+		[Benchmark]
+		public int Bench1()
+		{
+			return p.Value;
+		}
+		
+	}
+
 	public unsafe class Benchmarks
 	{
 		[Benchmark]

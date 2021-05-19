@@ -125,6 +125,9 @@
     <value>346E60</value>
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
+  <data name="Sig_GCObjSize" xml:space="preserve">
+    <value>48 8B 0D 21 72 15 00</value>
+  </data>
   <data name="Sig_GetEEClass" xml:space="preserve">
     <value>48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3</value>
     <comment>MethodTable::GetClass</comment>

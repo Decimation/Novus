@@ -32,12 +32,16 @@ namespace Novus.Runtime.Meta
 		public static bool IsHeapPointer(Pointer<byte> ptr, bool smallHeapOnly = false) =>
 			Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
+		public static ulong CurrentObjSize => Func_ObjSize(GlobalHeap.ToPointer());
 
 		static GCHeap()
 		{
 
 			Resource.LoadImports(typeof(GCHeap));
 		}
+
+		[field: ImportClr("Sig_GCObjSize")]
+		private static delegate* unmanaged<void*, ulong> Func_ObjSize { get; }
 
 		/// <summary>
 		/// <see cref="IsHeapPointer"/>

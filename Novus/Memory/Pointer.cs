@@ -64,7 +64,7 @@ namespace Novus.Memory
 			get => Read();
 			set => Write(value);
 		}
-
+		
 		/// <summary>
 		///     Address being pointed to.
 		/// </summary>

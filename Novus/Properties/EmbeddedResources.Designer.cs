@@ -63,9 +63,9 @@ namespace Novus.Properties {
         /// <summary>
         ///   Looks up a localized string similar to 4A4BF0.
         /// </summary>
-        internal static string g_pGCHeap {
+        internal static string Ofs_GCHeap {
             get {
-                return ResourceManager.GetString("g_pGCHeap", resourceCulture);
+                return ResourceManager.GetString("Ofs_GCHeap", resourceCulture);
             }
         }
         
@@ -147,6 +147,15 @@ namespace Novus.Properties {
         internal static string Sig_IsPointingToNativeCode {
             get {
                 return ResourceManager.GetString("Sig_IsPointingToNativeCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 08 57 48 83 EC 20 48 8B D9 F0 81 61 04 FF FF FF DF.
+        /// </summary>
+        internal static string Sig_Reset {
+            get {
+                return ResourceManager.GetString("Sig_Reset", resourceCulture);
             }
         }
     }

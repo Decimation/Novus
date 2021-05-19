@@ -94,8 +94,8 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL)]
 		private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
 
-		internal static IntPtr CreateFile(string fileName,
-		                                  FileAccess access, FileShare share, FileMode mode, FileAttributes attributes)
+		internal static IntPtr CreateFile(string fileName, FileAccess access, FileShare share,
+		                                  FileMode mode, FileAttributes attributes)
 		{
 			return CreateFile(fileName, access, share, IntPtr.Zero, mode, attributes, IntPtr.Zero);
 		}
@@ -256,9 +256,8 @@ namespace Novus.Win32
 		public static extern void GetSystemInfo(ref SystemInfo Info);
 
 		[DllImport(SHELL32_DLL)]
-		internal static extern int SHGetKnownFolderPath(
-			[MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken,
-			out IntPtr ppszPath);
+		internal static extern int SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags,
+		                                                IntPtr hToken, out IntPtr ppszPath);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern uint LocalSize(IntPtr p);

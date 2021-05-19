@@ -20,6 +20,7 @@ namespace Novus.Runtime.VM
 		{
 			Resource.LoadImports(typeof(FieldDesc));
 		}
+
 		private Pointer<MethodTable> EnclosingMethodTableStub { get; }
 
 

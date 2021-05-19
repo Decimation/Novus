@@ -83,19 +83,12 @@ namespace Novus.Runtime.VM
 		/// <summary>
 		///     <para>Union 1</para>
 		///     <para><see cref="EEClass" /></para>
-		///     <para><see cref="CanonicalMethodTable" /></para>
+		///     <para>Canonical <see cref="MethodTable"/></para>
 		/// </summary>
 		private void* Union1 { get; }
 
 
-		internal Pointer<MethodTable> CanonicalMethodTable
-		{
-			get
-			{
-				//todo
-				throw new NotImplementedException();
-			}
-		}
+		
 
 		internal Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 		{
@@ -143,6 +136,7 @@ namespace Novus.Runtime.VM
 		/// </summary>
 		[field: ImportClr("Sig_GetNativeLayoutInfo")]
 		private static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
+		
 	}
 
 

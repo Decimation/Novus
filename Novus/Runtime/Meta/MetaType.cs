@@ -236,8 +236,7 @@ namespace Novus.Runtime.Meta
 		public int ArrayRank => EEClass.Reference.ArrayRank;
 
 		public int BaseSize => Value.Reference.BaseSize;
-
-		public MetaType CanonicalType => Value.Reference.CanonicalMethodTable;
+		
 
 		public int ComponentSize => Value.Reference.ComponentSize;
 

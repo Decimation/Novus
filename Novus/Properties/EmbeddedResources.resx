@@ -117,7 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="g_pGCHeap" xml:space="preserve">
+  <data name="Ofs_GCHeap" xml:space="preserve">
     <value>4A4BF0</value>
     <comment>g_pGCHeap</comment>
   </data>
@@ -156,5 +156,9 @@
   <data name="Sig_IsPointingToNativeCode" xml:space="preserve">
     <value>40 53 48 83 EC 20 8A 41 03</value>
     <comment>MethodDesc::IsPointingToNativeCode</comment>
+  </data>
+  <data name="Sig_Reset" xml:space="preserve">
+    <value>48 89 5C 24 08 57 48 83 EC 20 48 8B D9 F0 81 61 04 FF FF FF DF</value>
+    <comment>MethodDesc::Reset</comment>
   </data>
 </root>

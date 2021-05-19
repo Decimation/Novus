@@ -1,59 +1,37 @@
+using Novus.Memory;
+using Novus.Runtime;
+using Novus.Runtime.Meta;
+using Novus.Utilities;
+using Novus.Win32;
+using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Novus;
-using Novus.Memory;
-using Novus.Runtime;
-using Novus.Runtime.Meta;
-using Novus.Runtime.VM;
-using Novus.Utilities;
-using Novus.Win32;
-using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 
 namespace UnitTest
 {
-	public static class TestUtil
-	{
-		public static void AssertAll<T>(T t, params Func<T, bool>[] fn)
-		{
-			foreach (var func in fn) {
-				Assert.True(func(t));
-			}
-		}
-
-		public static void AssertAll(params bool[] cond)
-		{
-			foreach (bool b in cond) {
-				Assert.True(b);
-			}
-		}
-	}
-
 	[TestFixture]
 	public class Tests_FileSystem
 	{
 		[Test]
 		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Koala.jpg", 3)]
 		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Deserts.jpg", 4)]
-		public void TestFileSystem(string str, int i)
+		public void FileSystemTest(string str, int i)
 		{
 			var p = new FileInfo(str);
-
 
 			var a = FileSystem.GetRelativeParent(p.FullName, i);
 			var b = FileSystem.GetParent(p.FullName, i);
 
 			var d = new DirectoryInfo(a);
 			Assert.AreEqual(d.FullName, b);
-
-
 		}
 
 		[Test]
@@ -61,17 +39,15 @@ namespace UnitTest
 		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.gif", nameof(FileFormatType.GIF))]
 		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.bmp", nameof(FileFormatType.BMP))]
 		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.png", nameof(FileFormatType.PNG))]
-		public void TestFileType(string s, string n)
+		public void FileTypeTest(string s, string n)
 		{
 			//C:\Users\Deci\Pictures\Camera Roll
 
 			var t = FileSystem.ResolveFileType(s);
 
-
 			Assert.AreEqual(t.Name, n);
 
 			var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s), null);
-
 
 			TestContext.WriteLine(m);
 
@@ -79,6 +55,51 @@ namespace UnitTest
 			{
 				FileSystem.ResolveMimeType(dataBytes: null);
 			});
+		}
+	}
+
+	[TestFixture]
+	public class Tests_Runtime
+	{
+		[Test]
+		public void BoxedTest()
+		{
+			Assert.True(RuntimeInfo.IsBoxed((object) 1));
+		}
+
+		[Test]
+		public void BlankTest()
+		{
+			Assert.True(RuntimeInfo.IsBlank(Array.Empty<int>()));
+		}
+
+		[Test]
+		public void PinnableTest()
+		{
+			string s = "foo";
+			Assert.True(RuntimeInfo.IsPinnable(s));
+
+			string[] rg = {"foo", "bar"};
+			Assert.False(RuntimeInfo.IsPinnable(rg));
+
+			var rg2 = new int[] {1, 2, 3};
+			Assert.True(RuntimeInfo.IsPinnable(rg2));
+
+			Assert.True(RuntimeInfo.IsPinnable(1));
+
+			Assert.False(RuntimeInfo.IsPinnable(new List<int>() {1, 2, 3}));
+		}
+
+		[Test]
+		public void NilTest()
+		{
+			string s = "foo";
+			Assert.False(RuntimeInfo.IsNil(s));
+
+			string s2 = null;
+			Assert.True(RuntimeInfo.IsNil(s2));
+
+			Assert.True(RuntimeInfo.IsNil(default(int)));
 		}
 	}
 
@@ -92,7 +113,6 @@ namespace UnitTest
 			var f  = t.GetAnyField(n);
 			var mf = f.AsMetaField();
 
-
 			Assert.AreEqual(mf.Info, f);
 			Assert.AreEqual(mf.Token, f.MetadataToken);
 			Assert.AreEqual(mf.Attributes, f.Attributes);
@@ -105,7 +125,6 @@ namespace UnitTest
 			var t  = typeof(string);
 			var mt = t.AsMetaType();
 
-
 			Assert.AreEqual(mt.RuntimeType, t);
 			Assert.AreEqual(mt.Token, t.MetadataToken);
 			Assert.AreEqual(mt.Attributes, t.Attributes);
@@ -114,26 +133,24 @@ namespace UnitTest
 			Assert.True(mt.IsStringOrArray);
 			Assert.AreEqual(mt.ComponentSize, sizeof(char));
 
-
 			TestUtil.AssertAll(!mt.IsInteger,
-				!mt.IsUnmanaged,
-				!mt.IsNumeric,
-				!mt.IsReal,
-				!mt.IsAnyPointer,
-				!mt.IsArray);
-
+			                   !mt.IsUnmanaged,
+			                   !mt.IsNumeric,
+			                   !mt.IsReal,
+			                   !mt.IsAnyPointer,
+			                   !mt.IsArray);
 
 			var mti = typeof(int).AsMetaType();
 
 			TestUtil.AssertAll(mti.IsInteger,
-				!mti.IsReal,
-				mti.IsNumeric);
+			                   !mti.IsReal,
+			                   mti.IsNumeric);
 
 			var mtf = typeof(float).AsMetaType();
 
 			TestUtil.AssertAll(!mtf.IsInteger,
-				mtf.IsReal,
-				mtf.IsNumeric);
+			                   mtf.IsReal,
+			                   mtf.IsNumeric);
 
 			var rg1 = new int[1];
 
@@ -143,14 +160,12 @@ namespace UnitTest
 			Assert.AreEqual(mtrg1.ComponentSize, sizeof(int));
 			Assert.AreEqual(rg1.GetType().GetElementType(), mtrg1.ElementTypeHandle.RuntimeType);
 
-
 			var rg2 = new int[1, 1];
 
 			var mtrg2 = rg2.GetType().AsMetaType();
 			Assert.AreEqual(rg2.Rank, mtrg2.ArrayRank);
 
 			Assert.AreEqual(rg2.GetType().GetElementType(), mtrg2.ElementTypeHandle.RuntimeType);
-
 
 			unsafe {
 				fixed (int* i = rg1) {
@@ -167,15 +182,39 @@ namespace UnitTest
 		{
 			var mt = t.AsMetaType();
 
-
 			Assert.AreEqual(mt.RuntimeType, t);
 			Assert.AreEqual(mt.Token, t.MetadataToken);
 			Assert.AreEqual(mt.Attributes, t.Attributes);
 
-
 			var b1 = ReflectionHelper.CallGeneric(
 				typeof(RuntimeHelpers).GetMethod("IsReferenceOrContainsReferences"), t, null);
 			Assert.AreEqual(mt.IsReferenceOrContainsReferences, b1);
+		}
+
+		[Test]
+		public void MethodTest()
+		{
+			var m = typeof(Clazz).GetAnyMethod(nameof(Clazz.SayHi)).AsMetaMethod();
+
+			Assert.False(m.IsPointingToNativeCode);
+
+			m.Prepare();
+
+			Assert.True(m.IsPointingToNativeCode);
+
+			m.Reset();
+
+			Assert.False(m.IsPointingToNativeCode);
+		}
+
+		[Test]
+		public void ArrayTest()
+		{
+			var rg = new int[0, 0];
+			var t  = rg.GetMetaType();
+
+			Assert.AreEqual(t.ArrayRank, 2);
+			Assert.AreEqual(t.ArrayRank, rg.Rank);
 		}
 
 		[Test]
@@ -191,14 +230,11 @@ namespace UnitTest
 			Assert.AreEqual(mt.InstanceFieldsCount, 2);
 			Assert.AreEqual(mt.StaticFieldsCount, 1);
 			Assert.AreEqual(mt.InstanceFieldsSize, sizeof(char) + sizeof(int));
-
-
 		}
 
 		[Test]
 		public unsafe void GCTest()
 		{
-
 			var s   = "bar";
 			var ptr = Mem.AddressOfHeap(s).ToPointer();
 			Assert.True(GCHeap.IsHeapPointer(ptr));
@@ -210,12 +246,43 @@ namespace UnitTest
 		}
 	}
 
-	[StructLayout(LayoutKind.Explicit)]
-	public struct MyStruct
+	[TestFixture]
+	public class Tests_Allocator
 	{
-		[FieldOffset(default)] public int a;
+		[Test]
+		public void AllocatorTest()
+		{
+			Pointer<byte> h = Allocator.Alloc(256);
 
-		[FieldOffset(sizeof(int))] public int b;
+			Assert.AreEqual(true, Allocator.IsAllocated(h));
+
+			Assert.AreEqual(256, Allocator.GetAllocSize(h));
+
+			h = Allocator.ReAlloc(h, 512);
+
+			Assert.AreEqual(512, Allocator.GetAllocSize(h));
+
+			Assert.Throws<ArgumentException>(() =>
+			{
+				Allocator.ReAlloc(h, -1);
+			});
+
+			Allocator.Free(h);
+
+			Assert.AreEqual(false, Allocator.IsAllocated(h));
+
+			Assert.True(Allocator.ReAlloc(h, -1) == null);
+		}
+
+		[Test]
+		public unsafe void AllocUTest()
+		{
+			var s = Allocator.AllocU<Clazz>();
+
+			//var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
+
+			Assert.AreEqual(s.a, Clazz.i);
+		}
 	}
 
 	[TestFixture]
@@ -224,28 +291,22 @@ namespace UnitTest
 		[SetUp]
 		public void Setup() { }
 
-
 		[Test]
-		public unsafe void TestMem1()
+		public unsafe void OffsetTest()
 		{
-
-
 			Assert.AreEqual(0, Mem.OffsetOf<MyStruct>(nameof(MyStruct.a)));
 			Assert.AreEqual(sizeof(int), Mem.OffsetOf<MyStruct>(nameof(MyStruct.b)));
-
 
 			Assert.AreEqual(0, Mem.OffsetOf<string>("_stringLength"));
 			Assert.AreEqual(sizeof(int), Mem.OffsetOf<string>("_firstChar"));
 		}
 
-
 		[Test]
-		public unsafe void TestAddresses()
+		public unsafe void AddressTest()
 		{
 			/*
 			 * String
 			 */
-
 
 			var s = "foo";
 
@@ -254,7 +315,6 @@ namespace UnitTest
 			fixed (char* c = s) {
 				strFixed = (IntPtr) c;
 			}
-
 
 			IntPtr strPin;
 
@@ -266,7 +326,6 @@ namespace UnitTest
 
 			Assert.AreEqual(strFixed, strMem);
 			Assert.AreEqual(strPin, strMem);
-
 
 			/*
 			 * Array
@@ -299,9 +358,7 @@ namespace UnitTest
 			var objMem = Mem.AddressOfHeap(obj, OffsetOptions.Fields).Address;
 
 			Assert.AreEqual(objFixed, objMem);
-
 		}
-
 
 		[Test]
 		public unsafe void SizeTest()
@@ -322,11 +379,10 @@ namespace UnitTest
 			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.BaseInstance), 22); // NOT 20; SOS is wrong
 
 			Assert.AreEqual(Mem.SizeOf(intArray, SizeOfOptions.Data),
-				RuntimeInfo.ArrayOverhead + (sizeof(int) * intArray.Length));
+			                RuntimeInfo.ArrayOverhead + (sizeof(int) * intArray.Length));
 
 			Assert.AreEqual(Mem.SizeOf(s, SizeOfOptions.Data),
-				RuntimeInfo.StringOverhead + (sizeof(char) * s.Length));
-
+			                RuntimeInfo.StringOverhead + (sizeof(char) * s.Length));
 
 			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.Heap), Native.INVALID);
 
@@ -335,32 +391,9 @@ namespace UnitTest
 				Mem.SizeOf<string>(null, SizeOfOptions.Heap);
 			});
 
-
 			Assert.AreEqual(Mem.SizeOf<bool>(SizeOfOptions.Native), Marshal.SizeOf<bool>());
 			Assert.AreEqual(Mem.SizeOf<Point>(), sizeof(Point));
 			Assert.AreEqual(Mem.SizeOf<Point>(SizeOfOptions.Intrinsic), sizeof(Point));
-		}
-
-		[Test]
-		public void InspectorTest()
-		{
-			string s = "foo";
-			Assert.False(RuntimeInfo.IsNil(s));
-
-			string s2 = null;
-			Assert.True(RuntimeInfo.IsNil(s2));
-
-
-			Assert.True(RuntimeInfo.IsNil(default(int)));
-
-
-			Assert.True(RuntimeInfo.IsPinnable(s));
-
-			string[] rg = {"foo", "bar"};
-			Assert.False(RuntimeInfo.IsPinnable(rg));
-
-			var rg2 = new int[] {1, 2, 3};
-			Assert.True(RuntimeInfo.IsPinnable(rg2));
 		}
 
 		[Test]
@@ -376,12 +409,10 @@ namespace UnitTest
 				}
 			}
 
-
 			var p2 = pointer.Cast<char>();
 			p2[0] = 'g';
 
 			Assert.AreEqual(s, "goo");
-
 		}
 
 		[Test]
@@ -402,44 +433,6 @@ namespace UnitTest
 			Assert.True(rg.SequenceEqual(new[] {100, 2, 3}));
 		}
 
-		[Test]
-		public void TestRuntimeInfo()
-		{
-			Assert.True(RuntimeInfo.IsBlank(Array.Empty<int>()));
-
-			Assert.True(RuntimeInfo.IsBoxed((object) 1));
-
-			Assert.True(RuntimeInfo.IsNil(default(object)));
-		}
-
-		[Test]
-		public void AllocatorTest()
-		{
-			Pointer<byte> h = Allocator.Alloc(256);
-
-			Assert.AreEqual(true, Allocator.IsAllocated(h));
-
-
-			Assert.AreEqual(256, Allocator.GetAllocSize(h));
-
-
-			h = Allocator.ReAlloc(h, 512);
-
-			Assert.AreEqual(512, Allocator.GetAllocSize(h));
-
-			Assert.Throws<ArgumentException>(() =>
-			{
-				Allocator.ReAlloc(h, -1);
-			});
-
-			Allocator.Free(h);
-
-			Assert.AreEqual(false, Allocator.IsAllocated(h));
-
-			Assert.True(Allocator.ReAlloc(h, -1) == null);
-
-
-		}
 
 		[Test]
 		public void KernelReadWriteTest()
@@ -456,7 +449,6 @@ namespace UnitTest
 
 			Mem.WriteProcessMemory(proc, addr, s1New);
 			Assert.AreEqual(s1, s1New);
-
 
 			var s2 = Mem.ReadProcessMemory<string>(proc, addr);
 			Assert.AreEqual(s2, s1New);
@@ -491,29 +483,44 @@ namespace UnitTest
 
 			Assert.AreEqual(((Struct) Mem.ReadProcessMemory(proc, b1, typeof(Struct))).a, b.a);
 		}
+	}
 
-		[Test]
-		public unsafe void AllocUTest()
+	public static class TestUtil
+	{
+		public static void AssertAll<T>(T t, params Func<T, bool>[] fn)
 		{
-			var s = Mem.AllocU<Clazz>();
-			
+			foreach (var func in fn) {
+				Assert.True(func(t));
+			}
+		}
 
-			//var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
-
-			Assert.AreEqual(s.a, Clazz.i);
+		public static void AssertAll(params bool[] cond)
+		{
+			foreach (bool b in cond) {
+				Assert.True(b);
+			}
 		}
 	}
 
-	class Clazz
+	[StructLayout(LayoutKind.Explicit)]
+	public struct MyStruct
+	{
+		[FieldOffset(default)] public int a;
+
+		[FieldOffset(sizeof(int))] public int b;
+	}
+
+	internal class Clazz
 	{
 		public       int a;
 		public const int i = 123_321;
 
 		public Clazz()
 		{
-
 			a = i;
 		}
+
+		public void SayHi() => Console.WriteLine("hi");
 
 		public override string ToString()
 		{
@@ -521,7 +528,7 @@ namespace UnitTest
 		}
 	}
 
-	struct Struct
+	internal struct Struct
 	{
 		public int a;
 

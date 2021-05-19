@@ -108,10 +108,9 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
+			string s = "foo";
+			Console.WriteLine(GCHeap.IsHeapPointer(s));
 
-
-			int i;
-			
 		}
 	}
 }

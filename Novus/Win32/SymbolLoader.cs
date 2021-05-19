@@ -46,8 +46,6 @@ namespace Novus.Win32
 		[CanBeNull]
 		public Symbol GetSymbol(string name)
 		{
-			//todo
-
 			/*
 			 * https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/ns-dbghelp-symbol_info
 			 *

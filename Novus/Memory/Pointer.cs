@@ -203,7 +203,7 @@ namespace Novus.Memory
 
 		public static bool operator !=(Pointer<T> left, Pointer<T> right) => !left.Equals(right);
 
-		public static bool operator >(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64()  > b.ToInt64();
+		public static bool operator >(Pointer<T> ptr, Pointer<T> b)  => ptr.ToInt64() > b.ToInt64();
 		public static bool operator >=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() >= b.ToInt64();
 
 		public static bool operator <(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() < b.ToInt64();
@@ -237,10 +237,7 @@ namespace Novus.Memory
 		///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes subtracted
 		/// </returns>
 		[Pure]
-		public Pointer<T> Subtract(long byteCnt = ELEM_CNT)
-		{
-			return Add(-byteCnt);
-		}
+		public Pointer<T> Subtract(long byteCnt = ELEM_CNT) => Add(-byteCnt);
 
 		public static Pointer<T> operator +(Pointer<T> left, long right)
 		{
@@ -327,10 +324,7 @@ namespace Novus.Memory
 
 		[Pure]
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void* Offset(int elemCnt)
-		{
-			return (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
-		}
+		private void* Offset(int elemCnt) => (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
 
 		[Pure]
 		public Pointer<T> AddressOfIndex(int index) => Offset(index);

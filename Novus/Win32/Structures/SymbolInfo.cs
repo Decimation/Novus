@@ -114,12 +114,11 @@ namespace Novus.Win32.Structures
 		/// </summary>
 		internal fixed sbyte Name[1];
 
-		// !
-		//internal static int GetSymbolInfoSize(DebugSymbol* pSym)
-		//{
-		//	// SizeOfStruct + (MaxNameLen - 1) * sizeof(TCHAR)
-		//	return (int) (pSym->SizeOfStruct + (pSym->MaxNameLen - 1) * sizeof(byte));
-		//}
+		internal static int GetSymbolInfoSize(SymbolInfo* pSym)
+		{
+			// SizeOfStruct + (MaxNameLen - 1) * sizeof(TCHAR)
+			return (int)(pSym->SizeOfStruct + (pSym->MaxNameLen - 1) * sizeof(byte));
+		}
 
 		internal string ReadSymbolName()
 		{

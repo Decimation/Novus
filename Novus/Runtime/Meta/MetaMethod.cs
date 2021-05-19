@@ -27,17 +27,15 @@ namespace Novus.Runtime.Meta
 		public int SlotNumber => Value.Reference.SlotNumber;
 
 
-		public bool IsRuntimeSupplied =>
-			Classification == MethodClassification.FCall ||
-			Classification == MethodClassification.Array;
+		public bool IsRuntimeSupplied => Classification is MethodClassification.FCall or MethodClassification.Array;
 
 		public bool IsNoMetadata => Classification == MethodClassification.Dynamic;
-		public bool HasILHeader  => IsIL && !IsUnboxingStub && RVA > default(long);
+
+		public bool HasILHeader => IsIL && !IsUnboxingStub && RVA > default(long);
 
 		private bool IsUnboxingStub => Code.HasFlag(CodeFlags.IsUnboxingStub);
 
-		public bool IsIL => MethodClassification.IL           == Classification ||
-		                    MethodClassification.Instantiated == Classification;
+		public bool IsIL => Classification is MethodClassification.IL or MethodClassification.Instantiated;
 
 		public bool IsInlined
 		{
@@ -67,6 +65,8 @@ namespace Novus.Runtime.Meta
 
 
 		public override MethodInfo Info => (MethodInfo) (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
+
+		public void Reset() => Value.Reference.Reset();
 
 		public void Prepare() => RuntimeHelpers.PrepareMethod(Info.MethodHandle);
 

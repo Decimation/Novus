@@ -322,43 +322,6 @@ namespace Novus.Memory
 
 		}
 #endif
-		public static T AllocU<T>(params object[] args)
-		{
-			// TODO: WIP
-
-			var mt = typeof(T).AsMetaType();
-
-			var alloc = Allocator.Alloc(mt.BaseSize);
-
-			alloc += Size;
-
-			alloc.WritePointer(mt.Value);
-
-			var alloc2 = Allocator.Alloc<T>(1);
-
-			alloc2.WritePointer(alloc);
-
-
-			var val = alloc2.Value;
-
-			//RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
-			ReflectionHelper.CallConstructor(val, args);
-
-
-			/*var def = Activator.CreateInstance<T>();
-
-			var flds = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-			var vals = flds.Select(f => f.GetValue(def)).ToArray();
-
-			var val2 = FormatterServices.PopulateObjectMembers(val, flds, vals);*/
-
-			//FormatterServices?
-
-			//return (T) val2;
-
-			return val;
-		}
 
 
 		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)

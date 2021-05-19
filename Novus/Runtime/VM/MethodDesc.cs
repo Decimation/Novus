@@ -42,8 +42,7 @@ namespace Novus.Runtime.VM
 			{
 				fixed (MethodDesc* p = &this) {
 					var mt = Func_IsPointingToNativeCode(p);
-					//todo
-					return mt > 0;
+					return Convert.ToBoolean(mt);
 				}
 			}
 		}
@@ -113,6 +112,13 @@ namespace Novus.Runtime.VM
 			}
 		}
 
+		internal void Reset()
+		{
+			fixed (MethodDesc* p = &this) {
+				Func_Reset(p);
+			}
+		}
+
 		internal Pointer<MethodTable> MethodTable => MethodDescChunk.Reference.MethodTable;
 
 		/// <summary>
@@ -137,7 +143,14 @@ namespace Novus.Runtime.VM
 		/// <see cref="MethodDesc.RVA"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetRVA")]
-		private static delegate* unmanaged<MethodDesc*, long> Func_GetRVA { get; }
+		private static delegate* unmanaged<MethodDesc*, int> Func_GetRVA { get; }
+
+
+		/// <summary>
+		/// <see cref="MethodDesc.Reset"/>
+		/// </summary>
+		[field: ImportClr("Sig_Reset")]
+		private static delegate* unmanaged<MethodDesc*, void> Func_Reset { get; }
 	}
 
 	/// <summary>

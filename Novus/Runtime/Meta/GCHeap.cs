@@ -23,7 +23,7 @@ namespace Novus.Runtime.Meta
 		/// <summary>
 		/// <c>g_pGCHeap</c>
 		/// </summary>
-		[field: ImportClr("g_pGCHeap", UnmanagedType.Offset)]
+		[field: ImportClr("Ofs_GCHeap", UnmanagedType.Offset)]
 		public static Pointer<byte> GlobalHeap { get; }
 
 		public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class =>

@@ -5,12 +5,14 @@
 #pragma warning disable IDE0005
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -108,19 +110,14 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			var rg = new int[] {1, 2, 3};
+			
 
-			Console.WriteLine(GCHeap.IsHeapPointer(rg));
+			var s = "foo";
 
-			var ptr = Mem.AddressOfHeap(rg);
-			Console.WriteLine(GCHeap.IsHeapPointer(ptr));
+			
 
-			var ptr1 = ptr.AddressOfIndex(1);
-
-			Console.WriteLine(GCHeap.CurrentObjSize);
-			var _=GC.AllocateArray<int>(100);
-
-			Console.WriteLine(GCHeap.CurrentObjSize);
 		}
+
+		
 	}
 }

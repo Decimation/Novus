@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System;
-using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
@@ -34,6 +33,10 @@ namespace Novus.Memory
 	///         </item>
 	///     </list>
 	/// </remarks>
+	/// <seealso cref="Span{T}" />
+	/// <seealso cref="Memory{T}" />
+	/// <seealso cref="IntPtr" />
+	/// <seealso cref="UIntPtr" />
 	public unsafe struct Pointer<T> : IFormattable
 	{
 		/// <summary>
@@ -64,7 +67,7 @@ namespace Novus.Memory
 			get => Read();
 			set => Write(value);
 		}
-		
+
 		/// <summary>
 		///     Address being pointed to.
 		/// </summary>
@@ -141,10 +144,7 @@ namespace Novus.Memory
 		/// </summary>
 		/// <returns>A native pointer of type <typeparamref name="TUnmanaged" /></returns>
 		[Pure]
-		public TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged
-		{
-			return (TUnmanaged*) m_value;
-		}
+		public TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged => (TUnmanaged*) m_value;
 
 		/// <summary>
 		///     Creates a native <c>void*</c> pointer, pointing to <see cref="Address" />
@@ -169,6 +169,11 @@ namespace Novus.Memory
 		[Pure]
 		public uint ToUInt32() => (uint) m_value;
 
+		[Pure]
+		public Span<T> AsSpan(int elemCnt) => new Span<T>(m_value, elemCnt);
+		
+
+
 		#endregion
 
 		#region Comparison
@@ -178,7 +183,10 @@ namespace Novus.Memory
 		/// </summary>
 		/// <param name="other">Other <see cref="Pointer{T}" />.</param>
 		/// <returns></returns>
-		public bool Equals(Pointer<T> other) => Address == other.Address;
+		public bool Equals(Pointer<T> other)
+		{
+			return Address == other.Address;
+		}
 
 		public override bool Equals(object? obj)
 		{
@@ -203,7 +211,8 @@ namespace Novus.Memory
 
 		public static bool operator !=(Pointer<T> left, Pointer<T> right) => !left.Equals(right);
 
-		public static bool operator >(Pointer<T> ptr, Pointer<T> b)  => ptr.ToInt64() > b.ToInt64();
+		public static bool operator >(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() > b.ToInt64();
+
 		public static bool operator >=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() >= b.ToInt64();
 
 		public static bool operator <(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() < b.ToInt64();
@@ -324,7 +333,10 @@ namespace Novus.Memory
 
 		[Pure]
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void* Offset(int elemCnt) => (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
+		private void* Offset(int elemCnt)
+		{
+			return (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
+		}
 
 		[Pure]
 		public Pointer<T> AddressOfIndex(int index) => Offset(index);
@@ -338,7 +350,10 @@ namespace Novus.Memory
 		/// </summary>
 		/// <param name="value">Value to write.</param>
 		/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
-		public void Write(T value, int elemOffset = OFFSET) => Unsafe.Write(Offset(elemOffset), value);
+		public void Write(T value, int elemOffset = OFFSET)
+		{
+			Unsafe.Write(Offset(elemOffset), value);
+		}
 
 
 		/// <summary>
@@ -347,7 +362,10 @@ namespace Novus.Memory
 		/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 		/// <returns>The value read from the offset <see cref="Address" />.</returns>
 		[Pure]
-		public T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
+		public T Read(int elemOffset = OFFSET)
+		{
+			return Unsafe.Read<T>(Offset(elemOffset));
+		}
 
 
 		/// <summary>
@@ -356,7 +374,10 @@ namespace Novus.Memory
 		/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 		/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 		[Pure]
-		public ref T AsRef(int elemOffset = OFFSET) => ref Unsafe.AsRef<T>(Offset(elemOffset));
+		public ref T AsRef(int elemOffset = OFFSET)
+		{
+			return ref Unsafe.AsRef<T>(Offset(elemOffset));
+		}
 
 		/// <summary>
 		///     Zeros <paramref name="elemCnt" /> elements.
@@ -381,7 +402,10 @@ namespace Novus.Memory
 
 
 		[Pure]
-		public Pointer<byte> ReadPointer(int elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
+		public Pointer<byte> ReadPointer(int elemOffset = OFFSET)
+		{
+			return ReadPointer<byte>(elemOffset);
+		}
 
 		[Pure]
 		public Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET)
@@ -426,17 +450,26 @@ namespace Novus.Memory
 		///     the current pointer
 		/// </returns>
 		[Pure]
-		public T[] Copy(int elemCnt) => Copy(OFFSET, elemCnt);
+		public T[] Copy(int elemCnt)
+		{
+			return Copy(OFFSET, elemCnt);
+		}
 
 		#endregion
 
 		#region Format
 
-		public override string ToString() => ToString(FMT_HEX);
+		public override string ToString()
+		{
+			return ToString(FMT_HEX);
+		}
 
 		private const string PTR_PREFIX = "0x";
 
-		public string ToString(string format) => this.ToString(format, null);
+		public string ToString(string format)
+		{
+			return ToString(format, null);
+		}
 
 		public string ToString(string? format, IFormatProvider? provider)
 		{
@@ -449,7 +482,7 @@ namespace Novus.Memory
 			{
 				FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
 				FMT_PTR => PTR_PREFIX + ToString(FMT_HEX),
-				_       => throw new FormatException(),
+				_       => throw new FormatException()
 			};
 
 		}

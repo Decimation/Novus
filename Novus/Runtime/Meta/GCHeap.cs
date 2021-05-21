@@ -20,19 +20,22 @@ namespace Novus.Runtime.Meta
 	/// <seealso cref="System.Runtime.InteropServices.GCHandle"/>
 	public static unsafe class GCHeap
 	{
+		public static ulong CurrentObjSize => Func_ObjSize(GlobalHeap.ToPointer());
+
 		/// <summary>
 		/// <c>g_pGCHeap</c>
 		/// </summary>
 		[field: ImportClr("Ofs_GCHeap", UnmanagedType.Offset)]
 		public static Pointer<byte> GlobalHeap { get; }
 
-		public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class =>
-			IsHeapPointer(Mem.AddressOfHeap(t), smallHeapOnly);
+		/// <summary>
+		/// <see cref="IsHeapPointer"/>
+		/// </summary>
+		[field: ImportClr("Ofs_IsHeapPointer", UnmanagedType.Offset)]
+		private static delegate* unmanaged<void*, void*, bool, bool> Func_IsHeapPointer { get; }
 
-		public static bool IsHeapPointer(Pointer<byte> ptr, bool smallHeapOnly = false) =>
-			Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
-
-		public static ulong CurrentObjSize => Func_ObjSize(GlobalHeap.ToPointer());
+		[field: ImportClr("Sig_GCObjSize")]
+		private static delegate* unmanaged<void*, ulong> Func_ObjSize { get; }
 
 		static GCHeap()
 		{
@@ -40,13 +43,10 @@ namespace Novus.Runtime.Meta
 			Resource.LoadImports(typeof(GCHeap));
 		}
 
-		[field: ImportClr("Sig_GCObjSize")]
-		private static delegate* unmanaged<void*, ulong> Func_ObjSize { get; }
+		public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class =>
+									IsHeapPointer(Mem.AddressOfHeap(t), smallHeapOnly);
 
-		/// <summary>
-		/// <see cref="IsHeapPointer"/>
-		/// </summary>
-		[field: ImportClr("Ofs_IsHeapPointer", UnmanagedType.Offset)]
-		private static delegate* unmanaged<void*, void*, bool, bool> Func_IsHeapPointer { get; }
+		public static bool IsHeapPointer(Pointer<byte> ptr, bool smallHeapOnly = false) =>
+			Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 	}
 }

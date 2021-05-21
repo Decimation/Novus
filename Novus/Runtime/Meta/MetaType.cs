@@ -21,7 +21,7 @@ namespace Novus.Runtime.Meta
 	public static class MetaExtensions
 	{
 		public static MetaType GetMetaType(this object o) => o.GetType().AsMetaType();
-		
+
 		public static MetaMethod AsMetaMethod(this MethodInfo t) => new(t);
 
 		public static MetaField AsMetaField(this FieldInfo t) => new(t);
@@ -64,7 +64,6 @@ namespace Novus.Runtime.Meta
 
 		public int FixedEEClassFields => EEClass.Reference.FixedEEClassFields;
 
-		//public Pointer<byte> GuidInfo => EEClass.Reference.GuidInfo;
 
 		public int InstanceFieldsCount => EEClass.Reference.NumInstanceFields;
 
@@ -86,15 +85,13 @@ namespace Novus.Runtime.Meta
 
 		public CorElementType NormType => EEClass.Reference.NormType;
 
-		//public Pointer<byte> OptionalFields => EEClass.Reference.OptionalFields;
 
-		
 		public IEnumerable<MetaField> Fields => RuntimeType.GetAllFields()
-			.Select(f => new MetaField(f));
+		                                                   .Select(f => new MetaField(f));
 
-		
+
 		public IEnumerable<MetaMethod> Methods => RuntimeType.GetAllMethods()
-			.Select(m => new MetaMethod(m));
+		                                                     .Select(m => new MetaMethod(m));
 
 
 		public MetaField GetField(string name)
@@ -179,8 +176,6 @@ namespace Novus.Runtime.Meta
 		/// </summary>
 		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
-		
-
 
 		// returns random combination of flags if this doesn't have a component size
 		private ushort RawGetComponentSize()
@@ -217,10 +212,8 @@ namespace Novus.Runtime.Meta
 			if (ReferenceEquals(this, obj))
 				return true;
 
-			if (obj.GetType() != GetType())
-				return false;
+			return obj.GetType() == GetType() && Equals((MetaType) obj);
 
-			return Equals((MetaType) obj);
 		}
 
 		public override int GetHashCode()
@@ -236,7 +229,7 @@ namespace Novus.Runtime.Meta
 		public int ArrayRank => EEClass.Reference.ArrayRank;
 
 		public int BaseSize => Value.Reference.BaseSize;
-		
+
 
 		public int ComponentSize => Value.Reference.ComponentSize;
 
@@ -246,7 +239,6 @@ namespace Novus.Runtime.Meta
 
 		public GenericsFlags GenericFlags => Value.Reference.GenericsFlags;
 
-		//public Pointer<byte> InterfaceMap => Value.Reference.InterfaceMap;
 
 		public int InterfacesCount => Value.Reference.NumInterfaces;
 
@@ -254,7 +246,6 @@ namespace Novus.Runtime.Meta
 
 		public MetaType ParentType => (Pointer<MethodTable>) Value.Reference.Parent;
 
-		//public Pointer<byte> PerInstInfo => Value.Reference.PerInstInfo;
 
 		public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
 

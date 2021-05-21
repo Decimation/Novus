@@ -322,10 +322,16 @@ namespace UnitTest
 				strPin = (IntPtr) c;
 			}
 
+
+			var pin = s.AsMemory().Pin();
+
+			var strPinHandle = (IntPtr) pin.Pointer;
+
 			var strMem = Mem.AddressOfHeap(s, OffsetOptions.StringData).Address;
 
 			Assert.AreEqual(strFixed, strMem);
 			Assert.AreEqual(strPin, strMem);
+			Assert.AreEqual(strPinHandle, strMem);
 
 			/*
 			 * Array
@@ -339,9 +345,15 @@ namespace UnitTest
 				arrayFixed = (IntPtr) c;
 			}
 
+			var arrayPin = rg.AsMemory().Pin();
+
+			IntPtr arrayPinHandle = (IntPtr) arrayPin.Pointer;
+
 			var arrayMem = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData).Address;
 
 			Assert.AreEqual(arrayFixed, arrayMem);
+			Assert.AreEqual(arrayPinHandle, arrayMem);
+
 
 			/*
 			 * Object

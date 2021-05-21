@@ -27,7 +27,7 @@ namespace Novus.Runtime.VM
 		internal byte Size { get; }
 
 		/// <summary>
-		/// The number of MethodDescs in this chunk minus 1
+		/// The number of <see cref="MethodDesc"/> in this chunk minus 1
 		/// </summary>
 		internal byte Count { get; }
 

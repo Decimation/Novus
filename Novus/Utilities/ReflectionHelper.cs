@@ -46,7 +46,8 @@ namespace Novus.Utilities
 		public static IEnumerable<MethodInfo> GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
 
 		public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
-		private const string     BACKING_FIELD_NAME = "k__BackingField";
+
+		private const string BACKING_FIELD_NAME = "k__BackingField";
 
 		public static FieldInfo GetBackingField(this MemberInfo m)
 		{

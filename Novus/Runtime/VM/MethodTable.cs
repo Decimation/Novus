@@ -1,8 +1,8 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using Novus.Imports;
+﻿using Novus.Imports;
 using Novus.Memory;
 using Novus.Runtime.VM.EE;
+using System;
+using System.Runtime.InteropServices;
 
 // ReSharper disable StructCanBeMadeReadOnly
 // ReSharper disable InconsistentNaming
@@ -36,7 +36,7 @@ namespace Novus.Runtime.VM
 
 		internal short NumInterfaces { get; }
 
-		internal void* Parent { get; }
+		internal MethodTable* Parent { get; }
 
 		internal void* Module { get; }
 
@@ -71,14 +71,11 @@ namespace Novus.Runtime.VM
 		{
 			get
 			{
-
 				fixed (MethodTable* p = &this) {
-
 					return Func_GetClass(p);
 				}
 			}
 		}
-
 
 		/// <summary>
 		///     <para>Union 1</para>
@@ -86,9 +83,6 @@ namespace Novus.Runtime.VM
 		///     <para>Canonical <see cref="MethodTable"/></para>
 		/// </summary>
 		private void* Union1 { get; }
-
-
-		
 
 		internal Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 		{
@@ -102,43 +96,35 @@ namespace Novus.Runtime.VM
 
 		/// <summary>
 		///     <para>Union 2</para>
-		///     <para><see cref="PerInstInfo" /></para>
+		///     <para>PerInstInfo</para>
 		///     <para><see cref="ElementTypeHandle" /></para>
-		///     <para><see cref="MultipurposeSlot1" /></para>
+		///     <para>MultipurposeSlot1</para>
 		/// </summary>
 		private void* Union2 { get; }
 
-		internal Pointer<byte> PerInstInfo => Union2;
-
 		internal Pointer<MethodTable> ElementTypeHandle => Union2;
-
-		internal Pointer<byte> MultipurposeSlot1 => Union2;
 
 		/// <summary>
 		///     <para>Union 3</para>
 		///     <para><see cref="InterfaceMap" /></para>
-		///     <para><see cref="MultipurposeSlot2" /></para>
+		///     <para>MultipurposeSlot2</para>
 		/// </summary>
 		private void* Union3 { get; }
 
-		internal Pointer<byte> InterfaceMap => Union3;
-
-		internal Pointer<byte> MultipurposeSlot2 => Union3;
+		internal Pointer<byte> InterfaceMap => (void**) Union3;
 
 		/// <summary>
-		/// <see cref="MethodTable.EEClass"/>
+		/// <see cref="EEClass"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetEEClass")]
 		private static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
 
 		/// <summary>
-		/// <see cref="MethodTable.NativeLayoutInfo"/>
+		/// <see cref="NativeLayoutInfo"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetNativeLayoutInfo")]
 		private static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
-		
 	}
-
 
 	/// <summary>
 	///     <remarks>
@@ -340,6 +326,7 @@ namespace Novus.Runtime.VM
 		// In a perfect world we would fill these flags using other flags that we already have
 		// which have a constant value for something which has a component size.
 		UnusedComponentSize5 = 0x00002000,
+
 		UnusedComponentSize6 = 0x00004000,
 		UnusedComponentSize7 = 0x00008000,
 

@@ -110,13 +110,13 @@ namespace Novus.Memory
 
 			var mt = typeof(T).AsMetaType();
 
-			var alloc = Allocator.Alloc(mt.BaseSize);
+			var alloc = Alloc(mt.BaseSize);
 
 			alloc += Mem.Size;
 
 			alloc.WritePointer(mt.Value);
 
-			var alloc2 = Allocator.Alloc<T>(1);
+			var alloc2 = Alloc<T>(1);
 
 			alloc2.WritePointer(alloc);
 

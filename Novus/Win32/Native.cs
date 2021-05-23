@@ -46,28 +46,29 @@ namespace Novus.Win32
 		[UnmanagedFunctionPointer(CallingConvention.Winapi)]
 		internal delegate bool EnumSymbolsCallback(IntPtr symInfo, uint symbolSize, IntPtr pUserContext);
 
+		
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase, string mask,
 		                                           EnumSymbolsCallback callback, IntPtr pUserContext);
 
 
-		[DllImport(DBGHELP_DLL)]
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern SymbolOptions SymGetOptions();
 
 
-		[DllImport(DBGHELP_DLL)]
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymGetSearchPath(IntPtr hProcess, sbyte* p, uint sz);
 
 
-		[DllImport(DBGHELP_DLL)]
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern SymbolOptions SymSetOptions(SymbolOptions options);
 
 
-		[DllImport(DBGHELP_DLL)]
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymFromName(IntPtr hProcess, string name, IntPtr pSymbol);
 
 
-		[DllImport(DBGHELP_DLL)]
+		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymUnloadModule64(IntPtr hProc, ulong baseAddr);
 
 

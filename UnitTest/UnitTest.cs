@@ -1,22 +1,42 @@
+﻿using Novus.Memory;
+using Novus.Runtime;
+using Novus.Runtime.Meta;
+using Novus.Utilities;
+using Novus.Win32;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Novus.Memory;
-using Novus.Runtime;
-using Novus.Runtime.Meta;
-using Novus.Utilities;
-using Novus.Win32;
-using NUnit.Framework;
+using Novus.Runtime.VM;
+using Novus.Runtime.VM.IL;
+using UnitTest.TestTypes;
+
+// ReSharper disable IdentifierTypo
 
 // ReSharper disable InconsistentNaming
 
 namespace UnitTest
 {
+	[TestFixture]
+	public class Tests_Native
+	{
+		[Test]
+		public void SymbolsTest()
+		{
+			var m = new SymbolLoader(@"C:\Symbols\coreclr.pdb");
+
+			var s = m.GetSymbol("g_pGCHeap");
+
+			Assert.NotNull(s);
+		}
+	}
+
 	[TestFixture]
 	public class Tests_ReflectionHelper
 	{
@@ -25,8 +45,6 @@ namespace UnitTest
 		{
 			Assert.True(typeof(Implement1).ImplementsInterface(typeof(IInterface)));
 			Assert.True(typeof(Subclass1).ExtendsType(typeof(Superclass1)));
-
-
 		}
 
 		[Test]
@@ -37,109 +55,21 @@ namespace UnitTest
 		}
 
 		[Test]
-		[TestCase(typeof(int),true,true,false)]
+		[TestCase(typeof(int), true, true, false)]
 		[TestCase(typeof(float), true, false, true)]
 		[TestCase(typeof(Half), true, false, true)]
 		public void Test3(Type t, bool isNum, bool isInt, bool isReal)
 		{
 			Assert.AreEqual(isNum, t.IsNumeric());
-			Assert.AreEqual(isInt,t.IsInteger());
+			Assert.AreEqual(isInt, t.IsInteger());
 			Assert.AreEqual(isReal, t.IsReal());
-
-		}
-
-		private abstract class Superclass1 { }
-
-		private class Subclass1 : Superclass1 { }
-
-		private interface IInterface { }
-
-		private class Implement1 : IInterface { }
-	}
-
-	[TestFixture]
-	public class Tests_FileSystem
-	{
-		[Test]
-		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Koala.jpg", 3)]
-		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Deserts.jpg", 4)]
-		public void FileSystemTest(string str, int i)
-		{
-			var p = new FileInfo(str);
-
-			var a = FileSystem.GetRelativeParent(p.FullName, i);
-			var b = FileSystem.GetParent(p.FullName, i);
-
-			var d = new DirectoryInfo(a);
-			Assert.AreEqual(d.FullName, b);
 		}
 
 		[Test]
-		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.jpg", nameof(FileFormatType.JPEG))]
-		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.gif", nameof(FileFormatType.GIF))]
-		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.bmp", nameof(FileFormatType.BMP))]
-		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.png", nameof(FileFormatType.PNG))]
-		public void FileTypeTest(string s, string n)
+		public void Test4()
 		{
-			//C:\Users\Deci\Pictures\Camera Roll
-
-			var t = FileSystem.ResolveFileType(s);
-
-			Assert.AreEqual(t.Name, n);
-
-			var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s));
-
-			TestContext.WriteLine(m);
-
-			Assert.Throws<ArgumentNullException>(() =>
-			{
-				FileSystem.ResolveMimeType(dataBytes: null);
-			});
-		}
-	}
-
-	[TestFixture]
-	public class Tests_Runtime
-	{
-		[Test]
-		public void BoxedTest()
-		{
-			Assert.True(RuntimeInfo.IsBoxed((object) 1));
-		}
-
-		[Test]
-		public void BlankTest()
-		{
-			Assert.True(RuntimeInfo.IsBlank(Array.Empty<int>()));
-		}
-
-		[Test]
-		public void PinnableTest()
-		{
-			string s = "foo";
-			Assert.True(RuntimeInfo.IsPinnable(s));
-
-			string[] rg = {"foo", "bar"};
-			Assert.False(RuntimeInfo.IsPinnable(rg));
-
-			var rg2 = new[] {1, 2, 3};
-			Assert.True(RuntimeInfo.IsPinnable(rg2));
-
-			Assert.True(RuntimeInfo.IsPinnable(1));
-
-			Assert.False(RuntimeInfo.IsPinnable(new List<int> {1, 2, 3}));
-		}
-
-		[Test]
-		public void NilTest()
-		{
-			string s = "foo";
-			Assert.False(RuntimeInfo.IsNil(s));
-
-			string s2 = null;
-			Assert.True(RuntimeInfo.IsNil(s2));
-
-			Assert.True(RuntimeInfo.IsNil(default(int)));
+			Assert.AreEqual(ReflectionOperatorHelpers.fieldof(() => new Subclass1().i),
+			                typeof(Subclass1).GetRuntimeField(nameof(Subclass1.i)));
 		}
 	}
 
@@ -158,6 +88,7 @@ namespace UnitTest
 			Assert.AreEqual(mf.Attributes, f.Attributes);
 			Assert.AreEqual(mf.IsStatic, f.IsStatic);
 		}
+
 
 		[Test]
 		public void TypeTest2()
@@ -228,6 +159,7 @@ namespace UnitTest
 
 			var b1 = ReflectionHelper.CallGeneric(
 				typeof(RuntimeHelpers).GetMethod("IsReferenceOrContainsReferences"), t, null);
+
 			Assert.AreEqual(mt.IsReferenceOrContainsReferences, b1);
 		}
 
@@ -283,6 +215,131 @@ namespace UnitTest
 			Assert.False(GCHeap.IsHeapPointer(&p));
 
 			Assert.True(GCHeap.IsHeapPointer(s));
+		}
+
+
+		[Test]
+		[TestCase(nameof(sayHi2), true)]
+		[TestCase(nameof(sayHi), false)]
+		[TestCase(nameof(tiny), null)]
+		public unsafe void ILTest(string name, bool? init)
+		{
+			var m = typeof(Tests_Metadata).GetAnyMethod(name);
+
+
+			var il = m.AsMetaMethod().ILHeader;
+			var mb = m.GetMethodBody();
+
+			Assert.AreEqual(mb.MaxStackSize, il.MaxStackSize);
+			Assert.AreEqual(mb.LocalSignatureMetadataToken, il.LocalVarSigToken);
+			Assert.True(mb.GetILAsByteArray().SequenceEqual(il.CodeIL));
+
+			if (il.IsFat && init.HasValue) {
+				Assert.AreEqual(il.Flags.HasFlag(CorILMethodFlags.InitLocals), init.Value);
+
+			}
+			
+		}
+
+		static void tiny() { }
+
+		static void sayHi2()
+		{
+			string s = "";
+			Console.WriteLine(s);
+		}
+
+		[SkipLocalsInit]
+		static void sayHi()
+		{
+			string s = "";
+			Console.WriteLine(s);
+		}
+	}
+
+	[TestFixture]
+	public class Tests_Runtime
+	{
+		[Test]
+		public void BoxedTest()
+		{
+			Assert.True(RuntimeInfo.IsBoxed((object) 1));
+		}
+
+		[Test]
+		public void BlankTest()
+		{
+			Assert.True(RuntimeInfo.IsBlank(Array.Empty<int>()));
+		}
+
+		[Test]
+		public void PinnableTest()
+		{
+			string s = "foo";
+			Assert.True(RuntimeInfo.IsPinnable(s));
+
+			string[] rg = {"foo", "bar"};
+			Assert.False(RuntimeInfo.IsPinnable(rg));
+
+			var rg2 = new[] {1, 2, 3};
+			Assert.True(RuntimeInfo.IsPinnable(rg2));
+
+			Assert.True(RuntimeInfo.IsPinnable(1));
+
+			Assert.False(RuntimeInfo.IsPinnable(new List<int> {1, 2, 3}));
+		}
+
+		[Test]
+		public void NilTest()
+		{
+			string s = "foo";
+			Assert.False(RuntimeInfo.IsNil(s));
+
+			string s2 = null;
+			Assert.True(RuntimeInfo.IsNil(s2));
+
+			Assert.True(RuntimeInfo.IsNil(default(int)));
+		}
+	}
+
+	[TestFixture]
+	public class Tests_FileSystem
+	{
+		[Test]
+		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Koala.jpg", 3)]
+		[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Deserts.jpg", 4)]
+		public void FileSystemTest(string str, int i)
+		{
+			var p = new FileInfo(str);
+
+			var a = FileSystem.GetRelativeParent(p.FullName, i);
+			var b = FileSystem.GetParent(p.FullName, i);
+
+			var d = new DirectoryInfo(a);
+			Assert.AreEqual(d.FullName, b);
+		}
+
+		[Test]
+		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.jpg", nameof(FileFormatType.JPEG))]
+		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.gif", nameof(FileFormatType.GIF))]
+		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.bmp", nameof(FileFormatType.BMP))]
+		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.png", nameof(FileFormatType.PNG))]
+		public void FileTypeTest(string s, string n)
+		{
+			//C:\Users\Deci\Pictures\Camera Roll
+
+			var t = FileSystem.ResolveFileType(s);
+
+			Assert.AreEqual(t.Name, n);
+
+			var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s));
+
+			TestContext.WriteLine(m);
+
+			Assert.Throws<ArgumentNullException>(() =>
+			{
+				FileSystem.ResolveMimeType(dataBytes: null);
+			});
 		}
 	}
 
@@ -362,7 +419,6 @@ namespace UnitTest
 				strPin = (IntPtr) c;
 			}
 
-
 			var pin = s.AsMemory().Pin();
 
 			var strPinHandle = (IntPtr) pin.Pointer;
@@ -393,7 +449,6 @@ namespace UnitTest
 
 			Assert.AreEqual(arrayFixed, arrayMem);
 			Assert.AreEqual(arrayPinHandle, arrayMem);
-
 
 			/*
 			 * Object
@@ -485,7 +540,6 @@ namespace UnitTest
 			Assert.True(rg.SequenceEqual(new[] {100, 2, 3}));
 		}
 
-
 		[Test]
 		public void KernelReadWriteTest()
 		{
@@ -534,59 +588,6 @@ namespace UnitTest
 			Assert.AreEqual(((Clazz) Mem.ReadProcessMemory(proc, a1, typeof(Clazz))).a, a.a);
 
 			Assert.AreEqual(((Struct) Mem.ReadProcessMemory(proc, b1, typeof(Struct))).a, b.a);
-		}
-	}
-
-	public static class TestUtil
-	{
-		public static void AssertAll<T>(T t, params Func<T, bool>[] fn)
-		{
-			foreach (var func in fn) {
-				Assert.True(func(t));
-			}
-		}
-
-		public static void AssertAll(params bool[] cond)
-		{
-			foreach (bool b in cond) {
-				Assert.True(b);
-			}
-		}
-	}
-
-	[StructLayout(LayoutKind.Explicit)]
-	public struct MyStruct
-	{
-		[FieldOffset(default)] public int a;
-
-		[FieldOffset(sizeof(int))] public int b;
-	}
-
-	internal class Clazz
-	{
-		public       int a;
-		public const int i = 123_321;
-
-		public Clazz()
-		{
-			a = i;
-		}
-
-		public void SayHi() => Console.WriteLine("hi");
-
-		public override string ToString()
-		{
-			return $"{a}";
-		}
-	}
-
-	internal struct Struct
-	{
-		public int a;
-
-		public override string ToString()
-		{
-			return $"{a}";
 		}
 	}
 }

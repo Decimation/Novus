@@ -11,6 +11,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Resources;
+using static Novus.Common;
+
 // ReSharper disable LoopCanBeConvertedToQuery
 
 // ReSharper disable UnusedMember.Global
@@ -48,7 +50,7 @@ namespace Novus
 
 			Address = Module.BaseAddress;
 
-			Symbols = pdb is not null ? new SymbolLoader(Native.GetCurrentProcess(), pdb) : null;
+			Symbols = pdb is not null ? new SymbolLoader(pdb) : null;
 		}
 
 		public override string ToString()
@@ -95,7 +97,7 @@ namespace Novus
 
 			LoadedTypes.Remove(t);
 
-			Trace.WriteLine($"Unloaded {t.Name}",Common.C_INFO);
+			Trace.WriteLine($"Unloaded {t.Name}",C_INFO);
 		}
 
 		/// <summary>
@@ -114,7 +116,7 @@ namespace Novus
 				Managers.Add(mgr);
 			}
 
-			Debug.WriteLine($"Loading {t.Name}", Common.C_DEBUG);
+			Debug.WriteLine($"Loading {t.Name}", C_DEBUG);
 
 			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
@@ -123,7 +125,7 @@ namespace Novus
 
 				var fieldValue = GetImportValue(attribute, field);
 
-				Debug.WriteLine($"Loading {member.Name} ({attribute.Name}) with {fieldValue}", Common.C_DEBUG);
+				Debug.WriteLine($"Loading {member.Name} ({attribute.Name}) with {fieldValue}", C_DEBUG);
 
 				// Set value
 
@@ -132,7 +134,7 @@ namespace Novus
 
 			LoadedTypes.Add(t);
 
-			Trace.WriteLine($"Loaded {t.Name}", Common.C_INFO);
+			Trace.WriteLine($"Loaded {t.Name}", C_INFO);
 		}
 
 		private static readonly List<Type> LoadedTypes = new();
@@ -172,7 +174,7 @@ namespace Novus
 				var v = manager.GetObject(s);
 
 				if (v != null) {
-					Debug.WriteLine($"{manager.BaseName}:: {v}", Common.C_DEBUG);
+					Debug.WriteLine($"{manager.BaseName}:: {v}", C_DEBUG);
 					return v;
 				}
 			}

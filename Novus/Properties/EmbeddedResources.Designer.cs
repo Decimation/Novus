@@ -97,6 +97,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 08 48 89 74 24 10 57 48 83 EC 20 44 0F B6 41 02.
+        /// </summary>
+        internal static string Sig_GetIL {
+            get {
+                return ResourceManager.GetString("Sig_GetIL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 0F B6 41 02 48 8B D1 0F B7 09.
         /// </summary>
         internal static string Sig_GetMemberDef {

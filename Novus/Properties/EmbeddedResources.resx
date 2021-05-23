@@ -132,6 +132,10 @@
     <value>48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3</value>
     <comment>MethodTable::GetClass</comment>
   </data>
+  <data name="Sig_GetIL" xml:space="preserve">
+    <value>48 89 5C 24 08 48 89 74 24 10 57 48 83 EC 20 44 0F B6 41 02</value>
+    <comment>MethodDesc::GetILHeader</comment>
+  </data>
   <data name="Sig_GetMemberDef" xml:space="preserve">
     <value>0F B6 41 02 48 8B D1 0F B7 09</value>
     <comment>MethodDesc::GetMemberDef</comment>

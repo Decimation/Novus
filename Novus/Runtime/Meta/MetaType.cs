@@ -48,15 +48,16 @@ namespace Novus.Runtime.Meta
 
 		public MetaType(Type t) : base(t) { }
 
-
+		/// <summary>
+		/// Equals <see cref="Type.Attributes"/>
+		/// </summary>
 		public TypeAttributes Attributes => EEClass.Reference.Attributes;
 
 		/// <summary>
 		///     Size of the padding in <see cref="BaseSize" />
 		/// </summary>
 		public int BaseSizePadding => EEClass.Reference.BaseSizePadding;
-
-		//public Pointer<byte> Chunks => EEClass.Reference.Chunks;
+		
 
 		public bool FieldsArePacked => EEClass.Reference.FieldsArePacked;
 

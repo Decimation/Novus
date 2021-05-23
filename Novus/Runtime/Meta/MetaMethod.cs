@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Novus.Memory;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
+using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
@@ -33,7 +35,7 @@ namespace Novus.Runtime.Meta
 
 		public bool HasILHeader => IsIL && !IsUnboxingStub && RVA > default(long);
 
-		private bool IsUnboxingStub => Code.HasFlag(CodeFlags.IsUnboxingStub);
+		private bool IsUnboxingStub => CodeFlags.HasFlag(CodeFlags.IsUnboxingStub);
 
 		public bool IsIL => Classification is MethodClassification.IL or MethodClassification.Instantiated;
 
@@ -57,7 +59,7 @@ namespace Novus.Runtime.Meta
 
 		public MethodProperties Properties => Value.Reference.Properties;
 
-		public CodeFlags Code => Value.Reference.Code;
+		public CodeFlags CodeFlags => Value.Reference.CodeFlags;
 
 		public ParamFlags ParameterTypes => Value.Reference.Flags3AndTokenRemainder;
 
@@ -90,16 +92,14 @@ namespace Novus.Runtime.Meta
 
 		public bool IsPointingToNativeCode => Value.Reference.IsPointingToNativeCode;
 
-		// public MetaIL ILHeader
-		// {
-		// 	get
-		// 	{
-		//
-		// 		// bool
-		// 		const int ALLOW_OVERRIDES_PARAM = 0;
-		// 		return new MetaIL(Value.Reference.GetILHeader(ALLOW_OVERRIDES_PARAM));
-		// 	}
-		// }
+		public MetaIL ILHeader
+		{
+			get
+			{
+				Guard.Assert(HasILHeader);
+				return new MetaIL(Value.Reference.ILHeader);
+			}
+		}
 
 		public static implicit operator MetaMethod(Pointer<MethodDesc> ptr) => new(ptr);
 

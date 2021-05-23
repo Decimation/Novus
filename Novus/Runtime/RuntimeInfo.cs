@@ -212,7 +212,7 @@ namespace Novus.Runtime
 		public static bool IsNullable<T>(T obj)
 		{
 			//https://stackoverflow.com/questions/374651/how-to-check-if-an-object-is-nullable
-
+			
 			if (obj == null) {
 				return true; // obvious
 			}

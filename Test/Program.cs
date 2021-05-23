@@ -29,6 +29,7 @@ using Novus.Win32;
 using Novus.Win32.Structures;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
+using Console = System.Console;
 
 #nullable enable
 
@@ -112,9 +113,9 @@ namespace Test
 		{
 
 
-			var s = "foo";
+			
 
-			Console.WriteLine(Inspector.DumpObject(ref s));
 		}
+		
 	}
 }

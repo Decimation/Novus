@@ -30,6 +30,16 @@ namespace Novus
 	///         </item>
 	///         <item>
 	///             <description>
+	///                 <see cref="Resource" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
+	///                 <see cref="EmbeddedResources" />
+	///             </description>
+	///         </item>
+	///         <item>
+	///             <description>
 	///                 <see cref="Mem" />
 	///             </description>
 	///         </item>
@@ -46,16 +56,6 @@ namespace Novus
 	///         <item>
 	///             <description>
 	///                 <see cref="Pointer{T}" />
-	///             </description>
-	///         </item>
-	///         <item>
-	///             <description>
-	///                 <see cref="EmbeddedResources" />
-	///             </description>
-	///         </item>
-	///         <item>
-	///             <description>
-	///                 <see cref="Resource" />
 	///             </description>
 	///         </item>
 	///         <item>
@@ -110,7 +110,7 @@ namespace Novus
 		public static bool IsSetup { get; private set; }
 
 		public static string ProgramData { get; } =
-			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Global.LIB_NAME);
+			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);
 
 
 		/// <summary>
@@ -122,13 +122,13 @@ namespace Novus
 			/*
 			 * Setup
 			 */
+			
 
-			Trace.WriteLine(">>> Module init <<<");
+			Trace.WriteLine(">>> Module init <<<", C_INFO);
 
 			bool compatible = IsCompatible();
 
 			if (!compatible) {
-				//Guard.Fail();
 				Trace.WriteLine("compatibility check failed!", C_WARN);
 			}
 
@@ -144,7 +144,7 @@ namespace Novus
 				//Close();
 			};
 
-			Trace.WriteLine($">>> {LIB_NAME} loaded <<<");
+			Trace.WriteLine($">>> {LIB_NAME} loaded <<<", C_INFO);
 		}
 
 		public static void Close()

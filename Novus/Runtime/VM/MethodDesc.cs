@@ -2,6 +2,8 @@
 using Novus.Memory;
 using System;
 using System.Runtime.InteropServices;
+using Novus.Runtime.VM.IL;
+using SimpleCore.Diagnostics;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
@@ -24,7 +26,7 @@ namespace Novus.Runtime.VM
 
 		internal byte ChunkIndex { get; }
 
-		internal CodeFlags Code { get; }
+		internal CodeFlags CodeFlags { get; }
 
 		internal ushort SlotNumber { get; }
 
@@ -67,16 +69,8 @@ namespace Novus.Runtime.VM
 			}
 		}
 
-		/*[ImportCall(ImportCallOptions.Map)]
-		internal CorMethod* GetILHeader(int fAllowOverrides)
-		{
-			fixed (MethodDesc* value = &this)
-			{
-				return (CorMethod*)Imports.CallReturnPointer(nameof(GetILHeader), (ulong)value, fAllowOverrides);
-			}
-		}
+		
 
-		*/
 
 		internal long RVA
 		{
@@ -98,6 +92,17 @@ namespace Novus.Runtime.VM
 				int alignmentMask  = alignment - 1;
 
 				return alignment;
+			}
+		}
+
+		internal CorILMethod* ILHeader
+		{
+			get
+			{
+				fixed (MethodDesc* p = &this) {
+					const int fAllowOverrides = 0;
+					return Func_GetILHeader(p, fAllowOverrides);
+				}
 			}
 		}
 
@@ -151,6 +156,12 @@ namespace Novus.Runtime.VM
 		/// </summary>
 		[field: ImportClr("Sig_Reset")]
 		private static delegate* unmanaged<MethodDesc*, void> Func_Reset { get; }
+
+		/// <summary>
+		/// <see cref="ILHeader"/>
+		/// </summary>
+		[field: ImportClr("Sig_GetIL")]
+		private static delegate* unmanaged<MethodDesc*, int, CorILMethod*> Func_GetILHeader { get; }
 	}
 
 	/// <summary>

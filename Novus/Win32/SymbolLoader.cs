@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
+
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Win32
@@ -37,6 +38,8 @@ namespace Novus.Win32
 
 			LoadAll();
 		}
+
+		public SymbolLoader(string image) : this(Native.GetCurrentProcess(), image) { }
 
 		public void Dispose()
 		{
@@ -69,7 +72,7 @@ namespace Novus.Win32
 
 			var sym = SymbolsCache.FirstOrDefault(s => s.Name.Contains(name));
 
-			//todo: symfromname...
+			//todo: SymFromName...
 			/*var d = new DebugSymbol();
 			d.SizeOfStruct = (uint)Marshal.SizeOf<DebugSymbol>();
 			d.MaxNameLen = 1000;
@@ -96,6 +99,7 @@ namespace Novus.Win32
 			}
 
 			const string mask = "*!*";
+
 
 			Native.SymEnumSymbols(Process, m_modBase, mask, EnumSymCallback, IntPtr.Zero);
 
@@ -141,8 +145,8 @@ namespace Novus.Win32
 
 
 			ulong modBase = Native.SymLoadModuleEx(Process, IntPtr.Zero, Image,
-				null, baseOfDll, dllSize, IntPtr.Zero, 0);
-			
+			                                       null, baseOfDll, dllSize, IntPtr.Zero, 0);
+
 			return modBase;
 		}
 
@@ -155,7 +159,7 @@ namespace Novus.Win32
 			using var peReader = new PEReader(File.OpenRead(fname));
 
 			var codeViewEntry = peReader.ReadDebugDirectory()
-				.First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+			                            .First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
 
 			var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 

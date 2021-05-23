@@ -98,13 +98,11 @@ namespace Novus.Utilities
 
 
 		#region Properties
-
-		//public static Type[] GetAllSubclasses<T>() => GetAllSubclasses(typeof(T));
+		
 
 		public static Type[] GetAllSubclasses(this Type superType) =>
 			GetAllWhere(superType, myType => myType.ExtendsType(superType));
-
-		//public static Type[] GetAllImplementations<T>() => GetAllImplementations(typeof(T));
+		
 
 		public static Type[] GetAllImplementations(this Type interfaceType) =>
 			GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
@@ -253,8 +251,10 @@ namespace Novus.Utilities
 
 			return rg.ToArray();
 		}
+	}
 
-
+	public static class ReflectionOperatorHelpers
+	{
 		public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
 		{
 			var body = (MemberExpression) expression.Body;

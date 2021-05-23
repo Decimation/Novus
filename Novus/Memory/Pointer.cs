@@ -170,7 +170,7 @@ namespace Novus.Memory
 		public uint ToUInt32() => (uint) m_value;
 
 		[Pure]
-		public Span<T> AsSpan(int elemCnt) => new Span<T>(m_value, elemCnt);
+		public Span<T> AsSpan(int elemCnt) => new(m_value, elemCnt);
 		
 
 

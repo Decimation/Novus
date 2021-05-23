@@ -1,9 +1,3 @@
-using Novus.Memory;
-using Novus.Runtime;
-using Novus.Runtime.Meta;
-using Novus.Utilities;
-using Novus.Win32;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,11 +6,57 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Novus.Memory;
+using Novus.Runtime;
+using Novus.Runtime.Meta;
+using Novus.Utilities;
+using Novus.Win32;
+using NUnit.Framework;
 
 // ReSharper disable InconsistentNaming
 
 namespace UnitTest
 {
+	[TestFixture]
+	public class Tests_ReflectionHelper
+	{
+		[Test]
+		public void Test1()
+		{
+			Assert.True(typeof(Implement1).ImplementsInterface(typeof(IInterface)));
+			Assert.True(typeof(Subclass1).ExtendsType(typeof(Superclass1)));
+
+
+		}
+
+		[Test]
+		public void Test2()
+		{
+			Assert.True(typeof(IInterface).GetAllImplementations().Contains(typeof(Implement1)));
+			Assert.True(typeof(Superclass1).GetAllSubclasses().Contains(typeof(Subclass1)));
+		}
+
+		[Test]
+		[TestCase(typeof(int),true,true,false)]
+		[TestCase(typeof(float), true, false, true)]
+		[TestCase(typeof(Half), true, false, true)]
+		public void Test3(Type t, bool isNum, bool isInt, bool isReal)
+		{
+			Assert.AreEqual(isNum, t.IsNumeric());
+			Assert.AreEqual(isInt,t.IsInteger());
+			Assert.AreEqual(isReal, t.IsReal());
+
+		}
+
+		private abstract class Superclass1 { }
+
+		private class Subclass1 : Superclass1 { }
+
+		private interface IInterface { }
+
+		private class Implement1 : IInterface { }
+	}
+
 	[TestFixture]
 	public class Tests_FileSystem
 	{
@@ -47,7 +87,7 @@ namespace UnitTest
 
 			Assert.AreEqual(t.Name, n);
 
-			var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s), null);
+			var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s));
 
 			TestContext.WriteLine(m);
 
@@ -82,12 +122,12 @@ namespace UnitTest
 			string[] rg = {"foo", "bar"};
 			Assert.False(RuntimeInfo.IsPinnable(rg));
 
-			var rg2 = new int[] {1, 2, 3};
+			var rg2 = new[] {1, 2, 3};
 			Assert.True(RuntimeInfo.IsPinnable(rg2));
 
 			Assert.True(RuntimeInfo.IsPinnable(1));
 
-			Assert.False(RuntimeInfo.IsPinnable(new List<int>() {1, 2, 3}));
+			Assert.False(RuntimeInfo.IsPinnable(new List<int> {1, 2, 3}));
 		}
 
 		[Test]
@@ -275,7 +315,7 @@ namespace UnitTest
 		}
 
 		[Test]
-		public unsafe void AllocUTest()
+		public void AllocUTest()
 		{
 			var s = Allocator.AllocU<Clazz>();
 
@@ -292,7 +332,7 @@ namespace UnitTest
 		public void Setup() { }
 
 		[Test]
-		public unsafe void OffsetTest()
+		public void OffsetTest()
 		{
 			Assert.AreEqual(0, Mem.OffsetOf<MyStruct>(nameof(MyStruct.a)));
 			Assert.AreEqual(sizeof(int), Mem.OffsetOf<MyStruct>(nameof(MyStruct.b)));
@@ -339,7 +379,7 @@ namespace UnitTest
 
 			IntPtr arrayFixed;
 
-			var rg = new int[] {1, 2, 3};
+			var rg = new[] {1, 2, 3};
 
 			fixed (int* c = rg) {
 				arrayFixed = (IntPtr) c;
@@ -484,8 +524,8 @@ namespace UnitTest
 		[Test]
 		public void SpecialReadTest()
 		{
-			Clazz  a = new Clazz() {a  = 321};
-			Struct b = new Struct() {a = 123};
+			Clazz  a = new Clazz {a  = 321};
+			Struct b = new Struct {a = 123};
 
 			var proc = Process.GetCurrentProcess();
 			var a1   = Mem.AddressOf(ref a);

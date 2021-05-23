@@ -7,6 +7,7 @@ using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
 using Novus.Win32;
+using static Novus.Common;
 
 // ReSharper disable UnusedMember.Global
 [assembly: InternalsVisibleTo("Ultrakiller")]
@@ -128,7 +129,7 @@ namespace Novus
 
 			if (!compatible) {
 				//Guard.Fail();
-				Trace.WriteLine("[WARNING] compatibility check failed!");
+				Trace.WriteLine("compatibility check failed!", C_WARN);
 			}
 
 
@@ -163,5 +164,14 @@ namespace Novus
 
 			return ver && gc && os;
 		}
+	}
+
+	internal static class Common
+	{
+		internal const string C_DEBUG = "[debug]";
+
+		internal const string C_INFO = "[info]";
+
+		internal const string C_WARN = "[warning]";
 	}
 }

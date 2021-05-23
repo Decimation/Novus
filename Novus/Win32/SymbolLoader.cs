@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
@@ -97,6 +98,9 @@ namespace Novus.Win32
 			const string mask = "*!*";
 
 			Native.SymEnumSymbols(Process, m_modBase, mask, EnumSymCallback, IntPtr.Zero);
+
+			Debug.WriteLine($"{SymbolsCache.Count}");
+
 		}
 
 		private void Cleanup()
@@ -138,7 +142,7 @@ namespace Novus.Win32
 
 			ulong modBase = Native.SymLoadModuleEx(Process, IntPtr.Zero, Image,
 				null, baseOfDll, dllSize, IntPtr.Zero, 0);
-
+			
 			return modBase;
 		}
 

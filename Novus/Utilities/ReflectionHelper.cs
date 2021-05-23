@@ -99,10 +99,26 @@ namespace Novus.Utilities
 
 		#region Properties
 
-		public static bool ImplementsInterface(this Type type, string interfaceName)
+		//public static Type[] GetAllSubclasses<T>() => GetAllSubclasses(typeof(T));
+
+		public static Type[] GetAllSubclasses(this Type superType) =>
+			GetAllWhere(superType, myType => myType.ExtendsType(superType));
+
+		//public static Type[] GetAllImplementations<T>() => GetAllImplementations(typeof(T));
+
+		public static Type[] GetAllImplementations(this Type interfaceType) =>
+			GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
+
+		public static bool ExtendsType(this Type myType, Type superType)
 		{
-			return type.GetInterface(interfaceName) != null;
+			return myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(superType);
 		}
+
+		public static bool ImplementsInterface(this Type type, Type interfaceType) =>
+			type.ImplementsInterface(interfaceType.Name);
+
+		public static bool ImplementsInterface(this Type type, string interfaceName) =>
+			type.GetInterface(interfaceName) != null;
 
 		public static bool ImplementsGenericInterface(this Type type, Type genericType)
 		{
@@ -225,15 +241,13 @@ namespace Novus.Utilities
 
 		#endregion
 
-		public static Type[] GetAllImplementations<T>() => GetAllImplementations(typeof(T));
-
-		public static Type[] GetAllImplementations(Type t)
+		private static Type[] GetAllWhere(Type t, Func<Type, bool> fn)
 		{
 			var rg = new List<Type>();
 
 			var asmTypes = Assembly.GetAssembly(t).GetTypes();
 
-			var types = asmTypes.Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(t));
+			var types = asmTypes.Where(fn);
 
 			rg.AddRange(types);
 

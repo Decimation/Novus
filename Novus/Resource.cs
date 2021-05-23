@@ -23,7 +23,7 @@ namespace Novus
 	/// <seealso cref="EmbeddedResources"/>
 	public class Resource
 	{
-		public Pointer<byte> Address { get; }
+		public        Pointer<byte> Address { get; }
 
 		public ProcessModule Module { get; }
 
@@ -32,7 +32,7 @@ namespace Novus
 		public SigScanner Scanner { get; }
 
 		[CanBeNull]
-		public SymbolLoader Symbols { get; }
+		public SymbolLoader Symbols { get; set; }
 
 		public Resource(string moduleName, string pdb = null)
 		{
@@ -95,7 +95,7 @@ namespace Novus
 
 			LoadedTypes.Remove(t);
 
-			Trace.WriteLine($"[info] Unloaded {t.Name}");
+			Trace.WriteLine($"Unloaded {t.Name}",Common.C_INFO);
 		}
 
 		/// <summary>
@@ -114,7 +114,7 @@ namespace Novus
 				Managers.Add(mgr);
 			}
 
-			Debug.WriteLine($"[debug] Loading {t.Name}");
+			Debug.WriteLine($"Loading {t.Name}", Common.C_DEBUG);
 
 			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
@@ -123,7 +123,7 @@ namespace Novus
 
 				var fieldValue = GetImportValue(attribute, field);
 
-				Debug.WriteLine($"[debug] Loading {member.Name} ({attribute.Name}) with {fieldValue}");
+				Debug.WriteLine($"Loading {member.Name} ({attribute.Name}) with {fieldValue}", Common.C_DEBUG);
 
 				// Set value
 
@@ -132,7 +132,7 @@ namespace Novus
 
 			LoadedTypes.Add(t);
 
-			Trace.WriteLine($"[info] Loaded {t.Name}");
+			Trace.WriteLine($"Loaded {t.Name}", Common.C_INFO);
 		}
 
 		private static readonly List<Type> LoadedTypes = new();
@@ -172,7 +172,7 @@ namespace Novus
 				var v = manager.GetObject(s);
 
 				if (v != null) {
-					Debug.WriteLine($"[debug] {manager.BaseName}:: {v}");
+					Debug.WriteLine($"{manager.BaseName}:: {v}", Common.C_DEBUG);
 					return v;
 				}
 			}

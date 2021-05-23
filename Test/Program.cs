@@ -110,14 +110,11 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			
+
 
 			var s = "foo";
 
-			
-
+			Console.WriteLine(Inspector.DumpObject(ref s));
 		}
-
-		
 	}
 }

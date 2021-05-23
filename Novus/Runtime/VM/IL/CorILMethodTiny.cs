@@ -10,6 +10,11 @@ namespace Novus.Runtime.VM.IL
 	[StructLayout(LayoutKind.Sequential)]
 	internal unsafe struct CorILMethodTiny
 	{
+
+		/*
+		 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/CoreClr/VM/Jit/CorMethodTiny.cs
+		 */
+
 		private byte m_flagsAndCodeSize;
 
 

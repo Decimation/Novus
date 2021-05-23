@@ -19,6 +19,11 @@ namespace Novus.Runtime.Meta
 	/// </summary>
 	public class MetaIL : BaseClrStructure<CorILMethod>
 	{
+		/*
+		 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/CoreClr/Meta/MetaIL.cs
+		 */
+
+
 		public MetaIL(Pointer<CorILMethod> ptr) : base(ptr) { }
 
 		public bool IsFat => Value.Reference.Fat.IsFat;

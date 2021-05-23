@@ -9,6 +9,10 @@ namespace Novus.Runtime.VM.IL
 	[StructLayout(LayoutKind.Sequential)]
 	internal unsafe struct CorILMethodFat
 	{
+		/*
+		 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/CoreClr/VM/Jit/CorMethodFat.cs
+		 */
+
 		/// <summary>
 		/// <c>DWORD</c> #1
 		///     <para>unsigned Flags    : 12;</para>

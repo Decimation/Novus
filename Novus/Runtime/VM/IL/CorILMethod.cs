@@ -23,6 +23,8 @@ namespace Novus.Runtime.VM.IL
 		 * https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/corhlpr.h
 		 *
 		 * H:\Archives & Backups\Computer Science\Code\Jit
+		 *
+		 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/CoreClr/VM/Jit/CorMethod.cs
 		 */
 
 

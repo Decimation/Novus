@@ -19,6 +19,9 @@ namespace Novus.Memory
 		 * Signature scanning
 		 *
 		 * https://wiki.alliedmods.net/Signature_scanning
+		 * https://archive.vn/lGmyp
+		 * https://archive.vn/M6hUN
+		 * https://archive.vn/A1yEs
 		 * https://github.com/alliedmodders/sourcemod/blob/master/tools/ida_scripts/makesig.idc
 		 *
 		 * Other implementations:

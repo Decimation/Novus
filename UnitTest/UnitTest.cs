@@ -18,7 +18,6 @@ using Novus.Runtime.VM.IL;
 using UnitTest.TestTypes;
 
 // ReSharper disable IdentifierTypo
-
 // ReSharper disable InconsistentNaming
 
 namespace UnitTest

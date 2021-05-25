@@ -8,7 +8,7 @@ namespace Novus.Imports
 	///     The <see cref="ImportAttribute.Name" /> is the name of the managed function which is enclosed by
 	///     <see cref="ImportManagedAttribute.Type" />.
 	/// </summary>
-	/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
+	/// <remarks>For use with <seealso cref="Resource.Load" /></remarks>
 	[MeansImplicitUse]
 	[AttributeUsage(AttributeTargets.Field)]
 	public class ImportManagedAttribute : ImportAttribute

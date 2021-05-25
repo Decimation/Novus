@@ -39,7 +39,7 @@ namespace UnitTest
 		public void Test()
 		{
 
-			using var r = Resource.Load(s);
+			using var r = Resource.LoadModule(s);
 			r.LoadImports(typeof(Tests_Resources));
 
 			int c = doSomething(1, 1);

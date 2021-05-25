@@ -108,11 +108,15 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		
+		class MyClass
+		{
+			public string s;
+		}
 
 		private static void Main(string[] args)
 		{
-
+			MyClass m = new MyClass(){s="g"};
+			Console.WriteLine(m is MyClass{s:{}});
 			
 		}
 		

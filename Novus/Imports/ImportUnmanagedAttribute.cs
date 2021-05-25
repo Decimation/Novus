@@ -10,7 +10,7 @@ namespace Novus.Imports
 	///     The <see cref="ImportAttribute.Name" /> is the name (key) with which to look up in <see cref="Resource" />
 	///     for the signature to scan using <see cref="Resource.Scanner" />.
 	/// </summary>
-	/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
+	/// <remarks>For use with <seealso cref="Resource.Load" /></remarks>
 	[MeansImplicitUse]
 	[AttributeUsage(AttributeTargets.Field)]
 	public class ImportUnmanagedAttribute : ImportAttribute

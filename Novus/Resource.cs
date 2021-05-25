@@ -37,7 +37,7 @@ namespace Novus
 		[CanBeNull]
 		public SymbolLoader Symbols { get; }
 
-		public bool Loaded { get; private set; }
+		public bool LoadedModule { get; private set; }
 
 
 		/// <summary>
@@ -59,13 +59,13 @@ namespace Novus
 
 			Symbols = pdb is not null ? new SymbolLoader(pdb) : null;
 
-			Loaded = false;
+			LoadedModule = false;
 		}
 
 		/// <summary>
 		/// Loads a module and creates a <see cref="Resource"/> from it.
 		/// </summary>
-		public static Resource Load(string moduleFile)
+		public static Resource LoadModule(string moduleFile)
 		{
 			var f = new FileInfo(moduleFile);
 
@@ -76,7 +76,7 @@ namespace Novus
 
 			var r = new Resource(f.Name)
 			{
-				Loaded = true
+				LoadedModule = true
 			};
 
 			return r;
@@ -197,14 +197,18 @@ namespace Novus
 			return resourceManager;
 		}
 
-		private object GetObject(string s)
+		private object GetObject(ImportAttribute attr)
 		{
-			foreach (var manager in m_managers) {
-				var v = manager.GetObject(s);
+			if (attr is ImportUnmanagedAttribute {Value: { }} unmanaged) {
+				return unmanaged.Value;
+			}
 
-				if (v != null) {
-					Debug.WriteLine($"{manager.BaseName}:: {v}", C_DEBUG);
-					return v;
+			foreach (var manager in m_managers) {
+				var value = manager.GetObject(attr.Name);
+
+				if (value != null) {
+					Debug.WriteLine($"{manager.BaseName}:: {value}", C_DEBUG);
+					return value;
 				}
 			}
 
@@ -232,7 +236,7 @@ namespace Novus
 					 * If value is specified, use it; otherwise, look in resources
 					 */
 
-					var resValue = unmanagedAttr.Value ?? (string) GetObject(name);
+					var resValue = (string) GetObject(attribute);
 
 					Guard.AssertNotNull(resValue);
 
@@ -249,8 +253,9 @@ namespace Novus
 					var addr = unmanagedType switch
 					{
 						UnmanagedImportType.Signature => FindSignature(resValue),
-						UnmanagedImportType.Offset => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
-						UnmanagedImportType.Symbol => ((Pointer<byte>) Module.BaseAddress) + Symbols.GetSymbol(name).Offset,
+						UnmanagedImportType.Offset    => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
+						UnmanagedImportType.Symbol => ((Pointer<byte>) Module.BaseAddress) +
+						                              Symbols.GetSymbol(name).Offset,
 						_ => throw new ArgumentOutOfRangeException()
 					};
 
@@ -304,7 +309,7 @@ namespace Novus
 			UnloadAll();
 			Symbols?.Dispose();
 
-			if (Loaded) {
+			if (LoadedModule) {
 				Native.FreeLibrary(Module.BaseAddress);
 			}
 		}

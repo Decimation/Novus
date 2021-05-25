@@ -19,7 +19,7 @@ namespace Novus.Runtime.VM
 	{
 		static MethodTable()
 		{
-			Resource.LoadImports(typeof(MethodTable));
+			Global.Clr.LoadImports(typeof(MethodTable));
 		}
 
 		internal short ComponentSize { get; }

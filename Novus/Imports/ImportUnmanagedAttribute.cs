@@ -17,21 +17,24 @@ namespace Novus.Imports
 	{
 		public string ModuleName { get; set; }
 
-		public UnmanagedType UnmanagedType { get; set; }
+		public UnmanagedImportType UnmanagedType { get; set; }
 
+		[CanBeNull]
+		public string Value { get; set; }
 
-		public ImportUnmanagedAttribute(string moduleName, UnmanagedType unmanagedType)
-			: this(moduleName, null, unmanagedType) { }
+		public ImportUnmanagedAttribute(string moduleName, UnmanagedImportType unmanagedType, string value = null)
+			: this(moduleName, null, unmanagedType, value) { }
 
-		public ImportUnmanagedAttribute(string moduleName, string name, UnmanagedType unmanagedType)
-			: base(name, ManageType.Unmanaged)
+		public ImportUnmanagedAttribute(string moduleName, string name, UnmanagedImportType unmanagedType,
+		                                string value = null) : base(name, ImportManageType.Unmanaged)
 		{
 			ModuleName    = moduleName;
 			UnmanagedType = unmanagedType;
+			Value         = value;
 		}
 	}
 
-	public enum UnmanagedType
+	public enum UnmanagedImportType
 	{
 		Signature,
 		Offset,

@@ -18,7 +18,7 @@ namespace Novus.Runtime.VM
 	{
 		static FieldDesc()
 		{
-			Resource.LoadImports(typeof(FieldDesc));
+			Global.Clr.LoadImports(typeof(FieldDesc));
 		}
 
 		private Pointer<MethodTable> EnclosingMethodTableStub { get; }

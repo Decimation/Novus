@@ -17,7 +17,7 @@ namespace Novus.Runtime.VM
 	{
 		static TypeHandle()
 		{
-			Resource.LoadImports(typeof(TypeHandle));
+			Global.Clr.LoadImports(typeof(TypeHandle));
 		}
 
 		private void* Value { get; }

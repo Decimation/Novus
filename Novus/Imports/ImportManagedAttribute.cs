@@ -13,7 +13,7 @@ namespace Novus.Imports
 	[AttributeUsage(AttributeTargets.Field)]
 	public class ImportManagedAttribute : ImportAttribute
 	{
-		public ImportManagedAttribute(Type type, string name = null) : base(name, ManageType.Managed)
+		public ImportManagedAttribute(Type type, string name = null) : base(name, ImportManageType.Managed)
 		{
 			Type = type;
 

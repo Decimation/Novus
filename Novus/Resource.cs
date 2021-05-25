@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 using System.Resources;
 using static Novus.Common;
@@ -23,9 +24,9 @@ namespace Novus
 	/// Represents a runtime component which contains data and resources.
 	/// </summary>
 	/// <seealso cref="EmbeddedResources"/>
-	public class Resource
+	public class Resource : IDisposable
 	{
-		public        Pointer<byte> Address { get; }
+		public Pointer<byte> Address { get; }
 
 		public ProcessModule Module { get; }
 
@@ -34,8 +35,14 @@ namespace Novus
 		public SigScanner Scanner { get; }
 
 		[CanBeNull]
-		public SymbolLoader Symbols { get; set; }
+		public SymbolLoader Symbols { get; }
 
+		public bool Loaded { get; private set; }
+
+
+		/// <summary>
+		/// Creates a <see cref="Resource"/> from an already-loaded module.
+		/// </summary>
 		public Resource(string moduleName, string pdb = null)
 		{
 			ModuleName = moduleName;
@@ -51,6 +58,28 @@ namespace Novus
 			Address = Module.BaseAddress;
 
 			Symbols = pdb is not null ? new SymbolLoader(pdb) : null;
+
+			Loaded = false;
+		}
+
+		/// <summary>
+		/// Loads a module and creates a <see cref="Resource"/> from it.
+		/// </summary>
+		public static Resource Load(string moduleFile)
+		{
+			var f = new FileInfo(moduleFile);
+
+			Debug.WriteLine($"Loading {f.Name}");
+
+			var l = Native.LoadLibrary(f.FullName);
+
+
+			var r = new Resource(f.Name)
+			{
+				Loaded = true
+			};
+
+			return r;
 		}
 
 		public override string ToString()
@@ -78,14 +107,16 @@ namespace Novus
 
 		#region Import
 
-		public static void Close()
+		public void UnloadAll()
 		{
-			foreach (var type in LoadedTypes) {
+			for (int i = m_loadedTypes.Count - 1; i >= 0; i--) {
+				var type = m_loadedTypes[i];
 				Unload(type);
+				m_loadedTypes.Remove(type);
 			}
 		}
 
-		public static void Unload(Type t)
+		public void Unload(Type t)
 		{
 			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
@@ -95,25 +126,23 @@ namespace Novus
 				field.SetValue(null, null);
 			}
 
-			LoadedTypes.Remove(t);
-
-			Trace.WriteLine($"Unloaded {t.Name}",C_INFO);
+			Trace.WriteLine($"Unloaded type {t.Name}", C_INFO);
 		}
 
 		/// <summary>
 		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
 		/// </summary>
 		/// <param name="t">Enclosing type</param>
-		public static void LoadImports(Type t)
+		public void LoadImports(Type t)
 		{
-			if (LoadedTypes.Contains(t)) {
+			if (m_loadedTypes.Contains(t)) {
 				return;
 			}
 
 			var mgr = GetManager(t.Assembly);
 
-			if (!Managers.Contains(mgr)) {
-				Managers.Add(mgr);
+			if (!m_managers.Contains(mgr)) {
+				m_managers.Add(mgr);
 			}
 
 			Debug.WriteLine($"Loading {t.Name}", C_DEBUG);
@@ -132,14 +161,14 @@ namespace Novus
 				field.SetValue(null, fieldValue);
 			}
 
-			LoadedTypes.Add(t);
+			m_loadedTypes.Add(t);
 
-			Trace.WriteLine($"Loaded {t.Name}", C_INFO);
+			Trace.WriteLine($"Loaded type {t.Name}", C_INFO);
 		}
 
-		private static readonly List<Type> LoadedTypes = new();
+		private readonly List<Type> m_loadedTypes = new();
 
-		private static readonly List<ResourceManager> Managers = new()
+		private readonly List<ResourceManager> m_managers = new()
 		{
 			EmbeddedResources.ResourceManager,
 		};
@@ -168,9 +197,9 @@ namespace Novus
 			return resourceManager;
 		}
 
-		private static object GetObject(string s)
+		private object GetObject(string s)
 		{
-			foreach (var manager in Managers) {
+			foreach (var manager in m_managers) {
 				var v = manager.GetObject(s);
 
 				if (v != null) {
@@ -182,7 +211,7 @@ namespace Novus
 			return null;
 		}
 
-		private static object GetImportValue(ImportAttribute attribute, FieldInfo field)
+		private object GetImportValue(ImportAttribute attribute, FieldInfo field)
 		{
 			object fieldValue = null;
 
@@ -195,37 +224,33 @@ namespace Novus
 					 * Name is the name of the resource file key
 					 */
 
-					Guard.Assert(unmanagedAttr.ManageType == ManageType.Unmanaged);
+					Guard.Assert(unmanagedAttr.ManageType == ImportManageType.Unmanaged);
 
-					// Get value
+					/*
+					 * Get value
+					 *
+					 * If value is specified, use it; otherwise, look in resources
+					 */
 
-					var resValue = (string) GetObject(name);
+					var resValue = unmanagedAttr.Value ?? (string) GetObject(name);
 
 					Guard.AssertNotNull(resValue);
 
-					// Get resource
+					/*
+					 * Get resource
+					 */
 
 					string mod           = unmanagedAttr.ModuleName;
 					var    unmanagedType = unmanagedAttr.UnmanagedType;
 
-					Resource resource;
-
-					// NOTE: Unique case for CLR
-					if (mod == Global.CLR_MODULE && unmanagedAttr is ImportClrAttribute) {
-						resource = Global.Clr;
-					}
-					else {
-						resource = new Resource(mod);
-					}
 
 					// Find address
 
 					var addr = unmanagedType switch
 					{
-						UnmanagedType.Signature => resource.FindSignature(resValue),
-						UnmanagedType.Offset    => resource.GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
-						UnmanagedType.Symbol => ((Pointer<byte>) resource.Module.BaseAddress) +
-						                        resource.Symbols.GetSymbol(name).Offset,
+						UnmanagedImportType.Signature => FindSignature(resValue),
+						UnmanagedImportType.Offset => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
+						UnmanagedImportType.Symbol => ((Pointer<byte>) Module.BaseAddress) + Symbols.GetSymbol(name).Offset,
 						_ => throw new ArgumentOutOfRangeException()
 					};
 
@@ -247,7 +272,7 @@ namespace Novus
 					 * Name is the name of the member
 					 */
 
-					Guard.Assert(managedAttr.ManageType == ManageType.Managed);
+					Guard.Assert(managedAttr.ManageType == ImportManageType.Managed);
 
 					var fn = managedAttr.Type.GetAnyMethod(name);
 
@@ -272,6 +297,16 @@ namespace Novus
 		public Pointer<byte> GetOffset(long ofs)
 		{
 			return Address + (ofs);
+		}
+
+		public void Dispose()
+		{
+			UnloadAll();
+			Symbols?.Dispose();
+
+			if (Loaded) {
+				Native.FreeLibrary(Module.BaseAddress);
+			}
 		}
 	}
 }

@@ -10,9 +10,9 @@ namespace Novus.Imports
 	/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
 	[MeansImplicitUse]
 	[AttributeUsage(AttributeTargets.Field)]
-	public class ImportClrAttribute : ImportUnmanagedAttribute
+	public sealed class ImportClrAttribute : ImportUnmanagedAttribute
 	{
-		public ImportClrAttribute(string name = null, UnmanagedType unmanagedType = UnmanagedType.Signature)
+		public ImportClrAttribute(string name = null, UnmanagedImportType unmanagedType = UnmanagedImportType.Signature)
 			: base(Global.CLR_MODULE, name, unmanagedType) { }
 	}
 }

@@ -34,7 +34,7 @@ namespace Novus.Runtime
 
 		static RuntimeInfo()
 		{
-			Resource.LoadImports(typeof(RuntimeInfo));
+			Global.Clr.LoadImports(typeof(RuntimeInfo));
 		}
 
 		#region Constants

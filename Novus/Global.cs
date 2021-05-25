@@ -150,7 +150,7 @@ namespace Novus
 		public static void Close()
 		{
 			Allocator.Close();
-			Resource.Close();
+			Clr.Dispose();
 
 			IsSetup = false;
 		}

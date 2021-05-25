@@ -12,16 +12,45 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
+using Novus;
+using Novus.Imports;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
 using UnitTest.TestTypes;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-
+#pragma warning disable 0649
 namespace UnitTest
 {
+	[TestFixture]
+	public unsafe class Tests_Resources
+	{
+		private const string s  = "C:\\Users\\Deci\\VSProjects\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
+		private const string s2 = "SandboxLibrary.dll";
+
+		[ImportUnmanaged(s2, UnmanagedImportType.Signature, "89 54 24 10 89 4C 24 08")]
+		private static delegate* unmanaged<int, int, int> doSomething;
+
+		[Test]
+		public void Test()
+		{
+
+			using var r = Resource.Load(s);
+			r.LoadImports(typeof(Tests_Resources));
+
+			int c = doSomething(1, 1);
+
+			Assert.AreEqual(c, 2);
+
+
+		}
+	}
+
+
 	[TestFixture]
 	public class Tests_Native
 	{
@@ -237,7 +266,7 @@ namespace UnitTest
 				Assert.AreEqual(il.Flags.HasFlag(CorILMethodFlags.InitLocals), init.Value);
 
 			}
-			
+
 		}
 
 		static void tiny() { }

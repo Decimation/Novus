@@ -16,7 +16,7 @@ namespace Novus.Runtime.VM
 	{
 		static MethodDesc()
 		{
-			Resource.LoadImports(typeof(MethodDesc));
+			Global.Clr.LoadImports(typeof(MethodDesc));
 		}
 
 		internal MethodClassification Classification =>

@@ -44,7 +44,7 @@ namespace Novus.Win32
 		public static void RunBatch(string[] commands, bool dispose)
 		{
 			const string s     = ".bat";
-			string      fname = FileSystem.CreateRandomName() + s;
+			string       fname = FileSystem.CreateRandomName() + s;
 			RunBatch(commands, dispose, fname);
 		}
 
@@ -61,26 +61,9 @@ namespace Novus.Win32
 				proc.ForceKill();
 				File.Delete(fileName);
 			}
-
-
 		}
 
-		public static string[] ReadAllLines(StreamReader stream)
-		{
-			// todo: move to SimpleCore [Streams] class?
-
-			var list = new List<string>();
-
-			while (!stream.EndOfStream) {
-				string? line = stream.ReadLine();
-
-				if (line != null) {
-					list.Add(line);
-				}
-			}
-
-			return list.ToArray();
-		}
+		
 
 		public static Process CreateBatchFileProcess(string fileName)
 		{

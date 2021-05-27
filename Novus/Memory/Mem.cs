@@ -40,6 +40,7 @@ namespace Novus.Memory
 	/// <seealso cref="Mem" />
 	/// <seealso cref="BitConverter" />
 	/// <seealso cref="Convert" />
+	/// <seealso cref="CollectionsMarshal" />
 	/// <seealso cref="MemoryMarshal" />
 	/// <seealso cref="Marshal" />
 	/// <seealso cref="Span{T}" />
@@ -48,6 +49,8 @@ namespace Novus.Memory
 	/// <seealso cref="Allocator" />
 	/// <seealso cref="Unsafe" />
 	/// <seealso cref="RuntimeHelpers" />
+	/// <seealso cref="RuntimeEnvironment" />
+	/// <seealso cref="RuntimeInformation" />
 	/// <seealso cref="FormatterServices"/>
 	/// <seealso cref="Activator"/>
 	/// <seealso cref="GCHeap"/>
@@ -75,10 +78,7 @@ namespace Novus.Memory
 		///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
 		/// </summary>
 		/// <param name="name">Field name</param>
-		public static int OffsetOf<T>(string name)
-		{
-			return OffsetOf(typeof(T), name);
-		}
+		public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
 
 		/// <summary>
 		///     Returns the offset of the field <paramref name="name" /> within the type <paramref name="t" />.

@@ -14,6 +14,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
@@ -108,17 +109,9 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		class MyClass
-		{
-			public string s;
-		}
-
 		private static void Main(string[] args)
 		{
-			MyClass m = new MyClass(){s="g"};
-			Console.WriteLine(m is MyClass{s:{}});
 			
 		}
-		
 	}
 }

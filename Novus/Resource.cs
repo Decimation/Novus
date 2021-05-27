@@ -12,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Resources;
+using System.Runtime.InteropServices;
 using static Novus.Common;
 
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -71,7 +72,8 @@ namespace Novus
 
 			Debug.WriteLine($"Loading {f.Name}");
 
-			var l = Native.LoadLibrary(f.FullName);
+			//var l = Native.LoadLibrary(f.FullName);
+			var l=NativeLibrary.Load(f.FullName);
 
 
 			var r = new Resource(f.Name)
@@ -310,7 +312,8 @@ namespace Novus
 			Symbols?.Dispose();
 
 			if (LoadedModule) {
-				Native.FreeLibrary(Module.BaseAddress);
+				//Native.FreeLibrary(Module.BaseAddress);
+				NativeLibrary.Free(Module.BaseAddress);
 			}
 		}
 	}

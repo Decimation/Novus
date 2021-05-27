@@ -27,6 +27,9 @@ namespace Novus.Runtime
 	///     Utilities for runtime info.
 	/// </summary>
 	/// <seealso cref="Mem" />
+	/// <seealso cref="RuntimeHelpers" />
+	/// <seealso cref="RuntimeEnvironment" />
+	/// <seealso cref="RuntimeInformation" />
 	public static unsafe class RuntimeInfo
 	{
 		// https://github.com/dotnet/runtime/blob/master/src/coreclr/src/vm/object.h

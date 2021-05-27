@@ -46,7 +46,7 @@ namespace Novus.Win32
 		[UnmanagedFunctionPointer(CallingConvention.Winapi)]
 		internal delegate bool EnumSymbolsCallback(IntPtr symInfo, uint symbolSize, IntPtr pUserContext);
 
-		
+
 		[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 		internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase, string mask,
 		                                           EnumSymbolsCallback callback, IntPtr pUserContext);
@@ -265,8 +265,9 @@ namespace Novus.Win32
 
 		[DllImport(URLMON_DLL, CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
 		internal static extern int FindMimeFromData(IntPtr pBC, [MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
-		                                            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.I1,
-		                                                       SizeParamIndex                      = 3)]
+		                                            [MarshalAs(UnmanagedType.LPArray,
+		                                                       ArraySubType   = UnmanagedType.I1,
+		                                                       SizeParamIndex = 3)]
 		                                            byte[] pBuffer,
 		                                            int cbSize,
 		                                            [MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
@@ -288,6 +289,4 @@ namespace Novus.Win32
 
 		#endregion
 	}
-
-	
 }

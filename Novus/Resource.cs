@@ -159,16 +159,18 @@ namespace Novus
 
 				var fieldValue = GetImportValue(attribute, field);
 
-				Debug.WriteLine($"Loading {member.Name} ({attribute.Name}) with {fieldValue}", C_DEBUG);
 
 				// Set value
 
 				field.SetValue(null, fieldValue);
+
+				Debug.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}", C_DEBUG);
 			}
 
 			m_loadedTypes.Add(t);
 
 			Trace.WriteLine($"Loaded type {t.Name}", C_INFO);
+
 		}
 
 		private readonly List<Type> m_loadedTypes = new();

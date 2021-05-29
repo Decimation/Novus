@@ -134,14 +134,6 @@ namespace Novus.Memory
 
 		}
 
-		public static string ReadCString(this BinaryReader br, int count)
-		{
-			string s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
-
-
-			return s;
-		}
-
 		/// <summary>
 		///     Forcefully kills a <see cref="Process" /> and ensures the process has exited.
 		/// </summary>

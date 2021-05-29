@@ -290,6 +290,18 @@ namespace UnitTest
 	public class Tests_Runtime
 	{
 		[Test]
+		public void PinnableBlittableTest()
+		{
+			Assert.True(RuntimeInfo.IsPinnable("g"));
+			Assert.False(RuntimeInfo.IsBlittable("g"));
+
+
+			Assert.True(RuntimeInfo.IsPinnable(new int[] {1, 2, 3}));
+			Assert.False(RuntimeInfo.IsBlittable(new int[] {1, 2, 3}));
+		}
+
+
+		[Test]
 		public void BoxedTest()
 		{
 			Assert.True(RuntimeInfo.IsBoxed((object) 1));
@@ -607,7 +619,7 @@ namespace UnitTest
 		[Test]
 		public void SpecialReadTest()
 		{
-			var  a = new Clazz {a  = 321};
+			var a = new Clazz {a  = 321};
 			var b = new Struct {a = 123};
 
 			var proc = Process.GetCurrentProcess();

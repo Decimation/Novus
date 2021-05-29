@@ -117,7 +117,7 @@ namespace Test
 			Inspector.DumpObject(ref s);
 
 			Inspector.DumpLayout(ref s);
-
+			
 		}
 	}
 }

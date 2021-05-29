@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Novus.Imports;
 using Novus.Memory;
+using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using SimpleCore.Diagnostics;
-// ReSharper disable ConvertIfStatementToReturnStatement
 
+// ReSharper disable ConvertIfStatementToReturnStatement
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnassignedGetOnlyAutoProperty
-
 // ReSharper disable ClassCannotBeInstantiated
-
 // ReSharper disable UnusedMember.Global
 
 #pragma warning disable CS0618, CS1574
@@ -38,6 +35,50 @@ namespace Novus.Runtime
 		static RuntimeInfo()
 		{
 			Global.Clr.LoadImports(typeof(RuntimeInfo));
+		}
+
+		/// <summary>
+		///     <see cref="ResolveType" />
+		/// </summary>
+		[field: ImportManaged(typeof(Type), "GetTypeFromHandleUnsafe")]
+		private static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
+
+		/// <summary>
+		///     <see cref="IsPinnable" />
+		/// </summary>
+		[field: ImportManaged(typeof(Marshal), "IsPinnable")]
+		private static delegate* managed<object, bool> Func_IsPinnable { get; }
+
+		/// <summary>
+		///     Used for unsafe pinning of arbitrary objects.
+		/// This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
+		/// </summary>
+		public static PinningHelper GetPinningHelper(object value) => Unsafe.As<PinningHelper>(value);
+
+
+		/// <summary>
+		///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
+		///     <code>
+		///  fixed (byte* pData = &amp;PinHelper.GetPinningHelper(value).Data)
+		///  {
+		///  }
+		///  </code>
+		///     <remarks>
+		///         <para><c>pData</c> is what <c>Object::GetData()</c> returns in VM.</para>
+		///         <para><c>pData</c> is also equal to offsetting the pointer by <see cref="OffsetOptions.Fields" />. </para>
+		///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
+		///     </remarks>
+		/// </summary>
+		[UsedImplicitly]
+		public sealed class PinningHelper
+		{
+			/// <summary>
+			///     Represents the first field in an object.
+			/// </summary>
+			/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
+			public byte Data;
+
+			private PinningHelper() { }
 		}
 
 		#region Constants
@@ -124,6 +165,7 @@ namespace Novus.Runtime
 
 		#endregion
 
+		#region Offset
 
 		internal static Pointer<byte> FieldOffset<TField>(TField* field, int offset) where TField : unmanaged
 		{
@@ -162,6 +204,10 @@ namespace Novus.Runtime
 			return super.Add(size).Cast<TSub>();
 		}
 
+		#endregion
+
+		#region Structures
+
 		/// <summary>
 		///     Reads <see cref="TypeHandle" /> as <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from
 		///     <paramref name="value" />
@@ -194,7 +240,7 @@ namespace Novus.Runtime
 		/// <summary>
 		///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 		/// </summary>
-		/// <remarks>Inverse of <see cref="ResolveTypeHandle" /></remarks>
+		/// <remarks>Inverse of <see cref="ResolveTypeHandle(System.Type)" /></remarks>
 		public static Type ResolveType(Pointer<MethodTable> handle)
 		{
 			return Func_GetTypeFromHandle(handle.Address);
@@ -212,10 +258,28 @@ namespace Novus.Runtime
 			return typeHandleValue.MethodTable;
 		}
 
+		#endregion
+
+		#region Properties
+
+		/// <summary>
+		///     Determines whether <paramref name="obj" /> is blittable; that is, whether it has identical data representation in
+		///     both
+		///     managed and unmanaged memory.
+		/// </summary>
+		/// <returns><c>true</c> if blittable; <c>false</c> otherwise</returns>
+		public static bool IsBlittable<T>(T obj) => obj.GetMetaType().IsBlittable;
+
+		/// <summary>
+		///     Determines whether <paramref name="value" /> is pinnable.
+		/// </summary>
+		/// <returns><c>true</c> if pinnable; <c>false</c> otherwise</returns>
+		public static bool IsPinnable([CanBeNull] object value) => Func_IsPinnable(value);
+
 		public static bool IsNullable<T>(T obj)
 		{
 			//https://stackoverflow.com/questions/374651/how-to-check-if-an-object-is-nullable
-			
+
 			if (obj == null) {
 				return true; // obvious
 			}
@@ -248,15 +312,11 @@ namespace Novus.Runtime
 		/// <summary>
 		///     Determines whether <paramref name="value" /> is boxed.
 		/// </summary>
+		/// <returns><c>true</c> if boxed; <c>false</c> otherwise</returns>
 		public static bool IsBoxed<T>([CanBeNull] T value)
 		{
 			return (typeof(T).IsInterface || typeof(T) == typeof(object)) && value != null && IsStruct(value);
 		}
-
-		/// <summary>
-		///     Determines whether <paramref name="value" /> is pinnable.
-		/// </summary>
-		public static bool IsPinnable([CanBeNull] object value) => Func_IsPinnable(value);
 
 		/// <summary>
 		///     Heuristically determines whether <paramref name="value" /> is blank.
@@ -300,86 +360,6 @@ namespace Novus.Runtime
 			return test;
 		}
 
-		public static HashSet<AssemblyName> DumpDependencies()
-		{
-			var rg = new[]
-			{
-				//
-				//typeof(Global).Assembly,
-				//Assembly.GetExecutingAssembly(),
-				//
-				Assembly.GetCallingAssembly()
-			};
-
-			var asm = new HashSet<AssemblyName>();
-
-			foreach (var assembly in rg) {
-
-				var dependencies = GetUserDependencies(assembly);
-
-				asm.UnionWith(dependencies);
-
-			}
-
-			return asm;
-		}
-
-		public static Assembly GetAssemblyByName(string name)
-		{
-			return AppDomain.CurrentDomain.GetAssemblies()
-				.SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
-		}
-
-		public static IEnumerable<AssemblyName> GetUserDependencies(Assembly asm)
-		{
-			const string SYSTEM = "System";
-
-			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
-		}
-
-		/// <summary>
-		///     Used for unsafe pinning of arbitrary objects.
-		///     This allows for pinning of unblittable objects,
-		///     with the <c>fixed</c> statement.
-		/// </summary>
-		public static PinningHelper GetPinningHelper(object value) => Unsafe.As<PinningHelper>(value);
-
-
-		/// <summary>
-		///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
-		///     <code>
-		///  fixed (byte* pData = &amp;PinHelper.GetPinningHelper(value).Data)
-		///  {
-		///  }
-		///  </code>
-		///     <remarks>
-		///         <para><c>pData</c> is what <c>Object::GetData()</c> returns in VM.</para>
-		///         <para><c>pData</c> is also equal to offsetting the pointer by <see cref="OffsetOptions.Fields" />. </para>
-		///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
-		///     </remarks>
-		/// </summary>
-		[UsedImplicitly]
-		public sealed class PinningHelper
-		{
-			/// <summary>
-			///     Represents the first field in an object.
-			/// </summary>
-			/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
-			public byte Data;
-
-			private PinningHelper() { }
-		}
-
-		/// <summary>
-		/// <see cref="RuntimeInfo.ResolveType"/>
-		/// </summary>
-		[field: ImportManaged(typeof(Type), "GetTypeFromHandleUnsafe")]
-		private static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
-
-		/// <summary>
-		/// <see cref="RuntimeInfo.IsPinnable"/>
-		/// </summary>
-		[field: ImportManaged(typeof(Marshal), "IsPinnable")]
-		private static delegate* managed<object, bool> Func_IsPinnable { get; }
+		#endregion
 	}
 }

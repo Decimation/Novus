@@ -27,8 +27,6 @@ namespace Novus.Runtime
 		[Flags]
 		public enum InspectorOptions
 		{
-			// todo
-
 			None = 0,
 
 			Offset  = 1,
@@ -211,26 +209,8 @@ namespace Novus.Runtime
 			layoutTable.Write();
 		}
 
-		public static void DumpObject<T>(ref T value)
-		{
-			/*var mt = value.GetMetaType();
-
-			var fields = mt.RuntimeType.GetRuntimeFields().Where(f => !f.IsStatic);
-
-			var sb = new ConsoleTable("Name", "Value");
-
-			//sb.AddRow($"[{mt.Name}]:\n");
-
-			foreach (var field in fields) {
-				sb.AddRow($"{field.Name}", $"{field.GetValue(value)}");
-			}
-
-
-			sb.Write();*/
-
+		public static void DumpObject<T>(ref T value) =>
 			DumpLayout(ref value, InspectorOptions.Name | InspectorOptions.Value);
-
-		}
 
 		#region Native
 

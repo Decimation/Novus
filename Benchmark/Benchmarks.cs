@@ -1,13 +1,9 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using BenchmarkDotNet.Attributes;
-using Novus;
-using Novus.Imports;
+﻿using BenchmarkDotNet.Attributes;
 using Novus.Memory;
 using Novus.Win32;
 using Novus.Win32.Wrappers;
 
-namespace TestBenchmark
+namespace Novus.Benchmark
 {
 	
 	

@@ -32,10 +32,10 @@ namespace Novus.Runtime.Meta
 		/// <see cref="IsHeapPointer"/>
 		/// </summary>
 		[field: ImportClr("Ofs_IsHeapPointer", UnmanagedImportType.Offset)]
-		private static delegate* unmanaged<void*, void*, bool, bool> Func_IsHeapPointer { get; }
+		private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
 
 		[field: ImportClr("Sig_GCObjSize")]
-		private static delegate* unmanaged<void*, ulong> Func_ObjSize { get; }
+		private static delegate* unmanaged[Thiscall]<void*, ulong> Func_ObjSize { get; }
 
 		static GCHeap()
 		{

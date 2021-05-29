@@ -42,7 +42,7 @@ namespace Novus.Runtime.VM
 				// for MDC: m_methodTable.GetValue(PTR_HOST_MEMBER_TADDR(MethodDescChunk, this, m_methodTable));
 
 				const int MT_FIELD_OFS = 0;
-				return RuntimeInfo.FieldOffset((MethodTable*) MethodTableStub.ToPointer(), MT_FIELD_OFS);
+				return Mem.OffsetField((MethodTable*) MethodTableStub.ToPointer(), MT_FIELD_OFS);
 			}
 		}
 	}

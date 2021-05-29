@@ -78,7 +78,7 @@ namespace Novus.Runtime.VM.EE
 			get
 			{
 				fixed (EEClass* value = &this) {
-					return RuntimeInfo.ReadSubStructure<EEClass, ArrayClass>(value);
+					return Mem.ReadSubStructure<EEClass, ArrayClass>(value);
 				}
 			}
 		}

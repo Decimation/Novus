@@ -66,6 +66,7 @@ namespace Novus.Runtime
 			var propTable = new ConsoleTable("-", "Value");
 
 			propTable.AddRow("Pinnable", RuntimeInfo.IsPinnable(value));
+			propTable.AddRow("Blittable", RuntimeInfo.IsBlittable(value));
 			propTable.AddRow("Boxed", RuntimeInfo.IsBoxed(value));
 			propTable.AddRow("Nil", RuntimeInfo.IsNil(value));
 

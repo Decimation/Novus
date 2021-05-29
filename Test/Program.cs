@@ -109,14 +109,14 @@ namespace Test
 
 	public static unsafe class Program
 	{
+		
+
 		private static void Main(string[] args)
 		{
+			Point p = new Point() {X = 1, Y = 2};
 
-			var s = "foo";
-
-			Inspector.DumpObject(ref s);
-
-			Inspector.DumpLayout(ref s);
+			Inspector.DumpLayout(ref p);
+			Inspector.DumpInfo(ref p);
 			
 		}
 	}

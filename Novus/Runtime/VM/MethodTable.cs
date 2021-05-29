@@ -117,13 +117,13 @@ namespace Novus.Runtime.VM
 		/// <see cref="EEClass"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetEEClass")]
-		private static delegate* unmanaged<MethodTable*, EEClass*> Func_GetClass { get; }
+		private static delegate* unmanaged[Thiscall]<MethodTable*, EEClass*> Func_GetClass { get; }
 
 		/// <summary>
 		/// <see cref="NativeLayoutInfo"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetNativeLayoutInfo")]
-		private static delegate* unmanaged<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
+		private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 	}
 
 	/// <summary>

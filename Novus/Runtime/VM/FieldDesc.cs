@@ -60,7 +60,7 @@ namespace Novus.Runtime.VM
 
 				const int MT_FIELD_OFS = 0;
 
-				return RuntimeInfo.FieldOffset((MethodTable*) EnclosingMethodTableStub, MT_FIELD_OFS);
+				return Mem.OffsetField((MethodTable*) EnclosingMethodTableStub, MT_FIELD_OFS);
 			}
 		}
 
@@ -93,7 +93,7 @@ namespace Novus.Runtime.VM
 		/// <see cref="FieldDesc.Size"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetSize")]
-		private static delegate* unmanaged<FieldDesc*, int> Func_GetSize { get; }
+		private static delegate* unmanaged[Thiscall]<FieldDesc*, int> Func_GetSize { get; }
 	}
 
 	/// <summary>

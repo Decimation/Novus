@@ -130,38 +130,38 @@ namespace Novus.Runtime.VM
 		/// <see cref="MethodDesc.IsPointingToNativeCode"/>
 		/// </summary>
 		[field: ImportClr("Sig_IsPointingToNativeCode")]
-		private static delegate* unmanaged<MethodDesc*, int> Func_IsPointingToNativeCode { get; }
+		private static delegate* unmanaged[Thiscall]<MethodDesc*, int> Func_IsPointingToNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.NativeCode"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetNativeCode")]
-		private static delegate* unmanaged<MethodDesc*, void*> Func_GetNativeCode { get; }
+		private static delegate* unmanaged[Thiscall]<MethodDesc*, void*> Func_GetNativeCode { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.Token"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetMemberDef")]
-		private static delegate* unmanaged<MethodDesc*, int> Func_GetToken { get; }
+		private static delegate* unmanaged[Thiscall]<MethodDesc*, int> Func_GetToken { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.RVA"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetRVA")]
-		private static delegate* unmanaged<MethodDesc*, int> Func_GetRVA { get; }
+		private static delegate* unmanaged[Thiscall]<MethodDesc*, int> Func_GetRVA { get; }
 
 
 		/// <summary>
 		/// <see cref="MethodDesc.Reset"/>
 		/// </summary>
 		[field: ImportClr("Sig_Reset")]
-		private static delegate* unmanaged<MethodDesc*, void> Func_Reset { get; }
+		private static delegate* unmanaged[Thiscall]<MethodDesc*, void> Func_Reset { get; }
 
 		/// <summary>
 		/// <see cref="ILHeader"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetIL")]
-		private static delegate* unmanaged<MethodDesc*, int, CorILMethod*> Func_GetILHeader { get; }
+		private static delegate* unmanaged[Thiscall]<MethodDesc*, int, CorILMethod*> Func_GetILHeader { get; }
 	}
 
 	/// <summary>

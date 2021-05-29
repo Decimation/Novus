@@ -93,6 +93,22 @@ namespace Novus.Memory
 			return f.Offset;
 		}
 
+		public static Pointer<byte> OffsetField<TField>(TField* field, int offset) where TField : unmanaged
+		{
+			// Alias: PTR_HOST_MEMBER_TADDR
+
+			// m_methodTable.GetValue(PTR_HOST_MEMBER_TADDR(MethodDescChunk, this, m_methodTable));
+
+			//const int MT_FIELD_OFS = 0;
+			//return (MethodTable*) (MT_FIELD_OFS + ((long) MethodTableRaw));
+
+			// // Construct a pointer to a member of the given type.
+			// #define PTR_HOST_MEMBER_TADDR(type, host, memb) \
+			//     (PTR_HOST_TO_TADDR(host) + (TADDR)offsetof(type, memb))
+
+			return (Pointer<byte>) (offset + (long) field);
+		}
+
 		/// <param name="p">Operand</param>
 		/// <param name="lo">Start address (inclusive)</param>
 		/// <param name="hi">End address (inclusive)</param>
@@ -331,6 +347,19 @@ namespace Novus.Memory
 			return value;
 		}
 
+
+		/// <summary>
+		///     Reads inherited substructure <typeparamref name="TSub" /> from parent <typeparamref name="TSuper" />.
+		/// </summary>
+		/// <typeparam name="TSuper">Superstructure (parent) type</typeparam>
+		/// <typeparam name="TSub">Substructure (child) type</typeparam>
+		/// <param name="super">Superstructure pointer</param>
+		/// <returns>Substructure pointer</returns>
+		public static Pointer<TSub> ReadSubStructure<TSuper, TSub>(Pointer<TSuper> super)
+		{
+			int size = Mem.SizeOf<TSuper>();
+			return super.Add(size).Cast<TSub>();
+		}
 
 		public static string ReadString(sbyte* first, int len)
 		{

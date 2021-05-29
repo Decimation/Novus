@@ -29,13 +29,14 @@ namespace Novus.Runtime
 		{
 			// todo
 
+			None = 0,
 
-			Offset  = 0,
-			Size    = 1,
-			Type    = 1 << 1,
-			Name    = 1 << 2,
-			Address = 1 << 3,
-			Value   = 1 << 4,
+			Offset  = 1,
+			Size    = 1 << 1,
+			Type    = 1 << 2,
+			Name    = 1 << 3,
+			Address = 1 << 4,
+			Value   = 1 << 5,
 
 			All = Offset | Size | Type | Name | Address | Value
 		}
@@ -106,10 +107,13 @@ namespace Novus.Runtime
 
 			var flags = Enums.GetSetFlags(options);
 
-			flags.RemoveAt(flags.Count - 1);
+			if (options == InspectorOptions.All) {
+				flags.Remove(InspectorOptions.All);
+
+			}
 
 			layoutTable.AddColumn(flags.Select(Enum.GetName));
-			
+
 
 			// Rewrite options
 
@@ -207,19 +211,24 @@ namespace Novus.Runtime
 			layoutTable.Write();
 		}
 
-		public static string DumpObject<T>(ref T value)
+		public static void DumpObject<T>(ref T value)
 		{
-			var mt = value.GetMetaType();
+			/*var mt = value.GetMetaType();
 
-			var fields = mt.RuntimeType.GetRuntimeFields().Where(f=>!f.IsStatic);
+			var fields = mt.RuntimeType.GetRuntimeFields().Where(f => !f.IsStatic);
 
-			var sb = new StringBuilder();
-			sb.Append($"[{mt.Name}]:\n");
+			var sb = new ConsoleTable("Name", "Value");
+
+			//sb.AddRow($"[{mt.Name}]:\n");
+
 			foreach (var field in fields) {
-				sb.Append($"{field.Name}: {field.GetValue(value)}\n");
+				sb.AddRow($"{field.Name}", $"{field.GetValue(value)}");
 			}
 
-			return sb.ToString();
+
+			sb.Write();*/
+
+			DumpLayout(ref value, InspectorOptions.Name | InspectorOptions.Value);
 
 		}
 

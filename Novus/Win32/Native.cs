@@ -11,12 +11,11 @@ using Novus.Memory;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
 using SimpleCore.Diagnostics;
-using UnmanagedType = System.Runtime.InteropServices.UnmanagedType;
+
+#pragma warning disable CA1401, CA2101
 
 // ReSharper disable IdentifierTypo
-
 // ReSharper disable InconsistentNaming
-
 // ReSharper disable UnusedMember.Global
 //using Microsoft.Windows.Sdk;
 
@@ -217,6 +216,33 @@ namespace Novus.Win32
 		/// </summary>
 		public static IntPtr GetConsoleWindowHandle() => GetWindowByCaption(Console.Title);
 
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
+		internal static extern IntPtr GetForegroundWindow();
+
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+		internal static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
+
+		/*
+		/// <summary>Returns true if the current application has focus, false otherwise</summary>
+		private static bool ApplicationIsActivated()
+		{
+			//https://stackoverflow.com/questions/7162834/determine-if-current-application-is-activated-has-focus
+			var activatedHandle = GetForegroundWindow();
+
+			if (activatedHandle == IntPtr.Zero) {
+				return false; // No window is currently activated
+			}
+
+			var p1     = Process.GetCurrentProcess();
+			var procId = p1.Id;
+			int activeProcId;
+			GetWindowThreadProcessId(activatedHandle, out activeProcId);
+			var p2 = Process.GetProcessById(activeProcId);
+			
+
+			return activeProcId == procId;
+		}*/
+
 		#endregion
 
 		#region Image
@@ -248,6 +274,33 @@ namespace Novus.Win32
 		}
 
 		#endregion
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern bool Module32First(IntPtr hSnapshot, ref ModuleEntry32 lpme);
+
+		[DllImport(KERNEL32_DLL)]
+		internal static extern bool Module32Next(IntPtr hSnapshot, ref ModuleEntry32 lpme);
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		internal static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
+
+		internal static List<ModuleEntry32> EnumProcessModules(uint procId)
+		{
+			var snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module | SnapshotFlags.Module32, procId);
+
+			var mod = new ModuleEntry32() {dwSize = (uint) Marshal.SizeOf(typeof(ModuleEntry32))};
+
+			if (!Module32First(snapshot, ref mod))
+				return null;
+
+			List<ModuleEntry32> modules = new();
+
+			do {
+				modules.Add(mod);
+			} while (Module32Next(snapshot, ref mod));
+
+			return modules;
+		}
 
 		/*
 		 * CsWin32 and Microsoft.Windows.Sdk tanks VS performance; won't use it for now

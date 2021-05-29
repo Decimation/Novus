@@ -32,7 +32,7 @@ using SimpleCore.Utilities;
 using Console = System.Console;
 
 #nullable enable
-
+#pragma warning disable IDE0060
 
 namespace Test
 {
@@ -111,7 +111,13 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			
+
+			var s = "foo";
+
+			Inspector.DumpObject(ref s);
+
+			Inspector.DumpLayout(ref s);
+
 		}
 	}
 }

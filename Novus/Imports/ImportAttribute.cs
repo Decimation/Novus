@@ -8,7 +8,7 @@ namespace Novus.Imports
 	/// <summary>
 	///     Describes an imported member.
 	/// </summary>
-	/// <remarks>For use with <seealso cref="Resource.Load" /></remarks>
+	/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
 	[AttributeUsage(AttributeTargets.Field)]
 	[MeansImplicitUse(ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors)]
 	public abstract class ImportAttribute : Attribute

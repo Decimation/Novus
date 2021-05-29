@@ -23,7 +23,8 @@ using UnitTest.TestTypes;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-#pragma warning disable 0649
+#pragma warning disable 0649, IDE0044
+
 namespace UnitTest
 {
 	[TestFixture]
@@ -247,9 +248,9 @@ namespace UnitTest
 
 
 		[Test]
-		[TestCase(nameof(sayHi2), true)]
-		[TestCase(nameof(sayHi), false)]
-		[TestCase(nameof(tiny), null)]
+		[TestCase(nameof(SayHi2), true)]
+		[TestCase(nameof(SayHi), false)]
+		[TestCase(nameof(Tiny), null)]
 		public unsafe void ILTest(string name, bool? init)
 		{
 			var m = typeof(Tests_Metadata).GetAnyMethod(name);
@@ -269,16 +270,16 @@ namespace UnitTest
 
 		}
 
-		static void tiny() { }
+		private static void Tiny() { }
 
-		static void sayHi2()
+		private static void SayHi2()
 		{
 			string s = "";
 			Console.WriteLine(s);
 		}
 
 		[SkipLocalsInit]
-		static void sayHi()
+		private static void SayHi()
 		{
 			string s = "";
 			Console.WriteLine(s);
@@ -377,7 +378,7 @@ namespace UnitTest
 		[Test]
 		public void AllocatorTest()
 		{
-			Pointer<byte> h = Allocator.Alloc(256);
+			var h = Allocator.Alloc(256);
 
 			Assert.AreEqual(true, Allocator.IsAllocated(h));
 
@@ -471,7 +472,7 @@ namespace UnitTest
 
 			var arrayPin = rg.AsMemory().Pin();
 
-			IntPtr arrayPinHandle = (IntPtr) arrayPin.Pointer;
+			var arrayPinHandle = (IntPtr) arrayPin.Pointer;
 
 			var arrayMem = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData).Address;
 
@@ -482,7 +483,7 @@ namespace UnitTest
 			 * Object
 			 */
 
-			object obj = new object();
+			object obj = new();
 
 			IntPtr objFixed;
 
@@ -606,8 +607,8 @@ namespace UnitTest
 		[Test]
 		public void SpecialReadTest()
 		{
-			Clazz  a = new Clazz {a  = 321};
-			Struct b = new Struct {a = 123};
+			var  a = new Clazz {a  = 321};
+			var b = new Struct {a = 123};
 
 			var proc = Process.GetCurrentProcess();
 			var a1   = Mem.AddressOf(ref a);

@@ -30,6 +30,7 @@ using SimpleCore.Utilities;
 // ReSharper disable UnusedVariable
 // ReSharper disable UnusedMember.Global
 
+#pragma warning disable IDE0059
 
 namespace Novus.Memory
 {

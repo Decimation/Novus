@@ -7,7 +7,6 @@ using static Novus.Memory.PointerFormatting;
 
 // ReSharper disable UnusedMember.Global
 
-#pragma warning disable 8603, 8653
 
 namespace Novus.Memory
 {
@@ -190,8 +189,7 @@ namespace Novus.Memory
 
 		public override bool Equals(object? obj)
 		{
-			if (ReferenceEquals(null, obj))
-				return false;
+			
 
 			return obj is Pointer<T> pointer && Equals(pointer);
 		}

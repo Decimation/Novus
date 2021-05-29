@@ -72,7 +72,8 @@ namespace Novus.Win32
 		private static string GetPath(KnownFolder knownFolder, KnownFolderFlags flags, bool defaultUser)
 		{
 			int result = Native.SHGetKnownFolderPath(new Guid(KnownFolderGuids[(int) knownFolder]),
-				(uint) flags, new IntPtr(defaultUser ? -1 : 0), out IntPtr outPath);
+			                                         (uint) flags, new IntPtr(defaultUser ? -1 : 0),
+			                                         out IntPtr outPath);
 
 			if (result >= 0) {
 				string path = Marshal.PtrToStringUni(outPath)!;
@@ -114,8 +115,8 @@ namespace Novus.Win32
 
 			if (Path.IsPathRooted(fromPath) && Path.IsPathRooted(toPath)) {
 				if (string.Compare(Path.GetPathRoot(fromPath),
-					Path.GetPathRoot(toPath), 
-					StringComparison.OrdinalIgnoreCase) != 0) {
+				                   Path.GetPathRoot(toPath),
+				                   StringComparison.OrdinalIgnoreCase) != 0) {
 					return null;
 				}
 			}
@@ -229,8 +230,8 @@ namespace Novus.Win32
 
 				/* Executing directory */
 				Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory!
-					.Replace("file:///", String.Empty)
-					.Replace("/", "\\"))!,
+				                               .Replace("file:///", String.Empty)
+				                               .Replace("/", "\\"))!,
 
 
 			};
@@ -281,7 +282,7 @@ namespace Novus.Win32
 			}
 
 			int ret = Native.FindMimeFromData(IntPtr.Zero,
-				null, dataBytes, dataBytes.Length, mimeProposed, 0, out var outPtr, 0);
+			                                  null, dataBytes, dataBytes.Length, mimeProposed, 0, out var outPtr, 0);
 
 			if (ret == 0 && outPtr != IntPtr.Zero) {
 

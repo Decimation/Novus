@@ -15,6 +15,8 @@ using System.Resources;
 using System.Runtime.InteropServices;
 using static Novus.Common;
 
+#pragma warning disable IDE0059
+
 // ReSharper disable LoopCanBeConvertedToQuery
 
 // ReSharper disable UnusedMember.Global
@@ -73,7 +75,7 @@ namespace Novus
 			Debug.WriteLine($"Loading {f.Name}");
 
 			//var l = Native.LoadLibrary(f.FullName);
-			var l=NativeLibrary.Load(f.FullName);
+			var l = NativeLibrary.Load(f.FullName);
 
 
 			var r = new Resource(f.Name)
@@ -114,7 +116,7 @@ namespace Novus
 			for (int i = m_loadedTypes.Count - 1; i >= 0; i--) {
 				var type = m_loadedTypes[i];
 				Unload(type);
-				m_loadedTypes.Remove(type);
+
 			}
 		}
 
@@ -129,6 +131,7 @@ namespace Novus
 			}
 
 			Trace.WriteLine($"Unloaded type {t.Name}", C_INFO);
+			m_loadedTypes.Remove(t);
 		}
 
 		/// <summary>
@@ -258,7 +261,8 @@ namespace Novus
 						UnmanagedImportType.Offset    => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
 						UnmanagedImportType.Symbol => ((Pointer<byte>) Module.BaseAddress) +
 						                              Symbols.GetSymbol(name).Offset,
-						_ => throw new ArgumentOutOfRangeException()
+
+						_ => null
 					};
 
 					Guard.Assert(!addr.IsNull);
@@ -315,6 +319,8 @@ namespace Novus
 				//Native.FreeLibrary(Module.BaseAddress);
 				NativeLibrary.Free(Module.BaseAddress);
 			}
+
+			GC.SuppressFinalize(this);
 		}
 	}
 }

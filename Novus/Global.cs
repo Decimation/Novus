@@ -7,7 +7,7 @@ using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
 using Novus.Win32;
-using static Novus.Common;
+using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable UnusedMember.Global
 [assembly: InternalsVisibleTo("Ultrakiller")]
@@ -122,14 +122,14 @@ namespace Novus
 			/*
 			 * Setup
 			 */
-			
+
 
 			Trace.WriteLine(">>> Module init <<<", C_INFO);
 
 			bool compatible = IsCompatible();
 
 			if (!compatible) {
-				Trace.WriteLine("compatibility check failed!", C_WARN);
+				Trace.WriteLine("Compatibility check failed!", C_WARN);
 			}
 
 
@@ -164,14 +164,5 @@ namespace Novus
 
 			return ver && gc && os;
 		}
-	}
-
-	internal static class Common
-	{
-		internal const string C_DEBUG = "[debug]";
-
-		internal const string C_INFO = "[info]";
-
-		internal const string C_WARN = "[warning]";
 	}
 }

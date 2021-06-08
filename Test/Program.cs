@@ -117,7 +117,11 @@ namespace Test
 
 			Inspector.DumpLayout(ref p);
 			Inspector.DumpInfo(ref p);
-			
+
+
+			Native.SetConsoleFont("Consolas", 12);
+			Console.ReadKey();
+			Native.SetConsoleFont("Consolas", 14);
 		}
 	}
 }

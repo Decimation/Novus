@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.SymbolStore;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security;
-using Novus.Memory;
+using System.Text;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
-using SimpleCore.Diagnostics;
 
 #pragma warning disable CA1401, CA2101
 
@@ -217,31 +212,50 @@ namespace Novus.Win32
 		public static IntPtr GetConsoleWindowHandle() => GetWindowByCaption(Console.Title);
 
 		[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
-		internal static extern IntPtr GetForegroundWindow();
+		public static extern IntPtr GetForegroundWindow();
 
 		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-		internal static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
+		public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
 
-		/*
-		/// <summary>Returns true if the current application has focus, false otherwise</summary>
-		private static bool ApplicationIsActivated()
+
+		public const int Win32UnicodeCP = 65001;
+
+		public static readonly Encoding Win32Unicode = Encoding.GetEncoding(Win32UnicodeCP);
+
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern bool SetConsoleOutputCP(uint wCodePageID);
+
+		[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
+		public static extern bool GetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
+		                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
+
+		[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
+		public static extern bool SetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
+		                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
+
+
+		public static void SetConsoleFont(string name, short y, 
+		                                  FontFamily ff = FontFamily.FF_DONTCARE,
+		                                  FontWeight fw = FontWeight.FW_NORMAL)
 		{
-			//https://stackoverflow.com/questions/7162834/determine-if-current-application-is-activated-has-focus
-			var activatedHandle = GetForegroundWindow();
+			ConsoleFontInfo ex = default;
 
-			if (activatedHandle == IntPtr.Zero) {
-				return false; // No window is currently activated
-			}
+			ex.FontFamily   = ff;
+			ex.FontWeight   = fw;
+			ex.FaceName     = name;
+			ex.dwFontSize.X = 0;
+			ex.dwFontSize.Y = y;
 
-			var p1     = Process.GetCurrentProcess();
-			var procId = p1.Id;
-			int activeProcId;
-			GetWindowThreadProcessId(activatedHandle, out activeProcId);
-			var p2 = Process.GetProcessById(activeProcId);
-			
+			SetConsoleFont(ex);
+		}
 
-			return activeProcId == procId;
-		}*/
+		public static void SetConsoleFont(ConsoleFontInfo ex)
+		{
+			ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
+
+			SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), false, ref ex);
+		}
 
 		#endregion
 
@@ -288,7 +302,7 @@ namespace Novus.Win32
 		{
 			var snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module | SnapshotFlags.Module32, procId);
 
-			var mod = new ModuleEntry32() {dwSize = (uint) Marshal.SizeOf(typeof(ModuleEntry32))};
+			var mod = new ModuleEntry32 {dwSize = (uint) Marshal.SizeOf(typeof(ModuleEntry32))};
 
 			if (!Module32First(snapshot, ref mod))
 				return null;
@@ -338,7 +352,8 @@ namespace Novus.Win32
 		public const string SHELL32_DLL = "Shell32.dll";
 
 		private const string DBGHELP_DLL = "DbgHelp.dll";
-		public const  string URLMON_DLL  = "urlmon.dll";
+
+		public const string URLMON_DLL = "urlmon.dll";
 
 		#endregion
 	}

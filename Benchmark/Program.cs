@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Running;
+using Novus.Benchmark;
 
-namespace Novus.Benchmark
+namespace TestBenchmark
 {
 	public static class Program
 	{

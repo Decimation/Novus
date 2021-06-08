@@ -13,7 +13,7 @@ using System.IO;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
-using static Novus.Common;
+using static SimpleCore.Diagnostics.LogCategories;
 
 #pragma warning disable IDE0059
 

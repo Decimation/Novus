@@ -217,6 +217,7 @@ namespace Novus.Win32
 		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
 
+		public const int Win32UnitedStatesCP = 437;
 
 		public const int Win32UnicodeCP = 65001;
 
@@ -226,6 +227,10 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern bool SetConsoleOutputCP(uint wCodePageID);
 
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		internal static extern bool SetConsoleCP(uint wCodePageID);
+
+
 		[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 		public static extern bool GetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
 		                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
@@ -234,8 +239,10 @@ namespace Novus.Win32
 		public static extern bool SetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
 		                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
 
+		[DllImport(USER32_DLL)]
+		public static extern IntPtr GetDC(IntPtr hwnd);
 
-		public static void SetConsoleFont(string name, short y, 
+		public static void SetConsoleFont(string name, short y,
 		                                  FontFamily ff = FontFamily.FF_DONTCARE,
 		                                  FontWeight fw = FontWeight.FW_NORMAL)
 		{
@@ -248,6 +255,15 @@ namespace Novus.Win32
 			ex.dwFontSize.Y = y;
 
 			SetConsoleFont(ex);
+		}
+
+		public static ConsoleFontInfo GetConsoleFont()
+		{
+			ConsoleFontInfo ex = default;
+			ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
+
+			GetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), false, ref ex);
+			return ex;
 		}
 
 		public static void SetConsoleFont(ConsoleFontInfo ex)

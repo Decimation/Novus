@@ -113,15 +113,14 @@ namespace Test
 
 		private static void Main(string[] args)
 		{
-			Point p = new Point() {X = 1, Y = 2};
 
-			Inspector.DumpLayout(ref p);
-			Inspector.DumpInfo(ref p);
-
-
-			Native.SetConsoleFont("Consolas", 12);
+			Console.WriteLine(Console.OutputEncoding);
+			Console.WriteLine('\u2713');
 			Console.ReadKey();
 			Native.SetConsoleFont("Consolas", 14);
+			//Native.SetConsoleFont("ConsolasX", 14);
+			//Console.WriteLine('\u2713');
+			Console.WriteLine(Native.GetDC(Native.GetConsoleWindowHandle()));
 		}
 	}
 }

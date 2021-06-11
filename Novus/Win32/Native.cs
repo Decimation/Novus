@@ -149,6 +149,9 @@ namespace Novus.Win32
 
 		public static IntPtr GetWindowByCaption(string lpWindowName) => FindWindowByCaption(IntPtr.Zero, lpWindowName);
 
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
+		public static extern IntPtr GetForegroundWindow();
+
 		#endregion
 
 
@@ -181,54 +184,34 @@ namespace Novus.Win32
 
 		#region Console
 
-		public const uint ENABLE_QUICK_EDIT = 0x0040;
+		
 
-		public const int STD_ERROR_HANDLE = -12;
-
-		public const int STD_INPUT_HANDLE = -10;
-
-		public const int STD_OUTPUT_HANDLE = -11;
-
-		/// <param name="nStdHandle">
-		///     <see cref="STD_INPUT_HANDLE" />,
-		///     <see cref="STD_OUTPUT_HANDLE" />,
-		///     <see cref="STD_ERROR_HANDLE" />
-		/// </param>
+		
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		public static extern IntPtr GetStdHandle(int nStdHandle);
+		public static extern IntPtr GetStdHandle(StandardHandle nStdHandle);
 
 		[DllImport(KERNEL32_DLL)]
-		public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+		public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out ConsoleModes lpMode);
 
 		[DllImport(KERNEL32_DLL)]
-		public static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+		public static extern bool SetConsoleMode(IntPtr hConsoleHandle, ConsoleModes dwMode);
 
 		[DllImport(KERNEL32_DLL, ExactSpelling = true)]
 		public static extern IntPtr GetConsoleWindow();
 
-		/// <summary>
-		///     Gets console application's window handle. <see cref="Process.MainWindowHandle" /> does not work in some cases.
-		/// </summary>
-		public static IntPtr GetConsoleWindowHandle() => GetWindowByCaption(Console.Title);
 
-		[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
-		public static extern IntPtr GetForegroundWindow();
+		public const int CP_WIN32_UNITED_STATES = 437;
 
-		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-		public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
+		public const int CP_WIN32_UNICODE = 65001;
 
-		public const int Win32UnitedStatesCP = 437;
-
-		public const int Win32UnicodeCP = 65001;
-
-		public static readonly Encoding Win32Unicode = Encoding.GetEncoding(Win32UnicodeCP);
+		public static readonly Encoding EncodingWin32Unicode = Encoding.GetEncoding(CP_WIN32_UNICODE);
 
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern bool SetConsoleOutputCP(uint wCodePageID);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		internal static extern bool SetConsoleCP(uint wCodePageID);
+		public static extern bool SetConsoleCP(uint wCodePageID);
 
 
 		[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
@@ -238,9 +221,6 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 		public static extern bool SetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
 		                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
-
-		[DllImport(USER32_DLL)]
-		public static extern IntPtr GetDC(IntPtr hwnd);
 
 		public static void SetConsoleFont(string name, short y,
 		                                  FontFamily ff = FontFamily.FF_DONTCARE,
@@ -262,7 +242,7 @@ namespace Novus.Win32
 			ConsoleFontInfo ex = default;
 			ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
 
-			GetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), false, ref ex);
+			GetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
 			return ex;
 		}
 
@@ -270,7 +250,7 @@ namespace Novus.Win32
 		{
 			ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
 
-			SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), false, ref ex);
+			SetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
 		}
 
 		#endregion
@@ -304,6 +284,12 @@ namespace Novus.Win32
 		}
 
 		#endregion
+
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+		public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
+
+		[DllImport(USER32_DLL)]
+		public static extern IntPtr GetDC(IntPtr hwnd);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool Module32First(IntPtr hSnapshot, ref ModuleEntry32 lpme);
@@ -364,10 +350,9 @@ namespace Novus.Win32
 
 		public const string USER32_DLL = "User32.dll";
 
-
 		public const string SHELL32_DLL = "Shell32.dll";
 
-		private const string DBGHELP_DLL = "DbgHelp.dll";
+		public const string DBGHELP_DLL = "DbgHelp.dll";
 
 		public const string URLMON_DLL = "urlmon.dll";
 

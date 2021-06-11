@@ -35,6 +35,7 @@ namespace Novus.Runtime
 			Name    = 1 << 3,
 			Address = 1 << 4,
 			Value   = 1 << 5,
+			
 
 			All = Offset | Size | Type | Name | Address | Value
 		}
@@ -48,7 +49,7 @@ namespace Novus.Runtime
 			 *
 			 */
 
-			var addrTable = new ConsoleTable("-", "Address");
+			var addrTable = new ConsoleTable("Addresses", "");
 
 			var addr = Mem.AddressOf(ref value);
 			addrTable.AddRow("Address", addr);
@@ -57,20 +58,32 @@ namespace Novus.Runtime
 				addrTable.AddRow("Address (heap)", heap);
 			}
 
-			addrTable.Write();
+			addrTable.Write(ConsoleTableFormat.Minimal);
 
 			/*
 			 *
 			 */
 
-			var propTable = new ConsoleTable("-", "Value");
+			var infoTable = new ConsoleTable("Sizes", "");
+
+			infoTable.AddRow("Intrinsic", Mem.SizeOf<T>());
+			infoTable.AddRow("Auto", Mem.SizeOf(value, SizeOfOptions.Auto));
+
+			infoTable.Write(ConsoleTableFormat.Minimal);
+
+			/*
+			 *
+			 */
+
+			var propTable = new ConsoleTable("Runtime info", "");
 
 			propTable.AddRow("Pinnable", RuntimeInfo.IsPinnable(value));
 			propTable.AddRow("Blittable", RuntimeInfo.IsBlittable(value));
 			propTable.AddRow("Boxed", RuntimeInfo.IsBoxed(value));
 			propTable.AddRow("Nil", RuntimeInfo.IsNil(value));
+			propTable.AddRow("Uninitialized", RuntimeInfo.IsUninitialized(value));
 
-			propTable.Write();
+			propTable.Write(ConsoleTableFormat.Minimal);
 		}
 
 		public static void DumpSizes<T>(ref T value)
@@ -156,7 +169,16 @@ namespace Novus.Runtime
 				}
 
 				if (options.HasFlag(InspectorOptions.Value)) {
-					var fieldVal = metaField.Info.GetValue(value);
+
+					object fieldVal;
+
+					if (!mt.RuntimeType.IsConstructedGenericType) {
+						fieldVal = metaField.Info.GetValue(value);
+					}
+					else {
+						fieldVal = "?";
+					}
+
 					rowValues.Add($"{fieldVal}");
 				}
 
@@ -207,8 +229,11 @@ namespace Novus.Runtime
 			}
 
 
+			
+
 			layoutTable.Write();
 		}
+
 
 		public static void DumpObject<T>(ref T value) =>
 			DumpLayout(ref value, InspectorOptions.Name | InspectorOptions.Value);

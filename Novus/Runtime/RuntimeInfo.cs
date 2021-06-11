@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -275,6 +276,20 @@ namespace Novus.Runtime
 		public static bool IsBoxed<T>([CanBeNull] T value)
 		{
 			return (typeof(T).IsInterface || typeof(T) == typeof(object)) && value != null && IsStruct(value);
+		}
+
+		/// <summary>
+		/// Determines whether <paramref name="t"/> is uninitialized; that is,
+		/// all of its fields are <c>null</c>.
+		/// </summary>
+		public static bool IsUninitialized<T>(T t)
+		{
+			var ptr = Mem.AddressOfFields(ref t);
+			var s   = Mem.SizeOf<T>(t, SizeOfOptions.BaseFields);
+
+			var b = ptr.Copy(s).All(x => x == 0);
+
+			return b;
 		}
 
 		/// <summary>

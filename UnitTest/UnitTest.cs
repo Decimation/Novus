@@ -244,6 +244,13 @@ namespace UnitTest
 			Assert.False(GCHeap.IsHeapPointer(&p));
 
 			Assert.True(GCHeap.IsHeapPointer(s));
+
+			var o = GCHeap.AllocObject(typeof(List<int>).AsMetaType()) as List<int>;
+
+			Assert.NotNull(o);
+			o.Add(1);
+
+			Assert.True(o.Contains(1));
 		}
 
 

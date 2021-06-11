@@ -110,17 +110,16 @@ namespace Test
 	public static unsafe class Program
 	{
 		
-
 		private static void Main(string[] args)
 		{
 
-			Console.WriteLine(Console.OutputEncoding);
-			Console.WriteLine('\u2713');
-			Console.ReadKey();
-			Native.SetConsoleFont("Consolas", 14);
-			//Native.SetConsoleFont("ConsolasX", 14);
-			//Console.WriteLine('\u2713');
-			Console.WriteLine(Native.GetDC(Native.GetConsoleWindowHandle()));
+
+			string s = "foo";
+			Inspector.DumpLayout(ref s);
+
+			var r = new List<int>();
+			Inspector.DumpLayout(ref r);
+			
 		}
 	}
 }

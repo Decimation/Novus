@@ -357,7 +357,7 @@ namespace Novus.Memory
 		/// <returns>Substructure pointer</returns>
 		public static Pointer<TSub> ReadSubStructure<TSuper, TSub>(Pointer<TSuper> super)
 		{
-			int size = Mem.SizeOf<TSuper>();
+			int size = SizeOf<TSuper>();
 			return super.Add(size).Cast<TSub>();
 		}
 
@@ -379,7 +379,7 @@ namespace Novus.Memory
 		{
 			var rg = new List<byte>();
 
-			string[] bytes = s.Split(Formatting.SPACE);
+			string[] bytes = s.Split(StringConstants.SPACE);
 
 			foreach (string b in bytes) {
 				byte n = Byte.Parse(b, NumberStyles.HexNumber);

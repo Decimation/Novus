@@ -1,5 +1,4 @@
 ﻿using BenchmarkDotNet.Running;
-using Novus.Benchmark;
 
 namespace TestBenchmark
 {
@@ -7,7 +6,7 @@ namespace TestBenchmark
 	{
 		public static void Main(string[] args)
 		{
-			BenchmarkRunner.Run<Benchmarks>();
+			BenchmarkRunner.Run<Benchmarks3>();
 		}
 	}
 }

@@ -100,7 +100,7 @@ namespace Novus
 		/// <summary>
 		///     Runtime CLR version
 		/// </summary>
-		public static readonly Version ClrVersion = new(5, 0, 6);
+		public static readonly Version ClrVersion = new(5, 0, 7);
 
 		/// <summary>
 		///     Runtime CLR resources

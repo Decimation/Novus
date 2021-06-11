@@ -61,7 +61,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4A4BF0.
+        ///   Looks up a localized string similar to 4A2D98.
         /// </summary>
         internal static string Ofs_GCHeap {
             get {
@@ -70,7 +70,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 346E60.
+        ///   Looks up a localized string similar to 347210.
         /// </summary>
         internal static string Ofs_IsHeapPointer {
             get {
@@ -151,7 +151,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8B 41 0C 48 8D 15 34 DE 36 00.
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8B 41 0C 48 8D 15 24 DF 36 00.
         /// </summary>
         internal static string Sig_GetSize {
             get {

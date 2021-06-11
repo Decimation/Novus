@@ -87,11 +87,11 @@ namespace Novus.Runtime.Meta
 		public CorElementType NormType => EEClass.Reference.NormType;
 
 
-		public IEnumerable<MetaField> Fields => RuntimeType.GetAllFields()
+		public IEnumerable<MetaField> Fields => RuntimeType.GetRuntimeFields()
 		                                                   .Select(f => new MetaField(f));
 
 
-		public IEnumerable<MetaMethod> Methods => RuntimeType.GetAllMethods()
+		public IEnumerable<MetaMethod> Methods => RuntimeType.GetRuntimeMethods()
 		                                                     .Select(m => new MetaMethod(m));
 
 

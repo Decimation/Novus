@@ -91,15 +91,9 @@ namespace Novus.Memory
 
 		private const byte UNKNOWN_BYTE = 0x0;
 
-		public static byte[] ReadSignature(string szPattern)
+		public static byte[] ReadSignature(string pattern)
 		{
-			// List<byte> patternbytes = new List<byte>();
-			// foreach (string szByte in szPattern.Split(' '))
-			// 	patternbytes.Add(szByte == "?" ? (byte)0x0 : Convert.ToByte(szByte, 16));
-			// return patternbytes.ToArray();
-
-
-			string[] strByteArr   = szPattern.Split(' ');
+			string[] strByteArr   = pattern.Split(' ');
 			byte[]   patternBytes = new byte[strByteArr.Length];
 
 			for (int i = 0; i < strByteArr.Length; i++) {
@@ -126,7 +120,6 @@ namespace Novus.Memory
 			for (int i = 0; i < Buffer.Length; i++) {
 				if (Buffer[i] != pattern[0])
 					continue;
-
 
 				if (PatternCheck(i, pattern)) {
 					var p = Address + i;

@@ -100,6 +100,8 @@ namespace UnitTest
 			Assert.AreEqual(ReflectionOperatorHelpers.fieldof(() => new Subclass1().i),
 			                typeof(Subclass1).GetRuntimeField(nameof(Subclass1.i)));
 		}
+
+		
 	}
 
 	[TestFixture]

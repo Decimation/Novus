@@ -1,9 +1,10 @@
 ﻿using System;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.Win32.Structures
 {
 	[Flags]
-	internal enum SnapshotFlags : uint
+	public enum SnapshotFlags : uint
 	{
 		HeapList = 0x00000001,
 		Process  = 0x00000002,

@@ -1,10 +1,11 @@
 ﻿using System;
 using Novus.Memory;
 using Novus.Win32;
+
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedMember.Global
-
+#pragma warning disable CA1069
 namespace Novus.Runtime
 {
 	public static class Tokens
@@ -93,9 +94,9 @@ namespace Novus.Runtime
 
 		public static bool IsPrimitive(this CorElementType cet)
 		{
-			return cet >= CorElementType.Boolean && cet <= CorElementType.R8
-			       || cet == CorElementType.I   || cet == CorElementType.U
-			       || cet == CorElementType.Ptr || cet == CorElementType.FnPtr;
+			return cet is >= CorElementType.Boolean and <= CorElementType.R8 
+				or CorElementType.I or CorElementType.U 
+				or CorElementType.Ptr or CorElementType.FnPtr;
 		}
 
 		/// <summary>
@@ -307,7 +308,9 @@ namespace Novus.Runtime
 		Max         = 0x22,
 		Modifier    = 0x40,
 		Sentinel    = 0x41,
-		Pinned      = 0x45
+		Pinned      = 0x45,
+
+		Unknown=0
 	}
 
 

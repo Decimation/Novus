@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -361,14 +363,7 @@ namespace Novus.Memory
 			return super.Add(size).Cast<TSub>();
 		}
 
-		public static string ReadString(sbyte* first, int len)
-		{
-			if (first == null || len <= 0) {
-				return null;
-			}
-
-			return new string(first, 0, len);
-		}
+		
 
 		/// <summary>
 		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
@@ -485,7 +480,7 @@ namespace Novus.Memory
 
 			if (mtx.RuntimeType.IsValueType) {
 
-				var m = typeof(Mem).GetAllMethods().First(delegate(MethodInfo n)
+				var m = typeof(Mem).GetRuntimeMethods().First(delegate(MethodInfo n)
 				{
 					var infos = n.GetParameters();
 
@@ -753,6 +748,8 @@ namespace Novus.Memory
 		/// <param name="value"><see cref="int" /> value to read from</param>
 		/// <param name="bitOfs">Beginning offset</param>
 		/// <param name="bitCount">Number of bits to read</param>
+		/// <seealso cref="BitArray"/>
+		/// <seealso cref="BitVector32"/>
 		public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

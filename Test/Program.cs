@@ -6,6 +6,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -112,9 +113,9 @@ namespace Test
 		
 		private static void Main(string[] args)
 		{
+			
 
-
-			string s = "foo";
+			string   s  = "foo";
 			Inspector.DumpLayout(ref s);
 
 			var r = new List<int>();

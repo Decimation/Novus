@@ -1,14 +1,26 @@
 ﻿using BenchmarkDotNet.Attributes;
+using Novus;
 using Novus.Memory;
 using Novus.Win32;
 using Novus.Win32.Wrappers;
 
-namespace Novus.Benchmark
+namespace TestBenchmark
 {
-	
-	
 
 
+
+	public unsafe class Benchmarks3
+	{
+		
+		
+		[Benchmark]
+		public byte[] Bench()
+		{
+			return SigScanner.ReadSignature("48 8B 01 A8 02 75 ? C3");
+
+		}
+
+	}
 	public unsafe class Benchmarks2
 	{
 		private Pointer<int> p;

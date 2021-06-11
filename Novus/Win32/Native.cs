@@ -6,13 +6,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
-
 #pragma warning disable CA1401, CA2101
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 //using Microsoft.Windows.Sdk;
+using MA = System.Runtime.InteropServices.MarshalAsAttribute;
+using UT = System.Runtime.InteropServices.UnmanagedType;
 
 namespace Novus.Win32
 {
@@ -26,6 +27,20 @@ namespace Novus.Win32
 		public const string EXPLORER_EXE = "explorer.exe";
 
 		public const int INVALID = -1;
+
+		#region DLL
+
+		public const string KERNEL32_DLL = "Kernel32.dll";
+
+		public const string USER32_DLL = "User32.dll";
+
+		public const string SHELL32_DLL = "Shell32.dll";
+
+		public const string DBGHELP_DLL = "DbgHelp.dll";
+
+		public const string URLMON_DLL = "urlmon.dll";
+
+		#endregion
 
 
 		#region Symbols
@@ -92,7 +107,8 @@ namespace Novus.Win32
 		internal static IntPtr CreateFile(string fileName, FileAccess access, FileShare share,
 		                                  FileMode mode, FileAttributes attributes)
 		{
-			return CreateFile(fileName, access, share, IntPtr.Zero, mode, attributes, IntPtr.Zero);
+			return CreateFile(fileName, access, share, IntPtr.Zero,
+			                  mode, attributes, IntPtr.Zero);
 		}
 
 		#endregion
@@ -140,6 +156,7 @@ namespace Novus.Win32
 		public static extern IntPtr OpenProcess(ProcessAccess dwDesiredAccess, bool bInheritHandle, int dwProcessId);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true, PreserveSig = true)]
+		[return: MarshalAs(UnmanagedType.Bool)]
 		public static extern bool CloseHandle(IntPtr obj);
 
 		public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
@@ -152,41 +169,39 @@ namespace Novus.Win32
 		[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
 		public static extern IntPtr GetForegroundWindow();
 
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+		public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
+
 		#endregion
 
 
 		#region Virtual
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
-		                                             uint dwSize, AllocationType flAllocationType,
-		                                             MemoryProtection flProtect);
+		public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
+		                                           uint dwSize, AllocationType flAllocationType,
+		                                           MemoryProtection flProtect);
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
-		                                          int dwSize, AllocationType dwFreeType);
+		public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
+		                                        int dwSize, AllocationType dwFreeType);
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress,
-		                                             uint dwSize, MemoryProtection flNewProtect,
-		                                             out MemoryProtection lpflOldProtect);
+		public static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress,
+		                                           uint dwSize, MemoryProtection flNewProtect,
+		                                           out MemoryProtection lpflOldProtect);
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
-		                                          ref MemoryBasicInformation lpBuffer, uint dwLength);
+		public static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
+		                                        ref MemoryBasicInformation lpBuffer, uint dwLength);
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern int VirtualQuery(IntPtr lpAddress,
-		                                        ref MemoryBasicInformation lpBuffer,
-		                                        int dwLength);
+		public static extern int VirtualQuery(IntPtr lpAddress, ref MemoryBasicInformation lpBuffer, int dwLength);
 
 		#endregion
 
 		#region Console
 
-		
-
-		
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern IntPtr GetStdHandle(StandardHandle nStdHandle);
 
@@ -285,11 +300,6 @@ namespace Novus.Win32
 
 		#endregion
 
-		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-		public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
-
-		[DllImport(USER32_DLL)]
-		public static extern IntPtr GetDC(IntPtr hwnd);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool Module32First(IntPtr hSnapshot, ref ModuleEntry32 lpme);
@@ -298,9 +308,9 @@ namespace Novus.Win32
 		internal static extern bool Module32Next(IntPtr hSnapshot, ref ModuleEntry32 lpme);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		internal static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
+		public static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
 
-		internal static List<ModuleEntry32> EnumProcessModules(uint procId)
+		public static List<ModuleEntry32> EnumProcessModules(uint procId)
 		{
 			var snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module | SnapshotFlags.Module32, procId);
 
@@ -326,36 +336,21 @@ namespace Novus.Win32
 		public static extern void GetSystemInfo(ref SystemInfo Info);
 
 		[DllImport(SHELL32_DLL)]
-		internal static extern int SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags,
+		internal static extern int SHGetKnownFolderPath([MA(UT.LPStruct)] Guid rfid, uint dwFlags,
 		                                                IntPtr hToken, out IntPtr ppszPath);
 
 		[DllImport(KERNEL32_DLL)]
 		internal static extern uint LocalSize(IntPtr p);
 
 		[DllImport(URLMON_DLL, CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-		internal static extern int FindMimeFromData(IntPtr pBC, [MarshalAs(UnmanagedType.LPWStr)] string pwzUrl,
-		                                            [MarshalAs(UnmanagedType.LPArray,
-		                                                       ArraySubType   = UnmanagedType.I1,
-		                                                       SizeParamIndex = 3)]
+		internal static extern int FindMimeFromData(IntPtr pBC,
+		                                            [MA(UT.LPWStr)] string pwzUrl,
+		                                            [MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
 		                                            byte[] pBuffer,
 		                                            int cbSize,
-		                                            [MarshalAs(UnmanagedType.LPWStr)] string pwzMimeProposed,
+		                                            [MA(UT.LPWStr)] string pwzMimeProposed,
 		                                            int dwMimeFlags,
 		                                            out IntPtr ppwzMimeOut,
 		                                            int dwReserved);
-
-		#region DLL
-
-		public const string KERNEL32_DLL = "Kernel32.dll";
-
-		public const string USER32_DLL = "User32.dll";
-
-		public const string SHELL32_DLL = "Shell32.dll";
-
-		public const string DBGHELP_DLL = "DbgHelp.dll";
-
-		public const string URLMON_DLL = "urlmon.dll";
-
-		#endregion
 	}
 }

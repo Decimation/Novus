@@ -3,6 +3,7 @@ using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using SimpleCore.Utilities;
 using static Novus.Memory.PointerFormatting;
 
 // ReSharper disable UnusedMember.Global
@@ -189,8 +190,6 @@ namespace Novus.Memory
 
 		public override bool Equals(object? obj)
 		{
-			
-
 			return obj is Pointer<T> pointer && Equals(pointer);
 		}
 
@@ -457,17 +456,10 @@ namespace Novus.Memory
 
 		#region Format
 
-		public override string ToString()
-		{
-			return ToString(FMT_HEX);
-		}
+		public override string ToString() => ToString(FMT_HEX);
+		
 
-		private const string PTR_PREFIX = "0x";
-
-		public string ToString(string format)
-		{
-			return ToString(format, null);
-		}
+		public string ToString(string format) => ToString(format, null);
 
 		public string ToString(string? format, IFormatProvider? provider)
 		{
@@ -479,7 +471,7 @@ namespace Novus.Memory
 			return format.ToUpperInvariant() switch
 			{
 				FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
-				FMT_PTR => PTR_PREFIX + ToString(FMT_HEX),
+				FMT_PTR => Strings.HEX_PREFIX + ToString(FMT_HEX),
 				_       => throw new FormatException()
 			};
 

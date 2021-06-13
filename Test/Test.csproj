@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <NoWarn>
       HAA0601
       HAA0601,

@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Novus.Memory;
 using SimpleCore.Utilities;
 using System.Reflection.PortableExecutable;
+using SimpleCore.Diagnostics;
 
 // ReSharper disable InconsistentNaming
 
@@ -38,10 +39,10 @@ namespace Novus.Utilities
 		public static IEnumerable<MemberInfo> GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
 
 		public static IEnumerable<MemberInfo> GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);
-		
+
 
 		public static FieldInfo GetAnyField(this Type t, string name) => t.GetField(name, ALL_FLAGS);
-		
+
 
 		public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
 
@@ -96,11 +97,10 @@ namespace Novus.Utilities
 
 
 		#region Properties
-		
 
 		public static Type[] GetAllSubclasses(this Type superType) =>
 			GetAllWhere(superType, myType => myType.ExtendsType(superType));
-		
+
 
 		public static Type[] GetAllImplementations(this Type interfaceType) =>
 			GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
@@ -237,11 +237,16 @@ namespace Novus.Utilities
 
 		#endregion
 
+		#region Assemblies
+
 		private static Type[] GetAllWhere(Type t, Func<Type, bool> fn)
 		{
 			var rg = new List<Type>();
 
-			var asmTypes = Assembly.GetAssembly(t).GetTypes();
+			var assembly = Assembly.GetAssembly(t);
+			Guard.AssertNotNull(assembly);
+
+			var asmTypes = assembly.GetTypes();
 
 			var types = asmTypes.Where(fn);
 
@@ -285,6 +290,34 @@ namespace Novus.Utilities
 			const string SYSTEM = "System";
 
 			return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
+		}
+
+		#endregion
+
+		public static T Consolidate<T>(T current, IList<T> values)
+		{
+			var fields = typeof(T).GetRuntimeFields().Where(f => !f.IsStatic);
+
+			foreach (var field in fields) {
+
+				foreach (var value in values) {
+					object fieldVal        = field.GetValue(value);
+					object currentFieldVal = field.GetValue(current);
+
+
+					/*
+					 * (fieldVal != null || (fieldVal is string str && !string.IsNullOrWhiteSpace(str))) &&
+					    (currentFieldVal == null || currentFieldVal is string str2 && string.IsNullOrWhiteSpace(str2))
+					 */
+
+					if (fieldVal != null && currentFieldVal == null) {
+						field.SetValue(current, fieldVal);
+					}
+				}
+
+			}
+
+			return current;
 		}
 	}
 

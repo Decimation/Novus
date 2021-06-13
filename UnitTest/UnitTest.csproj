@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <IsPackable>false</IsPackable>
     <NoWarn>
       HAA0601,

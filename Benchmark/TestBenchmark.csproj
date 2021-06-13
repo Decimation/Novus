@@ -6,6 +6,7 @@
     <StartupObject>TestBenchmark.Program</StartupObject>
     <AssemblyName>TestBenchmark</AssemblyName>
     <RootNamespace>TestBenchmark</RootNamespace>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

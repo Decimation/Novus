@@ -8,6 +8,7 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -18,6 +19,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using Novus;
 using Novus.Imports;
@@ -32,7 +34,7 @@ using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 using Console = System.Console;
 
-#nullable enable
+#nullable disable
 #pragma warning disable IDE0060
 
 namespace Test
@@ -110,17 +112,56 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		
+		private static event EventHandler<KeyEventArgs> KeyPress;
+
+		class KeyEventArgs : EventArgs
+		{
+			public VirtualKeyShort vks;
+		}
+
 		private static void Main(string[] args)
 		{
-			
+			// while (true) {
+			// 	var v = (Native.GetAsyncKeyState(VirtualKeyShort.KEY_M));
+			// 	Console.WriteLine($"{v:X} {Convert.ToString(v, 2)}");
+			// 	bool prev = v == 1;
+			// 	bool down = !prev && v != 0;
+			// 	Console.WriteLine($"{prev} | {down}");
+			// 	Thread.Sleep(500);
+			// }
 
-			string   s  = "foo";
-			Inspector.DumpLayout(ref s);
+			KeyPress += (sender, eventArgs) => Console.WriteLine(eventArgs.vks);
 
-			var r = new List<int>();
-			Inspector.DumpLayout(ref r);
-			
+			var t = new Thread(() =>
+			{
+				while (true) {
+					byte[] rg = new byte[256];
+					Native.GetKeyboardState(rg);
+
+					for (int i = 0; i < rg.Length; i++) {
+						var keyShort = (VirtualKeyShort) (i);
+
+						var keyState = Native.GetAsyncKeyState(keyShort);
+
+						if (keyState != 0 && keyShort != 0) {
+
+							//Console.WriteLine($"{keyShort} {keyState}");
+							KeyPress(null, new KeyEventArgs() {vks = keyShort});
+						}
+					}
+
+					//Thread.Sleep(100);
+				}
+			});
+			t.Start();
+
+			var a = Native.GetFocus();
+			var b = Native.GetForegroundWindow();
+			Global.dbg_print();
+			Global.dbg_print(a, b);
+			Console.WriteLine(Native.GetWindowText(b));
+
+
 		}
 	}
 }

@@ -7,13 +7,15 @@ using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
 using Novus.Win32;
+using SimpleCore.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
+// ReSharper disable LocalizableElement
 
 // ReSharper disable UnusedMember.Global
 [assembly: InternalsVisibleTo("Ultrakiller")]
 [assembly: InternalsVisibleTo("Test")]
 [assembly: InternalsVisibleTo("TestBenchmark")]
-#nullable enable
+#nullable disable
 
 namespace Novus
 {
@@ -132,7 +134,7 @@ namespace Novus
 				Trace.WriteLine("Compatibility check failed!", C_WARN);
 			}
 
-
+			
 			IsSetup = true;
 
 			/*
@@ -145,6 +147,7 @@ namespace Novus
 			};
 
 			Trace.WriteLine($">>> {LIB_NAME} loaded <<<", C_INFO);
+
 		}
 
 		public static void Close()
@@ -163,6 +166,27 @@ namespace Novus
 			bool os  = OperatingSystem.IsWindows();
 
 			return ver && gc && os;
+		}
+
+		internal static void dbg_print(params object[] args)
+		{
+			//todo
+
+			foreach (object t in args) {
+				var str = Format(t);
+				Console.Write($"{str} ");
+			}
+			
+			static string Format(object obj)
+			{
+				return obj switch
+				{
+					IntPtr p => Strings.ToHexString(p),
+					_        => obj.ToString(),
+				};
+			}
+
+			Console.WriteLine();
 		}
 	}
 }

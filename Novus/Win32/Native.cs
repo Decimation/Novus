@@ -15,6 +15,8 @@ using Novus.Win32.Wrappers;
 using MA = System.Runtime.InteropServices.MarshalAsAttribute;
 using UT = System.Runtime.InteropServices.UnmanagedType;
 
+// ReSharper disable UnusedMember.Local
+
 namespace Novus.Win32
 {
 	/// <summary>
@@ -156,15 +158,19 @@ namespace Novus.Win32
 		public static extern IntPtr OpenProcess(ProcessAccess dwDesiredAccess, bool bInheritHandle, int dwProcessId);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true, PreserveSig = true)]
-		[return: MarshalAs(UnmanagedType.Bool)]
+		[return: MarshalAs(UT.Bool)]
 		public static extern bool CloseHandle(IntPtr obj);
 
 		public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
 
-		[DllImport(USER32_DLL, EntryPoint = "FindWindow", SetLastError = true, CharSet = CharSet.Unicode)]
-		private static extern IntPtr FindWindowByCaption(IntPtr zeroOnly, string lpWindowName);
+		[DllImport(USER32_DLL, SetLastError = true)]
+		public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string className,
+		                                         string windowTitle);
 
-		public static IntPtr GetWindowByCaption(string lpWindowName) => FindWindowByCaption(IntPtr.Zero, lpWindowName);
+		[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
+		private static extern IntPtr FindWindow(IntPtr zeroOnly, string lpWindowName);
+
+		public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
 
 		[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
 		public static extern IntPtr GetForegroundWindow();
@@ -301,6 +307,8 @@ namespace Novus.Win32
 		#endregion
 
 
+		#region Toolhelp
+
 		[DllImport(KERNEL32_DLL)]
 		internal static extern bool Module32First(IntPtr hSnapshot, ref ModuleEntry32 lpme);
 
@@ -335,6 +343,69 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern void GetSystemInfo(ref SystemInfo Info);
 
+		#endregion
+
+		#region Input
+
+		[DllImport(USER32_DLL)]
+		internal static extern uint SendInput(uint nInputs,
+		                                      [MA(UT.LPArray), In] INPUT[] pInputs,
+		                                      int cbSize);
+
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
+		public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam,
+		                                        [MA(UT.LPWStr)] string lParam);
+
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
+		public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam,
+		                                        [MA(UT.LPWStr)] string lParam);
+
+
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
+		public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
+
+
+		[DllImport(USER32_DLL, SetLastError = false)]
+		public static extern IntPtr GetMessageExtraInfo();
+
+		[DllImport(USER32_DLL)]
+		public static extern short GetKeyState(VirtualKeyShort k);
+
+		[DllImport(USER32_DLL)]
+		public static extern short GetAsyncKeyState(VirtualKeyShort k);
+
+		[DllImport(USER32_DLL)]
+		[return: MA(UT.Bool)]
+		public static extern bool GetKeyboardState([MA(UT.LPArray), In]byte[] r);
+
+		[DllImport(USER32_DLL)]
+		public static extern short GetFocus();
+
+		[DllImport(USER32_DLL)]
+		[return: MA(UT.Bool)]
+		private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+		private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+
+		public static string GetWindowText(IntPtr hWnd)
+		{
+			const int CAPACITY = 1024;
+
+			var sb = new StringBuilder(CAPACITY);
+
+			var sz = GetWindowText(hWnd, sb, CAPACITY);
+
+			sb.Length = sz;
+
+			return sb.ToString();
+		}
+
+		#endregion
+
+		#region Other
+
 		[DllImport(SHELL32_DLL)]
 		internal static extern int SHGetKnownFolderPath([MA(UT.LPStruct)] Guid rfid, uint dwFlags,
 		                                                IntPtr hToken, out IntPtr ppszPath);
@@ -352,5 +423,7 @@ namespace Novus.Win32
 		                                            int dwMimeFlags,
 		                                            out IntPtr ppwzMimeOut,
 		                                            int dwReserved);
+
+		#endregion
 	}
 }

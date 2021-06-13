@@ -34,8 +34,9 @@ using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 using Console = System.Console;
 
-#nullable disable
+// ReSharper disable UnusedParameter.Local
 #pragma warning disable IDE0060
+#nullable disable
 
 namespace Test
 {
@@ -112,13 +113,6 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		private static event EventHandler<KeyEventArgs> KeyPress;
-
-		class KeyEventArgs : EventArgs
-		{
-			public VirtualKeyShort vks;
-		}
-
 		private static void Main(string[] args)
 		{
 			// while (true) {
@@ -130,35 +124,29 @@ namespace Test
 			// 	Thread.Sleep(500);
 			// }
 
-			KeyPress += (sender, eventArgs) => Console.WriteLine(eventArgs.vks);
-
-			var t = new Thread(() =>
+			var kl = new KeyboardListener
 			{
-				while (true) {
-					byte[] rg = new byte[256];
-					Native.GetKeyboardState(rg);
+				Restrict = Native.GetForegroundWindow()
+			};
 
-					for (int i = 0; i < rg.Length; i++) {
-						var keyShort = (VirtualKeyShort) (i);
+			kl.KeyPress += (sender, eventArgs) =>
+			{
 
-						var keyState = Native.GetAsyncKeyState(keyShort);
-
-						if (keyState != 0 && keyShort != 0) {
-
-							//Console.WriteLine($"{keyShort} {keyState}");
-							KeyPress(null, new KeyEventArgs() {vks = keyShort});
-						}
-					}
-
-					//Thread.Sleep(100);
+				if (eventArgs.Stroke) {
+					Console.WriteLine($"{eventArgs.Key} {eventArgs.IsDown} {eventArgs.Previous} {eventArgs.Stroke}");
 				}
-			});
-			t.Start();
+			};
+
+			kl.Run();
+
+			Thread.Sleep(TimeSpan.FromSeconds(10));
+
+			kl.Stop();
 
 			var a = Native.GetFocus();
 			var b = Native.GetForegroundWindow();
-			Global.dbg_print();
-			Global.dbg_print(a, b);
+			Global.DebugWrite();
+			Global.DebugWrite(a, b);
 			Console.WriteLine(Native.GetWindowText(b));
 
 

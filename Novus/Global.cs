@@ -168,7 +168,7 @@ namespace Novus
 			return ver && gc && os;
 		}
 
-		internal static void dbg_print(params object[] args)
+		internal static void DebugWrite(params object[] args)
 		{
 			//todo
 

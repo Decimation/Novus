@@ -1,6 +1,7 @@
 ﻿using System;
 
 // ReSharper disable UnusedMember.Global
+#pragma warning disable	CA1069
 
 namespace Novus.Win32.Structures
 {

@@ -9,6 +9,7 @@ using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
+using SimpleCore.Model;
 using SimpleCore.Utilities;
 
 // ReSharper disable UnusedMember.Global

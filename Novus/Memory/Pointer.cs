@@ -90,6 +90,7 @@ namespace Novus.Memory
 		}
 
 		public Pointer(IntPtr value) : this(value.ToPointer()) { }
+		
 
 		/// <summary>
 		///     Default offset for <see cref="Pointer{T}" />

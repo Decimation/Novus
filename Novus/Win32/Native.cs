@@ -369,17 +369,18 @@ namespace Novus.Win32
 		public static extern IntPtr GetMessageExtraInfo();
 
 		[DllImport(USER32_DLL)]
-		public static extern short GetKeyState(VirtualKeyShort k);
+		public static extern short GetKeyState(VirtualKey k);
 
 		[DllImport(USER32_DLL)]
-		public static extern short GetAsyncKeyState(VirtualKeyShort k);
+		public static extern short GetAsyncKeyState(VirtualKey k);
 
 		[DllImport(USER32_DLL)]
 		[return: MA(UT.Bool)]
-		public static extern bool GetKeyboardState([MA(UT.LPArray), In]byte[] r);
+		public static extern bool GetKeyboardState([MA(UT.LPArray), In] byte[] r);
+		
 
 		[DllImport(USER32_DLL)]
-		public static extern short GetFocus();
+		public static extern IntPtr GetFocus();
 
 		[DllImport(USER32_DLL)]
 		[return: MA(UT.Bool)]

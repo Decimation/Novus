@@ -47,7 +47,7 @@ namespace Novus.Win32.Structures
 	[StructLayout(LayoutKind.Sequential)]
 	public struct KeyboardInput
 	{
-		public VirtualKeyShort wVk;
+		public VirtualKey wVk;
 		public ScanCodeShort   wScan;
 		public KeyEventFlags   dwFlags;
 		public int             time;

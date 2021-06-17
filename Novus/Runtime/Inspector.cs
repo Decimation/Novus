@@ -221,8 +221,7 @@ namespace Novus.Runtime
 					}
 
 					if (options.HasFlag(InspectorOptions.Value)) {
-						var fieldVal = c;
-						rowValues.Add($"{fieldVal}");
+						rowValues.Add($"{c}");
 					}
 
 					layoutTable.AddRow(rowValues.ToArray());

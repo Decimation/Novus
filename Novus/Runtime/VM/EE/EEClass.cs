@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.Memory;
 using Novus.Utilities;
+// ReSharper disable IdentifierTypo
+// ReSharper disable CommentTypo
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
@@ -43,7 +45,7 @@ namespace Novus.Runtime.VM.EE
 		{
 			get
 			{
-				var ul = (ulong) Union1;
+				ulong ul = (ulong) Union1;
 				return (CorInterfaceType) (uint) ul;
 			}
 		}
@@ -138,7 +140,7 @@ namespace Novus.Runtime.VM.EE
 
 		private int GetPackableField(EEClassFieldId eField)
 		{
-			var u  = (uint) eField;
+			uint u  = (uint) eField;
 			var pf = new PackedFieldsReader(PackedFields, (int) EEClassFieldId.COUNT);
 			return (int) (FieldsArePacked ? pf.GetPackedField(u) : pf.GetUnpackedField(u));
 		}
@@ -191,6 +193,7 @@ namespace Novus.Runtime.VM.EE
 		NativePassInRegisters = 0x10,
 
 		R4HFA = 0x10,
+
 		R8HFA = 0x20
 	}
 
@@ -233,7 +236,7 @@ namespace Novus.Runtime.VM.EE
 		// kind, gc or native).
 		//
 		// Currently this is used by the verifier when verifying value classes
-		// - it's ok to use uninitialised value classes if there are no
+		// - it's ok to use uninitialized value classes if there are no
 		// pointer fields in them.
 		HasFieldsWhichMustBeInited = 0x00000800,
 

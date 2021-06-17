@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -21,12 +22,44 @@ using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
 using UnitTest.TestTypes;
 
+// ReSharper disable StringLiteralTypo
+
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 #pragma warning disable 0649, IDE0044
 
 namespace UnitTest
 {
+	[TestFixture]
+	public unsafe class Tests_Pointer
+	{
+		[Test]
+		public void Test1()
+		{
+			int i = 256;
+
+			var ptr1 = Mem.AddressOf(ref i);
+
+			Assert.AreEqual(ptr1.Value, i);
+			Assert.AreEqual(ptr1.Reference, i);
+
+			var          rg   = new int[] {1, 2, 3};
+			Pointer<int> ptr2 = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
+
+			fixed (int* p1 = rg) {
+				int* cpy = p1;
+
+				for (int j = 0; j < rg.Length; j++) {
+					Assert.True(ptr2.Address == Marshal.UnsafeAddrOfPinnedArrayElement(rg,j));
+					Assert.True(cpy++        == ptr2++);
+				}
+			}
+
+
+		}
+	}
+
+
 	[TestFixture]
 	public unsafe class Tests_Resources
 	{
@@ -100,8 +133,6 @@ namespace UnitTest
 			Assert.AreEqual(ReflectionOperatorHelpers.fieldof(() => new Subclass1().i),
 			                typeof(Subclass1).GetRuntimeField(nameof(Subclass1.i)));
 		}
-
-		
 	}
 
 	[TestFixture]
@@ -374,6 +405,7 @@ namespace UnitTest
 		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.gif", nameof(FileFormatType.GIF))]
 		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.bmp", nameof(FileFormatType.BMP))]
 		[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.png", nameof(FileFormatType.PNG))]
+		[TestCase(@"C:\Users\Deci\Pictures\Icons\terminal.ico", nameof(FileFormatType.ICO))]
 		public void FileTypeTest(string s, string n)
 		{
 			//C:\Users\Deci\Pictures\Camera Roll
@@ -390,6 +422,26 @@ namespace UnitTest
 			{
 				FileSystem.ResolveMimeType(dataBytes: null);
 			});
+		}
+		[TestCase("https://i.imgur.com/QtCausw.png", nameof(FileFormatType.JPEG))]
+		public void FileTypeTest2(string s, string n)
+		{
+			//C:\Users\Deci\Pictures\Camera Roll
+			var sx = new WebClient();
+			var rg = sx.DownloadData(s);
+			var s2 = new MemoryStream(rg);
+			var t  = FileSystem.ResolveFileType(s2);
+
+			Assert.AreEqual(t.Name, n);
+
+			//var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s));
+
+			//TestContext.WriteLine(m);
+
+			//Assert.Throws<ArgumentNullException>(() =>
+			//{
+			//	FileSystem.ResolveMimeType(dataBytes: null);
+			//});
 		}
 	}
 

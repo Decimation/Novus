@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -35,8 +36,8 @@ using SimpleCore.Utilities;
 using Console = System.Console;
 
 // ReSharper disable UnusedParameter.Local
-#pragma warning disable IDE0060
 #nullable disable
+#pragma warning disable IDE0060
 
 namespace Test
 {
@@ -113,43 +114,27 @@ namespace Test
 
 	public static unsafe class Program
 	{
+		
+
 		private static void Main(string[] args)
 		{
-			// while (true) {
-			// 	var v = (Native.GetAsyncKeyState(VirtualKeyShort.KEY_M));
-			// 	Console.WriteLine($"{v:X} {Convert.ToString(v, 2)}");
-			// 	bool prev = v == 1;
-			// 	bool down = !prev && v != 0;
-			// 	Console.WriteLine($"{prev} | {down}");
-			// 	Thread.Sleep(500);
-			// }
+			/*
+			 * string t2x = CallPy("-c \"from translatepy import * " + Environment.NewLine +
+			                    $"print(Language('{lang}').name)\"").Trim();
+			 */
 
-			var kl = new KeyboardListener
-			{
-				Restrict = Native.GetForegroundWindow()
-			};
+			// var p = Command.Py(new []
+			// {
+			// 	"from googletrans import * ", 
+			// 	$"print(Translator().translate('food', dest='es').text)"
+			// });
+			// p.Start();
+			//
+			// var s = p.StandardOutput.ReadToEnd();
+			//
+			// Console.WriteLine(s);
 
-			kl.KeyPress += (sender, eventArgs) =>
-			{
-
-				if (eventArgs.Stroke) {
-					Console.WriteLine($"{eventArgs.Key} {eventArgs.IsDown} {eventArgs.Previous} {eventArgs.Stroke}");
-				}
-			};
-
-			kl.Run();
-
-			Thread.Sleep(TimeSpan.FromSeconds(10));
-
-			kl.Stop();
-
-			var a = Native.GetFocus();
-			var b = Native.GetForegroundWindow();
-			Global.DebugWrite();
-			Global.DebugWrite(a, b);
-			Console.WriteLine(Native.GetWindowText(b));
-
-
+			
 		}
 	}
 }

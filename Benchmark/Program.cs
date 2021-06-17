@@ -6,7 +6,9 @@ namespace TestBenchmark
 	{
 		public static void Main(string[] args)
 		{
-			BenchmarkRunner.Run<Benchmarks3>();
+			//cd .\Benchmark\
+			//dotnet run -c Release
+			BenchmarkRunner.Run<Benchmarks5>();
 		}
 	}
 }

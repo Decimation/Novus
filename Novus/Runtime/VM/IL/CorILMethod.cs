@@ -28,9 +28,11 @@ namespace Novus.Runtime.VM.IL
 		 */
 
 
-		[FieldOffset(0)] internal CorILMethodFat Fat;
+		[FieldOffset(0)]
+		internal CorILMethodFat Fat;
 
-		[FieldOffset(0)] internal CorILMethodTiny Tiny;
+		[FieldOffset(0)]
+		internal CorILMethodTiny Tiny;
 	}
 
 	[Flags]

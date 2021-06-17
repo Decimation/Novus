@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Novus.Memory;
+using SimpleCore.Utilities;
 
 // ReSharper disable UnusedMember.Global
 #nullable enable
@@ -41,33 +44,34 @@ namespace Novus.Win32
 			return process;
 		}
 
-		public static void RunBatch(string[] commands, bool dispose)
+		public static Process Py(string[] commands)
 		{
-			const string s     = ".bat";
-			string       fname = FileSystem.CreateRandomName() + s;
-			RunBatch(commands, dispose, fname);
+			var args = commands.QuickJoin(Environment.NewLine);
+
+			var startInfo = new ProcessStartInfo("python")
+			{
+				Arguments              = $"-c \"{args}\"",
+				UseShellExecute        = false,
+				RedirectStandardOutput = true,
+				StandardOutputEncoding = Native.EncodingWin32Unicode
+			};
+			
+			var proc = new Process() {StartInfo = startInfo};
+
+			return proc;
 		}
 
-		public static void RunBatch(string[] commands, bool dispose, string fname)
+		public static Process Batch(string[] commands)
+		{
+			const string BAT_EXT = ".bat";
+			return Batch(commands, FileSystem.CreateRandomName() + BAT_EXT);
+		}
+
+		public static Process Batch(string[] commands, string fname)
 		{
 			string fileName = FileSystem.CreateTempFile(fname, commands);
 
-			var proc = CreateBatchFileProcess(fileName);
-
-			proc.Start();
-
-
-			if (dispose) {
-				proc.ForceKill();
-				File.Delete(fileName);
-			}
-		}
-
-		
-
-		public static Process CreateBatchFileProcess(string fileName)
-		{
-			var startInfo = new ProcessStartInfo
+			/*var startInfo = new ProcessStartInfo
 			{
 				WindowStyle     = ProcessWindowStyle.Hidden,
 				FileName        = Native.CMD_EXE,
@@ -82,7 +86,22 @@ namespace Novus.Win32
 				EnableRaisingEvents = true
 			};
 
-			return process;
+			return process;*/
+
+			var startInfo = new ProcessStartInfo(fileName)
+			{
+				WindowStyle     = ProcessWindowStyle.Hidden,
+				Verb            = "runas",
+				UseShellExecute = true,
+
+			};
+
+			var proc = new Process
+			{
+				StartInfo = startInfo
+			};
+
+			return proc;
 		}
 	}
 }

@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using JetBrains.Annotations;
 using Novus.Win32.Structures;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
+
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 // ReSharper disable ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
 
@@ -98,12 +102,12 @@ namespace Novus.Win32
 
 			Array.Fill(i, RELATIVE_PATH);
 			i[0] = fi;
-			var p = Path.Combine(i);
+			string p = Path.Combine(i);
 
 			return p;
 		}
 
-		public static string? GetRelativePath(string fromPath, string toPath)
+		/*public static string? GetRelativePath(string fromPath, string toPath)
 		{
 			//https://github.com/gibbed/Gibbed.IO/blob/main/PathHelper.cs
 
@@ -158,7 +162,7 @@ namespace Novus.Win32
 
 			// create relative path
 			return Path.Combine(relativePath.ToArray());
-		}
+		}*/
 
 		public static string GetParent([NotNull] string fi, int n)
 		{
@@ -212,6 +216,7 @@ namespace Novus.Win32
 			return true;
 		}
 
+
 		public static string? FindExecutableLocation(string exe)
 		{
 
@@ -235,7 +240,7 @@ namespace Novus.Win32
 				                               .Replace("file:///", String.Empty)
 				                               .Replace("/", "\\"))!,
 
-
+				//Assembly.GetCallingAssembly().Location
 			};
 
 			rg.AddRange(PathDirectories);
@@ -309,46 +314,35 @@ namespace Novus.Win32
 		public static FileFormatType ResolveFileType(string file) => ResolveFileType(File.ReadAllBytes(file));
 
 
-		private static readonly Dictionary<List<byte[]>, FileFormatType> FileTypeSignatures = new()
+		public static FileFormatType ResolveFileType(Stream stream)
 		{
-			{
-				new List<byte[]>
-				{
-					new byte[] {0xFF, 0xD8, 0xFF, 0xDB},
-					new byte[] {0xFF, 0xD8, 0xFF, 0xE1},
-					new byte[] {0xFF, 0xD8, 0xFF, 0xE0},
+			
 
-					// Photoshop
-					new byte[] {0xFF, 0xD8, 0xFF, 0xED},
-				},
-				FileFormatType.JPEG
+			/*while (stream.CanRead) {
+				var b = stream.ReadByte();
 
-			},
+				if (b == -1) {
+					break;
+				}
 
-			{
-				new List<byte[]>
-				{
-					new byte[] {0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A},
-				},
-				FileFormatType.PNG
-			},
+				foreach (var formatType in FileFormatType.GetAll()) {
+					foreach (byte[] bytes in formatType.Signature) {
+						foreach (byte b1 in bytes) {
+							if (b1 != b) {
+								break;
 
-			{
-				new List<byte[]>
-				{
-					new byte[] {0x47, 0x49, 0x46, 0x38}
-				},
-				FileFormatType.GIF
-			},
+							}
+						}
+					}
+				}
+			}*/
+			
 
-			{
-				new List<byte[]>
-				{
-					new byte[] {0x42, 0x4D},
-				},
-				FileFormatType.BMP
-			}
-		};
+
+
+
+			return ResolveFileType(stream.ToByteArray());
+		}
 
 		/// <summary>
 		///     Attempts to determine the file format (type) given the raw bytes of a file
@@ -364,13 +358,17 @@ namespace Novus.Win32
 
 			//Map.Keys.Any(k=>k.Any(b=>fileBytes.StartsWith(b)))
 
-			foreach (var map in FileTypeSignatures) {
-				foreach (byte[] bytes in map.Key) {
-					if (fileBytes.StartsWith(bytes)) {
-						return map.Value;
+
+			var rg = FileFormatType.GetAll().ToArray();
+
+			foreach (var fileType in rg) {
+				foreach (byte[] sig1 in fileType.Signature) {
+					if (fileBytes.StartsWith(sig1)) {
+						return fileType;
 					}
 				}
 			}
+
 
 			return FileFormatType.Unknown;
 		}
@@ -437,6 +435,16 @@ namespace Novus.Win32
 			string? dir = Array.Find(PathDirectories, s => s == location);
 
 			return !String.IsNullOrWhiteSpace(dir);
+		}
+
+		public static bool IsAdministrator()
+		{
+			using var identity = WindowsIdentity.GetCurrent();
+
+			var principal = new WindowsPrincipal(identity);
+
+			return principal.IsInRole(WindowsBuiltInRole.Administrator);
+
 		}
 	}
 

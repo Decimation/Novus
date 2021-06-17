@@ -25,6 +25,7 @@ namespace Novus.Runtime.VM.EE
 		// for the managed layout.
 
 		// Alias: ManagedLargestAlignmentRequirementOfAllMembers
+
 		internal byte ManagedMaxAlignReqOfAll { get; }
 
 		internal LayoutFlags Flags { get; }

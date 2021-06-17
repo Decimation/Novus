@@ -2,9 +2,10 @@
 using Novus.Memory;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
-
+// ReSharper disable SuggestBaseTypeForParameter
+// ReSharper disable UnusedMember.Local
 // ReSharper disable UnusedMember.Global
-
+#pragma warning disable IDE0051
 namespace Novus.Runtime.Meta
 {
 	/// <summary>
@@ -18,10 +19,6 @@ namespace Novus.Runtime.Meta
 		private const int FIELD_OFFSET_MAX = (1 << 27) - 1;
 
 		private const int FIELD_OFFSET_NEW_ENC = FIELD_OFFSET_MAX - 4;
-
-
-		//public object GetValue(object value) => FieldInfo.GetValue(value);
-
 
 		public MetaField(Pointer<FieldDesc> ptr) : base(ptr) { }
 
@@ -56,14 +53,8 @@ namespace Novus.Runtime.Meta
 
 		public int Size => Value.Reference.Size;
 
-		
-
 		public static implicit operator MetaField(Pointer<FieldDesc> ptr) => new(ptr);
 
 		public static implicit operator MetaField(FieldInfo t) => new(t);
-
-		//		public static bool operator ==(MetaField left, MetaField right) => Equals(left, right);
-
-		//		public static bool operator !=(MetaField left, MetaField right) => !Equals(left, right);
 	}
 }

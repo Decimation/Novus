@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Novus.Memory;
 using Novus.Runtime.VM;
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace Novus.Runtime.Meta.Base
 {

@@ -6,6 +6,7 @@ using Novus.Memory;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
 using SimpleCore.Diagnostics;
+// ReSharper disable SuggestBaseTypeForParameter
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming

@@ -11,7 +11,7 @@ using Novus.Win32.Wrappers;
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
-//using Microsoft.Windows.Sdk;
+
 using MA = System.Runtime.InteropServices.MarshalAsAttribute;
 using UT = System.Runtime.InteropServices.UnmanagedType;
 
@@ -22,8 +22,13 @@ namespace Novus.Win32
 	/// <summary>
 	///     Native interop; Win32 API
 	/// </summary>
-	public static unsafe class Native
+	public static unsafe partial class Native
 	{
+		/*
+		 * CsWin32 and Microsoft.Windows.Sdk tanks VS performance; won't use it for now
+		 */
+
+
 		public const string CMD_EXE = "cmd.exe";
 
 		public const string EXPLORER_EXE = "explorer.exe";
@@ -106,33 +111,26 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL)]
 		private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
 
-		internal static IntPtr CreateFile(string fileName, FileAccess access, FileShare share,
-		                                  FileMode mode, FileAttributes attributes)
-		{
-			return CreateFile(fileName, access, share, IntPtr.Zero,
-			                  mode, attributes, IntPtr.Zero);
-		}
-
 		#endregion
 
 		#region Memory
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
-		                                              int size, out int numBytesRead);
+		public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
+		                                            int size, out int numBytesRead);
 
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
-		                                              int size, out int numBytesRead);
+		public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
+		                                            int size, out int numBytesRead);
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
-		                                              IntPtr size, out IntPtr numBytesRead);
+		public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
+		                                            IntPtr size, out IntPtr numBytesRead);
 
 		[DllImport(KERNEL32_DLL)]
-		internal static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
-		                                               int size, out int numberBytesWritten);
+		public static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
+		                                             int size, out int numberBytesWritten);
 
 		#endregion
 
@@ -161,16 +159,12 @@ namespace Novus.Win32
 		[return: MarshalAs(UT.Bool)]
 		public static extern bool CloseHandle(IntPtr obj);
 
-		public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
-
 		[DllImport(USER32_DLL, SetLastError = true)]
 		public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string className,
 		                                         string windowTitle);
 
 		[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
 		private static extern IntPtr FindWindow(IntPtr zeroOnly, string lpWindowName);
-
-		public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
 
 		[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
 		public static extern IntPtr GetForegroundWindow();
@@ -243,66 +237,12 @@ namespace Novus.Win32
 		public static extern bool SetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
 		                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
 
-		public static void SetConsoleFont(string name, short y,
-		                                  FontFamily ff = FontFamily.FF_DONTCARE,
-		                                  FontWeight fw = FontWeight.FW_NORMAL)
-		{
-			ConsoleFontInfo ex = default;
-
-			ex.FontFamily   = ff;
-			ex.FontWeight   = fw;
-			ex.FaceName     = name;
-			ex.dwFontSize.X = 0;
-			ex.dwFontSize.Y = y;
-
-			SetConsoleFont(ex);
-		}
-
-		public static ConsoleFontInfo GetConsoleFont()
-		{
-			ConsoleFontInfo ex = default;
-			ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
-
-			GetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
-			return ex;
-		}
-
-		public static void SetConsoleFont(ConsoleFontInfo ex)
-		{
-			ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
-
-			SetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
-		}
-
 		#endregion
 
 		#region Image
 
 		[DllImport(DBGHELP_DLL)]
 		private static extern ImageNtHeaders* ImageNtHeader(IntPtr hModule);
-
-		public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
-		{
-			//todo
-
-			// get the location of the module's IMAGE_NT_HEADERS structure
-			var pNtHdr = ImageNtHeader(hModule);
-
-			// section table immediately follows the IMAGE_NT_HEADERS
-			var pSectionHdr = (IntPtr) (pNtHdr + 1);
-			var arr         = new ImageSectionInfo[pNtHdr->FileHeader.NumberOfSections];
-
-			int size = Marshal.SizeOf<ImageSectionHeader>();
-
-			for (int scn = 0; scn < pNtHdr->FileHeader.NumberOfSections; ++scn) {
-				var struc = Marshal.PtrToStructure<ImageSectionHeader>(pSectionHdr);
-				arr[scn] = new ImageSectionInfo(struc, scn, hModule + (int) struc.VirtualAddress);
-
-				pSectionHdr += size;
-			}
-
-			return arr;
-		}
 
 		#endregion
 
@@ -318,38 +258,13 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
 
-		public static List<ModuleEntry32> EnumProcessModules(uint procId)
-		{
-			var snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module | SnapshotFlags.Module32, procId);
-
-			var mod = new ModuleEntry32 {dwSize = (uint) Marshal.SizeOf(typeof(ModuleEntry32))};
-
-			if (!Module32First(snapshot, ref mod))
-				return null;
-
-			List<ModuleEntry32> modules = new();
-
-			do {
-				modules.Add(mod);
-			} while (Module32Next(snapshot, ref mod));
-
-			return modules;
-		}
-
-		/*
-		 * CsWin32 and Microsoft.Windows.Sdk tanks VS performance; won't use it for now
-		 */
-
-		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		public static extern void GetSystemInfo(ref SystemInfo Info);
-
 		#endregion
 
 		#region Input
 
 		[DllImport(USER32_DLL)]
 		internal static extern uint SendInput(uint nInputs,
-		                                      [MA(UT.LPArray), In] INPUT[] pInputs,
+		                                      [MA(UT.LPArray), In] Input[] pInputs,
 		                                      int cbSize);
 
 		[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
@@ -377,7 +292,7 @@ namespace Novus.Win32
 		[DllImport(USER32_DLL)]
 		[return: MA(UT.Bool)]
 		public static extern bool GetKeyboardState([MA(UT.LPArray), In] byte[] r);
-		
+
 
 		[DllImport(USER32_DLL)]
 		public static extern IntPtr GetFocus();
@@ -389,23 +304,24 @@ namespace Novus.Win32
 		[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 		private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
-
-		public static string GetWindowText(IntPtr hWnd)
-		{
-			const int CAPACITY = 1024;
-
-			var sb = new StringBuilder(CAPACITY);
-
-			var sz = GetWindowText(hWnd, sb, CAPACITY);
-
-			sb.Length = sz;
-
-			return sb.ToString();
-		}
-
 		#endregion
 
 		#region Other
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern void GetSystemInfo(ref SystemInfo Info);
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern void GetNativeSystemInfo(ref SystemInfo Info);
+		
+
+		[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+		internal static extern uint GetShortPathName([MA(UT.LPTStr)] string lpszLongPath,
+		                                             [MA(UT.LPTStr)] StringBuilder lpszShortPath,
+		                                             uint cchBuffer);
+
+		[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+		internal static extern uint GetShortPathName(string lpszLongPath, char[] lpszShortPath, int cchBuffer);
 
 		[DllImport(SHELL32_DLL)]
 		internal static extern int SHGetKnownFolderPath([MA(UT.LPStruct)] Guid rfid, uint dwFlags,
@@ -424,6 +340,9 @@ namespace Novus.Win32
 		                                            int dwMimeFlags,
 		                                            out IntPtr ppwzMimeOut,
 		                                            int dwReserved);
+
+		[DllImport(SHELL32_DLL, CharSet = CharSet.Auto)]
+		public static extern bool ShellExecuteEx(ref ShellExecuteInfo lpExecInfo);
 
 		#endregion
 	}

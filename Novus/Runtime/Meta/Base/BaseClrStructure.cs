@@ -3,6 +3,7 @@ using System;
 using System.Reflection;
 using Novus.Memory;
 using Novus.Win32;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.Runtime.Meta.Base
 {
@@ -36,7 +37,7 @@ namespace Novus.Runtime.Meta.Base
 
 		public override string ToString()
 		{
-			return String.Format("Handle: {0}", Value);
+			return $"Handle: {Value}";
 		}
 
 		public override bool Equals(object? obj)
@@ -47,7 +48,7 @@ namespace Novus.Runtime.Meta.Base
 			if (ReferenceEquals(this, obj))
 				return true;
 
-			if (obj.GetType() != this.GetType())
+			if (obj.GetType() != GetType())
 				return false;
 
 			return Equals((BaseClrStructure<TClr>) obj);
@@ -55,7 +56,7 @@ namespace Novus.Runtime.Meta.Base
 
 		public bool Equals(BaseClrStructure<TClr> other)
 		{
-			return this.Value == other.Value;
+			return Value == other.Value;
 		}
 
 		public override int GetHashCode()

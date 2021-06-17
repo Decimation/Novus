@@ -6,6 +6,7 @@ using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Diagnostics;
+// ReSharper disable CommentTypo
 
 // ReSharper disable UnusedMember.Global
 
@@ -50,8 +51,8 @@ namespace Novus.Memory
 
 			Allocated.Remove(ptr);
 
-			var elemSize = Mem.SizeOf<T>();
-			var cb       = Mem.FlatSize(elemSize, elemCnt);
+			int elemSize = Mem.SizeOf<T>();
+			int cb       = Mem.FlatSize(elemSize, elemCnt);
 
 			ptr = Marshal.ReAllocHGlobal(ptr.Address, (IntPtr) cb);
 
@@ -93,8 +94,8 @@ namespace Novus.Memory
 		{
 			Guard.AssertPositive(elemCnt);
 
-			var elemSize = Mem.SizeOf<T>();
-			var cb       = Mem.FlatSize(elemSize, elemCnt);
+			int elemSize = Mem.SizeOf<T>();
+			int cb       = Mem.FlatSize(elemSize, elemCnt);
 
 			Pointer<T> h = Marshal.AllocHGlobal(cb);
 			h.Clear(elemCnt);
@@ -106,7 +107,7 @@ namespace Novus.Memory
 
 		public static T AllocU<T>(params object[] args)
 		{
-			// TODO: WIP
+			// NOTE: WIP
 
 			var mt = typeof(T).AsMetaType();
 

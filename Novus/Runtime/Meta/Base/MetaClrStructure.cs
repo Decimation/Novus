@@ -3,6 +3,7 @@ using System;
 using System.Reflection;
 using Novus.Memory;
 using Novus.Win32;
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace Novus.Runtime.Meta.Base
 {
@@ -13,7 +14,7 @@ namespace Novus.Runtime.Meta.Base
 	public abstract unsafe class MetaClrStructure<TClr> : BaseClrStructure<TClr>
 		where TClr : unmanaged
 	{
-		// TODO: Maybe add MemberInfo type parameter
+		// NOTE: Maybe add MemberInfo type parameter
 		
 		public virtual string Name => Info.Name;
 

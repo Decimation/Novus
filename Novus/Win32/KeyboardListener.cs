@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Novus.Win32.Structures;
+// ReSharper disable EmptyDestructor
 
 namespace Novus.Win32
 {
@@ -92,15 +93,11 @@ namespace Novus.Win32
 			}
 		}
 
-		~KeyboardListener()
-		{
-			// ...
-		}
+		
 
 		public void Dispose()
 		{
 			Stop();
-			GC.SuppressFinalize(this);
 		}
 	}
 

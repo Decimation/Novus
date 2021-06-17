@@ -1,26 +1,93 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System;
+using System.Runtime.InteropServices;
+using BenchmarkDotNet.Attributes;
 using Novus;
 using Novus.Memory;
 using Novus.Win32;
 using Novus.Win32.Wrappers;
 
+#pragma warning disable
 namespace TestBenchmark
 {
+	public unsafe class Benchmarks5
+	{
+		public  int          a;
+		private Pointer<int> ptr1;
+		private int*         ptr2;
+
+		[GlobalSetup]
+		public void Setup()
+		{
+			a = 123;
+
+			fixed (int* p = &a) {
+				ptr2 = p;
+				ptr1 = p;
+			}
+		}
+
+		[Benchmark]
+		public int Test1()
+		{
+			return ptr1.Value;
+		}
+
+		[Benchmark]
+		public int Test2()
+		{
+			return *ptr2;
+		}
+
+		[Benchmark]
+		public int Test3()
+		{
+			return Marshal.ReadInt32((IntPtr) ptr2);
+		}
+	}
+
+	public unsafe class Benchmarks4
+	{
+		private const string DLL = @"C:\Users\Deci\VSProjects\SandboxLibrary\x64\Release\SandboxLibrary.dll";
+		private       IntPtr _p;
+		private       delegate* unmanaged<int, int, int> _x;
+
+		[DllImport(DLL)]
+		private static extern int add(int a, int b);
+
+		[GlobalSetup]
+		public void Setup()
+		{
+			_p = NativeLibrary.Load(DLL);
+			_x = (delegate* unmanaged<int, int, int>) NativeLibrary.GetExport(_p, @"add");
+		}
+
+		[Benchmark]
+		public unsafe int Bench()
+		{
+			return _x(1, 1);
 
 
+		}
+
+		[Benchmark]
+		public unsafe int Bench2()
+		{
+			return add(1, 1);
+
+
+		}
+	}
 
 	public unsafe class Benchmarks3
 	{
-		
-		
 		[Benchmark]
 		public byte[] Bench()
 		{
 			return SigScanner.ReadSignature("48 8B 01 A8 02 75 ? C3");
 
 		}
-
 	}
+
 	public unsafe class Benchmarks2
 	{
 		private Pointer<int> p;

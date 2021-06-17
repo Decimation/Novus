@@ -8,11 +8,12 @@ using System.Runtime.InteropServices;
 namespace Novus.Win32.Structures
 {
 	[StructLayout(LayoutKind.Sequential)]
-	public struct INPUT
+	public struct Input
 	{
 		public uint       type;
 		public InputUnion U;
 	}
+
 	/// <summary>
 	/// Specifies the type of the input event. This member can be one of the following values. 
 	/// </summary>
@@ -33,6 +34,7 @@ namespace Novus.Win32.Structures
 		/// </summary>
 		Hardware = 2,
 	}
+
 	[StructLayout(LayoutKind.Sequential)]
 	public struct MouseInput
 	{
@@ -47,11 +49,11 @@ namespace Novus.Win32.Structures
 	[StructLayout(LayoutKind.Sequential)]
 	public struct KeyboardInput
 	{
-		public VirtualKey wVk;
-		public ScanCodeShort   wScan;
-		public KeyEventFlags   dwFlags;
-		public int             time;
-		public UIntPtr         dwExtraInfo;
+		public VirtualKey    wVk;
+		public ScanCodeShort wScan;
+		public KeyEventFlags dwFlags;
+		public int           time;
+		public UIntPtr       dwExtraInfo;
 	}
 
 	[Flags]
@@ -94,8 +96,13 @@ namespace Novus.Win32.Structures
 	[StructLayout(LayoutKind.Explicit)]
 	public struct InputUnion
 	{
-		[FieldOffset(0)] public MouseInput    mi;
-		[FieldOffset(0)] public KeyboardInput ki;
-		[FieldOffset(0)] public HardwareInput hi;
+		[FieldOffset(0)]
+		public MouseInput mi;
+
+		[FieldOffset(0)]
+		public KeyboardInput ki;
+
+		[FieldOffset(0)]
+		public HardwareInput hi;
 	}
 }

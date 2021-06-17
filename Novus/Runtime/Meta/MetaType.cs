@@ -258,8 +258,7 @@ namespace Novus.Runtime.Meta
 		public TypeFlags TypeFlags => Value.Reference.TypeFlags;
 
 		public int VirtualsCount => Value.Reference.NumVirtuals;
-
-		//public Pointer<byte> WriteableData => Value.Reference.WriteableData;
+		
 
 		public bool IsInteger => RuntimeType.IsInteger();
 

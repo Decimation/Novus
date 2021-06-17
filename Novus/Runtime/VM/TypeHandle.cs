@@ -6,7 +6,7 @@ using Novus.Memory;
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable FieldCanBeMadeReadOnly.Local
-#pragma warning disable IDE0044
+
 
 
 namespace Novus.Runtime.VM

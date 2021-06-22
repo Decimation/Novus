@@ -14,7 +14,9 @@ using System.Diagnostics.Contracts;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -114,27 +116,61 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		
-
 		private static void Main(string[] args)
 		{
+
+			Console.WriteLine(s);
+
+			var r = Resource.LoadModule(s);
+			var sig=r.FindSignature("89 54 24 10 89 4C 24 08");
+			Console.WriteLine(sig);
+
+			Console.WriteLine(call<int>(sig,1,1));
+		}
+		private const string s  = "C:\\Users\\Deci\\VSProjects\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
+		private const string s2 = "SandboxLibrary.dll";
+		public static int MultiplySum(int a, int b, int c, int d, int e, int x)
+		{
+			return a + b + c + d + e+x;
+		}
+
+		static T call<T>(Pointer<byte> p, params object[] args)
+		{
+			var           types = args.Select(s => s.GetType()).ToArray();
+			DynamicMethod m              = new DynamicMethod("Call", typeof(T), types);
+			var           il             = m.GetILGenerator();
+
+			Console.WriteLine(types.QuickJoin());
+
+			//for (int i = 0; i < args.Length; i++)
+			//{
+			//	il.Emit(OpCodes.Ldarg_S, i + 1);
+			//}
+
+			il.Emit(OpCodes.Ldarg_1);
+			il.Emit(OpCodes.Ldarg_2);
+
 			/*
-			 * string t2x = CallPy("-c \"from translatepy import * " + Environment.NewLine +
-			                    $"print(Language('{lang}').name)\"").Trim();
+			 * IL_0003:  ldarg.0
+	  IL_0004:  conv.i
+	  IL_0005:  calli      void*(void*,void*,!!T3)
+	  IL_000a:  ret
 			 */
+			il.Emit(OpCodes.Ldarg_0);
+			il.Emit(OpCodes.Conv_I);
+			il.EmitCalli(OpCodes.Calli, CallingConvention.StdCall, typeof(T), types);
+			il.Emit(OpCodes.Ret);
 
-			// var p = Command.Py(new []
-			// {
-			// 	"from googletrans import * ", 
-			// 	$"print(Translator().translate('food', dest='es').text)"
-			// });
-			// p.Start();
-			//
-			// var s = p.StandardOutput.ReadToEnd();
-			//
-			// Console.WriteLine(s);
+			//var types2 = types.ToList();
+			//types2.Add(typeof(T));
 
-			
+			//var rx     =Expression.GetDelegateType(types2.ToArray());
+			//Console.WriteLine(rx);
+
+			var f  = m.CreateDelegate<Func<long,int,int,int>>();
+			var di = f(p.ToInt64(),(int)args[0], (int)args[1]);
+
+			return (T)(object)di;
 		}
 	}
 }

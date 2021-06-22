@@ -107,63 +107,6 @@ namespace Novus.Win32
 			return p;
 		}
 
-		/*public static string? GetRelativePath(string fromPath, string toPath)
-		{
-			//https://github.com/gibbed/Gibbed.IO/blob/main/PathHelper.cs
-
-			if (fromPath == null) {
-				throw new ArgumentNullException(nameof(fromPath));
-			}
-
-			if (toPath == null) {
-				throw new ArgumentNullException(nameof(toPath));
-			}
-
-			if (Path.IsPathRooted(fromPath) && Path.IsPathRooted(toPath)) {
-				if (string.Compare(Path.GetPathRoot(fromPath),
-				                   Path.GetPathRoot(toPath),
-				                   StringComparison.OrdinalIgnoreCase) != 0) {
-					return null;
-				}
-			}
-
-			var relativePath    = new List<string>();
-			var fromDirectories = fromPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			var toDirectories   = toPath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-
-			int length = Math.Min(fromDirectories.Length, toDirectories.Length);
-
-			int lastCommonRoot = -1;
-
-			// find common root
-			for (int x = 0; x < length; x++) {
-				if (string.Compare(fromDirectories[x], toDirectories[x], StringComparison.OrdinalIgnoreCase) != 0) {
-					break;
-				}
-
-				lastCommonRoot = x;
-			}
-
-			if (lastCommonRoot == -1) {
-				return toPath;
-			}
-
-			// add relative folders in from path
-			for (int x = lastCommonRoot + 1; x < fromDirectories.Length; x++) {
-				if (fromDirectories[x].Length > 0) {
-					relativePath.Add(RELATIVE_PATH);
-				}
-			}
-
-			// add to folders to path
-			for (int x = lastCommonRoot + 1; x < toDirectories.Length; x++) {
-				relativePath.Add(toDirectories[x]);
-			}
-
-			// create relative path
-			return Path.Combine(relativePath.ToArray());
-		}*/
-
 		public static string GetParent([NotNull] string fi, int n)
 		{
 			if (n == 0) {
@@ -172,16 +115,6 @@ namespace Novus.Win32
 
 			return GetParent(Directory.GetParent(fi)!.FullName, --n);
 		}
-
-
-		// public static DirectoryInfo GetParentLevel([NotNull] this DirectoryInfo fi, int n)
-		// {
-		// 	if (n == 0) {
-		// 		return fi;
-		// 	}
-		//
-		// 	return fi.Parent.GetParentLevel(--n);
-		// }
 
 		public static string CreateRandomName() => Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
 
@@ -266,7 +199,6 @@ namespace Novus.Win32
 
 		#region File types
 
-		//todo
 		public static string ResolveMimeType(string file, string? mimeProposed = null) =>
 			ResolveMimeType(File.ReadAllBytes(file), mimeProposed);
 
@@ -314,35 +246,7 @@ namespace Novus.Win32
 		public static FileFormatType ResolveFileType(string file) => ResolveFileType(File.ReadAllBytes(file));
 
 
-		public static FileFormatType ResolveFileType(Stream stream)
-		{
-			
-
-			/*while (stream.CanRead) {
-				var b = stream.ReadByte();
-
-				if (b == -1) {
-					break;
-				}
-
-				foreach (var formatType in FileFormatType.GetAll()) {
-					foreach (byte[] bytes in formatType.Signature) {
-						foreach (byte b1 in bytes) {
-							if (b1 != b) {
-								break;
-
-							}
-						}
-					}
-				}
-			}*/
-			
-
-
-
-
-			return ResolveFileType(stream.ToByteArray());
-		}
+		public static FileFormatType ResolveFileType(Stream stream) => ResolveFileType(stream.ToByteArray());
 
 		/// <summary>
 		///     Attempts to determine the file format (type) given the raw bytes of a file
@@ -355,10 +259,7 @@ namespace Novus.Win32
 		/// </returns>
 		public static FileFormatType ResolveFileType(byte[] fileBytes)
 		{
-
-			//Map.Keys.Any(k=>k.Any(b=>fileBytes.StartsWith(b)))
-
-
+			
 			var rg = FileFormatType.GetAll().ToArray();
 
 			foreach (var fileType in rg) {
@@ -375,6 +276,8 @@ namespace Novus.Win32
 
 		#endregion
 
+		#region Path
+
 		/// <summary>
 		///     Environment variable PATH
 		/// </summary>
@@ -384,11 +287,6 @@ namespace Novus.Win32
 		///     Delimiter of environment variable <see cref="PATH_ENV" />
 		/// </summary>
 		public const char PATH_DELIM = ';';
-
-		/// <summary>
-		///     Environment variable target
-		/// </summary>
-		public static EnvironmentVariableTarget Target { get; set; } = EnvironmentVariableTarget.User;
 
 		/// <summary>
 		///     Directories of <see cref="EnvironmentPath" /> with environment variable target <see cref="Target" />
@@ -423,19 +321,24 @@ namespace Novus.Win32
 			EnvironmentPath = oldValue.Replace(PATH_DELIM + location, String.Empty);
 		}
 
-		public static string? SymbolPath =>
-			Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
-
-
 		/// <summary>
 		///     Determines whether <paramref name="location" /> is in <see cref="PathDirectories" />
 		/// </summary>
 		public static bool IsFolderInPath(string location)
 		{
-			string? dir = Array.Find(PathDirectories, s => s == location);
-
-			return !String.IsNullOrWhiteSpace(dir);
+			return PathDirectories.Contains(location);
 		}
+
+		#endregion
+
+		/// <summary>
+		///     Environment variable target
+		/// </summary>
+		public static EnvironmentVariableTarget Target { get; set; } = EnvironmentVariableTarget.User;
+
+		public static string? SymbolPath =>
+			Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
+
 
 		public static bool IsAdministrator()
 		{

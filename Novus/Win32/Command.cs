@@ -46,7 +46,10 @@ namespace Novus.Win32
 
 		public static Process Py(string[] commands)
 		{
-			var args = commands.QuickJoin(Environment.NewLine);
+
+			string args = commands.QuickJoin(Environment.NewLine);
+
+			args = args.Replace('\"', '\'');
 
 			var startInfo = new ProcessStartInfo("python")
 			{
@@ -55,8 +58,11 @@ namespace Novus.Win32
 				RedirectStandardOutput = true,
 				StandardOutputEncoding = Native.EncodingWin32Unicode
 			};
-			
-			var proc = new Process() {StartInfo = startInfo};
+
+			var proc = new Process()
+			{
+				StartInfo = startInfo
+			};
 
 			return proc;
 		}

@@ -7,6 +7,7 @@ using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
 using Novus.Win32;
+using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
 // ReSharper disable LocalizableElement
@@ -132,6 +133,7 @@ namespace Novus
 
 			if (!compatible) {
 				Trace.WriteLine("Compatibility check failed!", C_WARN);
+				Guard.Fail();
 			}
 
 			

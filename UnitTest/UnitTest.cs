@@ -50,7 +50,7 @@ namespace UnitTest
 				int* cpy = p1;
 
 				for (int j = 0; j < rg.Length; j++) {
-					Assert.True(ptr2.Address == Marshal.UnsafeAddrOfPinnedArrayElement(rg,j));
+					Assert.True(ptr2.Address == Marshal.UnsafeAddrOfPinnedArrayElement(rg, j));
 					Assert.True(cpy++        == ptr2++);
 				}
 			}
@@ -423,10 +423,10 @@ namespace UnitTest
 				FileSystem.ResolveMimeType(dataBytes: null);
 			});
 		}
+
 		[TestCase("https://i.imgur.com/QtCausw.png", nameof(FileFormatType.JPEG))]
 		public void FileTypeTest2(string s, string n)
 		{
-			//C:\Users\Deci\Pictures\Camera Roll
 			var sx = new WebClient();
 			var rg = sx.DownloadData(s);
 			var s2 = new MemoryStream(rg);

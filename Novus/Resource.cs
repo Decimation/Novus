@@ -107,6 +107,9 @@ namespace Novus
 		 *
 		 * Normal delegates using the UnmanagedFunctionPointer attribute is also possible, but it's
 		 * better to use the new unmanaged function pointers.
+		 *
+		 *
+		 * https://github.com/Decimation/Novus/tree/10a2fde6d3df0e359c13f6808bf169723ffd414d/Novus/Native
 		 */
 
 		#region Import

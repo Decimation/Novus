@@ -23,6 +23,9 @@ using Novus.Win32;
 using Novus.Win32.Structures;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
+using System.Linq.Expressions;
+using BE = System.Linq.Expressions.BinaryExpression;
+using PE = System.Linq.Expressions.ParameterExpression;
 
 // ReSharper disable ConvertIfToOrExpression
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -363,7 +366,6 @@ namespace Novus.Memory
 			return super.Add(size).Cast<TSub>();
 		}
 
-		
 
 		/// <summary>
 		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
@@ -742,6 +744,25 @@ namespace Novus.Memory
 
 		#region Bits
 
+		/*
+		 * https://github.com/pkrumins/bithacks.h/blob/master/bithacks.h
+		 * https://catonmat.net/low-level-bit-hacks
+		 */
+
+
+		//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static bool ReadBit(int value, int bitOfs) => (value & (1 << bitOfs)) != 0;
+
+		public static int SetBit(int x, int n) => ((x) | (1 << (n)));
+
+		public static int UnsetBit(int x, int n) => ((x) & ~(1 << (n)));
+
+		public static int ToggleBit(int x, int n) => ((x) ^ (1 << (n)));
+
+		public static int GetBitMask(int index, int size) => ((1 << size) - 1) << index;
+
 		/// <summary>
 		///     Reads <paramref name="bitCount" /> from <paramref name="value" /> at offset <paramref name="bitOfs" />
 		/// </summary>
@@ -750,20 +771,46 @@ namespace Novus.Memory
 		/// <param name="bitCount">Number of bits to read</param>
 		/// <seealso cref="BitArray"/>
 		/// <seealso cref="BitVector32"/>
-		public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
+		public static int ReadBits(int value, int bitOfs, int bitCount) =>
+			(value & GetBitMask(bitOfs, bitCount)) >> bitOfs;
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool ReadBit(int value, int bitOfs) => (value & (1 << bitOfs)) != 0;
-
-		public static int GetBitMask(int index, int size) => ((1 << size) - 1) << index;
-
-
-		public static int ReadBitsFrom(int data, int index, int size) => (data & GetBitMask(index, size)) >> index;
-
-		public static int WriteBitsTo(int data, int index, int size, int value) =>
+		public static int WriteBits(int data, int index, int size, int value) =>
 			(data & ~GetBitMask(index, size)) | (value << index);
 
 		#endregion
+
+		public static class MyClass<T>
+		{
+			public static Func<T, T, T> and;
+			public static Func<T, T, T> or;
+			public static Func<T, T>    not;
+			public static Func<T, T, T> xor;
+
+			static MyClass()
+			{
+				and = Create(Expression.And);
+				or  = Create(Expression.Or);
+				xor = Create(Expression.ExclusiveOr);
+				not = Create(Expression.Not);
+			}
+
+			private static Func<T, T, T> Create(Func<PE, PE, BE> fx)
+			{
+				var paramA = Expression.Parameter(typeof(T));
+				var paramB = Expression.Parameter(typeof(T));
+				var body   = fx(paramA, paramB);
+				return Expression.Lambda<Func<T, T, T>>(body, paramA, paramB).Compile();
+
+			}
+
+			private static Func<T, T> Create(Func<PE, UnaryExpression> fx)
+			{
+				var paramA = Expression.Parameter(typeof(T));
+				var body   = fx(paramA);
+				return Expression.Lambda<Func<T, T>>(body, paramA).Compile();
+
+			}
+		}
 	}
 
 	/// <summary>

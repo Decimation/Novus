@@ -33,6 +33,7 @@ using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
+using Novus.Win32.Wrappers;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
 using Console = System.Console;
@@ -118,18 +119,9 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-
-			int a = 0x00FF0000;
-			Console.WriteLine(Mem.ReadBits(a,16,31));
-			var b = Mem.WriteBits(a, 16, 8, 0xCC);
-			Console.WriteLine($"{a:X}");
-			Console.WriteLine($"{b:X}");
-			Console.WriteLine(Mem.SetBit(0,0));
-			Console.WriteLine(123&321);
-			Console.WriteLine(Mem.MyClass<long>.and(123,321));
-			Console.WriteLine(~0xBEEF);
-			Console.WriteLine(Mem.MyClass<long>.not(0xBEEF));
-			Console.WriteLine(3<<2);
+			
+			
 		}
+		
 	}
 }

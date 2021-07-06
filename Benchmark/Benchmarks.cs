@@ -6,9 +6,50 @@ using Novus.Memory;
 using Novus.Win32;
 using Novus.Win32.Wrappers;
 
+// ReSharper disable InconsistentNaming
+
 #pragma warning disable
 namespace TestBenchmark
 {
+	public class Benchmarks6
+	{
+		private int a = 1, b = 1;
+
+		[Benchmark]
+		public int In()
+		{
+			return In_(a, b);
+
+		}
+
+		[Benchmark]
+		public int Normal()
+		{
+			return N_(a, b);
+		}
+
+		[Benchmark]
+		public int Ref()
+		{
+			return Ref_(ref a, ref b);
+		}
+
+		static int N_(int a, int b)
+		{
+			return a + b;
+		}
+
+		static int In_(in int a, in int b)
+		{
+			return a + b;
+		}
+
+		static int Ref_(ref int a, ref int b)
+		{
+			return a + b;
+		}
+	}
+
 	public unsafe class Benchmarks5
 	{
 		public  int          a;

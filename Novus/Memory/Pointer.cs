@@ -472,7 +472,7 @@ namespace Novus.Memory
 			return format.ToUpperInvariant() switch
 			{
 				FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
-				FMT_PTR => Strings.HEX_PREFIX + ToString(FMT_HEX),
+				FMT_PTR => Strings.HexFormatter.HEX_PREFIX + ToString(FMT_HEX),
 				_       => throw new FormatException()
 			};
 

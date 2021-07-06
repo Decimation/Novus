@@ -20,6 +20,7 @@ using Novus;
 using Novus.Imports;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
+using SimpleCore.Numeric;
 using UnitTest.TestTypes;
 
 // ReSharper disable StringLiteralTypo
@@ -125,6 +126,26 @@ namespace UnitTest
 			Assert.AreEqual(isNum, t.IsNumeric());
 			Assert.AreEqual(isInt, t.IsInteger());
 			Assert.AreEqual(isReal, t.IsReal());
+		}
+
+		[StructLayout(LayoutKind.Explicit, Size = 8)]
+		struct substrate { }
+
+		[Test]
+		[TestCase(typeof(int), true)]
+		[TestCase(typeof(uint), false)]
+		public void Test4(Type t, bool s)
+		{
+			Assert.AreEqual(s, t.IsSigned());
+		}
+
+		[Test]
+		[TestCase(typeof(substrate), true)]
+		[TestCase(typeof(Pointer<>),true)]
+		[TestCase(typeof(Clazz), false)]
+		public void Test5(Type t, bool b)
+		{
+			Assert.AreEqual(b, t.CanBePointerSurrogate());
 		}
 
 		[Test]

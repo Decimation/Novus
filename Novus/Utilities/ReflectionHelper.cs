@@ -9,6 +9,8 @@ using System.Text.RegularExpressions;
 using Novus.Memory;
 using SimpleCore.Utilities;
 using System.Reflection.PortableExecutable;
+using Novus.Runtime;
+using Novus.Runtime.Meta;
 using SimpleCore.Diagnostics;
 
 // ReSharper disable InconsistentNaming
@@ -121,26 +123,27 @@ namespace Novus.Utilities
 			return type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericType);
 		}
 
+		public static bool IsSigned(this Type t)
+		{
+			return t.IsNumeric() && (int) Type.GetTypeCode(t) % 2 == 1;
+		}
+
+		public static bool IsUnsigned(this Type t) => !t.IsSigned();
+
 		public static bool IsNumeric(this Type t) => t.IsReal() || t.IsInteger();
 
 		public static bool IsInteger(this Type t)
 		{
-			int c = (int) Type.GetTypeCode(t);
+			var c = Type.GetTypeCode(t);
 
-			const int INT_MIN = (int) TypeCode.SByte;
-			const int INT_MAX = (int) TypeCode.UInt64;
-
-			return c is <= INT_MAX and >= INT_MIN;
+			return c is <= TypeCode.UInt64 and >= TypeCode.SByte;
 		}
 
 		public static bool IsReal(this Type t)
 		{
-			int c = (int) Type.GetTypeCode(t);
+			var c = Type.GetTypeCode(t);
 
-			const int REAL_MIN = (int) TypeCode.Single;
-			const int REAL_MAX = (int) TypeCode.Decimal;
-
-			var case1 = c is <= REAL_MAX and >= REAL_MIN;
+			var case1 = c is <= TypeCode.Decimal and >= TypeCode.Single;
 
 			// Special case (?)
 			var case2 = t == typeof(Half);
@@ -166,6 +169,11 @@ namespace Novus.Utilities
 			catch {
 				return false;
 			}
+		}
+
+		public static bool CanBePointerSurrogate(this Type t)
+		{
+			return t.IsValueType && (t.IsAnyPointer() || t.AsMetaType().NativeSize == Mem.Size);
 		}
 
 		public static bool IsAnyPointer(this Type t)

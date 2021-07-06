@@ -755,11 +755,11 @@ namespace Novus.Memory
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool ReadBit(int value, int bitOfs) => (value & (1 << bitOfs)) != 0;
 
-		public static int SetBit(int x, int n) => ((x) | (1 << (n)));
+		public static int SetBit(int x, int n) => x | (1 << n);
 
-		public static int UnsetBit(int x, int n) => ((x) & ~(1 << (n)));
+		public static int UnsetBit(int x, int n) => x & ~(1 << n);
 
-		public static int ToggleBit(int x, int n) => ((x) ^ (1 << (n)));
+		public static int ToggleBit(int x, int n) => x ^ (1 << n);
 
 		public static int GetBitMask(int index, int size) => ((1 << size) - 1) << index;
 
@@ -779,38 +779,7 @@ namespace Novus.Memory
 
 		#endregion
 
-		public static class MyClass<T>
-		{
-			public static Func<T, T, T> and;
-			public static Func<T, T, T> or;
-			public static Func<T, T>    not;
-			public static Func<T, T, T> xor;
-
-			static MyClass()
-			{
-				and = Create(Expression.And);
-				or  = Create(Expression.Or);
-				xor = Create(Expression.ExclusiveOr);
-				not = Create(Expression.Not);
-			}
-
-			private static Func<T, T, T> Create(Func<PE, PE, BE> fx)
-			{
-				var paramA = Expression.Parameter(typeof(T));
-				var paramB = Expression.Parameter(typeof(T));
-				var body   = fx(paramA, paramB);
-				return Expression.Lambda<Func<T, T, T>>(body, paramA, paramB).Compile();
-
-			}
-
-			private static Func<T, T> Create(Func<PE, UnaryExpression> fx)
-			{
-				var paramA = Expression.Parameter(typeof(T));
-				var body   = fx(paramA);
-				return Expression.Lambda<Func<T, T>>(body, paramA).Compile();
-
-			}
-		}
+		
 	}
 
 	/// <summary>

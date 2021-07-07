@@ -178,6 +178,7 @@ namespace Novus.Runtime.Meta
 		/// </summary>
 		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
+		public CorElementType CorElementType => Value.Reference.CorElementType;
 
 		// returns random combination of flags if this doesn't have a component size
 		private ushort RawGetComponentSize()

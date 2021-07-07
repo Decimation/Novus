@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 
 namespace Novus.Runtime.VM
 {
-	
 	[NativeStructure]
 	[StructLayout(LayoutKind.Sequential)]
 	public unsafe struct MethodTable
@@ -113,6 +112,22 @@ namespace Novus.Runtime.VM
 
 		internal Pointer<byte> InterfaceMap => (void**) Union3;
 
+		internal CorElementType CorElementType
+		{
+			get
+			{
+				fixed (MethodTable* p = &this) {
+					return Func_GetCor(p);
+				}
+			}
+		}
+
+		/// <summary>
+		/// <see cref="CorElementType"/>
+		/// </summary>
+		[field: ImportClr("Sig_GetCorType")]
+		private static delegate* unmanaged[Thiscall]<MethodTable*, CorElementType> Func_GetCor { get; }
+
 		/// <summary>
 		/// <see cref="EEClass"/>
 		/// </summary>
@@ -123,7 +138,10 @@ namespace Novus.Runtime.VM
 		/// <see cref="NativeLayoutInfo"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetNativeLayoutInfo")]
-		private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
+		private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo
+		{
+			get;
+		}
 	}
 
 	/// <summary>

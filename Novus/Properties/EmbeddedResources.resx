@@ -129,6 +129,10 @@
     <value>48 89 5C 24 10 48 89 7C 24 18 55 41 54</value>
     <comment>AllocateObject</comment>
   </data>
+  <data name="Sig_GetCorType" xml:space="preserve">
+    <value>8B 01 8B D0 81 E2 00 00 0E 00 81 FA 00 00 04 00</value>
+    <comment>MethodTable::GetSignatureCorElementType</comment>
+  </data>
   <data name="Sig_GetEEClass" xml:space="preserve">
     <value>48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3</value>
     <comment>MethodTable::GetClass</comment>

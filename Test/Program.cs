@@ -119,9 +119,13 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			
+
+			Console.WriteLine(typeof(int).AsMetaType().CorElementType);
+		}
+
+		struct MyStruct
+		{
 			
 		}
-		
 	}
 }

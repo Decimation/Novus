@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Novus.Win32.Structures;
 
@@ -15,9 +16,9 @@ namespace Novus.Win32
 	{
 		public KeyboardListener() : this(IntPtr.Zero) { }
 
-		public KeyboardListener(string s) : this(Native.FindWindow(s)) { }
+		public KeyboardListener(string s, ISet<VirtualKey> k = null) : this(Native.FindWindow(s), k) { }
 
-		public KeyboardListener(IntPtr h)
+		public KeyboardListener(IntPtr h, ISet<VirtualKey> k = null)
 		{
 			m_thread = new Thread(Listen)
 			{
@@ -26,8 +27,9 @@ namespace Novus.Win32
 
 			};
 
-			m_keyHistory    = new ConcurrentDictionary<VirtualKey, KeyEventArgs>();
-			m_restriction = h;
+			m_keyHistory      = new ConcurrentDictionary<VirtualKey, KeyEventArgs>();
+			ScopeHandle = h;
+			KeyWhitelist    = k ?? new HashSet<VirtualKey>();
 		}
 
 		public void Stop()
@@ -70,7 +72,9 @@ namespace Novus.Win32
 		/// <summary>
 		/// When set, restricts listening to this handle
 		/// </summary>
-		private readonly IntPtr m_restriction;
+		public IntPtr ScopeHandle { get; set; }
+
+		public ISet<VirtualKey> KeyWhitelist { get; set; }
 
 		/// <summary>
 		/// Keyboard monitor thread
@@ -87,56 +91,74 @@ namespace Novus.Win32
 
 		#endregion
 
-		public event EventHandler<KeyEventArgs> KeyPress;
+		public event EventHandler<KeyEventArgs> KeyEvent;
+
+		public event EventHandler<VirtualKey> KeyDown;
 
 		public event EventHandler<VirtualKey> KeyStroke;
 
+
+		private void HandleKey(VirtualKey keyShort)
+		{
+			if ((KeyWhitelist.Count > 0 && !KeyWhitelist.Contains(keyShort))) {
+				return;
+
+			}
+			//var keyShort = (VirtualKey)(i);
+
+			short keyState = Native.GetAsyncKeyState(keyShort);
+
+			//keyState != 0 && keyShort != 0
+			//byte[] krg = BitConverter.GetBytes(keyState);
+
+			bool prev = IsVkPrevious(keyState);
+			bool down = IsVkDown(keyState);
+
+
+			bool stroke = m_keyHistory.ContainsKey(keyShort)
+			              && m_keyHistory[keyShort].IsDown && !down;
+
+			var args = new KeyEventArgs
+			{
+				Key        = keyShort,
+				IsDown     = down,
+				IsPrevious = prev,
+				IsStroke   = stroke,
+				Raw        = keyState
+			};
+
+			KeyEvent?.Invoke(null, args);
+
+			if (args.IsStroke) {
+				KeyStroke?.Invoke(null, keyShort);
+			}
+
+			if (args.IsDown) {
+				KeyDown?.Invoke(null, keyShort);
+			}
+
+			
+			m_keyHistory[args.Key] = args;
+		}
+
 		private void Listen()
 		{
-
 			while (IsActive) {
 
-				if (m_restriction != IntPtr.Zero && Native.GetForegroundWindow() != m_restriction) {
+				if (ScopeHandle != IntPtr.Zero && Native.GetForegroundWindow() != ScopeHandle) {
 					continue;
 				}
 
 				byte[] rg = new byte[256];
+
 				Native.GetKeyboardState(rg);
 
 				for (int i = 0; i < rg.Length; i++) {
-					var keyShort = (VirtualKey) (i);
-
-					short keyState = Native.GetAsyncKeyState(keyShort);
-					//keyState != 0 && keyShort != 0
-					//byte[] krg = BitConverter.GetBytes(keyState);
-
-					bool prev = IsVkPrevious(keyState);
-					bool down = IsVkDown(keyState);
-
-
-					bool stroke = m_keyHistory.ContainsKey(keyShort)
-					              && m_keyHistory[keyShort].IsDown && !down;
-
-					var args = new KeyEventArgs
-					{
-						Key        = keyShort,
-						IsDown     = down,
-						IsPrevious = prev,
-						IsStroke   = stroke,
-					};
-					
-					KeyPress?.Invoke(null, args);
-
-					if (args.IsStroke) {
-						KeyStroke?.Invoke(null, keyShort);
-					}
-
-					m_keyHistory[args.Key] = args;
+					HandleKey((VirtualKey) i);
 				}
 
 			}
 		}
-
 
 		public void Dispose()
 		{
@@ -152,14 +174,15 @@ namespace Novus.Win32
 
 		public bool IsPrevious { get; init; }
 
-		public bool IsStroke { get; init; }
+		public bool  IsStroke { get; init; }
+		public short Raw      { get; set; }
 
 		public override string ToString()
 		{
 			return $"{nameof(Key)}: {Key}, "                +
 			       $"{nameof(IsDown)}: {IsDown},"           +
 			       $" {nameof(IsPrevious)}: {IsPrevious}, " +
-			       $"{nameof(IsStroke)}: {IsStroke}";
+			       $"{nameof(IsStroke)}: {IsStroke}, "      + $"{nameof(Raw)}: {Raw}";
 		}
 	}
 }

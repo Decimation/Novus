@@ -726,7 +726,7 @@ namespace UnitTest
 		{
 			var a = new Clazz() {s = "a"};
 
-			var pointer = Mem.AddressOfField<string>(a, "s");
+			var pointer = Mem.AddressOfField<Object, string>(a, "s");
 
 			Assert.AreEqual(a.s, pointer.Value);
 

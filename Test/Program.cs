@@ -120,14 +120,7 @@ namespace Test
 		private static void Main(string[] args)
 		{
 
-			Console.WriteLine(typeof(int).AsMetaType().CorElementType);
-			var o = new MyStruct();
-			
-			Console.WriteLine(o.GetType().GetRuntimeField("s"));
-			ref string p =ref Mem.ReferenceOfField<string>(o, "s");
-			p = "butt";
-			Console.WriteLine(p);
-			Console.WriteLine(o.s);
+
 
 			//KeyboardListener k = new KeyboardListener();
 			//k.Run();
@@ -139,35 +132,17 @@ namespace Test
 			//	}
 			//};
 
-			//var k = new KeyboardListener("PowerShell");
-			//k.KeyStroke += (sender, key) => Console.WriteLine(key);
-			//k.Start();
-			
-			Console.WriteLine(fieldof(()=>o.s));
-			
-			ref string r2 = ref Mem.ReferenceOfField<MyStruct,string>(in o, "s");
-			r2 = "butts";
-			Console.WriteLine(o.s);
-			int i = 321;
-			Console.WriteLine(i);
-			test(in i);
-			Console.WriteLine(i);
-		}
+			var k = new KeyboardListener("PowerShell", new HashSet<VirtualKey>() {VirtualKey.KEY_0, VirtualKey.KEY_1, VirtualKey.KEY_2});
 
-		static void test(in int i)
-		{
-			ref int r = ref Mem.InToRef(in i);
-			r = 1;
-		}
-
-		class MyStruct
-		{
-			public string s;
-
-			public MyStruct()
+			k.KeyStroke += (sender, key) =>
 			{
-				s = "butt";
-			}
+				//Console.Clear();
+				Console.WriteLine(key);
+			};
+			k.Start();
+
 		}
+
+		
 	}
 }

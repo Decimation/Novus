@@ -706,32 +706,29 @@ namespace Novus.Memory
 			return AddressOfHeapInternal(value, OffsetOptions.Fields);
 		}
 
-		public static Pointer<byte> AddressOfField(object obj, string name) => AddressOfField<byte>(obj, name);
+		public static Pointer<byte> AddressOfField(object obj, string name) => 
+			AddressOfField<byte>(obj, name);
 
-		public static Pointer<T> AddressOfField<T>(object obj, string name)
+		public static Pointer<TField> AddressOfField<TField>(in object obj, string name) =>
+			AddressOfField<object, TField>(obj, name);
+
+		public static Pointer<TField> AddressOfField<T, TField>(in T obj, string name)
 		{
-
-			var f = OffsetOf(obj, name);
-
-			var p = AddressOfHeap(obj, OffsetOptions.Fields);
-
-			return p + f;
-		}
-
-		public static ref T ReferenceOfField<T>(object obj, string name)
-		{
-			return ref AddressOfField<T>(obj, name).Reference;
-		}
-
-		public static ref TField ReferenceOfField<T, TField>(in T obj, string name)
-		{
-
-			var f = OffsetOf(obj, name);
+			int offsetOf = OffsetOf(obj, name);
 
 			var p = AddressOfData(ref InToRef(in obj));
 
-			return ref (p.Cast<TField>() + f).Reference;
+			return p + offsetOf;
 		}
+
+		public static ref byte ReferenceOfField(object obj, string name) =>
+			ref AddressOfField<object, byte>(obj, name).Reference;
+
+		public static ref TField ReferenceOfField<TField>(object obj, string name) =>
+			ref AddressOfField<object, TField>(obj, name).Reference;
+
+		public static ref TField ReferenceOfField<T, TField>(in T obj, string name) =>
+			ref AddressOfField<T, TField>(in obj, name).Reference;
 
 		#endregion
 

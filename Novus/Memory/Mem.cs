@@ -98,6 +98,8 @@ namespace Novus.Memory
 			return f.Offset;
 		}
 
+		public static int OffsetOf(object t, string name) => OffsetOf(t.GetType(), name);
+
 		public static Pointer<byte> OffsetField<TField>(TField* field, int offset) where TField : unmanaged
 		{
 			// Alias: PTR_HOST_MEMBER_TADDR
@@ -390,6 +392,9 @@ namespace Novus.Memory
 		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
 
 		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
+
+
+		public static ref T InToRef<T>(in T t) => ref Unsafe.AsRef(in t);
 
 		#endregion
 
@@ -690,7 +695,7 @@ namespace Novus.Memory
 		///     this will return the equivalent of <see cref="AddressOfHeap{T}(T, OffsetOptions)" /> with
 		///     <see cref="OffsetOptions.Fields" />.
 		/// </summary>
-		public static Pointer<byte> AddressOfFields<T>(ref T value)
+		public static Pointer<byte> AddressOfData<T>(ref T value)
 		{
 			var addr = AddressOf(ref value);
 
@@ -699,6 +704,33 @@ namespace Novus.Memory
 			}
 
 			return AddressOfHeapInternal(value, OffsetOptions.Fields);
+		}
+
+		public static Pointer<byte> AddressOfField(object obj, string name) => AddressOfField<byte>(obj, name);
+
+		public static Pointer<T> AddressOfField<T>(object obj, string name)
+		{
+
+			var f = OffsetOf(obj, name);
+
+			var p = AddressOfHeap(obj, OffsetOptions.Fields);
+
+			return p + f;
+		}
+
+		public static ref T ReferenceOfField<T>(object obj, string name)
+		{
+			return ref AddressOfField<T>(obj, name).Reference;
+		}
+
+		public static ref TField ReferenceOfField<T, TField>(in T obj, string name)
+		{
+
+			var f = OffsetOf(obj, name);
+
+			var p = AddressOfData(ref InToRef(in obj));
+
+			return ref (p.Cast<TField>() + f).Reference;
 		}
 
 		#endregion
@@ -778,8 +810,6 @@ namespace Novus.Memory
 			(data & ~GetBitMask(index, size)) | (value << index);
 
 		#endregion
-
-		
 	}
 
 	/// <summary>

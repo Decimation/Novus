@@ -30,12 +30,12 @@ using Novus.Memory;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
-using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
+using static Novus.Utilities.ReflectionOperatorHelpers;
 using Console = System.Console;
 
 // ReSharper disable UnusedParameter.Local
@@ -121,11 +121,53 @@ namespace Test
 		{
 
 			Console.WriteLine(typeof(int).AsMetaType().CorElementType);
+			var o = new MyStruct();
+			
+			Console.WriteLine(o.GetType().GetRuntimeField("s"));
+			ref string p =ref Mem.ReferenceOfField<string>(o, "s");
+			p = "butt";
+			Console.WriteLine(p);
+			Console.WriteLine(o.s);
+
+			//KeyboardListener k = new KeyboardListener();
+			//k.Run();
+			//k.KeyPress += (sender, eventArgs) =>
+			//{
+			//	if (eventArgs.Key ==  VirtualKey.KEY_G) {
+			//		Console.WriteLine(eventArgs);
+
+			//	}
+			//};
+
+			//var k = new KeyboardListener("PowerShell");
+			//k.KeyStroke += (sender, key) => Console.WriteLine(key);
+			//k.Start();
+			
+			Console.WriteLine(fieldof(()=>o.s));
+			
+			ref string r2 = ref Mem.ReferenceOfField<MyStruct,string>(in o, "s");
+			r2 = "butts";
+			Console.WriteLine(o.s);
+			int i = 321;
+			Console.WriteLine(i);
+			test(in i);
+			Console.WriteLine(i);
 		}
 
-		struct MyStruct
+		static void test(in int i)
 		{
-			
+			ref int r = ref Mem.InToRef(in i);
+			r = 1;
+		}
+
+		class MyStruct
+		{
+			public string s;
+
+			public MyStruct()
+			{
+				s = "butt";
+			}
 		}
 	}
 }

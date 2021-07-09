@@ -284,7 +284,7 @@ namespace Novus.Runtime
 		/// </summary>
 		public static bool IsUninitialized<T>(T t)
 		{
-			var ptr = Mem.AddressOfFields(ref t);
+			var ptr = Mem.AddressOfData(ref t);
 			int s   = Mem.SizeOf(t, SizeOfOptions.BaseFields);
 
 			bool b = ptr.Copy(s).All(x => x == 0);

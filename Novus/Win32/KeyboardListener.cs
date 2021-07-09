@@ -4,54 +4,99 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Novus.Win32.Structures;
+
+// ReSharper disable UnusedMember.Global
+
 // ReSharper disable EmptyDestructor
 
 namespace Novus.Win32
 {
 	public sealed class KeyboardListener : IDisposable
 	{
-		public event EventHandler<KeyEventArgs> KeyPress;
+		public KeyboardListener() : this(IntPtr.Zero) { }
 
-		public KeyboardListener()
+		public KeyboardListener(string s) : this(Native.FindWindow(s)) { }
+
+		public KeyboardListener(IntPtr h)
 		{
-			m_thread = new Thread(Start)
+			m_thread = new Thread(Listen)
 			{
 				Priority     = ThreadPriority.AboveNormal,
 				IsBackground = false,
 
 			};
 
-			m_previous = new ConcurrentDictionary<VirtualKey, KeyEventArgs>();
+			m_keyHistory    = new ConcurrentDictionary<VirtualKey, KeyEventArgs>();
+			m_restriction = h;
 		}
 
 		public void Stop()
 		{
-			Active = false;
+			IsActive = false;
 			m_thread.Join();
 		}
 
-		public void Run()
+		public void Start()
 		{
-			Active = true;
+			IsActive = true;
 			m_thread.Start();
 		}
 
-		public IntPtr Restrict { get; set; }
+		public static bool IsKeyDown(VirtualKey k)
+		{
+			short keyState = Native.GetKeyState(k);
+			return IsVkDown(keyState);
+		}
 
-		public bool Active { get; private set; }
+		private static bool IsVkPrevious(short k)
+		{
+			unsafe {
+				byte* b = (byte*) &k;
+				return b[0] == K_PREV;
+			}
 
+		}
+
+		private static bool IsVkDown(short keyState)
+		{
+			unsafe {
+				byte* b = (byte*) &keyState;
+				return (b[1] & K_DOWN) != 0;
+			}
+		}
+
+		public bool IsActive { get; private set; }
+
+		/// <summary>
+		/// When set, restricts listening to this handle
+		/// </summary>
+		private readonly IntPtr m_restriction;
+
+		/// <summary>
+		/// Keyboard monitor thread
+		/// </summary>
 		private readonly Thread m_thread;
 
-		private readonly ConcurrentDictionary<VirtualKey, KeyEventArgs> m_previous;
+		private readonly ConcurrentDictionary<VirtualKey, KeyEventArgs> m_keyHistory;
 
-		private void Start()
+		#region Flags
+
+		private const int K_DOWN = 0x80;
+
+		private const int K_PREV = 1;
+
+		#endregion
+
+		public event EventHandler<KeyEventArgs> KeyPress;
+
+		public event EventHandler<VirtualKey> KeyStroke;
+
+		private void Listen()
 		{
-			// todo: there must be a better way of doing this
 
-			while (Active) {
+			while (IsActive) {
 
-				if (Restrict != IntPtr.Zero && Native.GetForegroundWindow() != Restrict) {
-
+				if (m_restriction != IntPtr.Zero && Native.GetForegroundWindow() != m_restriction) {
 					continue;
 				}
 
@@ -63,37 +108,35 @@ namespace Novus.Win32
 
 					short keyState = Native.GetAsyncKeyState(keyShort);
 					//keyState != 0 && keyShort != 0
-					byte[] krg = BitConverter.GetBytes(keyState);
+					//byte[] krg = BitConverter.GetBytes(keyState);
 
-					bool prev = krg[0] == 1;
-					bool down = krg[1] == 0x80;
+					bool prev = IsVkPrevious(keyState);
+					bool down = IsVkDown(keyState);
 
 
-					bool stroke = m_previous.ContainsKey(keyShort)
-					              && m_previous[keyShort].IsDown && !down;
+					bool stroke = m_keyHistory.ContainsKey(keyShort)
+					              && m_keyHistory[keyShort].IsDown && !down;
 
 					var args = new KeyEventArgs
 					{
-						Key      = keyShort,
-						IsDown   = down,
-						Previous = prev,
-						Stroke   = stroke,
+						Key        = keyShort,
+						IsDown     = down,
+						IsPrevious = prev,
+						IsStroke   = stroke,
 					};
-
-					//args.Stroke = prevArg != null && (prevArg.VirtualKey == args.VirtualKey
-					//                                  && args.IsPrevious && !prevArg.IsPrevious
-					//                                  && args.IsDown     && prevArg.IsDown);
-
-
+					
 					KeyPress?.Invoke(null, args);
 
-					m_previous[args.Key] = args;
+					if (args.IsStroke) {
+						KeyStroke?.Invoke(null, keyShort);
+					}
+
+					m_keyHistory[args.Key] = args;
 				}
 
 			}
 		}
 
-		
 
 		public void Dispose()
 		{
@@ -107,8 +150,16 @@ namespace Novus.Win32
 
 		public bool IsDown { get; init; }
 
-		public bool Previous { get; init; }
+		public bool IsPrevious { get; init; }
 
-		public bool Stroke { get; init; }
+		public bool IsStroke { get; init; }
+
+		public override string ToString()
+		{
+			return $"{nameof(Key)}: {Key}, "                +
+			       $"{nameof(IsDown)}: {IsDown},"           +
+			       $" {nameof(IsPrevious)}: {IsPrevious}, " +
+			       $"{nameof(IsStroke)}: {IsStroke}";
+		}
 	}
 }

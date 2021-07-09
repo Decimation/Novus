@@ -165,7 +165,7 @@ namespace Novus.Runtime
 				}
 
 				if (options.HasFlag(InspectorOptions.Address)) {
-					var addr = Mem.AddressOfFields(ref value) + metaField.Offset;
+					var addr = Mem.AddressOfData(ref value) + metaField.Offset;
 					rowValues.Add(addr.ToString(PointerFormatting.FMT_HEX));
 				}
 

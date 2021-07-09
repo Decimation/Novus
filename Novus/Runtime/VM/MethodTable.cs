@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable FieldCanBeMadeReadOnly.Local
-
+#pragma warning disable CA1069
 namespace Novus.Runtime.VM
 {
 	[NativeStructure]

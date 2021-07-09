@@ -4,9 +4,9 @@ namespace UnitTest.TestTypes
 {
 	internal class Clazz
 	{
-		public       int a;
-		public const int i = 123_321;
-
+		public       int    a;
+		public const int    i = 123_321;
+		public       string s;
 		public Clazz()
 		{
 			a = i;

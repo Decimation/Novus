@@ -42,23 +42,14 @@ namespace Novus.Utilities
 
 		public static IEnumerable<MemberInfo> GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);
 
-
 		public static FieldInfo GetAnyField(this Type t, string name) => t.GetField(name, ALL_FLAGS);
-
 
 		public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
 
-		private const string BACKING_FIELD_NAME = "k__BackingField";
-
-		public static FieldInfo GetBackingField(this MemberInfo m)
-		{
-			var fv = m.DeclaringType.GetFieldAuto(m.Name);
-
-			return fv;
-		}
+		public static PropertyInfo GetAnyProperty(this Type t, string name) => t.GetProperty(name, ALL_FLAGS);
 
 
-		public static FieldInfo GetFieldAuto(this Type t, string fname)
+		public static FieldInfo GetResolvedField(this Type t, string fname)
 		{
 			var member = t.GetAnyMember(fname).First();
 
@@ -78,14 +69,23 @@ namespace Novus.Utilities
 			return rg;
 		}
 
+		public static FieldInfo GetBackingField(this MemberInfo m)
+		{
+			var fv = m.DeclaringType.GetResolvedField(m.Name);
+
+			return fv;
+		}
+
 		public static FieldInfo GetBackingField(this Type t, string name)
 		{
 			var fi = t.GetRuntimeFields()
-			          .FirstOrDefault(a => Regex.IsMatch(a.Name, $"\\A<{name}>{BACKING_FIELD_NAME}\\Z"));
+			          .FirstOrDefault(a => Regex.IsMatch(a.Name, $@"\A<{name}>{BACKING_FIELD_NAME}\Z"));
 
 			return fi;
 		}
 
+
+		private const string BACKING_FIELD_NAME = "k__BackingField";
 
 		public static (TAttribute Attribute, MemberInfo Member)[] GetAnnotated<TAttribute>(this Type t)
 			where TAttribute : Attribute
@@ -331,10 +331,20 @@ namespace Novus.Utilities
 
 	public static class ReflectionOperatorHelpers
 	{
-		public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
+		public static MemberInfo memberof<T>(Expression<Func<T>> expression)
 		{
 			var body = (MemberExpression) expression.Body;
-			return (FieldInfo) body.Member;
+			return body.Member;
+		}
+
+		public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
+		{
+			return (FieldInfo) memberof(expression);
+		}
+
+		public static PropertyInfo propertyof<T>(Expression<Func<T>> expression)
+		{
+			return (PropertyInfo) memberof(expression);
 		}
 
 		public static MethodInfo methodof<T>(Expression<Func<T>> expression)

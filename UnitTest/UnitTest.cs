@@ -141,7 +141,7 @@ namespace UnitTest
 
 		[Test]
 		[TestCase(typeof(substrate), true)]
-		[TestCase(typeof(Pointer<>),true)]
+		[TestCase(typeof(Pointer<>), true)]
 		[TestCase(typeof(Clazz), false)]
 		public void Test5(Type t, bool b)
 		{
@@ -696,6 +696,53 @@ namespace UnitTest
 			var i2 = Mem.ReadProcessMemory<int>(proc, addr2);
 
 			Assert.AreEqual(i2, i1New);
+		}
+
+		[Test]
+		public void InToRefTest()
+		{
+			int i = 123;
+			Change(in i);
+			Assert.AreEqual(i, 321);
+
+			string s = "foo";
+			Change2(in s);
+			Assert.AreEqual(s, "bar");
+
+			static void Change2(in string ix)
+			{
+				ref string r = ref Mem.InToRef(in ix);
+				r = "bar";
+			}
+			static void Change(in int ix)
+			{
+				ref int r = ref Mem.InToRef(in ix);
+				r = 321;
+			}
+		}
+
+		[Test]
+		public void FieldTest()
+		{
+			var a = new Clazz() {s = "a"};
+
+			var pointer = Mem.AddressOfField<string>(a, "s");
+
+			Assert.AreEqual(a.s, pointer.Value);
+
+			pointer.Value = "g";
+
+			Assert.AreEqual(a.s, "g");
+
+			var refField = Mem.ReferenceOfField<Clazz, string>(in a, "s");
+
+			Assert.AreEqual(a.s, refField);
+
+			var field = Mem.ReferenceOfField<string>(a, "s");
+
+			Assert.AreEqual(a.s, field);
+			Assert.AreEqual(refField, field);
+
 		}
 
 		[Test]

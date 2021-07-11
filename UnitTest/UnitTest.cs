@@ -157,6 +157,35 @@ namespace UnitTest
 	}
 
 	[TestFixture]
+	public class Tests_Meta
+	{
+
+		public int Get1()
+		{
+			return 1;
+		}
+
+		public int Get2()
+		{
+			return 2;
+		}
+
+		[Test]
+		public void Test1()
+		{
+			var m1 = typeof(Tests_Meta).GetAnyMethod(nameof(Get1)).AsMetaMethod();
+			var m2 = typeof(Tests_Meta).GetAnyMethod(nameof(Get2)).AsMetaMethod();
+
+			//m1.EntryPoint = m2.EntryPoint;
+			Hooks.Set(m1,m2);
+			Assert.AreEqual(Get1(), Get2());
+			Hooks.Restore(m1);
+			Assert.AreEqual(Get1(), 1);
+		}
+	}
+
+
+	[TestFixture]
 	public class Tests_Metadata
 	{
 		[Test]

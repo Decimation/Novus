@@ -69,8 +69,6 @@ namespace Novus.Runtime.VM
 			}
 		}
 
-		
-
 
 		internal long RVA
 		{
@@ -124,7 +122,20 @@ namespace Novus.Runtime.VM
 			}
 		}
 
+		internal bool SetEntryPoint(void* v)
+		{
+			fixed (MethodDesc* p = &this) {
+				return Func_SetEntryPoint(p, v) != 0;
+			}
+		}
+
 		internal Pointer<MethodTable> MethodTable => MethodDescChunk.Reference.MethodTable;
+
+		/// <summary>
+		/// <see cref="SetEntryPoint"/>
+		/// </summary>
+		[field: ImportClr("Sig_SetEntryPoint")]
+		private static delegate* unmanaged[Thiscall]<MethodDesc*, void*, int> Func_SetEntryPoint { get; }
 
 		/// <summary>
 		/// <see cref="MethodDesc.IsPointingToNativeCode"/>

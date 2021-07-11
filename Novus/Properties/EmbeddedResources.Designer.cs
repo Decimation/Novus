@@ -185,5 +185,14 @@ namespace Novus.Properties {
                 return ResourceManager.GetString("Sig_Reset", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 10 48 89 74 24 18 57 48 83 EC 20 48 8B FA 48 8B F1 E8 ? ? ? ?.
+        /// </summary>
+        internal static string Sig_SetEntryPoint {
+            get {
+                return ResourceManager.GetString("Sig_SetEntryPoint", resourceCulture);
+            }
+        }
     }
 }

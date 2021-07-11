@@ -107,6 +107,7 @@ namespace Novus.Win32
 			return p;
 		}
 
+		
 		public static string GetParent([NotNull] string fi, int n)
 		{
 			if (n == 0) {

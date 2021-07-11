@@ -27,21 +27,21 @@ namespace Novus.Win32
 
 			};
 
-			m_keyHistory      = new ConcurrentDictionary<VirtualKey, KeyEventArgs>();
-			ScopeHandle = h;
-			KeyWhitelist    = k ?? new HashSet<VirtualKey>();
-		}
-
-		public void Stop()
-		{
-			IsActive = false;
-			m_thread.Join();
+			m_keyHistory = new ConcurrentDictionary<VirtualKey, KeyEventArgs>();
+			ScopeHandle  = h;
+			KeyWhitelist = k ?? new HashSet<VirtualKey>();
 		}
 
 		public void Start()
 		{
 			IsActive = true;
 			m_thread.Start();
+		}
+
+		public void Stop()
+		{
+			IsActive = false;
+			m_thread.Join();
 		}
 
 		public static bool IsKeyDown(VirtualKey k)
@@ -66,37 +66,6 @@ namespace Novus.Win32
 				return (b[1] & K_DOWN) != 0;
 			}
 		}
-
-		public bool IsActive { get; private set; }
-
-		/// <summary>
-		/// When set, restricts listening to this handle
-		/// </summary>
-		public IntPtr ScopeHandle { get; set; }
-
-		public ISet<VirtualKey> KeyWhitelist { get; set; }
-
-		/// <summary>
-		/// Keyboard monitor thread
-		/// </summary>
-		private readonly Thread m_thread;
-
-		private readonly ConcurrentDictionary<VirtualKey, KeyEventArgs> m_keyHistory;
-
-		#region Flags
-
-		private const int K_DOWN = 0x80;
-
-		private const int K_PREV = 1;
-
-		#endregion
-
-		public event EventHandler<KeyEventArgs> KeyEvent;
-
-		public event EventHandler<VirtualKey> KeyDown;
-
-		public event EventHandler<VirtualKey> KeyStroke;
-
 
 		private void HandleKey(VirtualKey keyShort)
 		{
@@ -137,7 +106,7 @@ namespace Novus.Win32
 				KeyDown?.Invoke(null, keyShort);
 			}
 
-			
+
 			m_keyHistory[args.Key] = args;
 		}
 
@@ -164,6 +133,41 @@ namespace Novus.Win32
 		{
 			Stop();
 		}
+
+		public bool IsActive { get; private set; }
+
+		/// <summary>
+		/// When set, restricts listening to this handle
+		/// </summary>
+		public IntPtr ScopeHandle { get; set; }
+
+		public ISet<VirtualKey> KeyWhitelist { get; set; }
+
+		/// <summary>
+		/// Keyboard monitor thread
+		/// </summary>
+		private readonly Thread m_thread;
+
+		private readonly ConcurrentDictionary<VirtualKey, KeyEventArgs> m_keyHistory;
+
+		#region Events
+
+		public event EventHandler<KeyEventArgs> KeyEvent;
+
+		public event EventHandler<VirtualKey> KeyDown;
+
+		public event EventHandler<VirtualKey> KeyStroke;
+
+		#endregion
+
+
+		#region Flags
+
+		private const int K_DOWN = 0x80;
+
+		private const int K_PREV = 1;
+
+		#endregion
 	}
 
 	public sealed class KeyEventArgs : EventArgs

@@ -6,6 +6,7 @@ using Novus.Memory;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
 using SimpleCore.Diagnostics;
+
 // ReSharper disable SuggestBaseTypeForParameter
 
 // ReSharper disable UnusedMember.Global
@@ -70,6 +71,16 @@ namespace Novus.Runtime.Meta
 		public override MethodInfo Info => (MethodInfo) (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
 
 		public void Reset() => Value.Reference.Reset();
+
+		public Pointer<byte> EntryPoint
+		{
+			get => Info.MethodHandle.GetFunctionPointer();
+			set
+			{
+				Reset();
+				Value.Reference.SetEntryPoint(value.ToPointer());
+			}
+		}
 
 		public void Prepare() => RuntimeHelpers.PrepareMethod(Info.MethodHandle);
 

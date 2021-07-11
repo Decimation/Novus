@@ -7,7 +7,6 @@
 using System;
 using System.Buffers;
 using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -26,7 +25,6 @@ using System.Threading;
 using System.Xml;
 using Novus;
 using Novus.Imports;
-using Novus.Memory;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
@@ -121,7 +119,6 @@ namespace Test
 		{
 
 
-
 			//KeyboardListener k = new KeyboardListener();
 			//k.Run();
 			//k.KeyPress += (sender, eventArgs) =>
@@ -132,17 +129,41 @@ namespace Test
 			//	}
 			//};
 
-			var k = new KeyboardListener("PowerShell", new HashSet<VirtualKey>() {VirtualKey.KEY_0, VirtualKey.KEY_1, VirtualKey.KEY_2});
+			var mt  = methodof(() => hi()).AsMetaMethod();
+			var mt2 = methodof(() => hi2()).AsMetaMethod();
 
-			k.KeyStroke += (sender, key) =>
-			{
-				//Console.Clear();
-				Console.WriteLine(key);
-			};
-			k.Start();
+			hi();
+			hi2();
+			/*hi();
+			hi2();
+			Console.WriteLine(mt.EntryPoint);
 
+			delegate* managed<void> entryPoint = &hi2;
+			Console.WriteLine($"{(IntPtr)entryPoint:X}");
+			//Console.WriteLine(entryPoint);
+			mt.EntryPoint=entryPoint;
+			Console.WriteLine(mt.EntryPoint);
+
+			hi();
+			hi2();
+			Console.WriteLine(mt.EntryPoint);*/
+			Hooks.Set(mt, mt2);
+			hi();
+			hi2();
+
+			Hooks.Restore(mt);
+
+			hi();
 		}
 
-		
+		static void hi2()
+		{
+			Console.WriteLine("g2");
+		}
+
+		static void hi()
+		{
+			Console.WriteLine("g");
+		}
 	}
 }

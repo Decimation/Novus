@@ -169,26 +169,5 @@ namespace Novus
 
 			return ver && gc && os;
 		}
-
-		internal static void DebugWrite(params object[] args)
-		{
-			//todo
-
-			foreach (object t in args) {
-				var str = Format(t);
-				Console.Write($"{str} ");
-			}
-			
-			static string Format(object obj)
-			{
-				return obj switch
-				{
-					IntPtr p => Strings.ToHexString(p),
-					_        => obj.ToString(),
-				};
-			}
-
-			Console.WriteLine();
-		}
 	}
 }

@@ -331,6 +331,7 @@ namespace Novus.Utilities
 
 	public static class ReflectionOperatorHelpers
 	{
+		
 		public static MemberInfo memberof<T>(Expression<Func<T>> expression)
 		{
 			var body = (MemberExpression) expression.Body;

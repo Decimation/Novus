@@ -65,6 +65,7 @@ namespace Novus.Memory
 	/// <seealso cref="Native" />
 	/// <seealso cref="PEReader" />
 	/// <seealso cref="GCHandle"/>
+	/// <seealso cref="Hook"/>
 	/// <seealso cref="System.Runtime.CompilerServices" />
 	public static unsafe class Mem
 	{

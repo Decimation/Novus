@@ -28,6 +28,7 @@ using Novus.Imports;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
+using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
@@ -129,31 +130,21 @@ namespace Test
 			//	}
 			//};
 
-			var mt  = methodof(() => hi()).AsMetaMethod();
-			var mt2 = methodof(() => hi2()).AsMetaMethod();
+			var           a = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+			StringBuilder b = new StringBuilder();
+			var x=Native.GetShortPathName(a, b, 1024);
+			Console.WriteLine(x);
+			Console.WriteLine(b);
+			Console.WriteLine(FileSystem.GetShortPath(a));
+		}
 
-			hi();
-			hi2();
-			/*hi();
-			hi2();
-			Console.WriteLine(mt.EntryPoint);
-
-			delegate* managed<void> entryPoint = &hi2;
-			Console.WriteLine($"{(IntPtr)entryPoint:X}");
-			//Console.WriteLine(entryPoint);
-			mt.EntryPoint=entryPoint;
-			Console.WriteLine(mt.EntryPoint);
-
-			hi();
-			hi2();
-			Console.WriteLine(mt.EntryPoint);*/
-			Hooks.Set(mt, mt2);
-			hi();
-			hi2();
-
-			Hooks.Restore(mt);
-
-			hi();
+		struct MyStruct
+		{
+			private int a, b;
+		}
+		class MyClass
+		{
+			public int a;
 		}
 
 		static void hi2()
@@ -164,6 +155,7 @@ namespace Test
 		static void hi()
 		{
 			Console.WriteLine("g");
+			
 		}
 	}
 }

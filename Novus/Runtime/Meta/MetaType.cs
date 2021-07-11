@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -58,7 +59,7 @@ namespace Novus.Runtime.Meta
 		///     Size of the padding in <see cref="BaseSize" />
 		/// </summary>
 		public int BaseSizePadding => EEClass.Reference.BaseSizePadding;
-		
+
 
 		public bool FieldsArePacked => EEClass.Reference.FieldsArePacked;
 
@@ -94,7 +95,6 @@ namespace Novus.Runtime.Meta
 
 		public IEnumerable<MetaMethod> Methods => RuntimeType.GetRuntimeMethods()
 		                                                     .Select(m => new MetaMethod(m));
-
 
 
 		public MetaField GetField(string name)
@@ -184,15 +184,7 @@ namespace Novus.Runtime.Meta
 		// returns random combination of flags if this doesn't have a component size
 		private ushort RawGetComponentSize()
 		{
-			Guard.Assert(BitConverter.IsLittleEndian);
 			return (ushort) ComponentSize;
-			// fixed (uint* dw = &m_dwFlags) {
-			//
-			// 	//BE: return *((WORD*)&m_dwFlags + 1);
-			// 	//LE: return *(ushort*) &m_dwFlags;
-			//
-			// 	return *(ushort*) dw;
-			// }
 		}
 
 		public static implicit operator MetaType(Pointer<MethodTable> ptr) => new(ptr);
@@ -261,7 +253,7 @@ namespace Novus.Runtime.Meta
 		public TypeFlags TypeFlags => Value.Reference.TypeFlags;
 
 		public int VirtualsCount => Value.Reference.NumVirtuals;
-		
+
 
 		public bool IsInteger => RuntimeType.IsInteger();
 

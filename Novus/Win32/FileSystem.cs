@@ -93,6 +93,13 @@ namespace Novus.Win32
 
 		#endregion
 
+		public static string GetShortPath(string a)
+		{
+			var buf = new char[1024];
+			var l=Native.GetShortPathName(a, buf, buf.Length);
+			return new string(buf);
+		}
+
 		private const string RELATIVE_PATH = "..";
 
 		public static string GetRelativeParent([NotNull] string fi, int n)

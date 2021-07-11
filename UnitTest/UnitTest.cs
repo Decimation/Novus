@@ -177,9 +177,9 @@ namespace UnitTest
 			var m2 = typeof(Tests_Meta).GetAnyMethod(nameof(Get2)).AsMetaMethod();
 
 			//m1.EntryPoint = m2.EntryPoint;
-			Hooks.Set(m1,m2);
+			Hook.Set(m1,m2);
 			Assert.AreEqual(Get1(), Get2());
-			Hooks.Restore(m1);
+			Hook.Restore(m1);
 			Assert.AreEqual(Get1(), 1);
 		}
 	}

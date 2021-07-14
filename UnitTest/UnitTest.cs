@@ -27,7 +27,7 @@ using UnitTest.TestTypes;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-#pragma warning disable 0649, IDE0044
+#pragma warning disable 0649, IDE0044, CA1822, IDE1006
 
 namespace UnitTest
 {
@@ -89,6 +89,7 @@ namespace UnitTest
 	[TestFixture]
 	public class Tests_Native
 	{
+		
 		[Test]
 		public void SymbolsTest()
 		{
@@ -430,6 +431,47 @@ namespace UnitTest
 			Assert.True(RuntimeInfo.IsNil(s2));
 
 			Assert.True(RuntimeInfo.IsNil(default(int)));
+		}
+
+		[Test]
+		[TestCase("foo")]
+		[TestCase(new int[]{1,2,3})]
+		public void PinTest(object s)
+		{
+			
+			//var g = GCHandle.Alloc(s, GCHandleType.Pinned);
+
+			var p = Mem.AddressOfHeap(s);
+
+
+			RuntimeInfo.Pin(s);
+			Assert.False(AddPressure(p, s));
+			
+			RuntimeInfo.Unpin(s);
+			Assert.True(AddPressure(p, s));
+		}
+
+
+		private static bool AddPressure(Pointer<byte> p, object s)
+		{
+			for (int i = 0; i < 1000; i++)
+			{
+				//GC.AddMemoryPressure(100000);
+				var r = new object[1000];
+
+				for (int j = 0; j < r.Length; j++)
+				{
+					r[j] = new Random().Next();
+				}
+
+				GC.Collect();
+
+				if (p != Mem.AddressOfHeap(s)) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 	}
 

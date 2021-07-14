@@ -11,6 +11,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Model;
 using SimpleCore.Utilities;
+// ReSharper disable CognitiveComplexity
 
 // ReSharper disable UnusedMember.Global
 
@@ -36,7 +37,7 @@ namespace Novus.Runtime
 			Name    = 1 << 3,
 			Address = 1 << 4,
 			Value   = 1 << 5,
-			
+
 
 			All = Offset | Size | Type | Name | Address | Value
 		}
@@ -84,6 +85,9 @@ namespace Novus.Runtime
 			propTable.AddRow("Nil", RuntimeInfo.IsNil(value));
 			propTable.AddRow("Uninitialized", RuntimeInfo.IsUninitialized(value));
 
+
+			propTable.AddRow("In GC heap", GCHeap.IsHeapPointer(Mem.AddressOfData(ref value)));
+
 			propTable.Write(ConsoleTableFormat.Minimal);
 		}
 
@@ -92,6 +96,7 @@ namespace Novus.Runtime
 			var layoutTable = new ConsoleTable("Size Type", "Value");
 
 			var options = Enum.GetValues<SizeOfOptions>().ToList();
+
 			options.Remove(SizeOfOptions.Heap);
 
 
@@ -166,7 +171,7 @@ namespace Novus.Runtime
 
 				if (options.HasFlag(InspectorOptions.Address)) {
 					var addr = Mem.AddressOfData(ref value) + metaField.Offset;
-					rowValues.Add(addr.ToString(PointerFormatting.FMT_HEX));
+					rowValues.Add(addr.ToString());
 				}
 
 				if (options.HasFlag(InspectorOptions.Value)) {
@@ -213,7 +218,7 @@ namespace Novus.Runtime
 
 						if (Mem.TryGetAddressOfHeap(value, OffsetOptions.StringData, out var addr)) {
 							addr += offsetBase;
-							rowValues.Add(addr.ToString(PointerFormatting.FMT_HEX));
+							rowValues.Add(addr.ToString());
 
 						}
 
@@ -228,8 +233,6 @@ namespace Novus.Runtime
 				}
 			}
 
-
-			
 
 			layoutTable.Write();
 		}

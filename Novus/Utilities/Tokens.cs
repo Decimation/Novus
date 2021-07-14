@@ -6,7 +6,7 @@ using Novus.Win32;
 
 // ReSharper disable UnusedMember.Global
 #pragma warning disable CA1069
-namespace Novus.Runtime
+namespace Novus.Utilities
 {
 	public static class Tokens
 	{

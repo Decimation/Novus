@@ -6,6 +6,7 @@ using Novus.Memory;
 using Novus.Runtime.Meta;
 using SimpleCore.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.Runtime
 {

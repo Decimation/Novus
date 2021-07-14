@@ -11,6 +11,7 @@ using Novus.Win32.Wrappers;
 #pragma warning disable
 namespace TestBenchmark
 {
+	
 	public class Benchmarks6
 	{
 		private int a = 1, b = 1;
@@ -103,7 +104,7 @@ namespace TestBenchmark
 		}
 
 		[Benchmark]
-		public unsafe int Bench()
+		public int Bench()
 		{
 			return _x(1, 1);
 
@@ -111,7 +112,7 @@ namespace TestBenchmark
 		}
 
 		[Benchmark]
-		public unsafe int Bench2()
+		public int Bench2()
 		{
 			return add(1, 1);
 
@@ -119,7 +120,7 @@ namespace TestBenchmark
 		}
 	}
 
-	public unsafe class Benchmarks3
+	public class Benchmarks3
 	{
 		[Benchmark]
 		public byte[] Bench()
@@ -159,7 +160,7 @@ namespace TestBenchmark
 		}
 	}
 
-	public unsafe class Benchmarks
+	public class Benchmarks
 	{
 		[Benchmark]
 		public Symbol Bench1()

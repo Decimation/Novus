@@ -17,6 +17,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
@@ -25,6 +26,7 @@ using System.Threading;
 using System.Xml;
 using Novus;
 using Novus.Imports;
+using Novus.Memory;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
@@ -118,8 +120,6 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-
-
 			//KeyboardListener k = new KeyboardListener();
 			//k.Run();
 			//k.KeyPress += (sender, eventArgs) =>
@@ -130,32 +130,32 @@ namespace Test
 			//	}
 			//};
 
-			var           a = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-			StringBuilder b = new StringBuilder();
-			var x=Native.GetShortPathName(a, b, 1024);
-			Console.WriteLine(x);
-			Console.WriteLine(b);
-			Console.WriteLine(FileSystem.GetShortPath(a));
-		}
+			Native.SetConsoleOutputCP((uint) Encoding.Unicode.CodePage);
+			Console.WriteLine(StringConstants.CHECK_MARK);
 
-		struct MyStruct
-		{
-			private int a, b;
-		}
-		class MyClass
-		{
-			public int a;
-		}
+			var s = StringConstants.CHECK_MARK.ToString();
+			var b=Encoding.Unicode.GetBytes(s);
 
-		static void hi2()
-		{
-			Console.WriteLine("g2");
-		}
+			fixed (char* p = s) { }
 
-		static void hi()
-		{
-			Console.WriteLine("g");
+			int size = Native.WideCharToMultiByte(65001, 0, s, (int) s.Length, null, 0, IntPtr.Zero, IntPtr.Zero);
+
+			byte[] s2 = new byte[size];
+
+			Native.WideCharToMultiByte(65001, 0, s, (int) s.Length, s2, size, IntPtr.Zero, IntPtr.Zero);
+
+			Console.WriteLine(s2.FormatJoin("X"));
+
+			var builder = new StringBuilder(Encoding.UTF8.GetString(s2));
+
+			var handle = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+
+			var xb = Native.WriteConsoleOutputCharacter(handle,
+			                                           builder, (uint) builder.Length, new Coord(0, 0),
+			                                           out uint tc);
+
 			
 		}
 	}
 }
+

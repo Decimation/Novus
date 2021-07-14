@@ -6,13 +6,18 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMember.Local
 
 namespace Novus.Win32
 {
 	public static unsafe partial class Native
 	{
+
+		public static IntPtr GetStdOutputHandle() => Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+
 		public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
 
 		public static string GetWindowText(IntPtr hWnd)
@@ -108,5 +113,19 @@ namespace Novus.Win32
 		}
 
 		public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
+
+		private static Coord GetConsoleCursorPosition(IntPtr hConsoleOutput)
+		{
+			ConsoleScreenBufferInfo cbsi = default;
+
+			if (GetConsoleScreenBufferInfo(hConsoleOutput, ref cbsi)) {
+				return cbsi.dwCursorPosition;
+			}
+			else {
+				// The function failed. Call GetLastError() for details.
+				Coord invalid = default;
+				return invalid;
+			}
+		}
 	}
 }

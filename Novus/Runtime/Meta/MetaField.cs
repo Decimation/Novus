@@ -2,6 +2,8 @@
 using Novus.Memory;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
+using Novus.Utilities;
+
 // ReSharper disable SuggestBaseTypeForParameter
 // ReSharper disable UnusedMember.Local
 // ReSharper disable UnusedMember.Global

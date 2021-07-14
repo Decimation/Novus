@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using SimpleCore.Utilities;
-using static Novus.Memory.PointerFormatting;
 
 // ReSharper disable UnusedMember.Global
 
@@ -457,34 +456,29 @@ namespace Novus.Memory
 
 		#region Format
 
-		public override string ToString() => ToString(FMT_HEX);
+		public override string ToString() => ToString(Strings.HexFormatter.FMT_P);
 		
 
 		public string ToString(string format) => ToString(format, null);
 
 		public string ToString(string? format, IFormatProvider? provider)
 		{
-			if (String.IsNullOrEmpty(format))
-				format = FMT_HEX;
+			//if (String.IsNullOrEmpty(format))
+			//	format = FMT_HEX;
 
-			provider ??= CultureInfo.CurrentCulture;
+			//provider ??= CultureInfo.CurrentCulture;
 
-			return format.ToUpperInvariant() switch
-			{
-				FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
-				FMT_PTR => Strings.HexFormatter.HEX_PREFIX + ToString(FMT_HEX),
-				_       => throw new FormatException()
-			};
+			//return format.ToUpperInvariant() switch
+			//{
+			//	FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
+			//	FMT_PTR => Strings.HexFormatter.HEX_PREFIX + ToString(FMT_HEX),
+			//	_       => throw new FormatException()
+			//};
+
+			return Strings.ToHexString(Address, format);
 
 		}
 
 		#endregion
-	}
-
-	public static class PointerFormatting
-	{
-		public const string FMT_HEX = "X";
-
-		public const string FMT_PTR = "P";
 	}
 }

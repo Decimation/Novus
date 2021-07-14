@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using JetBrains.Annotations;
 using Novus.Win32.Structures;
 using SimpleCore.Diagnostics;
 using SimpleCore.Utilities;
+
+// ReSharper disable SuggestVarOrType_BuiltInTypes
+// ReSharper disable TailRecursiveCall
 
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 // ReSharper disable ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
@@ -79,7 +81,7 @@ namespace Novus.Win32
 		{
 			int result = Native.SHGetKnownFolderPath(new Guid(KnownFolderGuids[(int) knownFolder]),
 			                                         (uint) flags, new IntPtr(defaultUser ? -1 : 0),
-			                                         out IntPtr outPath);
+			                                         out var outPath);
 
 			if (result >= 0) {
 				string path = Marshal.PtrToStringUni(outPath)!;
@@ -93,11 +95,17 @@ namespace Novus.Win32
 
 		#endregion
 
-		public static string GetShortPath(string a)
+		public static string GetShortPath(string dir)
 		{
-			var buf = new char[1024];
-			var l=Native.GetShortPathName(a, buf, buf.Length);
-			return new string(buf);
+			unsafe {
+				const int i = 1024;
+
+				var buf = stackalloc char[i];
+
+				var l = Native.GetShortPathName(dir, buf, i);
+
+				return new string(buf);
+			}
 		}
 
 		private const string RELATIVE_PATH = "..";
@@ -105,16 +113,16 @@ namespace Novus.Win32
 		public static string GetRelativeParent([NotNull] string fi, int n)
 		{
 
-			var i = new string[n + 1];
+			var rg = new string[n + 1];
 
-			Array.Fill(i, RELATIVE_PATH);
-			i[0] = fi;
-			string p = Path.Combine(i);
+			Array.Fill(rg, RELATIVE_PATH);
+			rg[0] = fi;
+			string p = Path.Combine(rg);
 
 			return p;
 		}
 
-		
+
 		public static string GetParent([NotNull] string fi, int n)
 		{
 			if (n == 0) {
@@ -157,6 +165,29 @@ namespace Novus.Win32
 			return true;
 		}
 
+		public static string? SearchInPath(string s)
+		{
+
+
+			//var rg = new List<string>();
+
+			string[] path = Environment.GetEnvironmentVariable("PATH").Split(';');
+
+			foreach (string directory in path) {
+				if (Directory.Exists(directory)) {
+					foreach (string file in Directory.EnumerateFiles(directory)) {
+						if (Path.GetFileName(file) == s) {
+							//rg.Add(file);
+							return file;
+						}
+					}
+				}
+			}
+
+			return null;
+
+			//return rg;
+		}
 
 		public static string? FindExecutableLocation(string exe)
 		{
@@ -223,7 +254,7 @@ namespace Novus.Win32
 
 			string mimeRet = String.Empty;
 
-			if (!string.IsNullOrEmpty(mimeProposed)) {
+			if (!String.IsNullOrEmpty(mimeProposed)) {
 				//suggestPtr = Marshal.StringToCoTaskMemUni(mimeProposed); // for your experiments ;-)
 				mimeRet = mimeProposed;
 			}
@@ -233,7 +264,7 @@ namespace Novus.Win32
 
 			if (ret == 0 && outPtr != IntPtr.Zero) {
 
-				var str = Marshal.PtrToStringUni(outPtr)!;
+				string str = Marshal.PtrToStringUni(outPtr)!;
 
 				Marshal.FreeHGlobal(outPtr);
 
@@ -267,7 +298,7 @@ namespace Novus.Win32
 		/// </returns>
 		public static FileFormatType ResolveFileType(byte[] fileBytes)
 		{
-			
+
 			var rg = FileFormatType.GetAll().ToArray();
 
 			foreach (var fileType in rg) {

@@ -73,13 +73,9 @@ namespace Novus.Win32
 				return;
 
 			}
-			//var keyShort = (VirtualKey)(i);
 
 			short keyState = Native.GetAsyncKeyState(keyShort);
-
-			//keyState != 0 && keyShort != 0
-			//byte[] krg = BitConverter.GetBytes(keyState);
-
+			
 			bool prev = IsVkPrevious(keyState);
 			bool down = IsVkDown(keyState);
 
@@ -118,7 +114,7 @@ namespace Novus.Win32
 					continue;
 				}
 
-				byte[] rg = new byte[256];
+				byte[] rg = new byte[VK_COUNT];
 
 				Native.GetKeyboardState(rg);
 
@@ -165,7 +161,8 @@ namespace Novus.Win32
 
 		private const int K_DOWN = 0x80;
 
-		private const int K_PREV = 1;
+		private const int K_PREV   = 1;
+		private const int VK_COUNT = 256;
 
 		#endregion
 	}

@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.Memory;
+using Novus.Utilities;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
@@ -60,7 +61,9 @@ namespace Novus.Runtime.VM
 
 				const int MT_FIELD_OFS = 0;
 
-				return Mem.OffsetField((MethodTable*) EnclosingMethodTableStub, MT_FIELD_OFS);
+				//return Mem.OffsetField((MethodTable*) EnclosingMethodTableStub, MT_FIELD_OFS);
+
+				return EnclosingMethodTableStub.Add(MT_FIELD_OFS);
 			}
 		}
 

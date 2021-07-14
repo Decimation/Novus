@@ -7,7 +7,6 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -18,7 +17,6 @@ using JetBrains.Annotations;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
-using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using SimpleCore.Diagnostics;
@@ -101,21 +99,6 @@ namespace Novus.Memory
 
 		public static int OffsetOf(object t, string name) => OffsetOf(t.GetType(), name);
 
-		public static Pointer<byte> OffsetField<TField>(TField* field, int offset) where TField : unmanaged
-		{
-			// Alias: PTR_HOST_MEMBER_TADDR
-
-			// m_methodTable.GetValue(PTR_HOST_MEMBER_TADDR(MethodDescChunk, this, m_methodTable));
-
-			//const int MT_FIELD_OFS = 0;
-			//return (MethodTable*) (MT_FIELD_OFS + ((long) MethodTableRaw));
-
-			// // Construct a pointer to a member of the given type.
-			// #define PTR_HOST_MEMBER_TADDR(type, host, memb) \
-			//     (PTR_HOST_TO_TADDR(host) + (TADDR)offsetof(type, memb))
-
-			return (Pointer<byte>) (offset + (long) field);
-		}
 
 		/// <param name="p">Operand</param>
 		/// <param name="lo">Start address (inclusive)</param>
@@ -305,7 +288,8 @@ namespace Novus.Memory
 
 		#endregion
 
-#if EXPERIMENTAL
+		#region Experimental
+
 		public static bool IsBadReadPointer(Pointer<byte> p)
 		{
 			//todo
@@ -338,7 +322,6 @@ namespace Novus.Memory
 			return true;
 
 		}
-#endif
 
 
 		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)
@@ -354,6 +337,8 @@ namespace Novus.Memory
 
 			return value;
 		}
+
+		#endregion
 
 
 		/// <summary>
@@ -465,9 +450,17 @@ namespace Novus.Memory
 			switch (options) {
 				case SizeOfOptions.BaseFields:   return mt.InstanceFieldsSize;
 				case SizeOfOptions.BaseInstance: return mt.BaseSize;
+				case SizeOfOptions.BaseData:     return mt.BaseDataSize;
 				case SizeOfOptions.Heap:         return HeapSizeOfInternal(value);
-				case SizeOfOptions.Data:         return DataSizeOf(value);
-				case SizeOfOptions.BaseData:     return BaseDataSizeOf(mt.RuntimeType);
+
+				case SizeOfOptions.Data:
+					if (RuntimeInfo.IsStruct(value)) {
+						return SizeOf<T>();
+					}
+
+					// Subtract the size of the ObjHeader and MethodTable*
+					return HeapSizeOfInternal(value) - RuntimeInfo.ObjectBaseSize;
+
 				case SizeOfOptions.Auto:
 
 					if (RuntimeInfo.IsStruct(value)) {
@@ -480,38 +473,6 @@ namespace Novus.Memory
 					return Native.INVALID;
 			}
 
-		}
-
-		private static int BaseDataSizeOf(Type type)
-		{
-			var mtx = (MetaType) type;
-
-			if (mtx.RuntimeType.IsValueType) {
-
-				var m = typeof(Mem).GetRuntimeMethods().First(delegate(MethodInfo n)
-				{
-					var infos = n.GetParameters();
-
-					return n.Name                    == nameof(SizeOf)
-					       && infos.Length           == 2
-					       && infos[1].ParameterType == typeof(SizeOfOptions);
-				});
-
-				return (int) ReflectionHelper.CallGeneric(m, type, null, null, SizeOfOptions.Intrinsic);
-			}
-
-			// Subtract the size of the ObjHeader and MethodTable*
-			return mtx.InstanceFieldsSize;
-		}
-
-		private static int DataSizeOf<T>(T value)
-		{
-			if (RuntimeInfo.IsStruct(value)) {
-				return SizeOf<T>();
-			}
-
-			// Subtract the size of the ObjHeader and MethodTable*
-			return HeapSizeOfInternal(value) - RuntimeInfo.ObjectBaseSize;
 		}
 
 		/// <summary>
@@ -707,7 +668,7 @@ namespace Novus.Memory
 			return AddressOfHeapInternal(value, OffsetOptions.Fields);
 		}
 
-		public static Pointer<byte> AddressOfField(object obj, string name) => 
+		public static Pointer<byte> AddressOfField(object obj, string name) =>
 			AddressOfField<byte>(obj, name);
 
 		public static Pointer<TField> AddressOfField<TField>(in object obj, string name) =>

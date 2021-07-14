@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Novus.Memory;
 using SimpleCore.Utilities;
 
@@ -56,10 +57,10 @@ namespace Novus.Win32
 				Arguments              = $"-c \"{args}\"",
 				UseShellExecute        = false,
 				RedirectStandardOutput = true,
-				StandardOutputEncoding = Native.EncodingWin32Unicode
+				StandardOutputEncoding = Encoding.UTF8
 			};
 
-			var proc = new Process()
+			var proc = new Process
 			{
 				StartInfo = startInfo
 			};

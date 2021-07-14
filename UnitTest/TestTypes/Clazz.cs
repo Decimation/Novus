@@ -1,5 +1,8 @@
 using System;
-
+// ReSharper disable InconsistentNaming
+// ReSharper disable CA1822
+// ReSharper disable LocalizableElement
+#pragma warning disable CA1822
 namespace UnitTest.TestTypes
 {
 	internal class Clazz

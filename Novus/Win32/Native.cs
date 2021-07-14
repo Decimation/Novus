@@ -11,7 +11,6 @@ using Novus.Win32.Wrappers;
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
-
 using MA = System.Runtime.InteropServices.MarshalAsAttribute;
 using UT = System.Runtime.InteropServices.UnmanagedType;
 
@@ -132,6 +131,15 @@ namespace Novus.Win32
 		public static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
 		                                             int size, out int numberBytesWritten);
 
+		[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = CharSet.Unicode)]
+		public static extern void CopyMemoryW(IntPtr pdst, string psrc, int cb);
+
+		[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = CharSet.Unicode)]
+		public static extern void CopyMemoryW(IntPtr pdst, char[] psrc, int cb);
+
+		[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory")]
+		public static extern void CopyMemory(IntPtr pdst, byte[] psrc, int cb);
+
 		#endregion
 
 		#region Library
@@ -214,12 +222,32 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, ExactSpelling = true)]
 		public static extern IntPtr GetConsoleWindow();
 
+		#region Code pages
 
-		public const int CP_WIN32_UNITED_STATES = 437;
+		public const int CP_IBM437 = 437;
 
-		public const int CP_WIN32_UNICODE = 65001;
+		/// <summary>The system default Windows ANSI code page.</summary>
+		public const uint CP_ACP = 0;
 
-		public static readonly Encoding EncodingWin32Unicode = Encoding.GetEncoding(CP_WIN32_UNICODE);
+		/// <summary>The current system Macintosh code page.</summary>
+		public const uint CP_MACCP = 2;
+
+		/// <summary>The current system OEM code page.</summary>
+		public const uint CP_OEMCP = 1;
+
+		/// <summary>Symbol code page (42).</summary>
+		public const uint CP_SYMBOL = 42;
+
+		/// <summary>The Windows ANSI code page for the current thread.</summary>
+		public const uint CP_THREAD_ACP = 3;
+
+		/// <summary>UTF-7. Use this value only when forced by a 7-bit transport mechanism. Use of UTF-8 is preferred.</summary>
+		public const uint CP_UTF7 = 65000;
+
+		/// <summary>UTF-8.</summary>
+		public const uint CP_UTF8 = 65001;
+
+		#endregion
 
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
@@ -228,6 +256,52 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern bool SetConsoleCP(uint wCodePageID);
 
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern uint GetConsoleOutputCP();
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern uint GetConsoleCP();
+
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern bool GetConsoleScreenBufferInfo(IntPtr hConsoleOutput,
+		                                                     ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern bool WriteConsoleOutputCharacter(IntPtr hConsoleOutput, StringBuilder lpCharacter,
+		                                                      uint nLength, Coord dwWriteCoord,
+		                                                      out uint lpNumberOfCharsWritten);
+
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern bool WriteConsoleOutput(
+			IntPtr hConsoleOutput,
+			CharInfo[] lpBuffer,
+			Coord dwBufferSize,
+			Coord dwBufferCoord,
+			ref SmallRect lpWriteRegion
+		);
+
+		/* Writes character and color attribute data to a specified rectangular block of character cells in a console screen buffer.
+		The data to be written is taken from a correspondingly sized rectangular block at a specified location in the source buffe */
+		[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
+		internal static extern bool WriteConsoleOutput(
+			IntPtr hConsoleOutput,
+			/* This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
+			whose size is specified by the dwBufferSize parameter.*/
+			[MarshalAs(UnmanagedType.LPArray), In] CharInfo[,] lpBuffer,
+			Coord dwBufferSize,
+			Coord dwBufferCoord,
+			ref SmallRect lpWriteRegion);
+
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		public static extern bool WriteConsole(
+			IntPtr hConsoleOutput,
+			string lpBuffer,
+			uint nNumberOfCharsToWrite,
+			out uint lpNumberOfCharsWritten,
+			IntPtr lpReserved
+		);
 
 		[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 		public static extern bool GetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
@@ -236,6 +310,17 @@ namespace Novus.Win32
 		[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 		public static extern bool SetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
 		                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
+
+		[DllImport(KERNEL32_DLL, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
+		public static extern int MultiByteToWideChar(int codePage, CharConversionFlags dwFlags, byte[] lpMultiByteStr, int cchMultiByte,
+		                                             [Out, MA(UT.LPWStr)] StringBuilder lpWideCharStr,
+		                                             int cchWideChar);
+
+		[DllImport(KERNEL32_DLL, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
+		public static extern int WideCharToMultiByte(int codePage, CharConversionFlags flags,
+		                                             [MA(UT.LPWStr)] string wideStr, int chars,
+		                                             [In, Out] byte[] pOutBytes, int bufferBytes, IntPtr defaultChar,
+		                                             IntPtr pDefaultUsed);
 
 		#endregion
 
@@ -313,7 +398,7 @@ namespace Novus.Win32
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern void GetNativeSystemInfo(ref SystemInfo Info);
-		
+
 
 		[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 		internal static extern uint GetShortPathName([MA(UT.LPTStr)] string lpszLongPath,
@@ -322,6 +407,9 @@ namespace Novus.Win32
 
 		[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 		internal static extern uint GetShortPathName(string lpszLongPath, char[] lpszShortPath, int cchBuffer);
+
+		[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+		internal static extern uint GetShortPathName(string lpszLongPath, char* lpszShortPath, int cchBuffer);
 
 		[DllImport(SHELL32_DLL)]
 		internal static extern int SHGetKnownFolderPath([MA(UT.LPStruct)] Guid rfid, uint dwFlags,
@@ -343,6 +431,9 @@ namespace Novus.Win32
 
 		[DllImport(SHELL32_DLL, CharSet = CharSet.Auto)]
 		public static extern bool ShellExecuteEx(ref ShellExecuteInfo lpExecInfo);
+
+		[DllImport(KERNEL32_DLL)]
+		public static extern void GetCurrentThreadStackLimits(out IntPtr low, out IntPtr hi);
 
 		#endregion
 	}

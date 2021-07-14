@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Imports;
+using Novus.Utilities;
 
 namespace Novus.Runtime.VM.EE
 {

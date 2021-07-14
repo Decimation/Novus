@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using JetBrains.Annotations;
 using Novus.Imports;
 using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using SimpleCore.Diagnostics;
+// ReSharper disable UnusedVariable
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 // ReSharper disable InconsistentNaming
@@ -56,6 +59,32 @@ namespace Novus.Runtime
 		/// </summary>
 		public static PinningHelper GetPinningHelper(object value) => Unsafe.As<PinningHelper>(value);
 
+		private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
+
+
+		public static void Pin(object obj)
+		{
+			var value = new ManualResetEvent(false);
+			
+
+			PinResetEvents.Add(obj, value);
+
+			ThreadPool.QueueUserWorkItem(o =>
+			{
+				fixed (byte* p = &GetPinningHelper(obj).Data) {
+					value.WaitOne();
+				}
+			});
+
+			Debug.WriteLine($"Pinned obj: {obj.GetHashCode()}");
+		}
+
+		public static void Unpin(object obj)
+		{
+			PinResetEvents[obj].Set();
+
+			Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
+		}
 
 		/// <summary>
 		///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
@@ -166,7 +195,7 @@ namespace Novus.Runtime
 
 		#endregion
 
-		#region Metadata Structures
+		#region Metadata
 
 		/// <summary>
 		///     Reads <see cref="TypeHandle" /> as <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from
@@ -335,8 +364,5 @@ namespace Novus.Runtime
 		}
 
 		#endregion
-
-		
-
 	}
 }

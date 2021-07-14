@@ -187,6 +187,30 @@ namespace Novus.Runtime.Meta
 			return (ushort) ComponentSize;
 		}
 
+		public int BaseDataSize
+		{
+			get
+			{
+				if (RuntimeType.IsValueType)
+				{
+
+					var m = typeof(Mem).GetRuntimeMethods().First(delegate (MethodInfo n)
+					{
+						var infos = n.GetParameters();
+
+						return n.Name                    == nameof(Mem.SizeOf)
+						       && infos.Length           == 2
+						       && infos[1].ParameterType == typeof(SizeOfOptions);
+					});
+
+					return (int)ReflectionHelper.CallGeneric(m, RuntimeType, null, null, SizeOfOptions.Intrinsic);
+				}
+
+				// Subtract the size of the ObjHeader and MethodTable*
+				return InstanceFieldsSize;
+			}
+		}
+
 		public static implicit operator MetaType(Pointer<MethodTable> ptr) => new(ptr);
 
 		public static implicit operator MetaType(Type t) => new(t);

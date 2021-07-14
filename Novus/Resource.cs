@@ -35,7 +35,7 @@ namespace Novus
 
 		public string ModuleName { get; }
 
-		public SigScanner Scanner { get; }
+		public Lazy<SigScanner> Scanner { get; }
 
 		[CanBeNull]
 		public SymbolLoader Symbols { get; }
@@ -56,7 +56,7 @@ namespace Novus
 
 			Module = module;
 
-			Scanner = new SigScanner(Module);
+			Scanner = new Lazy<SigScanner>(()=> new SigScanner(Module));
 
 			Address = Module.BaseAddress;
 
@@ -88,7 +88,7 @@ namespace Novus
 
 		public override string ToString()
 		{
-			return $"{Module.ModuleName} ({Scanner.Address})";
+			return $"{Module.ModuleName} ({Scanner.Value.Address})";
 		}
 
 		/*
@@ -307,7 +307,7 @@ namespace Novus
 
 		public Pointer<byte> FindSignature(string signature)
 		{
-			return Scanner.FindSignature(signature);
+			return Scanner.Value.FindSignature(signature);
 		}
 
 		public Pointer<byte> GetOffset(long ofs)

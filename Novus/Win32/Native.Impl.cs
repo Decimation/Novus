@@ -114,7 +114,7 @@ namespace Novus.Win32
 
 		public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
 
-		private static Coord GetConsoleCursorPosition(IntPtr hConsoleOutput)
+		public static Coord GetConsoleCursorPosition(IntPtr hConsoleOutput)
 		{
 			ConsoleScreenBufferInfo cbsi = default;
 

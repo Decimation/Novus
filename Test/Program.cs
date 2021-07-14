@@ -130,31 +130,34 @@ namespace Test
 			//	}
 			//};
 
-			Native.SetConsoleOutputCP((uint) Encoding.Unicode.CodePage);
+			Native.SetConsoleOutputCP((uint) Encoding.UTF8.CodePage);
+
 			Console.WriteLine(StringConstants.CHECK_MARK);
 
 			var s = StringConstants.CHECK_MARK.ToString();
-			var b=Encoding.Unicode.GetBytes(s);
+			
 
-			fixed (char* p = s) { }
-
-			int size = Native.WideCharToMultiByte(65001, 0, s, (int) s.Length, null, 0, IntPtr.Zero, IntPtr.Zero);
+			int size = Native.WideCharToMultiByte(Encoding.UTF8.CodePage, 0, s, (int) s.Length, null, 0, IntPtr.Zero, IntPtr.Zero);
 
 			byte[] s2 = new byte[size];
 
-			Native.WideCharToMultiByte(65001, 0, s, (int) s.Length, s2, size, IntPtr.Zero, IntPtr.Zero);
+			Native.WideCharToMultiByte(Encoding.UTF8.CodePage, 0, s, (int) s.Length, s2, size, IntPtr.Zero, IntPtr.Zero);
 
 			Console.WriteLine(s2.FormatJoin("X"));
 
 			var builder = new StringBuilder(Encoding.UTF8.GetString(s2));
+			Console.WriteLine(builder);
 
-			var handle = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+			var consoleOutput = Native.GetStdOutputHandle();
 
-			var xb = Native.WriteConsoleOutputCharacter(handle,
-			                                           builder, (uint) builder.Length, new Coord(0, 0),
-			                                           out uint tc);
+			var xb = Native.WriteConsoleOutputCharacter(consoleOutput,
+			                                            builder, (uint)builder.Length,Native.GetConsoleCursorPosition(consoleOutput),
+			                                            out uint tc);
+			Console.WriteLine(xb);
+			Console.WriteLine(tc);
 
-			
+			Console.WriteLine(Global.Clr);
+
 		}
 	}
 }

@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using Novus.Memory;
 using Novus.Runtime.Meta;
-using SimpleCore.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using Kantan.Utilities;
+using static Kantan.Diagnostics.LogCategories;
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Runtime

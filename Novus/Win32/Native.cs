@@ -312,7 +312,8 @@ namespace Novus.Win32
 		                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
 
 		[DllImport(KERNEL32_DLL, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
-		public static extern int MultiByteToWideChar(int codePage, CharConversionFlags dwFlags, byte[] lpMultiByteStr, int cchMultiByte,
+		public static extern int MultiByteToWideChar(int codePage, CharConversionFlags dwFlags, byte[] lpMultiByteStr,
+		                                             int cchMultiByte,
 		                                             [Out, MA(UT.LPWStr)] StringBuilder lpWideCharStr,
 		                                             int cchWideChar);
 
@@ -434,6 +435,52 @@ namespace Novus.Win32
 
 		[DllImport(KERNEL32_DLL)]
 		public static extern void GetCurrentThreadStackLimits(out IntPtr low, out IntPtr hi);
+
+
+		[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
+		private static extern int GetWindowTextLength(IntPtr hWnd);
+
+		public static IntPtr SearchForWindow(string title)
+		{
+			SearchData sd = new SearchData {Title = title};
+			EnumWindows(new EnumWindowsProc(EnumProc), ref sd);
+			return sd.hWnd;
+		}
+
+		public class SearchData
+		{
+			// You can put any dicks or Doms in here...
+			public string Wndclass;
+			public string Title;
+			public IntPtr hWnd;
+		}
+
+		private delegate bool EnumWindowsProc(IntPtr hWnd, ref SearchData data);
+
+		[DllImport("user32.dll")]
+		[return: MarshalAs(UnmanagedType.Bool)]
+		private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, ref SearchData data);
+
+		[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+		public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+
+		public static bool EnumProc(IntPtr hWnd, ref SearchData data)
+		{
+			// Check classname and title
+			// This is different from FindWindow() in that the code below allows partial matches
+			StringBuilder sb = new StringBuilder(1024);
+			GetWindowText(hWnd, sb, sb.Capacity);
+
+			if (sb.ToString().Contains(data.Title)) {
+
+				data.hWnd = hWnd;
+				return false; // Found the wnd, halt enumeration
+
+			}
+
+			return true;
+		}
 
 		#endregion
 	}

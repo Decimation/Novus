@@ -4,7 +4,7 @@ using Novus.Memory;
 using Novus.Properties;
 using Novus.Utilities;
 using Novus.Win32;
-using SimpleCore.Diagnostics;
+using Kantan.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ using System.IO;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 
 #pragma warning disable IDE0059
 
@@ -37,8 +37,7 @@ namespace Novus
 
 		public Lazy<SigScanner> Scanner { get; }
 
-		[CanBeNull]
-		public SymbolLoader Symbols { get; }
+		public Lazy<SymbolLoader> Symbols { get; }
 
 		public bool LoadedModule { get; private set; }
 
@@ -56,11 +55,11 @@ namespace Novus
 
 			Module = module;
 
-			Scanner = new Lazy<SigScanner>(()=> new SigScanner(Module));
+			Scanner = new Lazy<SigScanner>(() => new SigScanner(Module));
 
 			Address = Module.BaseAddress;
 
-			Symbols = pdb is not null ? new SymbolLoader(pdb) : null;
+			Symbols = new Lazy<SymbolLoader>(() => pdb is not null ? new SymbolLoader(pdb) : null);
 
 			LoadedModule = false;
 		}
@@ -265,7 +264,8 @@ namespace Novus
 						UnmanagedImportType.Signature => FindSignature(resValue),
 						UnmanagedImportType.Offset    => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
 						UnmanagedImportType.Symbol => ((Pointer<byte>) Module.BaseAddress) +
-						                              Symbols.GetSymbol(name).Offset,
+						                              (Symbols.Value?.GetSymbol(name)?.Offset
+						                               ?? throw new InvalidOperationException()),
 
 						_ => null
 					};
@@ -318,7 +318,7 @@ namespace Novus
 		public void Dispose()
 		{
 			UnloadAll();
-			Symbols?.Dispose();
+			Symbols.Value?.Dispose();
 
 			if (LoadedModule) {
 				//Native.FreeLibrary(Module.BaseAddress);

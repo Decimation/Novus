@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
-using SimpleCore.Diagnostics;
+using Kantan.Diagnostics;
 // ReSharper disable CommentTypo
 
 // ReSharper disable UnusedMember.Global

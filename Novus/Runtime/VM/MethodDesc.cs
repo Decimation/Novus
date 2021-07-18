@@ -3,7 +3,7 @@ using Novus.Memory;
 using System;
 using System.Runtime.InteropServices;
 using Novus.Runtime.VM.IL;
-using SimpleCore.Diagnostics;
+using Kantan.Diagnostics;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global

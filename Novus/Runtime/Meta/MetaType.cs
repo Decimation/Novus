@@ -10,8 +10,8 @@ using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.EE;
 using Novus.Utilities;
-using SimpleCore.Diagnostics;
-using SimpleCore.Numeric;
+using Kantan.Diagnostics;
+using Kantan.Numeric;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming

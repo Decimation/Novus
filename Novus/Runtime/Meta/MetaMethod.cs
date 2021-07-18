@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using Novus.Memory;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
-using SimpleCore.Diagnostics;
+using Kantan.Diagnostics;
 
 // ReSharper disable SuggestBaseTypeForParameter
 

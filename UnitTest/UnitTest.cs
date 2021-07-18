@@ -20,7 +20,7 @@ using Novus;
 using Novus.Imports;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
-using SimpleCore.Numeric;
+using Kantan.Numeric;
 using UnitTest.TestTypes;
 
 // ReSharper disable StringLiteralTypo

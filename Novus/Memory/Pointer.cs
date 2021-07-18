@@ -3,7 +3,7 @@ using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using SimpleCore.Utilities;
+using Kantan.Utilities;
 
 // ReSharper disable UnusedMember.Global
 

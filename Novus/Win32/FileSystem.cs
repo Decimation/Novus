@@ -7,8 +7,8 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using JetBrains.Annotations;
 using Novus.Win32.Structures;
-using SimpleCore.Diagnostics;
-using SimpleCore.Utilities;
+using Kantan.Diagnostics;
+using Kantan.Utilities;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable TailRecursiveCall
@@ -171,7 +171,7 @@ namespace Novus.Win32
 
 			//var rg = new List<string>();
 
-			string[] path = Environment.GetEnvironmentVariable("PATH").Split(';');
+			string[] path = Environment.GetEnvironmentVariable("PATH")!.Split(';');
 
 			foreach (string directory in path) {
 				if (Directory.Exists(directory)) {

@@ -34,8 +34,8 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
-using SimpleCore.Diagnostics;
-using SimpleCore.Utilities;
+using Kantan.Diagnostics;
+using Kantan.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using Console = System.Console;
 
@@ -67,7 +67,7 @@ namespace Test
 	 * NeoCore				https://github.com/Decimation/NeoCore
 	 * RazorSharp			https://github.com/Decimation/RazorSharp
 	 * 
-	 * SimpleCore			https://github.com/Decimation/SimpleCore
+	 * Kantan			https://github.com/Decimation/Kantan
 	 * SimpleSharp			https://github.com/Decimation/SimpleSharp
 	 *
 	 * Memkit				https://github.com/Decimation/Memkit
@@ -130,35 +130,39 @@ namespace Test
 			//	}
 			//};
 
-			Native.SetConsoleOutputCP((uint) Encoding.UTF8.CodePage);
+			//Native.SetConsoleOutputCP((uint) Encoding.UTF8.CodePage);
 
-			Console.WriteLine(StringConstants.CHECK_MARK);
+			//Console.WriteLine(StringConstants.CHECK_MARK);
 
-			var s = StringConstants.CHECK_MARK.ToString();
-			
+			//var s = StringConstants.CHECK_MARK.ToString();
 
-			int size = Native.WideCharToMultiByte(Encoding.UTF8.CodePage, 0, s, (int) s.Length, null, 0, IntPtr.Zero, IntPtr.Zero);
 
-			byte[] s2 = new byte[size];
+			//int size = Native.WideCharToMultiByte(Encoding.UTF8.CodePage, 0, s, (int) s.Length, null, 0, IntPtr.Zero, IntPtr.Zero);
 
-			Native.WideCharToMultiByte(Encoding.UTF8.CodePage, 0, s, (int) s.Length, s2, size, IntPtr.Zero, IntPtr.Zero);
+			//byte[] s2 = new byte[size];
 
-			Console.WriteLine(s2.FormatJoin("X"));
+			//Native.WideCharToMultiByte(Encoding.UTF8.CodePage, 0, s, (int) s.Length, s2, size, IntPtr.Zero, IntPtr.Zero);
 
-			var builder = new StringBuilder(Encoding.UTF8.GetString(s2));
-			Console.WriteLine(builder);
+			//Console.WriteLine(s2.FormatJoin("X"));
 
-			var consoleOutput = Native.GetStdOutputHandle();
+			//var builder = new StringBuilder(Encoding.UTF8.GetString(s2));
+			//Console.WriteLine(builder);
 
-			var xb = Native.WriteConsoleOutputCharacter(consoleOutput,
-			                                            builder, (uint)builder.Length,Native.GetConsoleCursorPosition(consoleOutput),
-			                                            out uint tc);
-			Console.WriteLine(xb);
-			Console.WriteLine(tc);
+			//var consoleOutput = Native.GetStdOutputHandle();
 
-			Console.WriteLine(Global.Clr);
+			//var xb = Native.WriteConsoleOutputCharacter(consoleOutput,
+			//                                            builder, (uint)builder.Length,Native.GetConsoleCursorPosition(consoleOutput),
+			//                                            out uint tc);
+			//Console.WriteLine(xb);
+			//Console.WriteLine(tc);
 
+			//Console.WriteLine(Global.Clr);
+
+			//Console.WriteLine(Global.Clr.Symbols.Value.GetSymbol("g_pGCHeap"));
+			var ptr = Native.SearchForWindow("VLC media player");
+			Console.WriteLine(ptr);
+			var v = Native.SendMessage(ptr, 0x0100, (int) VirtualKey.SPACE, (IntPtr) 0x002C0001);
+			Console.WriteLine(v);
 		}
 	}
 }
-

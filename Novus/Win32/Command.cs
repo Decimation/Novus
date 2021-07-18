@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Novus.Memory;
-using SimpleCore.Utilities;
+using Kantan.Utilities;
 
 // ReSharper disable UnusedMember.Global
 #nullable enable

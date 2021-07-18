@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using SimpleCore.Model;
-using SimpleCore.Utilities;
+using Kantan.Model;
+using Kantan.Utilities;
 
 // ReSharper disable UnusedMember.Global
 

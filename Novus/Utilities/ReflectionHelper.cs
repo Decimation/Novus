@@ -7,11 +7,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Novus.Memory;
-using SimpleCore.Utilities;
+using Kantan.Utilities;
 using System.Reflection.PortableExecutable;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
-using SimpleCore.Diagnostics;
+using Kantan.Diagnostics;
 
 // ReSharper disable InconsistentNaming
 

@@ -12,7 +12,7 @@ using Novus.Imports;
 using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
-using SimpleCore.Diagnostics;
+using Kantan.Diagnostics;
 // ReSharper disable UnusedVariable
 
 // ReSharper disable ConvertIfStatementToReturnStatement

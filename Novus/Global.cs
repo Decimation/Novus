@@ -7,9 +7,9 @@ using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
 using Novus.Win32;
-using SimpleCore.Diagnostics;
-using SimpleCore.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using Kantan.Diagnostics;
+using Kantan.Utilities;
+using static Kantan.Diagnostics.LogCategories;
 // ReSharper disable LocalizableElement
 
 // ReSharper disable UnusedMember.Global

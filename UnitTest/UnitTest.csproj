@@ -42,8 +42,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="SimpleCore">
-      <HintPath>..\..\..\RiderProjects\SimpleCore\SimpleCore\bin\Release\net5.0\SimpleCore.dll</HintPath>
+    <Reference Include="Kantan">
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net5.0\Kantan.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,10 @@ using JetBrains.Annotations;
 using Novus.Win32.Structures;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
+
+#pragma warning disable 8603
+#pragma warning disable 8600
+#pragma warning disable 8602
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable TailRecursiveCall
@@ -104,6 +109,10 @@ namespace Novus.Win32
 
 				var l = Native.GetShortPathName(dir, buf, i);
 
+				if (l!=Native.ERROR_SUCCESS) {
+					throw new Win32Exception((int) l);
+				}
+
 				return new string(buf);
 			}
 		}
@@ -161,72 +170,11 @@ namespace Novus.Win32
 
 			//Clean up file path so it can be navigated OK
 			filePath = Path.GetFullPath(filePath);
-			Process.Start(Native.EXPLORER_EXE, $"/select,\"{filePath}\"");
+			using var p = Process.Start(Native.EXPLORER_EXE, $"/select,\"{filePath}\"");
+
+			p.WaitForExit();
+
 			return true;
-		}
-
-		public static string? SearchInPath(string s)
-		{
-
-
-			//var rg = new List<string>();
-
-			string[] path = Environment.GetEnvironmentVariable("PATH")!.Split(';');
-
-			foreach (string directory in path) {
-				if (Directory.Exists(directory)) {
-					foreach (string file in Directory.EnumerateFiles(directory)) {
-						if (Path.GetFileName(file) == s) {
-							//rg.Add(file);
-							return file;
-						}
-					}
-				}
-			}
-
-			return null;
-
-			//return rg;
-		}
-
-		public static string? FindExecutableLocation(string exe)
-		{
-
-			// https://stackoverflow.com/questions/6041332/best-way-to-get-application-folder-path
-			// var exeLocation1 = Assembly.GetEntryAssembly().Location;
-			// var exeLocation2 = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
-			// var exeLocation3 = System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase;
-			// var exeLocation = AppDomain.CurrentDomain.BaseDirectory;
-
-			//
-
-			var rg = new List<string>
-			{
-				/* Current directory */
-				Environment.CurrentDirectory,
-
-				// Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
-
-				/* Executing directory */
-				Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory!
-				                               .Replace("file:///", String.Empty)
-				                               .Replace("/", "\\"))!,
-
-				//Assembly.GetCallingAssembly().Location
-			};
-
-			rg.AddRange(PathDirectories);
-
-			//
-
-			foreach (string loc in rg) {
-				if (ExistsInFolder(loc, exe, out var folder)) {
-					return folder;
-				}
-			}
-
-
-			return null;
 		}
 
 		/// <summary>
@@ -317,6 +265,64 @@ namespace Novus.Win32
 
 		#region Path
 
+		public static string? FindExecutableLocation(string exe)
+		{
+
+			// https://stackoverflow.com/questions/6041332/best-way-to-get-application-folder-path
+			// var exeLocation1 = Assembly.GetEntryAssembly().Location;
+			// var exeLocation2 = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
+			// var exeLocation3 = System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase;
+			// var exeLocation = AppDomain.CurrentDomain.BaseDirectory;
+
+			//
+
+			var rg = new List<string>
+			{
+				/* Current directory */
+				Environment.CurrentDirectory,
+
+				// Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
+
+				/* Executing directory */
+				Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory
+				                               .Replace("file:///", String.Empty)
+				                               .Replace("/", "\\"))!,
+
+				//Assembly.GetCallingAssembly().Location
+			};
+
+			rg.AddRange(GetEnvironmentPathDirectories());
+
+			//
+
+			foreach (string loc in rg) {
+				if (ExistsInFolder(loc, exe, out var folder)) {
+					return folder;
+				}
+			}
+
+
+			return null;
+		}
+
+		public static string? SearchInPath(string s)
+		{
+			string[] path = GetEnvironmentPathDirectories();
+
+			foreach (string directory in path) {
+				if (Directory.Exists(directory)) {
+					foreach (string file in Directory.EnumerateFiles(directory)) {
+						if (Path.GetFileName(file) == s) {
+							//rg.Add(file);
+							return file;
+						}
+					}
+				}
+			}
+
+			return null;
+		}
+
 		/// <summary>
 		///     Environment variable PATH
 		/// </summary>
@@ -327,45 +333,43 @@ namespace Novus.Win32
 		/// </summary>
 		public const char PATH_DELIM = ';';
 
-		/// <summary>
-		///     Directories of <see cref="EnvironmentPath" /> with environment variable target <see cref="Target" />
-		/// </summary>
-		public static string[] PathDirectories => EnvironmentPath.Split(PATH_DELIM);
 
-		/// <summary>
-		///     Environment variable <see cref="PATH_ENV" /> with target <see cref="Target" />
-		/// </summary>
-		public static string EnvironmentPath
+		public static string[] GetEnvironmentPathDirectories() => GetEnvironmentPathDirectories(Target);
+
+		public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t) =>
+			GetEnvironmentPath(t).Split(PATH_DELIM);
+
+		public static string GetEnvironmentPath() => GetEnvironmentPath(Target);
+
+		public static string GetEnvironmentPath(EnvironmentVariableTarget t)
 		{
-			get
-			{
-				string? env = Environment.GetEnvironmentVariable(PATH_ENV, Target);
-
-				if (env == null) {
-					throw new NullReferenceException();
-				}
-
-				return env;
-			}
-			set => Environment.SetEnvironmentVariable(PATH_ENV, value, Target);
+			return Environment.GetEnvironmentVariable(PATH_ENV, t);
 		}
 
+		public static void SetEnvironmentPath(string s) => SetEnvironmentPath(s, Target);
+
+		public static void SetEnvironmentPath(string s, EnvironmentVariableTarget t)
+		{
+			Environment.SetEnvironmentVariable(PATH_ENV, s, t);
+		}
+
+
 		/// <summary>
-		///     Removes <paramref name="location" /> from <see cref="PathDirectories" />
+		///     Removes <paramref name="location" /> from <see cref="GetEnvironmentPathDirectories()" />
 		/// </summary>
 		public static void RemoveFromPath(string location)
 		{
-			string oldValue = EnvironmentPath;
+			string oldValue = GetEnvironmentPath();
 
-			EnvironmentPath = oldValue.Replace(PATH_DELIM + location, String.Empty);
+			SetEnvironmentPath(oldValue.Replace(PATH_DELIM + location, String.Empty));
 		}
 
 		/// <summary>
-		///     Determines whether <paramref name="location" /> is in <see cref="PathDirectories" />
+		///     Determines whether <paramref name="location" /> is in <see cref="GetEnvironmentPathDirectories()" />
 		/// </summary>
 		public static bool IsFolderInPath(string location)
 		{
-			return PathDirectories.Contains(location);
+			return GetEnvironmentPathDirectories().Contains(location);
 		}
 
 		#endregion

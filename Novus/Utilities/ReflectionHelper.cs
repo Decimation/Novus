@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Novus.Memory;
 using Kantan.Utilities;
 using System.Reflection.PortableExecutable;
+using System.Runtime.CompilerServices;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Kantan.Diagnostics;
@@ -48,8 +49,11 @@ namespace Novus.Utilities
 
 		public static PropertyInfo GetAnyProperty(this Type t, string name) => t.GetProperty(name, ALL_FLAGS);
 
-
-		public static FieldInfo GetResolvedField(this Type t, string fname)
+		/// <summary>
+		/// Resolves the internal field from the member with name <paramref name="fname"/>.
+		/// </summary>
+		/// <remarks>Returns the backing field if <paramref name="fname"/> is a property; otherwise returns the normal field</remarks>
+		public static FieldInfo GetAnyResolvedField(this Type t, string fname)
 		{
 			var member = t.GetAnyMember(fname).First();
 
@@ -71,7 +75,7 @@ namespace Novus.Utilities
 
 		public static FieldInfo GetBackingField(this MemberInfo m)
 		{
-			var fv = m.DeclaringType.GetResolvedField(m.Name);
+			var fv = m.DeclaringType.GetAnyResolvedField(m.Name);
 
 			return fv;
 		}
@@ -187,6 +191,29 @@ namespace Novus.Utilities
 
 		public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
 
+
+
+		public static bool IsAnonymous(this Type type)
+		{
+
+
+			/*
+			   |       Method |      Mean |    Error |   StdDev |
+			   |------------- |----------:|---------:|---------:|
+			   | IsAnonymous1 | 640.90 ns | 6.119 ns | 5.724 ns |
+			   | IsAnonymous2 |  20.36 ns | 0.125 ns | 0.117 ns |
+			 */
+
+
+			return type.Name.Contains("<>f__AnonymousType");
+
+			// HACK: The only way to detect anonymous types right now.
+			/*return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
+			       && type.IsGenericType && type.Name.Contains("AnonymousType")
+			       && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
+			       && type.Attributes.HasFlag(TypeAttributes.NotPublic);*/
+		}
+		
 		#endregion
 
 
@@ -225,7 +252,15 @@ namespace Novus.Utilities
 			 * https://stackoverflow.com/questions/142356/most-efficient-way-to-get-default-constructor-of-a-type
 			 */
 
-			var ctors    = value.GetType().GetConstructors();
+			var type = value.GetType();
+
+			if (args.Length==0) {
+				var ctor=type.GetConstructor(Type.EmptyTypes);
+				ctor?.Invoke(value, null);
+				return true;
+			}
+
+			var ctors    = type.GetConstructors();
 			var argTypes = args.Select(x => x.GetType()).ToArray();
 
 			foreach (var ctor in ctors) {
@@ -326,6 +361,13 @@ namespace Novus.Utilities
 			}
 
 			return current;
+		}
+		
+
+		public static void Assign<T>(this Type t, string name, T val, object obj = null)
+		{
+			var m = t.GetAnyResolvedField(name);
+			m.SetValue(obj, val);
 		}
 	}
 

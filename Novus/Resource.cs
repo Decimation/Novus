@@ -15,6 +15,8 @@ using System.Resources;
 using System.Runtime.InteropServices;
 using static Kantan.Diagnostics.LogCategories;
 
+// ReSharper disable SuggestVarOrType_DeconstructionDeclarations
+
 #pragma warning disable IDE0059
 
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -39,7 +41,7 @@ namespace Novus
 
 		public Lazy<SymbolLoader> Symbols { get; }
 
-		public bool LoadedModule { get; private set; }
+		public bool LoadedModule { get; private init; }
 
 
 		/// <summary>
@@ -75,7 +77,6 @@ namespace Novus
 
 			//var l = Native.LoadLibrary(f.FullName);
 			var l = NativeLibrary.Load(f.FullName);
-
 
 			var r = new Resource(f.Name)
 			{
@@ -126,7 +127,7 @@ namespace Novus
 		{
 			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
-			foreach (var (attr, member) in annotatedTuples) {
+			foreach (var (_, member) in annotatedTuples) {
 				var field = (FieldInfo) member;
 
 				field.SetValue(null, null);
@@ -152,7 +153,7 @@ namespace Novus
 				m_managers.Add(mgr);
 			}
 
-			Debug.WriteLine($"Loading {t.Name}", C_DEBUG);
+			Debug.WriteLine($"Loading type {t.Name}", C_DEBUG);
 
 			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
@@ -160,7 +161,6 @@ namespace Novus
 				var field = (FieldInfo) member;
 
 				var fieldValue = GetImportValue(attribute, field);
-
 
 				// Set value
 
@@ -216,7 +216,7 @@ namespace Novus
 				var value = manager.GetObject(attr.Name);
 
 				if (value != null) {
-					Debug.WriteLine($"{manager.BaseName}:: {value}", C_DEBUG);
+					//Debug.WriteLine($"{manager.BaseName}:: {value}", C_DEBUG);
 					return value;
 				}
 			}
@@ -253,9 +253,8 @@ namespace Novus
 					 * Get resource
 					 */
 
-					string mod           = unmanagedAttr.ModuleName;
+					//string mod           = unmanagedAttr.ModuleName;
 					var    unmanagedType = unmanagedAttr.UnmanagedType;
-
 
 					// Find address
 
@@ -270,7 +269,7 @@ namespace Novus
 						_ => null
 					};
 
-					Guard.Assert(!addr.IsNull);
+					Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
 					if (field.FieldType == typeof(Pointer<byte>)) {
 						fieldValue = addr;
@@ -305,15 +304,9 @@ namespace Novus
 
 		#endregion Import
 
-		public Pointer<byte> FindSignature(string signature)
-		{
-			return Scanner.Value.FindSignature(signature);
-		}
+		public Pointer<byte> FindSignature(string signature) => Scanner.Value.FindSignature(signature);
 
-		public Pointer<byte> GetOffset(long ofs)
-		{
-			return Address + (ofs);
-		}
+		public Pointer<byte> GetOffset(long ofs) => Address + (ofs);
 
 		public void Dispose()
 		{

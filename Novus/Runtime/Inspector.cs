@@ -45,7 +45,7 @@ namespace Novus.Runtime
 		private const InspectorOptions DEFAULT = InspectorOptions.All;
 
 
-		public static void DumpInfo<T>([NotNull] ref T value)
+		public static string DumpInfo<T>([NotNull] ref T value)
 		{
 			/*
 			 *
@@ -88,10 +88,10 @@ namespace Novus.Runtime
 
 			propTable.AddRow("In GC heap", GCHeap.IsHeapPointer(Mem.AddressOfData(ref value)));
 
-			propTable.Write(ConsoleTableFormat.Minimal);
+			return propTable.ToMinimalString();
 		}
 
-		public static void DumpSizes<T>(ref T value)
+		public static string DumpSizes<T>(ref T value)
 		{
 			var layoutTable = new ConsoleTable("Size Type", "Value");
 
@@ -116,10 +116,10 @@ namespace Novus.Runtime
 				layoutTable.AddRow(nameof(SizeOfOptions.Heap), Mem.SizeOf<T>(value, SizeOfOptions.Heap));
 			}
 
-			layoutTable.Write();
+			return layoutTable.ToString();
 		}
 
-		public static void DumpLayout<T>(ref T value, InspectorOptions options = DEFAULT)
+		public static string DumpLayout<T>(ref T value, InspectorOptions options = DEFAULT)
 		{
 			var layoutTable = new ConsoleTable();
 
@@ -234,11 +234,13 @@ namespace Novus.Runtime
 			}
 
 
-			layoutTable.Write();
+			return layoutTable.ToString();
 		}
 
-
-		public static void DumpObject<T>(ref T value) =>
+		public static string Dump<T>(T value) =>
+			DumpObject(ref value);
+		
+		public static string DumpObject<T>(ref T value) =>
 			DumpLayout(ref value, InspectorOptions.Name | InspectorOptions.Value);
 
 		#region Native

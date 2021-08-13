@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -13,6 +14,7 @@ using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Kantan.Diagnostics;
+
 // ReSharper disable UnusedVariable
 
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -53,6 +55,39 @@ namespace Novus.Runtime
 		[field: ImportManaged(typeof(Marshal), "IsPinnable")]
 		private static delegate* managed<object, bool> Func_IsPinnable { get; }
 
+
+		private static readonly Action<object, Action<object>> PinImpl = CreatePinImpl();
+
+		private static Action<object, Action<object>> CreatePinImpl()
+		{
+			var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
+			                               new[] {typeof(object), typeof(Action<object>)}, typeof(RuntimeInfo).Module);
+
+			var il = method.GetILGenerator();
+
+			// create a pinned local variable of type object
+			// this wouldn't be valid in C#, but the runtime doesn't complain about the IL
+			var local = il.DeclareLocal(typeof(object), pinned: true);
+
+			// store first argument obj in the pinned local variable
+			il.Emit(OpCodes.Ldarg_0);
+			il.Emit(OpCodes.Stloc_0);
+			// invoke the delegate
+			il.Emit(OpCodes.Ldarg_1);
+			il.Emit(OpCodes.Ldarg_0);
+			il.EmitCall(OpCodes.Callvirt, typeof(Action<object>).GetMethod("Invoke")!, null);
+
+			il.Emit(OpCodes.Ret);
+
+			return (Action<object, Action<object>>) method.CreateDelegate(typeof(Action<object, Action<object>>));
+		}
+
+		// obj will be *temporarily* pinned while action is being invoked  
+		public static void InvokeWhilePinned(object obj, Action<object> action)
+		{
+			PinImpl(obj, action);
+		}
+
 		/// <summary>
 		///     Used for unsafe pinning of arbitrary objects.
 		/// This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
@@ -65,7 +100,7 @@ namespace Novus.Runtime
 		public static void Pin(object obj)
 		{
 			var value = new ManualResetEvent(false);
-			
+
 
 			PinResetEvents.Add(obj, value);
 
@@ -85,6 +120,7 @@ namespace Novus.Runtime
 
 			Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
 		}
+
 
 		/// <summary>
 		///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>

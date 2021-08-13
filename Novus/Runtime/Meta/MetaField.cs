@@ -55,6 +55,8 @@ namespace Novus.Runtime.Meta
 
 		public int Size => Value.Reference.Size;
 
+		public Pointer<byte> StaticAddress => Value.Reference.StaticAddress;
+
 		public static implicit operator MetaField(Pointer<FieldDesc> ptr) => new(ptr);
 
 		public static implicit operator MetaField(FieldInfo t) => new(t);

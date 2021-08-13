@@ -34,6 +34,9 @@ namespace Novus.Win32
 
 		public const int INVALID = -1;
 
+		public const int ERROR_SUCCESS = 0;
+
+
 		#region DLL
 
 		public const string KERNEL32_DLL = "Kernel32.dll";
@@ -457,20 +460,24 @@ namespace Novus.Win32
 
 		private delegate bool EnumWindowsProc(IntPtr hWnd, ref SearchData data);
 
-		[DllImport("user32.dll")]
+		[DllImport(USER32_DLL)]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, ref SearchData data);
 
-		[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+		[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 		public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
 
-		public static bool EnumProc(IntPtr hWnd, ref SearchData data)
+		private static bool EnumProc(IntPtr hWnd, ref SearchData data)
 		{
 			// Check classname and title
 			// This is different from FindWindow() in that the code below allows partial matches
-			StringBuilder sb = new StringBuilder(1024);
-			GetWindowText(hWnd, sb, sb.Capacity);
+			var sb = new StringBuilder(1024);
+			var v=GetWindowText(hWnd, sb, sb.Capacity);
+
+			if (v!=Native.ERROR_SUCCESS) {
+				return false;
+			}
 
 			if (sb.ToString().Contains(data.Title)) {
 
@@ -483,5 +490,34 @@ namespace Novus.Win32
 		}
 
 		#endregion
+
+		[DllImport(USER32_DLL)]
+		[return: MA(UT.Bool)]
+		private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
+
+
+		public static void FlashWindow(IntPtr hWnd)
+		{
+			var fInfo = new FLASHWINFO
+			{
+				cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
+				hwnd      = hWnd,
+				dwFlags   = FlashWindowType.FLASHW_ALL,
+				uCount    = 8,
+				dwTimeout = 75,
+
+			};
+
+
+			FlashWindowEx(ref fInfo);
+		}
+
+		public static void FlashConsoleWindow() => FlashWindow(GetConsoleWindow());
+
+		public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
+
+		[DllImport(USER32_DLL)]
+		public static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
+		                                                 MessageBoxOptions options);
 	}
 }

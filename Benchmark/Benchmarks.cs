@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using Novus;
 using Novus.Memory;
+using Novus.Runtime.Meta;
+using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Wrappers;
 
@@ -11,7 +14,39 @@ using Novus.Win32.Wrappers;
 #pragma warning disable
 namespace TestBenchmark
 {
-	
+	public class Benchmarks8
+	{
+		private object a = new {s = "foo"};
+
+		[Benchmark]
+		public bool IsAnonymous1()
+		{
+			return a.GetType().IsAnonymous();
+		}
+
+		
+	}
+
+	public class Benchmarks7
+	{
+		[Benchmark]
+		public List<int> Test1()
+		{
+			return Activator.CreateInstance<List<int>>();
+		}
+		[Benchmark]
+		public List<int> Test2()
+		{
+			return (List<int>) GCHeap.AllocObject(typeof(List<int>));
+		}
+		[Benchmark]
+		public List<int> Test3()
+		{
+			return GCHeap.AllocObject<List<int>>();
+		}
+	}
+
+
 	public class Benchmarks6
 	{
 		private int a = 1, b = 1;

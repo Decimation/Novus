@@ -123,6 +123,9 @@ namespace Novus.Memory
 
 		public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 
+		public static implicit operator Pointer<T>(Span<T> ptr) => Unsafe.AsPointer(ref ptr.GetPinnableReference());
+
+
 		/// <summary>
 		///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to
 		///     <see cref="Address" />
@@ -450,6 +453,14 @@ namespace Novus.Memory
 		public T[] Copy(int elemCnt)
 		{
 			return Copy(OFFSET, elemCnt);
+		}
+
+		[Pure]
+		public void CopyTo(T[] rg)
+		{
+			for (int i = 0; i < rg.Length; i++) {
+				rg[i] = this[i];
+			}
 		}
 
 		#endregion

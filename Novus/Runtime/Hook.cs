@@ -10,6 +10,8 @@ using static Kantan.Diagnostics.LogCategories;
 
 namespace Novus.Runtime
 {
+	// NOTE: Experimental
+
 	public static class Hook
 	{
 		private static Dictionary<MetaMethod, HookBuffer> Map { get; } = new();

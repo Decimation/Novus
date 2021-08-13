@@ -26,17 +26,33 @@ namespace Novus.Runtime.Meta
 
 			Global.Clr.LoadImports(typeof(GCHeap));
 		}
-		
-		public static object AllocObject(MetaType mt, params object[] args)
-		{
-			var ptr = Func_AllocObj(mt.Value.ToPointer(), false);
 
-			object obj = Unsafe.Read<object>(&ptr);
+
+		/*
+		 *	| Method |     Mean |    Error |   StdDev |
+			|------- |---------:|---------:|---------:|
+			|  Test1 | 43.62 ns | 0.791 ns | 0.740 ns |
+			|  Test2 | 42.70 ns | 0.316 ns | 0.280 ns |
+			|  Test3 | 24.76 ns | 0.446 ns | 0.417 ns |
+		 */
+
+
+		private static T AllocObject<T>(Type t, params object[] args)
+		{
+			var ptr = Func_AllocObj(t.TypeHandle.Value.ToPointer(), false);
+
+			T obj = Unsafe.Read<T>(&ptr);
 
 			ReflectionHelper.CallConstructor(obj, args);
+			
 
 			return obj;
 		}
+
+		public static T AllocObject<T>(params object[] args) => AllocObject<T>(typeof(T), args);
+
+		public static object AllocObject(Type t, params object[] args) => AllocObject<object>(t, args);
+
 
 		public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class =>
 			IsHeapPointer(Mem.AddressOfHeap(t), smallHeapOnly);

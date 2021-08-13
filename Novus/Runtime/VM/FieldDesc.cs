@@ -92,11 +92,27 @@ namespace Novus.Runtime.VM
 
 		internal FieldBitFlags BitFlags => (FieldBitFlags) UInt1;
 
+		internal void* StaticAddress
+		{
+			get
+			{
+				fixed (FieldDesc* p = &this) {
+					return Func_StaticAddress(p);
+				}
+			}
+		}
+
 		/// <summary>
 		/// <see cref="FieldDesc.Size"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetSize")]
 		private static delegate* unmanaged[Thiscall]<FieldDesc*, int> Func_GetSize { get; }
+
+		/// <summary>
+		/// <see cref="FieldDesc.StaticAddress"/>
+		/// </summary>
+		[field: ImportClr("Sig_GetStaticAddr")]
+		private static delegate* unmanaged[Thiscall]<FieldDesc*, void*> Func_StaticAddress { get; }
 	}
 
 	/// <summary>

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using Kantan.Cli;
 using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
@@ -103,7 +104,8 @@ namespace Novus
 		/// <summary>
 		///     Runtime CLR version
 		/// </summary>
-		public static readonly Version ClrVersion = new(5, 0, 7);
+		public static readonly Version ClrVersion = Version.Parse(EmbeddedResources.RequiredVersion);
+
 
 		/// <summary>
 		///     Runtime CLR resources
@@ -168,6 +170,12 @@ namespace Novus
 			bool os  = OperatingSystem.IsWindows();
 
 			return ver && gc && os;
+		}
+
+
+		public static void QWrite(string s, string u,Action<object> obj, params object[] args)
+		{
+			//todo
 		}
 	}
 }

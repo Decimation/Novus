@@ -61,7 +61,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4A2D98.
+        ///   Looks up a localized string similar to 4B1D98.
         /// </summary>
         internal static string Ofs_GCHeap {
             get {
@@ -70,11 +70,20 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 347210.
+        ///   Looks up a localized string similar to 346EE0.
         /// </summary>
         internal static string Ofs_IsHeapPointer {
             get {
                 return ResourceManager.GetString("Ofs_IsHeapPointer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 5.0.9.
+        /// </summary>
+        internal static string RequiredVersion {
+            get {
+                return ResourceManager.GetString("RequiredVersion", resourceCulture);
             }
         }
         
@@ -160,11 +169,20 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8B 41 0C 48 8D 15 24 DF 36 00.
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8B 41 0C 48 8D 15 E8 BF 2D 00.
         /// </summary>
         internal static string Sig_GetSize {
             get {
                 return ResourceManager.GetString("Sig_GetSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 F7 41 08 00 00 00 02.
+        /// </summary>
+        internal static string Sig_GetStaticAddr {
+            get {
+                return ResourceManager.GetString("Sig_GetStaticAddr", resourceCulture);
             }
         }
         

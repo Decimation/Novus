@@ -22,6 +22,7 @@ using Novus.Win32.Structures;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
 using System.Linq.Expressions;
+using Novus.Utilities;
 using BE = System.Linq.Expressions.BinaryExpression;
 using PE = System.Linq.Expressions.ParameterExpression;
 
@@ -90,9 +91,9 @@ namespace Novus.Memory
 		/// </summary>
 		/// <param name="t">Enclosing type</param>
 		/// <param name="name">Field name</param>
-		public static int OffsetOf(MetaType t, string name)
+		public static int OffsetOf(Type t, string name)
 		{
-			var f = t.GetField(name);
+			var f = t.GetAnyResolvedField(name).AsMetaField();
 
 			return f.Offset;
 		}
@@ -374,6 +375,41 @@ namespace Novus.Memory
 
 			return rg.ToArray();
 		}
+
+		public static byte[] GetBytes(string s)
+		{
+			var rg = new byte[s.Length * sizeof(char)];
+
+			fixed (char* p = s) {
+				Pointer<byte> p2 = p;
+
+				p2.CopyTo(rg);
+			}
+
+			return rg;
+		}
+
+		public static T Copy<T>(T t) where T : class
+		{
+			var t2 = Activator.CreateInstance<T>();
+
+			var p  = AddressOfData(ref t);
+			var s  = SizeOf(t, SizeOfOptions.Data);
+			var p2 = AddressOfData(ref t2);
+
+			//p2.WriteAll(p.Copy(s));
+
+			Copy(p, s, p2);
+
+
+			return t2;
+		}
+
+		public static void Copy(Pointer<byte> p, int cb, Pointer<byte> p2) =>
+			p2.WriteAll(p.Copy(cb));
+
+		public static void Copy(Pointer<byte> p, int startIndex, int cb, Pointer<byte> p2) =>
+			p2.WriteAll(p.Copy(startIndex, cb));
 
 		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
 
@@ -670,6 +706,13 @@ namespace Novus.Memory
 
 		public static Pointer<byte> AddressOfField(object obj, string name) =>
 			AddressOfField<byte>(obj, name);
+		public static Pointer<TField> AddressOfField<TField>(Type t, string name, object o = null)
+		{
+			var field = t.GetAnyResolvedField(name).AsMetaField();
+			var p     = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
+
+			return p.Cast<TField>();
+		}
 
 		public static Pointer<TField> AddressOfField<TField>(in object obj, string name) =>
 			AddressOfField<object, TField>(obj, name);
@@ -683,6 +726,7 @@ namespace Novus.Memory
 			return p + offsetOf;
 		}
 
+		
 		public static ref byte ReferenceOfField(object obj, string name) =>
 			ref AddressOfField<object, byte>(obj, name).Reference;
 
@@ -691,6 +735,12 @@ namespace Novus.Memory
 
 		public static ref TField ReferenceOfField<T, TField>(in T obj, string name) =>
 			ref AddressOfField<T, TField>(in obj, name).Reference;
+
+		public static ref TField ReferenceOfField<TField>(Type t, string name, object o = null)
+		{
+
+			return ref AddressOfField<TField>(t, name, o).Reference;
+		}
 
 		#endregion
 

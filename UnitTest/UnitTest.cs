@@ -15,6 +15,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Novus;
 using Novus.Imports;
@@ -89,7 +90,6 @@ namespace UnitTest
 	[TestFixture]
 	public class Tests_Native
 	{
-		
 		[Test]
 		public void SymbolsTest()
 		{
@@ -155,12 +155,20 @@ namespace UnitTest
 			Assert.AreEqual(ReflectionOperatorHelpers.fieldof(() => new Subclass1().i),
 			                typeof(Subclass1).GetRuntimeField(nameof(Subclass1.i)));
 		}
+
+		[Test]
+		public void Test6()
+		{
+			const string foo = "foo";
+			var          a   = new {s = foo, a = 321};
+			Assert.True(a.GetType().IsAnonymous());
+
+		}
 	}
 
 	[TestFixture]
 	public class Tests_Meta
 	{
-
 		public int Get1()
 		{
 			return 1;
@@ -178,7 +186,7 @@ namespace UnitTest
 			var m2 = typeof(Tests_Meta).GetAnyMethod(nameof(Get2)).AsMetaMethod();
 
 			//m1.EntryPoint = m2.EntryPoint;
-			Hook.Set(m1,m2);
+			Hook.Set(m1, m2);
 			Assert.AreEqual(Get1(), Get2());
 			Hook.Restore(m1);
 			Assert.AreEqual(Get1(), 1);
@@ -200,6 +208,46 @@ namespace UnitTest
 			Assert.AreEqual(mf.Token, f.MetadataToken);
 			Assert.AreEqual(mf.Attributes, f.Attributes);
 			Assert.AreEqual(mf.IsStatic, f.IsStatic);
+
+
+		}
+
+		[Test]
+		public void FieldTest2()
+		{
+			Clazz c = new Clazz();
+			var   p = Mem.AddressOfField(c, nameof(Clazz.prop));
+
+			Assert.True(!p.IsNull);
+
+			p.Value = 123;
+
+			Assert.AreEqual(c.prop, p.Value);
+
+			ref var r = ref Mem.ReferenceOfField<int>(c, nameof(Clazz.prop));
+			r = 4;
+			Assert.AreEqual(r, c.prop);
+
+			//
+
+			
+
+		}
+
+		[Test]
+		public void FieldTest3()
+		{
+			var p2 = Mem.AddressOfField<int>(typeof(Clazz), nameof(Clazz.sprop), null);
+
+			Assert.True(!p2.IsNull);
+
+			p2.Value = 123;
+
+			Assert.AreEqual(Clazz.sprop, p2.Value);
+
+			ref var r2 = ref Mem.ReferenceOfField<int>(typeof(Clazz), nameof(Clazz.sprop), null);
+			r2 = 4;
+			Assert.AreEqual(r2, Clazz.sprop);
 		}
 
 
@@ -318,6 +366,21 @@ namespace UnitTest
 		}
 
 		[Test]
+		public void GCTest2()
+		{
+			var o = GCHeap.AllocObject(typeof(List<int>)) as List<int>;
+			Assert.NotNull(o);
+			o.Add(1);
+			Assert.True(o.Contains(1));
+
+			var o2 = GCHeap.AllocObject<List<int>>();
+			Assert.NotNull(o2);
+			o2.Add(1);
+			Assert.True(o2.Contains(1));
+
+		}
+
+		[Test]
 		public unsafe void GCTest()
 		{
 			var s   = "bar";
@@ -329,14 +392,29 @@ namespace UnitTest
 
 			Assert.True(GCHeap.IsHeapPointer(s));
 
-			var o = GCHeap.AllocObject(typeof(List<int>).AsMetaType()) as List<int>;
 
-			Assert.NotNull(o);
-			o.Add(1);
-
-			Assert.True(o.Contains(1));
 		}
 
+		[Test]
+		public unsafe void StaticTest()
+		{
+			c.i = 1;
+			var p = (Pointer<int>) typeof(c).GetAnyField(nameof(c.i)).AsMetaField().StaticAddress;
+
+			Assert.AreEqual(p.Value, 1);
+
+			p.Value = 25;
+			Assert.AreEqual(p.Value, 25);
+
+			ref var r = ref Mem.ReferenceOfField<int>(typeof(c), "i");
+			Assert.AreEqual(r, 25);
+			r = 321;
+			Assert.AreEqual(c.i, 321);
+			c.i = 123;
+			Assert.AreEqual(r, c.i);
+
+
+		}
 
 		[Test]
 		[TestCase(nameof(SayHi2), true)]
@@ -435,10 +513,10 @@ namespace UnitTest
 
 		[Test]
 		[TestCase("foo")]
-		[TestCase(new int[]{1,2,3})]
+		[TestCase(new int[] {1, 2, 3})]
 		public void PinTest(object s)
 		{
-			
+
 			//var g = GCHandle.Alloc(s, GCHandleType.Pinned);
 
 			var p = Mem.AddressOfHeap(s);
@@ -446,21 +524,24 @@ namespace UnitTest
 
 			RuntimeInfo.Pin(s);
 			Assert.False(AddPressure(p, s));
-			
+
 			RuntimeInfo.Unpin(s);
-			Assert.True(AddPressure(p, s));
+			// Assert.True(AddPressure(p, s));
+
+			RuntimeInfo.InvokeWhilePinned(s, (o) =>
+			{
+				Assert.False(AddPressure(p, o));
+			});
 		}
 
 
 		private static bool AddPressure(Pointer<byte> p, object s)
 		{
-			for (int i = 0; i < 1000; i++)
-			{
+			for (int i = 0; i < 1000; i++) {
 				//GC.AddMemoryPressure(100000);
 				var r = new object[1000];
 
-				for (int j = 0; j < r.Length; j++)
-				{
+				for (int j = 0; j < r.Length; j++) {
 					r[j] = new Random().Next();
 				}
 
@@ -519,6 +600,7 @@ namespace UnitTest
 		[TestCase("https://i.imgur.com/QtCausw.png", nameof(FileFormatType.JPEG))]
 		public void FileTypeTest2(string s, string n)
 		{
+
 			var sx = new WebClient();
 			var rg = sx.DownloadData(s);
 			var s2 = new MemoryStream(rg);
@@ -581,6 +663,17 @@ namespace UnitTest
 	{
 		[SetUp]
 		public void Setup() { }
+
+		[Test]
+		public void CopyTest()
+		{
+			const string foo = "foo";
+			var          a   = new MyClass() {s = foo, a = 321};
+			var          a2  = Mem.Copy(a);
+
+			Assert.AreEqual(a2, a);
+		}
+
 
 		[Test]
 		public void OffsetTest()
@@ -698,6 +791,17 @@ namespace UnitTest
 		}
 
 		[Test]
+		[TestCase("foo")]
+		[TestCase("bar")]
+		[TestCase("hello world")]
+		public void StringTest2(string s)
+		{
+			var bytes  = Mem.GetBytes(s);
+			var bytes1 = Encoding.Unicode.GetBytes(s);
+			Assert.True(bytes1.SequenceEqual(bytes));
+		}
+
+		[Test]
 		public void StringTest()
 		{
 			string s = "foo";
@@ -785,6 +889,7 @@ namespace UnitTest
 				ref string r = ref Mem.InToRef(in ix);
 				r = "bar";
 			}
+
 			static void Change(in int ix)
 			{
 				ref int r = ref Mem.InToRef(in ix);
@@ -830,5 +935,10 @@ namespace UnitTest
 
 			Assert.AreEqual(((Struct) Mem.ReadProcessMemory(proc, b1, typeof(Struct))).a, b.a);
 		}
+	}
+
+	static class c
+	{
+		public static int i = 0;
 	}
 }

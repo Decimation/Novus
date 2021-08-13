@@ -10,6 +10,10 @@ namespace UnitTest.TestTypes
 		public       int    a;
 		public const int    i = 123_321;
 		public       string s;
+
+		public int prop { get; set; }
+		public static int sprop { get; set; }
+
 		public Clazz()
 		{
 			a = i;

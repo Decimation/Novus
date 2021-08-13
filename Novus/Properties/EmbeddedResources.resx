@@ -118,12 +118,15 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Ofs_GCHeap" xml:space="preserve">
-    <value>4A2D98</value>
+    <value>4B1D98</value>
     <comment>g_pGCHeap</comment>
   </data>
   <data name="Ofs_IsHeapPointer" xml:space="preserve">
-    <value>347210</value>
+    <value>346EE0</value>
     <comment>WKS::GCHeap::IsHeapPointer</comment>
+  </data>
+  <data name="RequiredVersion" xml:space="preserve">
+    <value>5.0.9</value>
   </data>
   <data name="Sig_AllocObj" xml:space="preserve">
     <value>48 89 5C 24 10 48 89 7C 24 18 55 41 54</value>
@@ -162,8 +165,12 @@
     <comment>MethodDesc::GetRVA</comment>
   </data>
   <data name="Sig_GetSize" xml:space="preserve">
-    <value>40 53 48 83 EC 20 8B 41 0C 48 8D 15 24 DF 36 00</value>
+    <value>40 53 48 83 EC 20 8B 41 0C 48 8D 15 E8 BF 2D 00</value>
     <comment>FieldDesc::GetSize</comment>
+  </data>
+  <data name="Sig_GetStaticAddr" xml:space="preserve">
+    <value>40 53 48 83 EC 20 F7 41 08 00 00 00 02</value>
+    <comment>FieldDesc::GetCurrentStaticAddress</comment>
   </data>
   <data name="Sig_IsPointingToNativeCode" xml:space="preserve">
     <value>40 53 48 83 EC 20 8A 41 03</value>

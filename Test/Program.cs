@@ -7,18 +7,20 @@
 using System;
 using System.Buffers;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Runtime;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
@@ -67,7 +69,7 @@ namespace Test
 	 * NeoCore				https://github.com/Decimation/NeoCore
 	 * RazorSharp			https://github.com/Decimation/RazorSharp
 	 * 
-	 * Kantan			https://github.com/Decimation/Kantan
+	 * Kantan				https://github.com/Decimation/Kantan
 	 * SimpleSharp			https://github.com/Decimation/SimpleSharp
 	 *
 	 * Memkit				https://github.com/Decimation/Memkit
@@ -115,54 +117,19 @@ namespace Test
 	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
 	 */
 
-
 	public static unsafe class Program
 	{
+		
+
+		
 		private static void Main(string[] args)
 		{
-			//KeyboardListener k = new KeyboardListener();
-			//k.Run();
-			//k.KeyPress += (sender, eventArgs) =>
-			//{
-			//	if (eventArgs.Key ==  VirtualKey.KEY_G) {
-			//		Console.WriteLine(eventArgs);
-
-			//	}
-			//};
-
-			//Native.SetConsoleOutputCP((uint) Encoding.UTF8.CodePage);
-
-			//Console.WriteLine(StringConstants.CHECK_MARK);
-
-			//var s = StringConstants.CHECK_MARK.ToString();
-
-
-			//int size = Native.WideCharToMultiByte(Encoding.UTF8.CodePage, 0, s, (int) s.Length, null, 0, IntPtr.Zero, IntPtr.Zero);
-
-			//byte[] s2 = new byte[size];
-
-			//Native.WideCharToMultiByte(Encoding.UTF8.CodePage, 0, s, (int) s.Length, s2, size, IntPtr.Zero, IntPtr.Zero);
-
-			//Console.WriteLine(s2.FormatJoin("X"));
-
-			//var builder = new StringBuilder(Encoding.UTF8.GetString(s2));
-			//Console.WriteLine(builder);
-
-			//var consoleOutput = Native.GetStdOutputHandle();
-
-			//var xb = Native.WriteConsoleOutputCharacter(consoleOutput,
-			//                                            builder, (uint)builder.Length,Native.GetConsoleCursorPosition(consoleOutput),
-			//                                            out uint tc);
-			//Console.WriteLine(xb);
-			//Console.WriteLine(tc);
-
-			//Console.WriteLine(Global.Clr);
-
-			//Console.WriteLine(Global.Clr.Symbols.Value.GetSymbol("g_pGCHeap"));
-			var ptr = Native.SearchForWindow("VLC media player");
-			Console.WriteLine(ptr);
-			var v = Native.SendMessage(ptr, 0x0100, (int) VirtualKey.SPACE, (IntPtr) 0x002C0001);
-			Console.WriteLine(v);
+			Span<byte>    s = stackalloc byte[256];
+			Pointer<byte> p = s;
+			
+			
 		}
 	}
+
+	
 }

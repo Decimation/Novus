@@ -65,6 +65,15 @@ namespace Novus.Utilities
 			return field;
 		}
 
+		public static FieldInfo GetResolvedField(this MemberInfo member)
+		{
+			var field = member.MemberType == MemberTypes.Property
+				? member.DeclaringType.GetBackingField(member.Name)
+				: member as FieldInfo;
+
+			return field;
+		}
+
 		public static IEnumerable<FieldInfo> GetAllBackingFields(this Type t)
 		{
 			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD_NAME)).ToArray();

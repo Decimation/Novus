@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using Novus.Memory;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
@@ -55,7 +56,16 @@ namespace Novus.Runtime.Meta
 
 		public int Size => Value.Reference.Size;
 
-		public Pointer<byte> StaticAddress => Value.Reference.StaticAddress;
+		public Pointer<byte> StaticAddress
+		{
+			get
+			{
+				// NOTE: important
+				RuntimeHelpers.RunClassConstructor(EnclosingType.RuntimeType.TypeHandle);
+
+				return Value.Reference.StaticAddress;
+			}
+		}
 
 		public static implicit operator MetaField(Pointer<FieldDesc> ptr) => new(ptr);
 

@@ -708,6 +708,7 @@ namespace Novus.Memory
 			AddressOfField<byte>(obj, name);
 		public static Pointer<TField> AddressOfField<TField>(Type t, string name, object o = null)
 		{
+
 			var field = t.GetAnyResolvedField(name).AsMetaField();
 			var p     = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
 

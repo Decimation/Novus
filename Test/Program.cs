@@ -120,30 +120,12 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		private static string b = "b";
+		
+
+		
 		private static void Main(string[] args)
 		{
-			Span<byte>    s = stackalloc byte[256];
-			Pointer<byte> p = s;
-
-			var o = "foo";
-			var r = new FieldRef<char>(o, "_firstChar");
-			Console.WriteLine(r.Value);
-			r.Value = 'g';
-			Console.WriteLine(r.Value);
-			Console.WriteLine(o);
-
-			//Console.WriteLine(b);
-			//RuntimeHelpers.RunClassConstructor(typeof(Program).TypeHandle);
-			var r2 = new FieldRef<string>(typeof(Program), nameof(b));
-			Console.WriteLine(r2.Value);
-			r2.Value = "a";
-			Console.WriteLine(b);
-			Console.WriteLine(r2.Value);
-
-			var r3 = new FieldRef<string>(() => b, null);
-			Console.WriteLine(r3);
-
+			Console.WriteLine("hi");
 		}
 	}
 }

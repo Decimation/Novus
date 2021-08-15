@@ -2,9 +2,12 @@
 using System.Linq.Expressions;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
+// ReSharper disable UnusedMember.Global
 
 namespace Novus.Memory
 {
+	// NOTE: Experimental
+
 	public sealed class FieldRef<T>
 	{
 		public Pointer<T> Address { get; }

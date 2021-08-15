@@ -100,7 +100,6 @@ namespace Novus.Memory
 
 		public static int OffsetOf(object t, string name) => OffsetOf(t.GetType(), name);
 
-
 		/// <param name="p">Operand</param>
 		/// <param name="lo">Start address (inclusive)</param>
 		/// <param name="hi">End address (inclusive)</param>
@@ -123,7 +122,6 @@ namespace Novus.Memory
 			return p >= lo && p <= lo + size;
 		}
 
-
 		/// <summary>
 		///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
 		///     <paramref name="moduleName" />
@@ -138,7 +136,7 @@ namespace Novus.Memory
 			var modules = Process.GetCurrentProcess().Modules;
 
 			return modules.Cast<ProcessModule>().Where(module => module != null)
-			              .FirstOrDefault(module => module.ModuleName   == moduleName);
+			              .FirstOrDefault(module => module.ModuleName == moduleName);
 
 		}
 
@@ -188,9 +186,7 @@ namespace Novus.Memory
 		{
 			var hProc = Native.OpenProcess(proc);
 
-
 			Native.WriteProcessMemory(hProc, addr.Address, ptrBuffer.Address, dwSize, out _);
-
 
 			Native.CloseHandle(hProc);
 		}
@@ -224,7 +220,6 @@ namespace Novus.Memory
 
 			Native.CloseHandle(h);
 		}
-
 
 		/// <summary>
 		///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
@@ -264,7 +259,6 @@ namespace Novus.Memory
 		{
 			//todo
 
-
 			bool valueType = mt.RuntimeType.IsValueType;
 			int  size      = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
 
@@ -293,7 +287,7 @@ namespace Novus.Memory
 
 		public static bool IsBadReadPointer(Pointer<byte> p)
 		{
-			//todo
+			//NOTE: Experimental
 
 			/*
 			 * https://stackoverflow.com/questions/496034/most-efficient-replacement-for-isbadreadptr
@@ -306,10 +300,9 @@ namespace Novus.Memory
 
 				//DWORD mask = (PAGE_READONLY|PAGE_READWRITE|PAGE_WRITECOPY|PAGE_EXECUTE_READ|PAGE_EXECUTE_READWRITE|PAGE_EXECUTE_WRITECOPY);
 
-				const MemoryProtection mask = (MemoryProtection.ReadOnly         | MemoryProtection.ReadWrite   |
-				                               MemoryProtection.WriteCopy        | MemoryProtection.ExecuteRead |
+				const MemoryProtection mask = (MemoryProtection.ReadOnly | MemoryProtection.ReadWrite |
+				                               MemoryProtection.WriteCopy | MemoryProtection.ExecuteRead |
 				                               MemoryProtection.ExecuteReadWrite | MemoryProtection.ExecuteWriteCopy);
-
 
 				var b = !Convert.ToBoolean((mbi.Protect & mask));
 
@@ -324,10 +317,10 @@ namespace Novus.Memory
 
 		}
 
-
 		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)
 		{
-			//todo
+			//NOTE: Experimental
+
 			var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
 			//var stackAlloc = stackalloc byte[byteArray.Length];
 
@@ -341,7 +334,6 @@ namespace Novus.Memory
 
 		#endregion
 
-
 		/// <summary>
 		///     Reads inherited substructure <typeparamref name="TSub" /> from parent <typeparamref name="TSuper" />.
 		/// </summary>
@@ -354,7 +346,6 @@ namespace Novus.Memory
 			int size = SizeOf<TSuper>();
 			return super.Add(size).Cast<TSub>();
 		}
-
 
 		/// <summary>
 		///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
@@ -389,7 +380,13 @@ namespace Novus.Memory
 			return rg;
 		}
 
-		public static T Copy<T>(T t) where T : class
+		public static ref T InToRef<T>(in T t) => ref Unsafe.AsRef(in t);
+
+		#endregion
+
+		#region Copy
+
+		public static T CopyInstance<T>(T t) where T : class
 		{
 			var t2 = Activator.CreateInstance<T>();
 
@@ -400,7 +397,6 @@ namespace Novus.Memory
 			//p2.WriteAll(p.Copy(s));
 
 			Copy(p, s, p2);
-
 
 			return t2;
 		}
@@ -414,9 +410,6 @@ namespace Novus.Memory
 		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
 
 		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
-
-
-		public static ref T InToRef<T>(in T t) => ref Unsafe.AsRef(in t);
 
 		#endregion
 
@@ -556,7 +549,6 @@ namespace Novus.Memory
 
 			// Value of GetSizeField()
 
-
 			// From object.h line 65:
 
 			// The size of the object in the heap must be able to be computed
@@ -589,7 +581,6 @@ namespace Novus.Memory
 		}
 
 		#endregion
-
 
 		#region Address
 
@@ -651,7 +642,6 @@ namespace Novus.Memory
 
 			var heapPtr = AddressOf(ref value).ReadPointer();
 
-
 			// NOTE:
 			// Strings have their data offset by RuntimeInfo.OffsetToStringData
 			// Arrays have their data offset by IntPtr.Size * 2 bytes (may be different for 32 bit)
@@ -704,11 +694,13 @@ namespace Novus.Memory
 			return AddressOfHeapInternal(value, OffsetOptions.Fields);
 		}
 
+		#region Field
+
 		public static Pointer<byte> AddressOfField(object obj, string name) =>
 			AddressOfField<byte>(obj, name);
+
 		public static Pointer<TField> AddressOfField<TField>(Type t, string name, object o = null)
 		{
-
 			var field = t.GetAnyResolvedField(name).AsMetaField();
 			var p     = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
 
@@ -727,7 +719,6 @@ namespace Novus.Memory
 			return p + offsetOf;
 		}
 
-		
 		public static ref byte ReferenceOfField(object obj, string name) =>
 			ref AddressOfField<object, byte>(obj, name).Reference;
 
@@ -737,14 +728,12 @@ namespace Novus.Memory
 		public static ref TField ReferenceOfField<T, TField>(in T obj, string name) =>
 			ref AddressOfField<T, TField>(in obj, name).Reference;
 
-		public static ref TField ReferenceOfField<TField>(Type t, string name, object o = null)
-		{
-
-			return ref AddressOfField<TField>(t, name, o).Reference;
-		}
+		public static ref TField ReferenceOfField<TField>(Type t, string name, object o = null) =>
+			ref AddressOfField<TField>(t, name, o).Reference;
 
 		#endregion
 
+		#endregion
 
 		#region Virtual
 
@@ -790,7 +779,6 @@ namespace Novus.Memory
 		 * https://github.com/pkrumins/bithacks.h/blob/master/bithacks.h
 		 * https://catonmat.net/low-level-bit-hacks
 		 */
-
 
 		//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 

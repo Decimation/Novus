@@ -11,6 +11,7 @@ using Novus.Win32;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
 using static Kantan.Diagnostics.LogCategories;
+
 // ReSharper disable LocalizableElement
 
 // ReSharper disable UnusedMember.Global
@@ -138,7 +139,7 @@ namespace Novus
 				Guard.Fail();
 			}
 
-			
+
 			IsSetup = true;
 
 			/*
@@ -173,7 +174,7 @@ namespace Novus
 		}
 
 
-		public static void QWrite(string s, string u,Action<object> obj, params object[] args)
+		public static void QWrite(string s, string u, Action<object> obj, params object[] args)
 		{
 			//todo
 		}

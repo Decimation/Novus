@@ -669,7 +669,7 @@ namespace UnitTest
 		{
 			const string foo = "foo";
 			var          a   = new MyClass() {s = foo, a = 321};
-			var          a2  = Mem.Copy(a);
+			var          a2  = Mem.CopyInstance(a);
 
 			Assert.AreEqual(a2, a);
 		}

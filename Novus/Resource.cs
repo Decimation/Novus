@@ -208,7 +208,7 @@ namespace Novus
 
 		private object GetObject(ImportAttribute attr)
 		{
-			if (attr is ImportUnmanagedAttribute {Value: { }} unmanaged) {
+			if (attr is ImportUnmanagedAttribute { Value: { } } unmanaged) {
 				return unmanaged.Value;
 			}
 
@@ -254,7 +254,7 @@ namespace Novus
 					 */
 
 					//string mod           = unmanagedAttr.ModuleName;
-					var    unmanagedType = unmanagedAttr.UnmanagedType;
+					var unmanagedType = unmanagedAttr.UnmanagedType;
 
 					// Find address
 
@@ -269,7 +269,14 @@ namespace Novus
 						_ => null
 					};
 
-					Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
+					//Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
+
+					if (field.FieldType == typeof(IntPtr) && addr.IsNull) {
+
+						unsafe {
+							addr = (IntPtr) (delegate* managed<void>) &ImportError;
+						}
+					}
 
 					if (field.FieldType == typeof(Pointer<byte>)) {
 						fieldValue = addr;
@@ -277,6 +284,7 @@ namespace Novus
 					else {
 						fieldValue = (IntPtr) addr;
 					}
+
 
 					break;
 				}
@@ -300,6 +308,13 @@ namespace Novus
 			}
 
 			return fieldValue;
+		}
+
+
+		private static void ImportError()
+		{
+			throw new NotImplementedException();
+			//Console.WriteLine("error");
 		}
 
 		#endregion Import

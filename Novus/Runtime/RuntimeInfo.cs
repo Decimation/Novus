@@ -23,7 +23,7 @@ using Kantan.Diagnostics;
 // ReSharper disable ClassCannotBeInstantiated
 // ReSharper disable UnusedMember.Global
 
-#pragma warning disable CS0618, CS1574
+#pragma warning disable CS0618, CS1574, IDE0059
 namespace Novus.Runtime
 {
 	/// <summary>

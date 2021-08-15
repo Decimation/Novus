@@ -445,7 +445,7 @@ namespace Novus.Win32
 
 		public static IntPtr SearchForWindow(string title)
 		{
-			SearchData sd = new SearchData {Title = title};
+			SearchData sd = new() { Title = title};
 			EnumWindows(new EnumWindowsProc(EnumProc), ref sd);
 			return sd.hWnd;
 		}

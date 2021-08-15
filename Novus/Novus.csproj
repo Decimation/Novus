@@ -6,24 +6,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    <NoWarn>
-      HAA0601,
-      HAA0602,
-      HAA0603,
-      HAA0604,
-      HAA0501,
-      HAA0502,
-      HAA0503,
-      HAA0504,
-      HAA0505,
-      HAA0506,
-      HAA0301,
-      HAA0302,
-      HAA0303,
-      HAA0101,
-      CS1591,
-      CA1416,
-    </NoWarn>
+    <NoWarn>CS1591,CA1416,IDE0079</NoWarn>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Low-level utilities and tools for working with the CLR and memory.</Description>
     <PackageProjectUrl>https://github.com/Decimation/Novus</PackageProjectUrl>
@@ -47,10 +30,8 @@
     <Reference Include="Kantan">
       <HintPath>..\..\Kantan\Kantan\bin\Release\net5.0\Kantan.dll</HintPath>
     </Reference>
-    
-      
-    
-  
+
+
     <Compile Update="Properties\EmbeddedResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -87,5 +68,5 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-  
+
 </Project>

@@ -44,7 +44,7 @@ using Console = System.Console;
 
 // ReSharper disable UnusedParameter.Local
 #nullable disable
-#pragma warning disable IDE0060
+#pragma warning disable IDE0060, IDE0079
 
 namespace Test
 {

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -25,6 +26,7 @@ using System.Linq.Expressions;
 using Novus.Utilities;
 using BE = System.Linq.Expressions.BinaryExpression;
 using PE = System.Linq.Expressions.ParameterExpression;
+using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
 
 // ReSharper disable ConvertIfToOrExpression
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -98,7 +100,6 @@ namespace Novus.Memory
 			return f.Offset;
 		}
 
-		public static int OffsetOf(object t, string name) => OffsetOf(t.GetType(), name);
 
 		/// <param name="p">Operand</param>
 		/// <param name="lo">Start address (inclusive)</param>
@@ -120,47 +121,6 @@ namespace Novus.Memory
 		public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, long size)
 		{
 			return p >= lo && p <= lo + size;
-		}
-
-		/// <summary>
-		///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
-		///     <paramref name="moduleName" />
-		/// </summary>
-		/// <param name="moduleName">
-		///     <see cref="ProcessModule.ModuleName" />
-		/// </param>
-		/// <returns>The found <see cref="ProcessModule" />; <c>null</c> otherwise</returns>
-		[CanBeNull]
-		public static ProcessModule FindModule(string moduleName)
-		{
-			var modules = Process.GetCurrentProcess().Modules;
-
-			return modules.Cast<ProcessModule>().Where(module => module != null)
-			              .FirstOrDefault(module => module.ModuleName == moduleName);
-
-		}
-
-		/// <summary>
-		///     Forcefully kills a <see cref="Process" /> and ensures the process has exited.
-		/// </summary>
-		/// <param name="p"><see cref="Process" /> to forcefully kill.</param>
-		/// <returns><c>true</c> if <paramref name="p" /> was killed; <c>false</c> otherwise</returns>
-		public static bool ForceKill(this Process p)
-		{
-			p.WaitForExit();
-			p.Dispose();
-
-			try {
-				if (!p.HasExited) {
-					p.Kill();
-				}
-
-				return true;
-			}
-			catch (Exception) {
-
-				return false;
-			}
 		}
 
 		#region Read/write
@@ -367,7 +327,7 @@ namespace Novus.Memory
 			return rg.ToArray();
 		}
 
-		public static byte[] GetBytes(string s)
+		public static byte[] GetStringBytes(string s)
 		{
 			var rg = new byte[s.Length * sizeof(char)];
 
@@ -628,10 +588,8 @@ namespace Novus.Memory
 		/// <returns>The address of <paramref name="value" /></returns>
 		/// <exception cref="ArgumentOutOfRangeException">If <paramref name="offset"></paramref> is out of range.</exception>
 		public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
-			where T : class
-		{
-			return AddressOfHeapInternal(value, offset);
-		}
+			where T : class =>
+			AddressOfHeapInternal(value, offset);
 
 		private static Pointer<byte> AddressOfHeapInternal<T>(T value, OffsetOptions offset)
 		{
@@ -646,32 +604,25 @@ namespace Novus.Memory
 			// Strings have their data offset by RuntimeInfo.OffsetToStringData
 			// Arrays have their data offset by IntPtr.Size * 2 bytes (may be different for 32 bit)
 
-			int offsetValue = 0;
+
+			int offsetValue = offset switch
+			{
+				OffsetOptions.ArrayData  => RuntimeInfo.OffsetToArrayData,
+				OffsetOptions.StringData => RuntimeInfo.OffsetToStringData,
+				OffsetOptions.Fields     => RuntimeInfo.OffsetToData,
+				OffsetOptions.Header     => -RuntimeInfo.OffsetToData,
+
+				OffsetOptions.None or _ => 0
+			};
 
 			switch (offset) {
 				case OffsetOptions.StringData:
 					Guard.Assert(RuntimeInfo.IsString(value));
-					offsetValue = RuntimeInfo.OffsetToStringData;
 					break;
 
 				case OffsetOptions.ArrayData:
 					Guard.Assert(RuntimeInfo.IsArray(value));
-					offsetValue = RuntimeInfo.OffsetToArrayData;
 					break;
-
-				case OffsetOptions.Fields:
-					offsetValue = RuntimeInfo.OffsetToData;
-					break;
-
-				case OffsetOptions.None:
-					break;
-
-				case OffsetOptions.Header:
-					offsetValue = -RuntimeInfo.OffsetToData;
-					break;
-
-				default:
-					throw new ArgumentOutOfRangeException(nameof(offset), offset, null);
 			}
 
 			return heapPtr + offsetValue;
@@ -697,39 +648,36 @@ namespace Novus.Memory
 		#region Field
 
 		public static Pointer<byte> AddressOfField(object obj, string name) =>
-			AddressOfField<byte>(obj, name);
+			AddressOfField<object, byte>(obj, name);
 
-		public static Pointer<TField> AddressOfField<TField>(Type t, string name, object o = null)
+		public static Pointer<TField> AddressOfField<TField>(Type t, string name, [NNINN("t")] object o = null)
 		{
 			var field = t.GetAnyResolvedField(name).AsMetaField();
-			var p     = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
+
+			var p = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
 
 			return p.Cast<TField>();
 		}
 
-		public static Pointer<TField> AddressOfField<TField>(in object obj, string name) =>
-			AddressOfField<object, TField>(obj, name);
 
 		public static Pointer<TField> AddressOfField<T, TField>(in T obj, string name)
 		{
-			int offsetOf = OffsetOf(obj, name);
+			int offsetOf = OffsetOf(obj.GetType(), name);
 
 			var p = AddressOfData(ref InToRef(in obj));
 
 			return p + offsetOf;
 		}
 
-		public static ref byte ReferenceOfField(object obj, string name) =>
-			ref AddressOfField<object, byte>(obj, name).Reference;
 
-		public static ref TField ReferenceOfField<TField>(object obj, string name) =>
+		/*public static ref TField ReferenceOfField<TField>(object obj, string name) =>
 			ref AddressOfField<object, TField>(obj, name).Reference;
 
 		public static ref TField ReferenceOfField<T, TField>(in T obj, string name) =>
 			ref AddressOfField<T, TField>(in obj, name).Reference;
 
 		public static ref TField ReferenceOfField<TField>(Type t, string name, object o = null) =>
-			ref AddressOfField<TField>(t, name, o).Reference;
+			ref AddressOfField<TField>(t, name, o).Reference;*/
 
 		#endregion
 

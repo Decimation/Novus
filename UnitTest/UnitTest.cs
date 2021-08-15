@@ -215,7 +215,7 @@ namespace UnitTest
 		[Test]
 		public void FieldTest2()
 		{
-			Clazz c = new Clazz();
+			Clazz c = new();
 			var   p = Mem.AddressOfField(c, nameof(Clazz.prop));
 
 			Assert.True(!p.IsNull);
@@ -224,9 +224,7 @@ namespace UnitTest
 
 			Assert.AreEqual(c.prop, p.Value);
 
-			ref var r = ref Mem.ReferenceOfField<int>(c, nameof(Clazz.prop));
-			r = 4;
-			Assert.AreEqual(r, c.prop);
+			
 
 			//
 
@@ -244,10 +242,7 @@ namespace UnitTest
 			p2.Value = 123;
 
 			Assert.AreEqual(Clazz.sprop, p2.Value);
-
-			ref var r2 = ref Mem.ReferenceOfField<int>(typeof(Clazz), nameof(Clazz.sprop), null);
-			r2 = 4;
-			Assert.AreEqual(r2, Clazz.sprop);
+			
 		}
 
 
@@ -405,13 +400,7 @@ namespace UnitTest
 
 			p.Value = 25;
 			Assert.AreEqual(p.Value, 25);
-
-			ref var r = ref Mem.ReferenceOfField<int>(typeof(c), "i");
-			Assert.AreEqual(r, 25);
-			r = 321;
-			Assert.AreEqual(c.i, 321);
-			c.i = 123;
-			Assert.AreEqual(r, c.i);
+			
 
 
 		}
@@ -796,7 +785,7 @@ namespace UnitTest
 		[TestCase("hello world")]
 		public void StringTest2(string s)
 		{
-			var bytes  = Mem.GetBytes(s);
+			var bytes  = Mem.GetStringBytes(s);
 			var bytes1 = Encoding.Unicode.GetBytes(s);
 			Assert.True(bytes1.SequenceEqual(bytes));
 		}
@@ -910,14 +899,7 @@ namespace UnitTest
 
 			Assert.AreEqual(a.s, "g");
 
-			var refField = Mem.ReferenceOfField<Clazz, string>(in a, "s");
-
-			Assert.AreEqual(a.s, refField);
-
-			var field = Mem.ReferenceOfField<string>(a, "s");
-
-			Assert.AreEqual(a.s, field);
-			Assert.AreEqual(refField, field);
+			
 
 		}
 

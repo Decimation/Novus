@@ -1,14 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using Novus.Memory;
 using Novus.Runtime.Meta;
-using Kantan.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.Runtime
+namespace Novus.Utilities
 {
 	// NOTE: Experimental
 

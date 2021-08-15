@@ -1,11 +1,12 @@
 ﻿using System;
 // ReSharper disable IdentifierTypo
 // ReSharper disable UnusedMember.Global
+#pragma warning disable CA1069
 namespace Novus.Win32.Structures
 {
 	/// <summary>
 	/// Flags that define appearance and behavior of a standard message box
-	/// displayed by a call to the <see cref="MessageBox"/> function.
+	/// displayed by a call to the <see cref="Native.MessageBox"/> function.
 	/// </summary>
 	[Flags]
 	public enum MessageBoxOptions : uint
@@ -139,7 +140,7 @@ namespace Novus.Win32.Structures
 		MB_TASKMODAL = 0x002000,
 
 		/// <summary>
-		/// Adds a Help button to the message box. When the user clicks the Help button or presses F1, the system sends a <see cref="WindowMessage.WM_HELP"/> message to the owner.
+		/// Adds a Help button to the message box. When the user clicks the Help button or presses F1, the system sends a <c>WM_HELP</c> message to the owner.
 		/// </summary>
 		MB_HELP = 0x004000,
 
@@ -149,7 +150,7 @@ namespace Novus.Win32.Structures
 		MB_NOFOCUS = 0x008000,
 
 		/// <summary>
-		/// The message box becomes the foreground window. Internally, the system calls the <see cref="SetForegroundWindow"/> function for the message box.
+		/// The message box becomes the foreground window. Internally, the system calls the <see cref="Native.SetForegroundWindow"/> function for the message box.
 		/// </summary>
 		MB_SETFOREGROUND = 0x00010000,
 

@@ -12,8 +12,6 @@ using Kantan.Diagnostics;
 using Kantan.Utilities;
 
 #pragma warning disable 8603
-#pragma warning disable 8600
-#pragma warning disable 8602
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable TailRecursiveCall
@@ -119,7 +117,7 @@ namespace Novus.Win32
 
 		private const string RELATIVE_PATH = "..";
 
-		public static string GetRelativeParent([NotNull] string fi, int n)
+		public static string GetRelativeParent(string fi, int n)
 		{
 
 			var rg = new string[n + 1];
@@ -132,7 +130,7 @@ namespace Novus.Win32
 		}
 
 
-		public static string GetParent([NotNull] string fi, int n)
+		public static string GetParent(string fi, int n)
 		{
 			if (n == 0) {
 				return fi;

@@ -19,6 +19,7 @@ using static Kantan.Diagnostics.LogCategories;
 [assembly: InternalsVisibleTo("Test")]
 [assembly: InternalsVisibleTo("TestBenchmark")]
 #nullable disable
+#pragma warning disable IDE0060, IDE0079
 
 namespace Novus
 {

@@ -51,7 +51,7 @@ namespace Novus
 		{
 			ModuleName = moduleName;
 
-			var module = Mem.FindModule(moduleName);
+			var module = ProcessHelper.FindModule(moduleName);
 
 			Guard.AssertNotNull(module);
 

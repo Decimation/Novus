@@ -3,7 +3,7 @@
 namespace Novus.Win32.Structures
 {
 	/// <summary>
-	/// Represents possible values returned by the <see cref="AppInterface.MessageBox"/> function.
+	/// Represents possible values returned by the <see cref="Native.MessageBox"/> function.
 	/// </summary>
 	public enum MessageBoxResult : uint
 	{

@@ -131,13 +131,13 @@ namespace Novus
 			 */
 
 
-			Trace.WriteLine(">>> Module init <<<", C_INFO);
+			Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
 
 			bool compatible = IsCompatible();
 
 			if (!compatible) {
-				Trace.WriteLine("Compatibility check failed!", C_WARN);
-				Guard.Fail();
+				Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed!", C_ERROR);
+				//Guard.Fail();
 			}
 
 
@@ -152,7 +152,7 @@ namespace Novus
 				//Close();
 			};
 
-			Trace.WriteLine($">>> {LIB_NAME} loaded <<<", C_INFO);
+			Trace.WriteLine($"[{LIB_NAME}] Loaded", C_INFO);
 
 		}
 

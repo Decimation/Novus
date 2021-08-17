@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using Novus;
@@ -7,6 +8,7 @@ using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
+using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
 
 // ReSharper disable InconsistentNaming
@@ -14,6 +16,28 @@ using Novus.Win32.Wrappers;
 #pragma warning disable
 namespace TestBenchmark
 {
+	public class Benchmarks9
+	{
+		private IntPtr h;
+
+		[GlobalSetup]
+		public void Setup()
+		{
+			h = Process.GetCurrentProcess().Handle;
+		}
+
+		[Benchmark]
+		public List<MemoryBasicInformation> Test1()
+		{
+			return Mem.EnumerateRegions(h);
+		}
+		[Benchmark]
+		public LinkedList<MemoryBasicInformation> Test2()
+		{
+			return Mem.EnumerateRegions2(h);
+		}
+
+	}
 	public class Benchmarks8
 	{
 		private object a = new {s = "foo"};

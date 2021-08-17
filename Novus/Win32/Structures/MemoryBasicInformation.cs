@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
+// ReSharper disable UnusedMember.Global
+
 namespace Novus.Win32.Structures
 {
 	/*[StructLayout(LayoutKind.Sequential)]
@@ -26,10 +28,22 @@ namespace Novus.Win32.Structures
 		public IntPtr           RegionSize;
 		public AllocationType   State;
 		public MemoryProtection Protect;
-		public TypeEnum         Type;
+		public MemType          Type;
+
+		/// <inheritdoc />
+		public override string ToString()
+		{
+			return $"{nameof(BaseAddress)}: {BaseAddress:X},\n" +
+			       $"{nameof(AllocationBase)}: {AllocationBase:X},\n" +
+			       $"{nameof(AllocationProtect)}: {AllocationProtect},\n" +
+			       $"{nameof(RegionSize)}: {RegionSize},\n" +
+			       $"{nameof(State)}: {State},\n" +
+			       $"{nameof(Protect)}: {Protect},\n" +
+			       $"{nameof(Type)}: {Type}";
+		}
 	}
 
-	public enum TypeEnum : uint
+	public enum MemType : uint
 	{
 		MEM_IMAGE   = 0x1000000,
 		MEM_MAPPED  = 0x40000,

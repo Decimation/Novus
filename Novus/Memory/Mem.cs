@@ -245,6 +245,113 @@ namespace Novus.Memory
 
 		#region Experimental
 
+		public static LinkedList<MemoryBasicInformation> EnumerateRegions2(IntPtr handle)
+		{
+			/*
+			int EnumVirtualAllocations(const void* ptr, size_t length, MEMORY_BASIC_INFORMATION* info, int size)
+			{
+			    const void* end = (const void*)((const char*)ptr + length);
+			    int index = 0;
+			    while (index < size && ptr < end &&
+			        VirtualQuery(ptr, &info[index], sizeof(*info)) == sizeof(*info))
+			    {
+			        MEMORY_BASIC_INFORMATION* i = &info[index];
+			        if (i->State != MEM_FREE) index++;
+			        ptr = (const void*)((const char*)(i->BaseAddress) + i->RegionSize);
+			    }
+			    return index;
+			}
+			 */
+
+			SystemInfo systemInformation = default;
+			Native.GetSystemInfo(ref systemInformation);
+
+			MemoryBasicInformation m = default;
+
+			var lpMem = 0L;
+
+			var of = (uint)Marshal.SizeOf(typeof(MemoryBasicInformation));
+
+			long d = systemInformation.MaximumApplicationAddress.ToInt64();
+
+			var rg = new LinkedList<MemoryBasicInformation>();
+
+			while (lpMem < d)
+			{
+				int result = Native.VirtualQueryEx(handle, (IntPtr)lpMem, ref m, of);
+
+				
+				rg.AddLast(m);
+
+				/*if (m.State == AllocationType.Commit &&
+				    m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE) {
+					
+				}*/
+
+				var address = (long)m.BaseAddress + (long)m.RegionSize;
+
+				if (lpMem == address)
+					break;
+
+				lpMem = address;
+
+			}
+
+			return rg;
+		}
+		public static List<MemoryBasicInformation> EnumerateRegions(IntPtr handle)
+		{
+			/*
+			int EnumVirtualAllocations(const void* ptr, size_t length, MEMORY_BASIC_INFORMATION* info, int size)
+			{
+			    const void* end = (const void*)((const char*)ptr + length);
+			    int index = 0;
+			    while (index < size && ptr < end &&
+			        VirtualQuery(ptr, &info[index], sizeof(*info)) == sizeof(*info))
+			    {
+			        MEMORY_BASIC_INFORMATION* i = &info[index];
+			        if (i->State != MEM_FREE) index++;
+			        ptr = (const void*)((const char*)(i->BaseAddress) + i->RegionSize);
+			    }
+			    return index;
+			}
+			 */
+
+			SystemInfo systemInformation = default;
+			Native.GetSystemInfo(ref systemInformation);
+
+			MemoryBasicInformation m = default;
+
+			var lpMem = 0L;
+
+			var of = (uint) Marshal.SizeOf(typeof(MemoryBasicInformation));
+
+			long d = systemInformation.MaximumApplicationAddress.ToInt64();
+
+			var rg = new List<MemoryBasicInformation>();
+
+			while (lpMem < d) {
+				int result = Native.VirtualQueryEx(handle, (IntPtr) lpMem, ref m, of);
+
+				rg.Add(m);
+
+				/*if (m.State == AllocationType.Commit &&
+				    m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE) {
+					
+				}*/
+
+				var address = (long) m.BaseAddress + (long) m.RegionSize;
+
+				if (lpMem == address)
+					break;
+
+				lpMem = address;
+
+			}
+
+			return rg;
+		}
+
 		public static bool IsBadReadPointer(Pointer<byte> p)
 		{
 			//NOTE: Experimental

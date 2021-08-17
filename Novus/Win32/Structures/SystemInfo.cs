@@ -8,17 +8,22 @@ namespace Novus.Win32.Structures
 	[StructLayout(LayoutKind.Sequential)]
 	public struct SystemInfo
 	{
-		public ProcessorArchitecture wProcessorArchitecture;
-		public ushort                wReserved;
-		public uint                  dwPageSize;
-		public IntPtr                lpMinimumApplicationAddress;
-		public IntPtr                lpMaximumApplicationAddress;
-		public IntPtr                dwActiveProcessorMask;
-		public uint                  dwNumberOfProcessors;
-		public uint                  dwProcessorType;
-		public uint                  dwAllocationGranularity;
-		public ushort                wProcessorLevel;
-		public ushort                wProcessorRevision;
+		public ProcessorArchitecture ProcessorArchitecture;
+
+		public ushort Reserved;
+		public uint   PageSize;
+
+		public IntPtr MinimumApplicationAddress;
+		public IntPtr MaximumApplicationAddress;
+
+		public IntPtr ActiveProcessorMask;
+		public uint   NumberOfProcessors;
+		public uint   ProcessorType;
+
+		public uint AllocationGranularity;
+
+		public ushort ProcessorLevel;
+		public ushort ProcessorRevision;
 	}
 
 	public enum ProcessorArchitecture : ushort

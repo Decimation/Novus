@@ -262,7 +262,7 @@ namespace Novus
 					{
 						UnmanagedImportType.Signature => FindSignature(resValue),
 						UnmanagedImportType.Offset    => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
-						UnmanagedImportType.Symbol => ((Pointer<byte>) Module.BaseAddress) +
+						UnmanagedImportType.Symbol => (Pointer<byte>) Module.BaseAddress +
 						                              (Symbols.Value?.GetSymbol(name)?.Offset
 						                               ?? throw new InvalidOperationException()),
 

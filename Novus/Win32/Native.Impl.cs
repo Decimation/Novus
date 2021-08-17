@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
+// ReSharper disable IdentifierTypo
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global

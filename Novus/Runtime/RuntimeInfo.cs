@@ -83,10 +83,7 @@ namespace Novus.Runtime
 		}
 
 		// obj will be *temporarily* pinned while action is being invoked  
-		public static void InvokeWhilePinned(object obj, Action<object> action)
-		{
-			PinImpl(obj, action);
-		}
+		public static void InvokeWhilePinned(object obj, Action<object> action) => PinImpl(obj, action);
 
 		/// <summary>
 		///     Used for unsafe pinning of arbitrary objects.

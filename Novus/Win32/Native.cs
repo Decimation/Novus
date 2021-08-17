@@ -446,13 +446,12 @@ namespace Novus.Win32
 		public static IntPtr SearchForWindow(string title)
 		{
 			SearchData sd = new() { Title = title};
-			EnumWindows(new EnumWindowsProc(EnumProc), ref sd);
+			EnumWindows(EnumProc, ref sd);
 			return sd.hWnd;
 		}
 
-		public class SearchData
+		private class SearchData
 		{
-			// You can put any dicks or Doms in here...
 			public string Wndclass;
 			public string Title;
 			public IntPtr hWnd;
@@ -475,7 +474,7 @@ namespace Novus.Win32
 			var sb = new StringBuilder(1024);
 			var v=GetWindowText(hWnd, sb, sb.Capacity);
 
-			if (v!=Native.ERROR_SUCCESS) {
+			if (v!=ERROR_SUCCESS) {
 				return false;
 			}
 

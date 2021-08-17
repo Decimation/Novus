@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Kantan.Cli;
 using Novus.Memory;
 using Novus.Properties;
@@ -10,6 +12,7 @@ using Novus.Runtime;
 using Novus.Win32;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
+using Novus.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable LocalizableElement
@@ -116,7 +119,7 @@ namespace Novus
 
 		public static bool IsSetup { get; private set; }
 
-		public static string ProgramData { get; } =
+		internal static string ProgramData { get; } =
 			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);
 
 
@@ -175,9 +178,59 @@ namespace Novus
 		}
 
 
-		public static void QWrite(string s, string u, Action<object> obj, params object[] args)
+		#region QWrite
+
+		internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
+
+		[StringFormatMethod("s")]
+		internal static void QWrite(string s, params object[] args) => QWrite(s, DefaultQWriteFunction, args: args);
+
+		[StringFormatMethod("s")]
+		internal static void QWrite(string s, Action<object> writeFunction = null, string category = null,
+		                            [CallerMemberName()] string caller = null, params object[] args)
 		{
-			//todo
+			writeFunction ??= DefaultQWriteFunction;
+
+			var fmt = new string[args.Length];
+			int i   = 0;
+
+			foreach (object obj in args) {
+				string s2 = obj switch
+				{
+					object[] rg => rg.QuickJoin(),
+					Array r     => r.CastObjectArray().QuickJoin(),
+					string str  => str,
+					_           => obj.ToString()
+				};
+
+				if (obj.GetType().IsAnyPointer()) {
+					s = Strings.ToHexString(obj);
+				}
+
+				else if (Collections.TryCastDictionary(obj, out var kv)) {
+					s = kv.Select(x => $"{x.Key} = {x.Value}")
+					      .QuickJoin("\n");
+				}
+
+				fmt[i++] = s2;
+
+			}
+
+			s = string.Format(s, fmt);
+
+			if (category is { }) {
+				s = $"[{category}] " + s;
+
+			}
+
+			if (caller is { }) {
+				s = $"[{caller}] " + s;
+			}
+
+			writeFunction(s);
+
 		}
+
+		#endregion
 	}
 }

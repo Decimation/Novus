@@ -26,15 +26,11 @@ namespace TestBenchmark
 			h = Process.GetCurrentProcess().Handle;
 		}
 
-		[Benchmark]
-		public List<MemoryBasicInformation> Test1()
-		{
-			return Mem.EnumerateRegions(h);
-		}
+		
 		[Benchmark]
 		public LinkedList<MemoryBasicInformation> Test2()
 		{
-			return Mem.EnumerateRegions2(h);
+			return Mem.EnumerateRegions(h);
 		}
 
 	}

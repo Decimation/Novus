@@ -120,27 +120,9 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		
-
-		
 		private static void Main(string[] args)
 		{
-			Console.WriteLine("hi");
-
-			var handle = Process.GetCurrentProcess().Handle;
-			var    r      = Mem.EnumerateRegions2(handle);
-
-			foreach (MemoryBasicInformation information in r) {
-				
-				if (information.BaseAddress == Global.Clr.Module.BaseAddress) {
-					Console.WriteLine(information);
-				}
-			}
-
-			Console.WriteLine(Global.Clr);
-			Console.WriteLine(Mem.EnumerateRegions(handle).Count);
-			Console.WriteLine(Mem.EnumerateRegions2(handle).Count);
-
+			// ...
 		}
 	}
 }

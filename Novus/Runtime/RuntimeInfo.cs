@@ -14,6 +14,7 @@ using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Kantan.Diagnostics;
+using Novus.Utilities;
 
 // ReSharper disable UnusedVariable
 
@@ -22,6 +23,9 @@ using Kantan.Diagnostics;
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable ClassCannotBeInstantiated
 // ReSharper disable UnusedMember.Global
+
+using CBN=JetBrains.Annotations.CanBeNullAttribute;
+using NN = JetBrains.Annotations.NotNullAttribute;
 
 #pragma warning disable CS0618, CS1574, IDE0059
 namespace Novus.Runtime
@@ -61,7 +65,8 @@ namespace Novus.Runtime
 		private static Action<object, Action<object>> CreatePinImpl()
 		{
 			var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
-			                               new[] {typeof(object), typeof(Action<object>)}, typeof(RuntimeInfo).Module);
+			                               new[] { typeof(object), typeof(Action<object>) },
+			                               typeof(RuntimeInfo).Module);
 
 			var il = method.GetILGenerator();
 
@@ -282,12 +287,11 @@ namespace Novus.Runtime
 
 		#endregion
 
-		#region Properties
+		#region Comparison & Properties
 
 		/// <summary>
 		///     Determines whether <paramref name="obj" /> is blittable; that is, whether it has identical data representation in
-		///     both
-		///     managed and unmanaged memory.
+		///     both managed and unmanaged memory.
 		/// </summary>
 		/// <returns><c>true</c> if blittable; <c>false</c> otherwise</returns>
 		public static bool IsBlittable<T>(T obj) => obj.GetMetaType().IsBlittable;
@@ -296,7 +300,7 @@ namespace Novus.Runtime
 		///     Determines whether <paramref name="value" /> is pinnable.
 		/// </summary>
 		/// <returns><c>true</c> if pinnable; <c>false</c> otherwise</returns>
-		public static bool IsPinnable([CanBeNull] object value) => Func_IsPinnable(value);
+		public static bool IsPinnable([CBN] object value) => Func_IsPinnable(value);
 
 		public static bool IsNullable<T>(T obj)
 		{
@@ -320,22 +324,23 @@ namespace Novus.Runtime
 		}
 
 		/// <summary>
-		///     Determines whether the value of <paramref name="value" /> is <c>nil</c>.
-		///     <remarks><c>Nil</c> is <c>null</c> or <c>default</c>.</remarks>
+		///     Determines whether the value of <paramref name="value" /> is <c>default</c>.
 		/// </summary>
-		public static bool IsNil<T>([CanBeNull] T value) => EqualityComparer<T>.Default.Equals(value, default);
+		public static bool IsDefault<T>([CBN] T value) => EqualityComparer<T>.Default.Equals(value, default);
 
-		public static bool IsStruct<T>([NotNull] T value) => value.GetType().IsValueType;
+		public static bool IsUnmanaged<T>([NN] T value) => value.GetType().IsUnmanaged();
 
-		public static bool IsArray<T>([NotNull] T value) => value is Array;
+		public static bool IsStruct<T>([NN] T value) => value.GetType().IsValueType;
 
-		public static bool IsString<T>([NotNull] T value) => value is string;
+		public static bool IsArray<T>([NN] T value) => value is Array;
+
+		public static bool IsString<T>([NN] T value) => value is string;
 
 		/// <summary>
 		///     Determines whether <paramref name="value" /> is boxed.
 		/// </summary>
 		/// <returns><c>true</c> if boxed; <c>false</c> otherwise</returns>
-		public static bool IsBoxed<T>([CanBeNull] T value)
+		public static bool IsBoxed<T>([CBN] T value)
 		{
 			return (typeof(T).IsInterface || typeof(T) == typeof(object)) && value != null && IsStruct(value);
 		}
@@ -359,7 +364,7 @@ namespace Novus.Runtime
 		///     This always returns <c>true</c> if <paramref name="value" /> is <c>null</c> or nil.
 		/// </summary>
 		/// <remarks>
-		///     Blank is defined as one of the following: <c>null</c>, nil (<see cref="IsNil{T}" />),
+		///     Blank is defined as one of the following: <c>null</c>, nil (<see cref="IsDefault{T}" />),
 		///     non-unique, or unmodified
 		/// </remarks>
 		/// <example>
@@ -372,9 +377,9 @@ namespace Novus.Runtime
 		///     <c>true</c> if <paramref name="value" /> is <c>null</c> or nil; or
 		///     if <paramref name="value" /> is heuristically determined to be blank.
 		/// </returns>
-		public static bool IsBlank<T>([CanBeNull] T value)
+		public static bool IsBlank<T>([CBN] T value)
 		{
-			if (IsNil(value)) {
+			if (IsDefault(value)) {
 				return true;
 			}
 

@@ -378,8 +378,6 @@ namespace Novus.Memory
 			return rg;
 		}
 
-		public static ref T InToRef<T>(in T t) => ref Unsafe.AsRef(in t);
-
 		#endregion
 
 		#region Copy
@@ -399,15 +397,15 @@ namespace Novus.Memory
 			return t2;
 		}
 
-		public static void Copy(Pointer<byte> p, int cb, Pointer<byte> p2) =>
-			p2.WriteAll(p.Copy(cb));
+		public static void Copy(Pointer<byte> src, int cb, Pointer<byte> dest) =>
+			dest.WriteAll(src.Copy(cb));
 
-		public static void Copy(Pointer<byte> p, int startIndex, int cb, Pointer<byte> p2) =>
-			p2.WriteAll(p.Copy(startIndex, cb));
+		public static void Copy(Pointer<byte> src, int startIndex, int cb, Pointer<byte> dest) =>
+			dest.WriteAll(src.Copy(startIndex, cb));
 
-		public static byte[] Copy(Pointer<byte> p, int startIndex, int cb) => p.Copy(startIndex, cb);
+		public static byte[] Copy(Pointer<byte> src, int startIndex, int cb) => src.Copy(startIndex, cb);
 
-		public static byte[] Copy(Pointer<byte> p, int cb) => p.Copy(cb);
+		public static byte[] Copy(Pointer<byte> src, int cb) => src.Copy(cb);
 
 		#endregion
 
@@ -702,7 +700,7 @@ namespace Novus.Memory
 		{
 			int offsetOf = OffsetOf(obj.GetType(), name);
 
-			var p = AddressOfData(ref InToRef(in obj));
+			var p = AddressOfData(ref Unsafe.AsRef(in obj));
 
 			return p + offsetOf;
 		}
@@ -795,12 +793,10 @@ namespace Novus.Memory
 
 		#endregion
 
-		public static void AutoAssign<T>(in T a, T val)
+		public static void AutoAssign<T>(ref T a, T val)
 		{
-			ref var r = ref Mem.InToRef(in a);
-
-			if (Unsafe.IsNullRef(ref r) || r == null) {
-				r = val;
+			if (Unsafe.IsNullRef(ref a) || RuntimeInfo.IsDefault(a)) {
+				a = val;
 			}
 		}
 	}

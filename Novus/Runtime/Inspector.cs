@@ -82,7 +82,7 @@ namespace Novus.Runtime
 			propTable.AddRow("Pinnable", RuntimeInfo.IsPinnable(value));
 			propTable.AddRow("Blittable", RuntimeInfo.IsBlittable(value));
 			propTable.AddRow("Boxed", RuntimeInfo.IsBoxed(value));
-			propTable.AddRow("Nil", RuntimeInfo.IsNil(value));
+			propTable.AddRow("Nil", RuntimeInfo.IsDefault(value));
 			propTable.AddRow("Uninitialized", RuntimeInfo.IsUninitialized(value));
 
 

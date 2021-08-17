@@ -194,6 +194,7 @@ namespace Novus.Win32
 		                                           MemoryProtection flProtect);
 
 		[DllImport(KERNEL32_DLL)]
+		[return: MA(UT.Bool)]
 		public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
 		                                        int dwSize, AllocationType dwFreeType);
 
@@ -445,7 +446,7 @@ namespace Novus.Win32
 
 		public static IntPtr SearchForWindow(string title)
 		{
-			SearchData sd = new() { Title = title};
+			SearchData sd = new() { Title = title };
 			EnumWindows(EnumProc, ref sd);
 			return sd.hWnd;
 		}
@@ -472,9 +473,9 @@ namespace Novus.Win32
 			// Check classname and title
 			// This is different from FindWindow() in that the code below allows partial matches
 			var sb = new StringBuilder(1024);
-			var v=GetWindowText(hWnd, sb, sb.Capacity);
+			var v  = GetWindowText(hWnd, sb, sb.Capacity);
 
-			if (v!=ERROR_SUCCESS) {
+			if (v != ERROR_SUCCESS) {
 				return false;
 			}
 

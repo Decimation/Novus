@@ -16,6 +16,22 @@ using Novus.Win32.Wrappers;
 #pragma warning disable
 namespace TestBenchmark
 {
+	public class Benchmarks10
+	{
+		private IntPtr h;
+
+		[Benchmark]
+		public List<int> Alloc1()
+		{
+			return GCHeap.AllocObject<List<int>>();
+		}
+		[Benchmark]
+		public List<int> Alloc2()
+		{
+			return (List<int>) GCHeap.AllocObjectSafe<List<int>>();
+		}
+
+	}
 	public class Benchmarks9
 	{
 		private IntPtr h;

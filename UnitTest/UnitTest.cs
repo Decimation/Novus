@@ -492,12 +492,12 @@ namespace UnitTest
 		public void NilTest()
 		{
 			string s = "foo";
-			Assert.False(RuntimeInfo.IsNil(s));
+			Assert.False(RuntimeInfo.IsDefault(s));
 
 			string s2 = null;
-			Assert.True(RuntimeInfo.IsNil(s2));
+			Assert.True(RuntimeInfo.IsDefault(s2));
 
-			Assert.True(RuntimeInfo.IsNil(default(int)));
+			Assert.True(RuntimeInfo.IsDefault(default(int)));
 		}
 
 		[Test]
@@ -875,13 +875,13 @@ namespace UnitTest
 
 			static void Change2(in string ix)
 			{
-				ref string r = ref Mem.InToRef(in ix);
+				ref string r = ref Unsafe.AsRef(in ix);
 				r = "bar";
 			}
 
 			static void Change(in int ix)
 			{
-				ref int r = ref Mem.InToRef(in ix);
+				ref int r = ref Unsafe.AsRef(in ix);
 				r = 321;
 			}
 		}

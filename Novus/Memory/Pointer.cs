@@ -36,6 +36,7 @@ namespace Novus.Memory
 	/// <seealso cref="Memory{T}" />
 	/// <seealso cref="IntPtr" />
 	/// <seealso cref="UIntPtr" />
+	/// <seealso cref="Unsafe" />
 	public unsafe struct Pointer<T> : IFormattable
 	{
 		/// <summary>
@@ -89,17 +90,7 @@ namespace Novus.Memory
 		}
 
 		public Pointer(IntPtr value) : this(value.ToPointer()) { }
-		
 
-		/// <summary>
-		///     Default offset for <see cref="Pointer{T}" />
-		/// </summary>
-		private const int OFFSET = 0;
-
-		/// <summary>
-		///     Default increment/decrement/element count for <see cref="Pointer{T}" />
-		/// </summary>
-		private const int ELEM_CNT = 1;
 
 		#region Conversion
 
@@ -247,25 +238,13 @@ namespace Novus.Memory
 		[Pure]
 		public Pointer<T> Subtract(long byteCnt = ELEM_CNT) => Add(-byteCnt);
 
-		public static Pointer<T> operator +(Pointer<T> left, long right)
-		{
-			return (void*) (left.ToInt64() + right);
-		}
+		public static Pointer<T> operator +(Pointer<T> left, long right) => (void*) (left.ToInt64() + right);
 
-		public static Pointer<T> operator -(Pointer<T> left, long right)
-		{
-			return (void*) (left.ToInt64() - right);
-		}
+		public static Pointer<T> operator -(Pointer<T> left, long right) => (void*) (left.ToInt64() - right);
 
-		public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right)
-		{
-			return (void*) (left.ToInt64() + right.ToInt64());
-		}
+		public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right) => (void*)(left.ToInt64() + right.ToInt64());
 
-		public static Pointer<T> operator -(Pointer<T> left, Pointer<T> right)
-		{
-			return (void*) (left.ToInt64() - right.ToInt64());
-		}
+		public static Pointer<T> operator -(Pointer<T> left, Pointer<T> right) => (void*) (left.ToInt64() - right.ToInt64());
 
 		/// <summary>
 		///     Increments the <see cref="Address" /> by the specified number of elements.
@@ -349,10 +328,7 @@ namespace Novus.Memory
 		/// </summary>
 		/// <param name="value">Value to write.</param>
 		/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
-		public void Write(T value, int elemOffset = OFFSET)
-		{
-			Unsafe.Write(Offset(elemOffset), value);
-		}
+		public void Write(T value, int elemOffset = OFFSET) => Unsafe.Write(Offset(elemOffset), value);
 
 
 		/// <summary>
@@ -361,10 +337,7 @@ namespace Novus.Memory
 		/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 		/// <returns>The value read from the offset <see cref="Address" />.</returns>
 		[Pure]
-		public T Read(int elemOffset = OFFSET)
-		{
-			return Unsafe.Read<T>(Offset(elemOffset));
-		}
+		public T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
 
 
 		/// <summary>
@@ -373,10 +346,7 @@ namespace Novus.Memory
 		/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 		/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 		[Pure]
-		public ref T AsRef(int elemOffset = OFFSET)
-		{
-			return ref Unsafe.AsRef<T>(Offset(elemOffset));
-		}
+		public ref T AsRef(int elemOffset = OFFSET) => ref Unsafe.AsRef<T>(Offset(elemOffset));
 
 		/// <summary>
 		///     Zeros <paramref name="elemCnt" /> elements.
@@ -453,8 +423,7 @@ namespace Novus.Memory
 		{
 			return Copy(OFFSET, elemCnt);
 		}
-
-		[Pure]
+		
 		public void CopyTo(T[] rg)
 		{
 			for (int i = 0; i < rg.Length; i++) {
@@ -490,5 +459,15 @@ namespace Novus.Memory
 		}
 
 		#endregion
+
+		/// <summary>
+		///     Default offset for <see cref="Pointer{T}" />
+		/// </summary>
+		private const int OFFSET = 0;
+
+		/// <summary>
+		///     Default increment/decrement/element count for <see cref="Pointer{T}" />
+		/// </summary>
+		private const int ELEM_CNT = 1;
 	}
 }

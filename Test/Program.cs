@@ -120,9 +120,31 @@ namespace Test
 
 	public static unsafe class Program
 	{
+		static bool eq<T>(T a) => a.Equals(default(T));
+
+		static void fn(ref int r)
+		{
+			Console.WriteLine(r);
+			r = 321;
+		}
 		private static void Main(string[] args)
 		{
 			// ...
+
+			ref var r=ref Unsafe.AsRef(1);
+			Console.WriteLine(r);
+			fn(ref r);
+			
+			Console.WriteLine(r);
+			Complex c = Complex.ImaginaryOne;
+			Console.WriteLine(c);
+			nint n = 321;
+			Activator.CreateInstance<int>();
+			var o1 = GCHeap.AllocObject<List<int>>();
+			Console.WriteLine(o1);
+			Console.WriteLine(o1.Count);
+			var o = GCHeap.AllocObjectSafe<List<int>>();
+			Console.WriteLine(o);
 		}
 	}
 }

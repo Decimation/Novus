@@ -2,14 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Numerics;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Novus.Memory;
 using Kantan.Utilities;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Kantan.Diagnostics;
@@ -59,8 +62,8 @@ namespace Novus.Utilities
 
 
 			var field = member.MemberType == MemberTypes.Property
-				? t.GetBackingField(fname)
-				: member as FieldInfo;
+				            ? t.GetBackingField(fname)
+				            : member as FieldInfo;
 
 			return field;
 		}
@@ -68,8 +71,8 @@ namespace Novus.Utilities
 		public static FieldInfo GetResolvedField(this MemberInfo member)
 		{
 			var field = member.MemberType == MemberTypes.Property
-				? member.DeclaringType.GetBackingField(member.Name)
-				: member as FieldInfo;
+				            ? member.DeclaringType.GetBackingField(member.Name)
+				            : member as FieldInfo;
 
 			return field;
 		}
@@ -138,7 +141,7 @@ namespace Novus.Utilities
 
 		public static bool IsSigned(this Type t)
 		{
-			return t.IsNumeric() && (int) Type.GetTypeCode(t) % 2 == 1;
+			return t.IsInteger() && (int) Type.GetTypeCode(t) % 2 == 1;
 		}
 
 		public static bool IsUnsigned(this Type t) => !t.IsSigned();
@@ -149,7 +152,10 @@ namespace Novus.Utilities
 		{
 			var c = Type.GetTypeCode(t);
 
-			return c is <= TypeCode.UInt64 and >= TypeCode.SByte;
+			var b  = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
+			var b2 = t == typeof(BigInteger);
+
+			return b || b2;
 		}
 
 		public static bool IsReal(this Type t)
@@ -158,7 +164,7 @@ namespace Novus.Utilities
 
 			var case1 = c is <= TypeCode.Decimal and >= TypeCode.Single;
 
-			// Special case (?)
+			// Special case
 			var case2 = t == typeof(Half);
 
 			return case1 || case2;
@@ -201,11 +207,8 @@ namespace Novus.Utilities
 		public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
 
 
-
 		public static bool IsAnonymous(this Type type)
 		{
-
-
 			/*
 			   |       Method |      Mean |    Error |   StdDev |
 			   |------------- |----------:|---------:|---------:|
@@ -222,7 +225,33 @@ namespace Novus.Utilities
 			       && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
 			       && type.Attributes.HasFlag(TypeAttributes.NotPublic);*/
 		}
-		
+
+		[return: MaybeNull]
+		public static ConstructorInfo GetConstructor(this Type type, params object[] args)
+		{
+			if (args.Length == 0) {
+				var ctor = type.GetConstructor(Type.EmptyTypes);
+
+				return ctor;
+			}
+
+			var ctors    = type.GetConstructors();
+			var argTypes = args.Select(x => x.GetType()).ToArray();
+
+			foreach (var ctor in ctors) {
+				var paramz = ctor.GetParameters();
+
+
+				if (paramz.Length == args.Length) {
+					if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
+						return ctor;
+					}
+				}
+			}
+
+			return null;
+		}
+
 		#endregion
 
 
@@ -243,7 +272,7 @@ namespace Novus.Utilities
 
 		public static object CallGeneric(MethodInfo method, Type arg, object value, params object[] fnArgs)
 		{
-			return CallGeneric(method, new[] {arg}, value, fnArgs);
+			return CallGeneric(method, new[] { arg }, value, fnArgs);
 		}
 
 		/// <summary>
@@ -261,27 +290,11 @@ namespace Novus.Utilities
 			 * https://stackoverflow.com/questions/142356/most-efficient-way-to-get-default-constructor-of-a-type
 			 */
 
-			var type = value.GetType();
+			var ct = value.GetType().GetConstructor(args);
 
-			if (args.Length==0) {
-				var ctor=type.GetConstructor(Type.EmptyTypes);
-				ctor?.Invoke(value, null);
+			if (ct is { }) {
+				ct.Invoke(value, args);
 				return true;
-			}
-
-			var ctors    = type.GetConstructors();
-			var argTypes = args.Select(x => x.GetType()).ToArray();
-
-			foreach (var ctor in ctors) {
-				var paramz = ctor.GetParameters();
-
-
-				if (paramz.Length == args.Length) {
-					if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
-						ctor.Invoke(value, args);
-						return true;
-					}
-				}
 			}
 
 			return false;
@@ -348,7 +361,8 @@ namespace Novus.Utilities
 
 		public static T Consolidate<T>(T current, IList<T> values)
 		{
-			var fields = typeof(T).GetRuntimeFields().Where(f => !f.IsStatic);
+			var fields = typeof(T).GetRuntimeFields()
+			                      .Where(f => !f.IsStatic);
 
 			foreach (var field in fields) {
 
@@ -371,7 +385,7 @@ namespace Novus.Utilities
 
 			return current;
 		}
-		
+
 
 		public static void Assign<T>(this Type t, string name, T val, object obj = null)
 		{
@@ -382,7 +396,6 @@ namespace Novus.Utilities
 
 	public static class ReflectionOperatorHelpers
 	{
-		
 		public static MemberInfo memberof<T>(Expression<Func<T>> expression)
 		{
 			var body = (MemberExpression) expression.Body;

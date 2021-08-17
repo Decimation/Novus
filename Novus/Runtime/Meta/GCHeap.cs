@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using JetBrains.Annotations;
 using Novus.Imports;
 using Novus.Memory;
 using Novus.Utilities;
@@ -36,6 +37,12 @@ namespace Novus.Runtime.Meta
 			|  Test3 | 24.76 ns | 0.446 ns | 0.417 ns |
 		 */
 
+		[CanBeNull]
+		public static object AllocObjectSafe<T>()
+		{
+			var v = Func_TypeHandleAlloc(typeof(T).TypeHandle);
+			return v;
+		}
 
 		private static T AllocObject<T>(Type t, params object[] args)
 		{
@@ -44,7 +51,7 @@ namespace Novus.Runtime.Meta
 			T obj = Unsafe.Read<T>(&ptr);
 
 			ReflectionHelper.CallConstructor(obj, args);
-			
+
 
 			return obj;
 		}
@@ -74,5 +81,9 @@ namespace Novus.Runtime.Meta
 		/// </summary>
 		[field: ImportClr("Ofs_IsHeapPointer", UnmanagedImportType.Offset)]
 		private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
+
+
+		[field: ImportManaged(typeof(RuntimeTypeHandle), "Allocate")]
+		private static delegate* managed<RuntimeTypeHandle, object> Func_TypeHandleAlloc { get; }
 	}
 }

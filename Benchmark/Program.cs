@@ -8,7 +8,7 @@ namespace TestBenchmark
 		{
 			// cd .\Benchmark\ ; dotnet build -c Release ; dotnet run -c Release
 			
-			BenchmarkRunner.Run<Benchmarks9>();
+			BenchmarkRunner.Run<Benchmarks10>();
 
 
 		}

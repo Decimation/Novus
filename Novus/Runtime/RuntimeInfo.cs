@@ -23,8 +23,7 @@ using Novus.Utilities;
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable ClassCannotBeInstantiated
 // ReSharper disable UnusedMember.Global
-
-using CBN=JetBrains.Annotations.CanBeNullAttribute;
+using CBN = JetBrains.Annotations.CanBeNullAttribute;
 using NN = JetBrains.Annotations.NotNullAttribute;
 
 #pragma warning disable CS0618, CS1574, IDE0059
@@ -106,7 +105,7 @@ namespace Novus.Runtime
 
 			PinResetEvents.Add(obj, value);
 
-			ThreadPool.QueueUserWorkItem(o =>
+			ThreadPool.QueueUserWorkItem(_ =>
 			{
 				fixed (byte* p = &GetPinningHelper(obj).Data) {
 					value.WaitOne();
@@ -311,6 +310,7 @@ namespace Novus.Runtime
 			}
 
 			var type = typeof(T);
+
 
 			if (!type.IsValueType) {
 				return true; // ref-type

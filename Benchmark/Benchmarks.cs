@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using Novus;
@@ -16,6 +17,37 @@ using Novus.Win32.Wrappers;
 #pragma warning disable
 namespace TestBenchmark
 {
+	public class Benchmarks11
+	{
+		private int i;
+
+		private Pointer<int> ptr;
+		private ReadOnlyPointer<int> ptr2;
+
+		[GlobalSetup]
+		public void Setup()
+		{
+			unsafe {
+				fixed (int* p = &i) {
+					ptr  = p;
+					ptr2 = p;
+				}
+			}
+		}
+
+		[Benchmark]
+		public int Normal()
+		{
+			return ptr.Value;
+		}
+
+		[Benchmark]
+		public int ReadOnly()
+		{
+			return ptr2.Value;
+		}
+	}
+
 	public class Benchmarks10
 	{
 		private IntPtr h;
@@ -25,13 +57,9 @@ namespace TestBenchmark
 		{
 			return GCHeap.AllocObject<List<int>>();
 		}
-		[Benchmark]
-		public List<int> Alloc2()
-		{
-			return (List<int>) GCHeap.AllocObjectSafe<List<int>>();
-		}
-
+		
 	}
+
 	public class Benchmarks9
 	{
 		private IntPtr h;
@@ -42,25 +70,23 @@ namespace TestBenchmark
 			h = Process.GetCurrentProcess().Handle;
 		}
 
-		
+
 		[Benchmark]
 		public LinkedList<MemoryBasicInformation> Test2()
 		{
 			return Mem.EnumerateRegions(h);
 		}
-
 	}
+
 	public class Benchmarks8
 	{
-		private object a = new {s = "foo"};
+		private object a = new { s = "foo" };
 
 		[Benchmark]
 		public bool IsAnonymous1()
 		{
 			return a.GetType().IsAnonymous();
 		}
-
-		
 	}
 
 	public class Benchmarks7
@@ -70,11 +96,13 @@ namespace TestBenchmark
 		{
 			return Activator.CreateInstance<List<int>>();
 		}
+
 		[Benchmark]
 		public List<int> Test2()
 		{
 			return (List<int>) GCHeap.AllocObject(typeof(List<int>));
 		}
+
 		[Benchmark]
 		public List<int> Test3()
 		{
@@ -122,11 +150,60 @@ namespace TestBenchmark
 		}
 	}
 
-	public unsafe class Benchmarks5
+	public unsafe class BenchmarksPointer2
+	{
+		public  int          a;
+		private Pointer<int> ptr1;
+
+		[GlobalSetup]
+		public void Setup()
+		{
+			a = 123;
+
+			fixed (int* p = &a) {
+				ptr1 = p;
+			}
+		}
+
+		[Benchmark]
+		public int Pointer_Value()
+		{
+			return ptr1.Value;
+		}
+
+		[Benchmark]
+		public int Pointer_Index()
+		{
+			return ptr1[0];
+		}
+
+		[Benchmark]
+		public int Pointer_Ref()
+		{
+			return ptr1.Reference;
+		}
+	}
+
+	public unsafe class BenchmarksPointer
 	{
 		public  int          a;
 		private Pointer<int> ptr1;
 		private int*         ptr2;
+
+		/*
+		 	|             Method |      Mean |     Error |    StdDev |    Median |
+			|------------------- |----------:|----------:|----------:|----------:|
+			|      Pointer_Value | 0.0194 ns | 0.0116 ns | 0.0109 ns | 0.0156 ns |
+			|        Pointer_Ref | 0.0288 ns | 0.0170 ns | 0.0159 ns | 0.0187 ns |
+			| Native_Dereference | 0.3118 ns | 0.0264 ns | 0.0247 ns | 0.3061 ns |
+			|       Native_Index | 0.0147 ns | 0.0132 ns | 0.0110 ns | 0.0178 ns |
+			|       Marshal_Read | 1.5086 ns | 0.0359 ns | 0.0336 ns | 1.5076 ns |
+
+			// * Warnings *
+			ZeroMeasurement
+			  BenchmarksPointer.Pointer_Value: Default -> The method duration is indistinguishable from the empty method duration
+			  BenchmarksPointer.Native_Index: Default  -> The method duration is indistinguishable from the empty method duration
+		 */
 
 		[GlobalSetup]
 		public void Setup()
@@ -140,21 +217,34 @@ namespace TestBenchmark
 		}
 
 		[Benchmark]
-		public int Test1()
+		public int Pointer_Value()
 		{
 			return ptr1.Value;
 		}
 
 		[Benchmark]
-		public int Test2()
+		public int Pointer_Ref()
+		{
+			return ptr1.Reference;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+		[Benchmark]
+		public int Native_Dereference()
 		{
 			return *ptr2;
 		}
 
 		[Benchmark]
-		public int Test3()
+		public int Native_Index()
 		{
-			return Marshal.ReadInt32((IntPtr) ptr2);
+			return ptr2[0];
+		}
+
+		[Benchmark]
+		public int Marshal_Read()
+		{
+			return System.Runtime.InteropServices.Marshal.ReadInt32((IntPtr) ptr2);
 		}
 	}
 

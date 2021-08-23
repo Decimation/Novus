@@ -88,15 +88,6 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 10 48 89 7C 24 18 55 41 54.
-        /// </summary>
-        internal static string Sig_AllocObj {
-            get {
-                return ResourceManager.GetString("Sig_AllocObj", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to 8B 01 8B D0 81 E2 00 00 0E 00 81 FA 00 00 04 00.
         /// </summary>
         internal static string Sig_GetCorType {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
@@ -24,42 +25,23 @@ namespace Novus.Runtime.Meta
 	{
 		static GCHeap()
 		{
-
 			Global.Clr.LoadImports(typeof(GCHeap));
 		}
 
-
-		/*
-		 *	| Method |     Mean |    Error |   StdDev |
-			|------- |---------:|---------:|---------:|
-			|  Test1 | 43.62 ns | 0.791 ns | 0.740 ns |
-			|  Test2 | 42.70 ns | 0.316 ns | 0.280 ns |
-			|  Test3 | 24.76 ns | 0.446 ns | 0.417 ns |
-		 */
-
+		[MustUseReturnValue]
 		[CanBeNull]
-		public static object AllocObjectSafe<T>()
-		{
-			var v = Func_TypeHandleAlloc(typeof(T).TypeHandle);
-			return v;
-		}
+		public static T AllocObject<T>(params object[] args) => (T) AllocObject(typeof(T), args);
 
-		private static T AllocObject<T>(Type t, params object[] args)
+		[MustUseReturnValue]
+		[CanBeNull]
+		public static object AllocObject(Type t, params object[] args)
 		{
-			var ptr = Func_AllocObj(t.TypeHandle.Value.ToPointer(), false);
-
-			T obj = Unsafe.Read<T>(&ptr);
+			var obj = Func_TypeHandleAlloc(t.TypeHandle);
 
 			ReflectionHelper.CallConstructor(obj, args);
 
-
 			return obj;
 		}
-
-		public static T AllocObject<T>(params object[] args) => AllocObject<T>(typeof(T), args);
-
-		public static object AllocObject(Type t, params object[] args) => AllocObject<object>(t, args);
-
 
 		public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class =>
 			IsHeapPointer(Mem.AddressOfHeap(t), smallHeapOnly);
@@ -73,15 +55,11 @@ namespace Novus.Runtime.Meta
 		[field: ImportClr("Ofs_GCHeap", UnmanagedImportType.Offset)]
 		public static Pointer<byte> GlobalHeap { get; }
 
-		[field: ImportClr("Sig_AllocObj")]
-		private static delegate* unmanaged<void*, bool, void*> Func_AllocObj { get; }
-
 		/// <summary>
 		/// <see cref="IsHeapPointer"/>
 		/// </summary>
 		[field: ImportClr("Ofs_IsHeapPointer", UnmanagedImportType.Offset)]
 		private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
-
 
 		[field: ImportManaged(typeof(RuntimeTypeHandle), "Allocate")]
 		private static delegate* managed<RuntimeTypeHandle, object> Func_TypeHandleAlloc { get; }

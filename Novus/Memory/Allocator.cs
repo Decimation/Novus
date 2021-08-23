@@ -105,6 +105,7 @@ namespace Novus.Memory
 			return h;
 		}
 
+		[MustUseReturnValue]
 		public static T AllocU<T>(params object[] args)
 		{
 			// NOTE: WIP

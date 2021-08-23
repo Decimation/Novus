@@ -76,7 +76,7 @@ namespace Novus.Memory
 		public static readonly int Size = sizeof(nint);
 
 		/// <summary>
-		///     Represents a <c>null</c> <see cref="Pointer{T}" />
+		///     Represents a <c>null</c> <see cref="Pointer{T}" /> or <see cref="ReadOnlyPointer{T}"/>
 		/// </summary>
 		public static readonly Pointer<byte> Nullptr = null;
 

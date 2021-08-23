@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using JetBrains.Annotations;
 using Kantan.Cli;
 using Novus.Memory;
@@ -100,17 +103,19 @@ namespace Novus
 	public static class Global
 	{
 		/// <summary>
+		/// Name of this library
+		/// </summary>
+		public const string LIB_NAME = "Novus";
+
+		/// <summary>
 		///     Runtime CLR module name
 		/// </summary>
 		public const string CLR_MODULE = "coreclr.dll";
-
-		public const string LIB_NAME = "Novus";
 
 		/// <summary>
 		///     Runtime CLR version
 		/// </summary>
 		public static readonly Version ClrVersion = Version.Parse(EmbeddedResources.RequiredVersion);
-
 
 		/// <summary>
 		///     Runtime CLR resources
@@ -122,7 +127,6 @@ namespace Novus
 		internal static string ProgramData { get; } =
 			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);
 
-
 		/// <summary>
 		///     Module initializer
 		/// </summary>
@@ -132,8 +136,7 @@ namespace Novus
 			/*
 			 * Setup
 			 */
-
-
+			
 			Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
 
 			bool compatible = IsCompatible();
@@ -142,7 +145,6 @@ namespace Novus
 				Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed!", C_ERROR);
 				//Guard.Fail();
 			}
-
 
 			IsSetup = true;
 
@@ -167,7 +169,6 @@ namespace Novus
 			IsSetup = false;
 		}
 
-
 		public static bool IsCompatible()
 		{
 			bool ver = Environment.Version == ClrVersion;
@@ -176,7 +177,6 @@ namespace Novus
 
 			return ver && gc && os;
 		}
-
 
 		#region QWrite
 
@@ -191,7 +191,8 @@ namespace Novus
 		{
 			writeFunction ??= DefaultQWriteFunction;
 
-			var fmt = new string[args.Length];
+			var fmt = new Object[args.Length];
+
 			int i   = 0;
 
 			foreach (object obj in args) {

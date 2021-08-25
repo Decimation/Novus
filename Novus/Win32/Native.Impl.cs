@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using Kantan.Model;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
 // ReSharper disable IdentifierTypo
@@ -127,6 +128,19 @@ namespace Novus.Win32
 				Coord invalid = default;
 				return invalid;
 			}
+		}
+
+		public static void DumpSections(IntPtr hModule)
+		{
+			var s = Native.GetPESectionInfo(hModule);
+
+			var table = new ConsoleTable("Number", "Name", "Address", "Size", "Characteristics");
+
+			foreach (var info in s) {
+				table.AddRow(info.Number, info.Name, $"{info.Address.ToInt64():X}", info.Size, info.Characteristics);
+			}
+
+			table.Write();
 		}
 	}
 }

@@ -8,7 +8,7 @@ using Novus.Memory;
 #nullable enable
 namespace Novus.Utilities
 {
-	public static unsafe class BinaryReaderExtensions
+	public static unsafe class BinaryReaderHelper
 	{
 		public static T ReadAny<T>(this BinaryReader br)
 		{

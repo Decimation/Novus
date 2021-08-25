@@ -32,7 +32,7 @@ namespace Novus.Runtime.Meta.Base
 			Value = ptr;
 		}
 
-		protected BaseClrStructure(MemberInfo member) : this(RuntimeInfo.ResolveHandle(member)) { }
+		protected BaseClrStructure(MemberInfo member) : this(RuntimeProperties.ResolveHandle(member)) { }
 
 
 		public override string ToString()

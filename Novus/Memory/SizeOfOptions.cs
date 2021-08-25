@@ -69,13 +69,13 @@ namespace Novus.Memory
 		///         <para>This includes field padding.</para>
 		///     </remarks>
 		/// </summary>
-		/// <returns><see cref="RuntimeInfo.MinObjectSize" /> if type is an array, fields size otherwise</returns>
+		/// <returns><see cref="RuntimeProperties.MinObjectSize" /> if type is an array, fields size otherwise</returns>
 		BaseFields,
 
 		/// <summary>
 		///     <para>Returns the base instance size according to the TypeHandle (<c>MethodTable</c>).</para>
 		///     <para>This is the minimum heap size of a type.</para>
-		///     <para>By default, this equals <see cref="RuntimeInfo.MinObjectSize" /> (<c>24</c> (x64) or <c>12</c> (x84)).</para>
+		///     <para>By default, this equals <see cref="RuntimeProperties.MinObjectSize" /> (<c>24</c> (x64) or <c>12</c> (x84)).</para>
 		/// </summary>
 		/// <remarks>
 		/// <para>Only a type parameter is needed, or a value can be supplied</para>
@@ -98,7 +98,7 @@ namespace Novus.Memory
 		///         <item>
 		///             <description>
 		///                 <see cref="MetaType.BaseSize" /> = The base instance size of a type
-		///                 (<c>24</c> (x64) or <c>12</c> (x86) by default) (<see cref="RuntimeInfo.MinObjectSize" />)
+		///                 (<c>24</c> (x64) or <c>12</c> (x86) by default) (<see cref="RuntimeProperties.MinObjectSize" />)
 		///             </description>
 		///         </item>
 		///         <item>

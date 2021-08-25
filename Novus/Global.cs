@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using JetBrains.Annotations;
 using Kantan.Cli;
+using Kantan.Collections;
 using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
@@ -57,7 +59,7 @@ namespace Novus
 	///         </item>
 	///         <item>
 	///             <description>
-	///                 <see cref="RuntimeInfo" />
+	///                 <see cref="RuntimeProperties" />
 	///             </description>
 	///         </item>
 	///         <item>
@@ -187,11 +189,11 @@ namespace Novus
 
 		[StringFormatMethod("s")]
 		internal static void QWrite(string s, Action<object> writeFunction = null, string category = null,
-		                            [CallerMemberName()] string caller = null, params object[] args)
+		                            [CallerMemberName] string caller = null, params object[] args)
 		{
 			writeFunction ??= DefaultQWriteFunction;
 
-			var fmt = new Object[args.Length];
+			var fmt = new object[args.Length];
 
 			int i   = 0;
 
@@ -208,7 +210,7 @@ namespace Novus
 					s = Strings.ToHexString(obj);
 				}
 
-				else if (Collections.TryCastDictionary(obj, out var kv)) {
+				else if (EnumerableHelper.TryCastDictionary(obj as IDictionary, out var kv)) {
 					s = kv.Select(x => $"{x.Key} = {x.Value}")
 					      .QuickJoin("\n");
 				}

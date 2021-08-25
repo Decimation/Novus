@@ -113,21 +113,6 @@ namespace Novus.Runtime.VM
 
 		internal Pointer<byte> InterfaceMap => (void**) Union3;
 
-		internal CorElementType CorElementType
-		{
-			get
-			{
-				fixed (MethodTable* p = &this) {
-					return Func_GetCor(p);
-				}
-			}
-		}
-
-		/// <summary>
-		/// <see cref="CorElementType"/>
-		/// </summary>
-		[field: ImportClr("Sig_GetCorType")]
-		private static delegate* unmanaged[Thiscall]<MethodTable*, CorElementType> Func_GetCor { get; }
 
 		/// <summary>
 		/// <see cref="EEClass"/>
@@ -139,10 +124,9 @@ namespace Novus.Runtime.VM
 		/// <see cref="NativeLayoutInfo"/>
 		/// </summary>
 		[field: ImportClr("Sig_GetNativeLayoutInfo")]
-		private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo
-		{
-			get;
-		}
+		private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
+
+		//
 	}
 
 	/// <summary>
@@ -349,12 +333,12 @@ namespace Novus.Runtime.VM
 		UnusedComponentSize6 = 0x00004000,
 		UnusedComponentSize7 = 0x00008000,
 
-		StringArrayValues = (StaticsMask_NonDynamic  & 0xFFFF) |
-		                    (NotInPZM                & 0)      |
+		StringArrayValues = (StaticsMask_NonDynamic & 0xFFFF) |
+		                    (NotInPZM & 0) |
 		                    (GenericsMask_NonGeneric & 0xFFFF) |
-		                    (HasVariance             & 0)      |
-		                    (HasDefaultCtor          & 0)      |
-		                    (HasPreciseInitCctors    & 0)
+		                    (HasVariance & 0) |
+		                    (HasDefaultCtor & 0) |
+		                    (HasPreciseInitCctors & 0)
 	}
 
 	/// <summary>

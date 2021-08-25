@@ -86,11 +86,6 @@ namespace Novus
 			return r;
 		}
 
-		public override string ToString()
-		{
-			return $"{Module.ModuleName} ({Scanner.Value.Address})";
-		}
-
 		/*
 		 * Native internal CLR functions
 		 *
@@ -271,12 +266,10 @@ namespace Novus
 
 					//Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
-					if (field.FieldType == typeof(IntPtr) && addr.IsNull) {
-
-						unsafe {
-							addr = (IntPtr) (delegate* managed<void>) &ImportError;
-						}
+					if (addr.IsNull) {
+						throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 					}
+					
 
 					if (field.FieldType == typeof(Pointer<byte>)) {
 						fieldValue = addr;
@@ -309,13 +302,7 @@ namespace Novus
 
 			return fieldValue;
 		}
-
-
-		private static void ImportError()
-		{
-			throw new NotImplementedException();
-			//Console.WriteLine("error");
-		}
+		
 
 		#endregion Import
 
@@ -334,6 +321,11 @@ namespace Novus
 			}
 
 			GC.SuppressFinalize(this);
+		}
+
+		public override string ToString()
+		{
+			return $"{Module.ModuleName} ({Scanner.Value.Address})";
 		}
 	}
 }

@@ -17,6 +17,9 @@ namespace Novus.Win32.Structures
 		WriteCopy                = 0x08,
 		GuardModifierFlag        = 0x100,
 		NoCacheModifierFlag      = 0x200,
-		WriteCombineModifierFlag = 0x400
+		WriteCombineModifierFlag = 0x400,
+
+
+		GuardOrNoAccess = GuardModifierFlag | NoAccess,
 	}
 }

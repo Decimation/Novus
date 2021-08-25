@@ -2,31 +2,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
-using System.IO;
-using System.Linq;
+using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using System.Text;
+using System.Threading;
 using JetBrains.Annotations;
+using Kantan.Diagnostics;
+using Kantan.Utilities;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
+using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
-using Kantan.Diagnostics;
-using Kantan.Utilities;
-using System.Linq.Expressions;
-using Novus.Utilities;
 using BE = System.Linq.Expressions.BinaryExpression;
 using PE = System.Linq.Expressions.ParameterExpression;
 using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
+
+// ReSharper disable ClassCannotBeInstantiated
 
 // ReSharper disable ConvertIfToOrExpression
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -58,15 +57,15 @@ namespace Novus.Memory
 	/// <seealso cref="RuntimeHelpers" />
 	/// <seealso cref="RuntimeEnvironment" />
 	/// <seealso cref="RuntimeInformation" />
-	/// <seealso cref="FormatterServices"/>
-	/// <seealso cref="Activator"/>
-	/// <seealso cref="GCHeap"/>
-	/// <seealso cref="RuntimeInfo" />
+	/// <seealso cref="FormatterServices" />
+	/// <seealso cref="Activator" />
+	/// <seealso cref="GCHeap" />
+	/// <seealso cref="RuntimeProperties" />
 	/// <seealso cref="Inspector" />
 	/// <seealso cref="Native" />
 	/// <seealso cref="PEReader" />
-	/// <seealso cref="GCHandle"/>
-	/// <seealso cref="Hook"/>
+	/// <seealso cref="GCHandle" />
+	/// <seealso cref="Hook" />
 	/// <seealso cref="System.Runtime.CompilerServices" />
 	public static unsafe class Mem
 	{
@@ -76,9 +75,10 @@ namespace Novus.Memory
 		public static readonly int Size = sizeof(nint);
 
 		/// <summary>
-		///     Represents a <c>null</c> <see cref="Pointer{T}" /> or <see cref="ReadOnlyPointer{T}"/>
+		///     Represents a <c>null</c> <see cref="Pointer{T}" /> or <see cref="ReadOnlyPointer{T}" />
 		/// </summary>
 		public static readonly Pointer<byte> Nullptr = null;
+
 
 		public static bool Is64Bit => Environment.Is64BitProcess;
 
@@ -86,7 +86,10 @@ namespace Novus.Memory
 		///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
 		/// </summary>
 		/// <param name="name">Field name</param>
-		public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
+		public static int OffsetOf<T>(string name)
+		{
+			return OffsetOf(typeof(T), name);
+		}
 
 		/// <summary>
 		///     Returns the offset of the field <paramref name="name" /> within the type <paramref name="t" />.
@@ -95,11 +98,10 @@ namespace Novus.Memory
 		/// <param name="name">Field name</param>
 		public static int OffsetOf(Type t, string name)
 		{
-			var f = t.GetAnyResolvedField(name).AsMetaField();
+			MetaField f = t.GetAnyResolvedField(name).AsMetaField();
 
 			return f.Offset;
 		}
-
 
 		/// <param name="p">Operand</param>
 		/// <param name="lo">Start address (inclusive)</param>
@@ -123,6 +125,114 @@ namespace Novus.Memory
 			return p >= lo && p <= lo + size;
 		}
 
+		public static void AutoAssign<T>(ref T a, T val)
+		{
+			if (Unsafe.IsNullRef(ref a) || RuntimeProperties.IsDefault(a)) {
+				a = val;
+			}
+		}
+
+		/// <summary>
+		///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
+		///     <code>
+		///  fixed (byte* pData = &amp;PinHelper.GetPinningHelper(value).Data)
+		///  {
+		///  }
+		///  </code>
+		///     <remarks>
+		///         <para><c>pData</c> is what <c>Object::GetData()</c> returns in VM.</para>
+		///         <para><c>pData</c> is also equal to offsetting the pointer by <see cref="OffsetOptions.Fields" />. </para>
+		///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
+		///     </remarks>
+		/// </summary>
+		[UsedImplicitly]
+		public sealed class PinningHelper
+		{
+			/// <summary>
+			///     Represents the first field in an object.
+			/// </summary>
+			/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
+			public byte Data;
+
+			private PinningHelper() { }
+		}
+
+		#region Pin
+
+		private static readonly Action<object, Action<object>> PinImpl = CreatePinImpl();
+
+		private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
+
+		private static Action<object, Action<object>> CreatePinImpl()
+		{
+			var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
+			                               new[] { typeof(object), typeof(Action<object>) },
+			                               typeof(RuntimeProperties).Module);
+
+			ILGenerator il = method.GetILGenerator();
+
+			// create a pinned local variable of type object
+			// this wouldn't be valid in C#, but the runtime doesn't complain about the IL
+			LocalBuilder local = il.DeclareLocal(typeof(object), true);
+
+			// store first argument obj in the pinned local variable
+			il.Emit(OpCodes.Ldarg_0);
+			il.Emit(OpCodes.Stloc_0);
+			// invoke the delegate
+			il.Emit(OpCodes.Ldarg_1);
+			il.Emit(OpCodes.Ldarg_0);
+			il.EmitCall(OpCodes.Callvirt, typeof(Action<object>).GetMethod("Invoke")!, null);
+
+			il.Emit(OpCodes.Ret);
+
+			return (Action<object, Action<object>>) method.CreateDelegate(typeof(Action<object, Action<object>>));
+		}
+
+
+		/// <summary>
+		///     <paramref name="obj" /> will be *temporarily* pinned while action is being invoked
+		/// </summary>
+		public static void InvokeWhilePinned(object obj, Action<object> action)
+		{
+			PinImpl(obj, action);
+		}
+
+		/// <summary>
+		///     Used for unsafe pinning of arbitrary objects.
+		///     This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
+		/// </summary>
+		public static PinningHelper GetPinningHelper(object value)
+		{
+			return Unsafe.As<PinningHelper>(value);
+		}
+
+
+		public static void Pin(object obj)
+		{
+			var value = new ManualResetEvent(false);
+
+			PinResetEvents.Add(obj, value);
+
+			ThreadPool.QueueUserWorkItem(_ =>
+			{
+				fixed (byte* p = &GetPinningHelper(obj).Data) {
+					value.WaitOne();
+				}
+			});
+
+			Debug.WriteLine($"Pinned obj: {obj.GetHashCode()}");
+		}
+
+		public static void Unpin(object obj)
+		{
+			PinResetEvents[obj].Set();
+
+			Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
+		}
+
+		#endregion
+
+
 		#region Read/write
 
 		#region Write
@@ -133,8 +243,8 @@ namespace Novus.Memory
 		/// </summary>
 		public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 		{
-			int dwSize = Unsafe.SizeOf<T>();
-			var ptr    = AddressOf(ref value);
+			int        dwSize = Unsafe.SizeOf<T>();
+			Pointer<T> ptr    = AddressOf(ref value);
 
 			WriteProcessMemory(proc, baseAddr.Address, ptr.Address, dwSize);
 		}
@@ -144,7 +254,7 @@ namespace Novus.Memory
 		/// </summary>
 		public static void WriteProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> ptrBuffer, int dwSize)
 		{
-			var hProc = Native.OpenProcess(proc);
+			IntPtr hProc = Native.OpenProcess(proc);
 
 			Native.WriteProcessMemory(hProc, addr.Address, ptrBuffer.Address, dwSize, out _);
 
@@ -174,7 +284,7 @@ namespace Novus.Memory
 		/// <param name="cb">Number of bytes to read</param>
 		public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, int cb)
 		{
-			var h = Native.OpenProcess(proc);
+			IntPtr h = Native.OpenProcess(proc);
 
 			Native.ReadProcessMemory(h, addr.Address, buffer.Address, cb, out _);
 
@@ -204,7 +314,7 @@ namespace Novus.Memory
 
 			int size = Unsafe.SizeOf<T>();
 
-			var ptr = AddressOf(ref value);
+			Pointer<T> ptr = AddressOf(ref value);
 
 			ReadProcessMemory(proc, addr.Address, ptr.Address, size);
 
@@ -243,94 +353,18 @@ namespace Novus.Memory
 
 		#endregion
 
-		#region Experimental
-
-		public static LinkedList<MemoryBasicInformation> EnumerateRegions(IntPtr handle)
+		public static object ReadStructure(Type t, byte[] rg, int ofs = 0)
 		{
-			SystemInfo systemInformation = default;
-			Native.GetSystemInfo(ref systemInformation);
-
-			MemoryBasicInformation m = default;
-
-			var lpMem = 0L;
-
-			var of = (uint) Marshal.SizeOf(typeof(MemoryBasicInformation));
-
-			var d = systemInformation.MaximumApplicationAddress.ToInt64();
-
-			var rg = new LinkedList<MemoryBasicInformation>();
-
-			while (lpMem < d) {
-				int result = Native.VirtualQueryEx(handle, (IntPtr) lpMem, ref m, of);
-
-
-				rg.AddLast(m);
-
-				/*if (m.State == AllocationType.Commit &&
-				    m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE) {
-					
-				}*/
-
-				var address = (long) m.BaseAddress + (long) m.RegionSize;
-
-				if (lpMem == address)
-					break;
-
-				lpMem = address;
-
-			}
-
-			return rg;
-		}
-
-		public static bool IsBadReadPointer(Pointer<byte> p)
-		{
-			//NOTE: Experimental
-
-			/*
-			 * https://stackoverflow.com/questions/496034/most-efficient-replacement-for-isbadreadptr
-			 * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-isbadreadptr
-			 */
-
-			MemoryBasicInformation mbi = default;
-
-			if (Native.VirtualQuery(p.Address, ref mbi, Marshal.SizeOf<MemoryBasicInformation>()) != 0) {
-
-				//DWORD mask = (PAGE_READONLY|PAGE_READWRITE|PAGE_WRITECOPY|PAGE_EXECUTE_READ|PAGE_EXECUTE_READWRITE|PAGE_EXECUTE_WRITECOPY);
-
-				const MemoryProtection mask = (MemoryProtection.ReadOnly | MemoryProtection.ReadWrite |
-				                               MemoryProtection.WriteCopy | MemoryProtection.ExecuteRead |
-				                               MemoryProtection.ExecuteReadWrite | MemoryProtection.ExecuteWriteCopy);
-
-				var b = !Convert.ToBoolean((mbi.Protect & mask));
-
-				// check the page is not a guard page
-				if (Convert.ToBoolean(mbi.Protect & (MemoryProtection.GuardModifierFlag | MemoryProtection.NoAccess)))
-					b = true;
-
-				return b;
-			}
-
-			return true;
-
-		}
-
-		public static object ReadStructure(MetaType t, byte[] rg, int ofs = 0)
-		{
-			//NOTE: Experimental
-
-			var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
+			GCHandle handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
 			//var stackAlloc = stackalloc byte[byteArray.Length];
 
-			var    objAddr = handle.AddrOfPinnedObject() + ofs;
-			object value   = Marshal.PtrToStructure(objAddr, t.RuntimeType);
+			IntPtr objAddr = handle.AddrOfPinnedObject() + ofs;
+			object value   = Marshal.PtrToStructure(objAddr, t);
 
 			handle.Free();
 
 			return value;
 		}
-
-		#endregion
 
 		/// <summary>
 		///     Reads inherited substructure <typeparamref name="TSub" /> from parent <typeparamref name="TSuper" />.
@@ -367,7 +401,7 @@ namespace Novus.Memory
 
 		public static byte[] GetStringBytes(string s)
 		{
-			var rg = new byte[s.Length * sizeof(char)];
+			byte[] rg = new byte[s.Length * sizeof(char)];
 
 			fixed (char* p = s) {
 				Pointer<byte> p2 = p;
@@ -386,9 +420,9 @@ namespace Novus.Memory
 		{
 			var t2 = Activator.CreateInstance<T>();
 
-			var p  = AddressOfData(ref t);
-			var s  = SizeOf(t, SizeOfOptions.Data);
-			var p2 = AddressOfData(ref t2);
+			Pointer<byte> p  = AddressOfData(ref t);
+			int           s  = SizeOf(t, SizeOfOptions.Data);
+			Pointer<byte> p2 = AddressOfData(ref t2);
 
 			//p2.WriteAll(p.Copy(s));
 
@@ -397,15 +431,25 @@ namespace Novus.Memory
 			return t2;
 		}
 
-		public static void Copy(Pointer<byte> src, int cb, Pointer<byte> dest) =>
+		public static void Copy(Pointer<byte> src, int cb, Pointer<byte> dest)
+		{
 			dest.WriteAll(src.Copy(cb));
+		}
 
-		public static void Copy(Pointer<byte> src, int startIndex, int cb, Pointer<byte> dest) =>
+		public static void Copy(Pointer<byte> src, int startIndex, int cb, Pointer<byte> dest)
+		{
 			dest.WriteAll(src.Copy(startIndex, cb));
+		}
 
-		public static byte[] Copy(Pointer<byte> src, int startIndex, int cb) => src.Copy(startIndex, cb);
+		public static byte[] Copy(Pointer<byte> src, int startIndex, int cb)
+		{
+			return src.Copy(startIndex, cb);
+		}
 
-		public static byte[] Copy(Pointer<byte> src, int cb) => src.Copy(cb);
+		public static byte[] Copy(Pointer<byte> src, int cb)
+		{
+			return src.Copy(cb);
+		}
 
 		#endregion
 
@@ -430,7 +474,10 @@ namespace Novus.Memory
 		/// <summary>
 		///     Calculates the size of <typeparamref name="T" />
 		/// </summary>
-		public static int SizeOf<T>() => Unsafe.SizeOf<T>();
+		public static int SizeOf<T>()
+		{
+			return Unsafe.SizeOf<T>();
+		}
 
 		/// <summary>
 		///     Calculates the size of <typeparamref name="T" />
@@ -479,16 +526,16 @@ namespace Novus.Memory
 				case SizeOfOptions.Heap:         return HeapSizeOfInternal(value);
 
 				case SizeOfOptions.Data:
-					if (RuntimeInfo.IsStruct(value)) {
+					if (RuntimeProperties.IsStruct(value)) {
 						return SizeOf<T>();
 					}
 
 					// Subtract the size of the ObjHeader and MethodTable*
-					return HeapSizeOfInternal(value) - RuntimeInfo.ObjectBaseSize;
+					return HeapSizeOfInternal(value) - RuntimeProperties.ObjectBaseSize;
 
 				case SizeOfOptions.Auto:
 
-					if (RuntimeInfo.IsStruct(value)) {
+					if (RuntimeProperties.IsStruct(value)) {
 						return SizeOf<T>(SizeOfOptions.Intrinsic);
 					}
 
@@ -510,7 +557,7 @@ namespace Novus.Memory
 		///         <item>
 		///             <description>
 		///                 <see cref="MethodTable.BaseSize" /> = The base instance size of a type
-		///                 (<see cref="RuntimeInfo.MinObjectSize" /> by default)
+		///                 (<see cref="RuntimeProperties.MinObjectSize" /> by default)
 		///             </description>
 		///         </item>
 		///         <item>
@@ -531,17 +578,20 @@ namespace Novus.Memory
 		///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 		/// </remarks>
 		/// <returns>The size of the type in heap memory, in bytes</returns>
-		public static int HeapSizeOf<T>(T value) where T : class => HeapSizeOfInternal(value);
+		public static int HeapSizeOf<T>(T value) where T : class
+		{
+			return HeapSizeOfInternal(value);
+		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private static int HeapSizeOfInternal<T>(T value)
 		{
 			// Sanity check
-			Guard.Assert(!RuntimeInfo.IsStruct(value));
+			Guard.Assert(!RuntimeProperties.IsStruct(value));
 
 			// By manually reading the MethodTable*, we can calculate the size correctly if the reference
 			// is boxed or cloaked
-			var metaType = (MetaType) RuntimeInfo.ReadTypeHandle(value);
+			var metaType = (MetaType) RuntimeProperties.ReadTypeHandle(value);
 
 			// Value of GetSizeField()
 
@@ -595,7 +645,7 @@ namespace Novus.Memory
 
 		public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer<byte> ptr)
 		{
-			if (RuntimeInfo.IsStruct(value)) {
+			if (RuntimeProperties.IsStruct(value)) {
 				ptr = null;
 				return false;
 			}
@@ -604,8 +654,10 @@ namespace Novus.Memory
 			return true;
 		}
 
-		public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr) =>
-			TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
+		public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr)
+		{
+			return TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
+		}
 
 		/// <summary>
 		///     Returns the address of reference type <paramref name="value" />'s heap memory, offset by the specified
@@ -616,7 +668,7 @@ namespace Novus.Memory
 		///             This may require pinning to prevent the GC from moving the object.
 		///             If the GC compacts the heap, this pointer may become invalid.
 		///         </para>
-		///         <seealso cref="RuntimeInfo.GetPinningHelper" />
+		///         <seealso cref="RuntimeProperties.GetPinningHelper" />
 		///     </remarks>
 		/// </summary>
 		/// <param name="value">Reference type to return the heap address of</param>
@@ -624,8 +676,10 @@ namespace Novus.Memory
 		/// <returns>The address of <paramref name="value" /></returns>
 		/// <exception cref="ArgumentOutOfRangeException">If <paramref name="offset"></paramref> is out of range.</exception>
 		public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
-			where T : class =>
-			AddressOfHeapInternal(value, offset);
+			where T : class
+		{
+			return AddressOfHeapInternal(value, offset);
+		}
 
 		private static Pointer<byte> AddressOfHeapInternal<T>(T value, OffsetOptions offset)
 		{
@@ -634,30 +688,29 @@ namespace Novus.Memory
 			//var tr = __makeref(value);
 			//var heapPtr = **(IntPtr**) (&tr);
 
-			var heapPtr = AddressOf(ref value).ReadPointer();
+			Pointer<byte> heapPtr = AddressOf(ref value).ReadPointer();
 
 			// NOTE:
 			// Strings have their data offset by RuntimeInfo.OffsetToStringData
 			// Arrays have their data offset by IntPtr.Size * 2 bytes (may be different for 32 bit)
 
-
 			int offsetValue = offset switch
 			{
-				OffsetOptions.ArrayData  => RuntimeInfo.OffsetToArrayData,
-				OffsetOptions.StringData => RuntimeInfo.OffsetToStringData,
-				OffsetOptions.Fields     => RuntimeInfo.OffsetToData,
-				OffsetOptions.Header     => -RuntimeInfo.OffsetToData,
+				OffsetOptions.ArrayData  => RuntimeProperties.OffsetToArrayData,
+				OffsetOptions.StringData => RuntimeProperties.OffsetToStringData,
+				OffsetOptions.Fields     => RuntimeProperties.OffsetToData,
+				OffsetOptions.Header     => -RuntimeProperties.OffsetToData,
 
 				OffsetOptions.None or _ => 0
 			};
 
 			switch (offset) {
 				case OffsetOptions.StringData:
-					Guard.Assert(RuntimeInfo.IsString(value));
+					Guard.Assert(RuntimeProperties.IsString(value));
 					break;
 
 				case OffsetOptions.ArrayData:
-					Guard.Assert(RuntimeInfo.IsArray(value));
+					Guard.Assert(RuntimeProperties.IsArray(value));
 					break;
 			}
 
@@ -672,9 +725,9 @@ namespace Novus.Memory
 		/// </summary>
 		public static Pointer<byte> AddressOfData<T>(ref T value)
 		{
-			var addr = AddressOf(ref value);
+			Pointer<T> addr = AddressOf(ref value);
 
-			if (RuntimeInfo.IsStruct(value)) {
+			if (RuntimeProperties.IsStruct(value)) {
 				return addr.Cast();
 			}
 
@@ -683,28 +736,28 @@ namespace Novus.Memory
 
 		#region Field
 
-		public static Pointer<byte> AddressOfField(object obj, string name) =>
-			AddressOfField<object, byte>(obj, name);
+		public static Pointer<byte> AddressOfField(object obj, string name)
+		{
+			return AddressOfField<object, byte>(obj, name);
+		}
 
 		public static Pointer<TField> AddressOfField<TField>(Type t, string name, [NNINN("t")] object o = null)
 		{
-			var field = t.GetAnyResolvedField(name).AsMetaField();
+			MetaField field = t.GetAnyResolvedField(name).AsMetaField();
 
-			var p = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
+			Pointer<byte> p = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
 
 			return p.Cast<TField>();
 		}
-
 
 		public static Pointer<TField> AddressOfField<T, TField>(in T obj, string name)
 		{
 			int offsetOf = OffsetOf(obj.GetType(), name);
 
-			var p = AddressOfData(ref Unsafe.AsRef(in obj));
+			Pointer<byte> p = AddressOfData(ref Unsafe.AsRef(in obj));
 
 			return p + offsetOf;
 		}
-
 
 		/*public static ref TField ReferenceOfField<TField>(object obj, string name) =>
 			ref AddressOfField<object, TField>(obj, name).Reference;
@@ -724,7 +777,7 @@ namespace Novus.Memory
 		public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize,
 		                                         AllocationType type, MemoryProtection mp)
 		{
-			var ptr = Native.VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
+			IntPtr ptr = Native.VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
 
 			return ptr;
 		}
@@ -755,6 +808,85 @@ namespace Novus.Memory
 			return mbi;
 		}
 
+		/// <remarks>Experimental</remarks>
+		public static bool IsReadable(Pointer<byte> p)
+		{
+
+			const MemoryProtection mask = MemoryProtection.ExecuteRead | MemoryProtection.ExecuteReadWrite |
+			                              MemoryProtection.ReadOnly | MemoryProtection.ReadWrite;
+
+			MemoryProtection protection = QueryPageProtection(p);
+
+			return !((protection & MemoryProtection.GuardOrNoAccess) != 0 || (protection & mask) == 0);
+
+		}
+
+		/// <remarks>Experimental</remarks>
+		public static bool IsWritable(Pointer<byte> p)
+		{
+
+			const MemoryProtection mask = MemoryProtection.ExecuteReadWrite | MemoryProtection.ExecuteWriteCopy |
+			                              MemoryProtection.ReadWrite | MemoryProtection.WriteCopy;
+
+			MemoryProtection protection = QueryPageProtection(p);
+
+			return !((protection & MemoryProtection.GuardOrNoAccess) != 0 || (protection & mask) == 0);
+
+		}
+
+		public static MemoryProtection QueryPageProtection(Pointer<byte> p)
+		{
+
+			/*
+			 * https://stackoverflow.com/questions/496034/most-efficient-replacement-for-isbadreadptr
+			 * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-isbadreadptr
+			 */
+
+			MemoryBasicInformation mbi = default;
+
+			return Native.VirtualQuery(p.Address, ref mbi, Marshal.SizeOf<MemoryBasicInformation>()) != 0
+				       ? mbi.Protect
+				       : throw new Win32Exception();
+
+		}
+
+		public static LinkedList<MemoryBasicInformation> EnumeratePages(IntPtr handle)
+		{
+			SystemInfo systemInformation = default;
+			Native.GetSystemInfo(ref systemInformation);
+
+			MemoryBasicInformation m = default;
+
+			long lpMem = 0L;
+
+			uint of = (uint) Marshal.SizeOf(typeof(MemoryBasicInformation));
+
+			long d = systemInformation.MaximumApplicationAddress.ToInt64();
+
+			var rg = new LinkedList<MemoryBasicInformation>();
+
+			while (lpMem < d) {
+				int result = Native.VirtualQueryEx(handle, (IntPtr) lpMem, ref m, of);
+
+				rg.AddLast(m);
+
+				/*if (m.State == AllocationType.Commit &&
+				    m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE) {
+					
+				}*/
+
+				long address = (long) m.BaseAddress + (long) m.RegionSize;
+
+				if (lpMem == address)
+					break;
+
+				lpMem = address;
+
+			}
+
+			return rg;
+		}
+
 		#endregion
 
 		#region Bits
@@ -767,15 +899,30 @@ namespace Novus.Memory
 		//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static bool ReadBit(int value, int bitOfs) => (value & (1 << bitOfs)) != 0;
+		public static bool ReadBit(int value, int bitOfs)
+		{
+			return (value & (1 << bitOfs)) != 0;
+		}
 
-		public static int SetBit(int x, int n) => x | (1 << n);
+		public static int SetBit(int x, int n)
+		{
+			return x | (1 << n);
+		}
 
-		public static int UnsetBit(int x, int n) => x & ~(1 << n);
+		public static int UnsetBit(int x, int n)
+		{
+			return x & ~(1 << n);
+		}
 
-		public static int ToggleBit(int x, int n) => x ^ (1 << n);
+		public static int ToggleBit(int x, int n)
+		{
+			return x ^ (1 << n);
+		}
 
-		public static int GetBitMask(int index, int size) => ((1 << size) - 1) << index;
+		public static int GetBitMask(int index, int size)
+		{
+			return ((1 << size) - 1) << index;
+		}
 
 		/// <summary>
 		///     Reads <paramref name="bitCount" /> from <paramref name="value" /> at offset <paramref name="bitOfs" />
@@ -783,22 +930,19 @@ namespace Novus.Memory
 		/// <param name="value"><see cref="int" /> value to read from</param>
 		/// <param name="bitOfs">Beginning offset</param>
 		/// <param name="bitCount">Number of bits to read</param>
-		/// <seealso cref="BitArray"/>
-		/// <seealso cref="BitVector32"/>
-		public static int ReadBits(int value, int bitOfs, int bitCount) =>
-			(value & GetBitMask(bitOfs, bitCount)) >> bitOfs;
+		/// <seealso cref="BitArray" />
+		/// <seealso cref="BitVector32" />
+		public static int ReadBits(int value, int bitOfs, int bitCount)
+		{
+			return (value & GetBitMask(bitOfs, bitCount)) >> bitOfs;
+		}
 
-		public static int WriteBits(int data, int index, int size, int value) =>
-			(data & ~GetBitMask(index, size)) | (value << index);
+		public static int WriteBits(int data, int index, int size, int value)
+		{
+			return (data & ~GetBitMask(index, size)) | (value << index);
+		}
 
 		#endregion
-
-		public static void AutoAssign<T>(ref T a, T val)
-		{
-			if (Unsafe.IsNullRef(ref a) || RuntimeInfo.IsDefault(a)) {
-				a = val;
-			}
-		}
 	}
 
 	/// <summary>
@@ -814,7 +958,7 @@ namespace Novus.Memory
 
 		/// <summary>
 		///     If the type is a <see cref="string" />, return the
-		///     pointer offset by <see cref="RuntimeInfo.OffsetToStringData" /> so it
+		///     pointer offset by <see cref="RuntimeProperties.OffsetToStringData" /> so it
 		///     points to the string's characters.
 		///     <remarks>
 		///         Note: Equal to <see cref="GCHandle.AddrOfPinnedObject" /> and <c>fixed</c>.
@@ -824,7 +968,7 @@ namespace Novus.Memory
 
 		/// <summary>
 		///     If the type is an array, return
-		///     the pointer offset by <see cref="RuntimeInfo.OffsetToArrayData" /> so it points
+		///     the pointer offset by <see cref="RuntimeProperties.OffsetToArrayData" /> so it points
 		///     to the array's elements.
 		///     <remarks>
 		///         Note: Equal to <see cref="GCHandle.AddrOfPinnedObject" /> and <c>fixed</c>

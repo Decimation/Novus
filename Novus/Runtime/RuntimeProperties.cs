@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using JetBrains.Annotations;
 using Novus.Imports;
@@ -26,31 +27,26 @@ using Novus.Utilities;
 using CBN = JetBrains.Annotations.CanBeNullAttribute;
 using NN = JetBrains.Annotations.NotNullAttribute;
 
+// ReSharper disable ArgumentsStyleLiteral
+
 #pragma warning disable CS0618, CS1574, IDE0059
 namespace Novus.Runtime
 {
 	/// <summary>
-	///     Utilities for runtime info.
+	///     Runtime properties and utilities.
 	/// </summary>
 	/// <seealso cref="Mem" />
 	/// <seealso cref="RuntimeHelpers" />
 	/// <seealso cref="RuntimeEnvironment" />
 	/// <seealso cref="RuntimeInformation" />
-	public static unsafe class RuntimeInfo
+	public static unsafe class RuntimeProperties
 	{
 		// https://github.com/dotnet/runtime/blob/master/src/coreclr/src/vm/object.h
 
-
-		static RuntimeInfo()
+		static RuntimeProperties()
 		{
-			Global.Clr.LoadImports(typeof(RuntimeInfo));
+			Global.Clr.LoadImports(typeof(RuntimeProperties));
 		}
-
-		/// <summary>
-		///     <see cref="ResolveType" />
-		/// </summary>
-		[field: ImportManaged(typeof(Type), "GetTypeFromHandleUnsafe")]
-		private static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
 
 		/// <summary>
 		///     <see cref="IsPinnable" />
@@ -58,95 +54,14 @@ namespace Novus.Runtime
 		[field: ImportManaged(typeof(Marshal), "IsPinnable")]
 		private static delegate* managed<object, bool> Func_IsPinnable { get; }
 
-
-		private static readonly Action<object, Action<object>> PinImpl = CreatePinImpl();
-
-		private static Action<object, Action<object>> CreatePinImpl()
-		{
-			var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
-			                               new[] { typeof(object), typeof(Action<object>) },
-			                               typeof(RuntimeInfo).Module);
-
-			var il = method.GetILGenerator();
-
-			// create a pinned local variable of type object
-			// this wouldn't be valid in C#, but the runtime doesn't complain about the IL
-			var local = il.DeclareLocal(typeof(object), pinned: true);
-
-			// store first argument obj in the pinned local variable
-			il.Emit(OpCodes.Ldarg_0);
-			il.Emit(OpCodes.Stloc_0);
-			// invoke the delegate
-			il.Emit(OpCodes.Ldarg_1);
-			il.Emit(OpCodes.Ldarg_0);
-			il.EmitCall(OpCodes.Callvirt, typeof(Action<object>).GetMethod("Invoke")!, null);
-
-			il.Emit(OpCodes.Ret);
-
-			return (Action<object, Action<object>>) method.CreateDelegate(typeof(Action<object, Action<object>>));
-		}
-
-		// obj will be *temporarily* pinned while action is being invoked  
-		public static void InvokeWhilePinned(object obj, Action<object> action) => PinImpl(obj, action);
+		[field: ImportManaged(typeof(RuntimeTypeHandle), "GetCorElementType")]
+		private static delegate* managed<Type, CorElementType> Func_GetCorType { get; }
 
 		/// <summary>
-		///     Used for unsafe pinning of arbitrary objects.
-		/// This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
+		///     <see cref="ResolveType" />
 		/// </summary>
-		public static PinningHelper GetPinningHelper(object value) => Unsafe.As<PinningHelper>(value);
-
-		private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
-
-
-		public static void Pin(object obj)
-		{
-			var value = new ManualResetEvent(false);
-
-
-			PinResetEvents.Add(obj, value);
-
-			ThreadPool.QueueUserWorkItem(_ =>
-			{
-				fixed (byte* p = &GetPinningHelper(obj).Data) {
-					value.WaitOne();
-				}
-			});
-
-			Debug.WriteLine($"Pinned obj: {obj.GetHashCode()}");
-		}
-
-		public static void Unpin(object obj)
-		{
-			PinResetEvents[obj].Set();
-
-			Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
-		}
-
-
-		/// <summary>
-		///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
-		///     <code>
-		///  fixed (byte* pData = &amp;PinHelper.GetPinningHelper(value).Data)
-		///  {
-		///  }
-		///  </code>
-		///     <remarks>
-		///         <para><c>pData</c> is what <c>Object::GetData()</c> returns in VM.</para>
-		///         <para><c>pData</c> is also equal to offsetting the pointer by <see cref="OffsetOptions.Fields" />. </para>
-		///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
-		///     </remarks>
-		/// </summary>
-		[UsedImplicitly]
-		public sealed class PinningHelper
-		{
-			/// <summary>
-			///     Represents the first field in an object.
-			/// </summary>
-			/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
-			public byte Data;
-
-			private PinningHelper() { }
-		}
+		[field: ImportManaged(typeof(Type), "GetTypeFromHandleUnsafe")]
+		private static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
 
 		#region Constants
 
@@ -208,7 +123,6 @@ namespace Novus.Runtime
 		///     (<see cref="Mem.Size" /> + <see cref="int" />)
 		/// </summary>
 		public static readonly int OffsetToStringData = RuntimeHelpers.OffsetToStringData;
-
 
 		public static readonly int ObjHeaderSize = sizeof(ObjHeader);
 
@@ -272,7 +186,6 @@ namespace Novus.Runtime
 			return Func_GetTypeFromHandle(handle.Address);
 		}
 
-
 		/// <summary>
 		///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 		/// </summary>
@@ -289,17 +202,17 @@ namespace Novus.Runtime
 		#region Comparison & Properties
 
 		/// <summary>
+		///     Determines whether <paramref name="value" /> is pinnable.
+		/// </summary>
+		/// <returns><c>true</c> if pinnable; <c>false</c> otherwise</returns>
+		public static bool IsPinnable([CBN] object value) => Func_IsPinnable(value);
+
+		/// <summary>
 		///     Determines whether <paramref name="obj" /> is blittable; that is, whether it has identical data representation in
 		///     both managed and unmanaged memory.
 		/// </summary>
 		/// <returns><c>true</c> if blittable; <c>false</c> otherwise</returns>
 		public static bool IsBlittable<T>(T obj) => obj.GetMetaType().IsBlittable;
-
-		/// <summary>
-		///     Determines whether <paramref name="value" /> is pinnable.
-		/// </summary>
-		/// <returns><c>true</c> if pinnable; <c>false</c> otherwise</returns>
-		public static bool IsPinnable([CBN] object value) => Func_IsPinnable(value);
 
 		public static bool IsNullable<T>(T obj)
 		{
@@ -310,7 +223,6 @@ namespace Novus.Runtime
 			}
 
 			var type = typeof(T);
-
 
 			if (!type.IsValueType) {
 				return true; // ref-type
@@ -387,7 +299,6 @@ namespace Novus.Runtime
 			//	return false;
 			//}
 
-
 			// As for strings, IsNullOrWhiteSpace should always be true when
 			// IsNullOrEmpty is true
 
@@ -402,5 +313,7 @@ namespace Novus.Runtime
 		}
 
 		#endregion
+
+		public static CorElementType GetCorElementType(Type t) => Func_GetCorType(t);
 	}
 }

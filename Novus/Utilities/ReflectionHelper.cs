@@ -77,9 +77,22 @@ namespace Novus.Utilities
 			return field;
 		}
 
+		public static (TAttribute Attribute, MemberInfo Member)[] GetAnnotated<TAttribute>(this Type t)
+			where TAttribute : Attribute
+		{
+			return (from member in t.GetAllMembers()
+			        where Attribute.IsDefined(member, typeof(TAttribute))
+			        select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
+		}
+
+		#endregion
+
+
+		#region Special
+
 		public static IEnumerable<FieldInfo> GetAllBackingFields(this Type t)
 		{
-			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(BACKING_FIELD_NAME)).ToArray();
+			var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(SN_BACKING_FIELD)).ToArray();
 
 
 			return rg;
@@ -95,24 +108,44 @@ namespace Novus.Utilities
 		public static FieldInfo GetBackingField(this Type t, string name)
 		{
 			var fi = t.GetRuntimeFields()
-			          .FirstOrDefault(a => Regex.IsMatch(a.Name, $@"\A<{name}>{BACKING_FIELD_NAME}\Z"));
+			          .FirstOrDefault(a => Regex.IsMatch(a.Name, $@"\A<{name}>{SN_BACKING_FIELD}\Z"));
 
 			return fi;
 		}
 
 
-		private const string BACKING_FIELD_NAME = "k__BackingField";
+		private const string SN_BACKING_FIELD  = "k__BackingField";
+		private const string SN_ANONYMOUS_TYPE = "<>f__AnonymousType";
+		private const string SN_CLONE          = "<Clone>$";
+		private const string SN_FIXED_BUFFER   = "e__FixedBuffer";
 
-		public static (TAttribute Attribute, MemberInfo Member)[] GetAnnotated<TAttribute>(this Type t)
-			where TAttribute : Attribute
+		public static bool IsExtensionMethod(this MethodInfo m) => m.IsDefined(typeof(ExtensionAttribute));
+
+		public static bool IsRecord(this Type t) => t.GetMethods().Any(m => m.Name == SN_CLONE);
+
+		public static bool IsFixedBuffer(this FieldInfo field) =>
+			Regex.IsMatch(field.FieldType.Name, $@"\A<{field.Name}>{SN_FIXED_BUFFER}\Z");
+
+		public static bool IsAnonymous(this Type type)
 		{
-			return (from member in t.GetAllMembers()
-			        where Attribute.IsDefined(member, typeof(TAttribute))
-			        select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
+			/*
+			   |       Method |      Mean |    Error |   StdDev |
+			   |------------- |----------:|---------:|---------:|
+			   | IsAnonymous1 | 640.90 ns | 6.119 ns | 5.724 ns |
+			   | IsAnonymous2 |  20.36 ns | 0.125 ns | 0.117 ns |
+			 */
+
+
+			return type.Name.Contains(SN_ANONYMOUS_TYPE);
+
+			// HACK: The only way to detect anonymous types right now.
+			/*return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
+			       && type.IsGenericType && type.Name.Contains("AnonymousType")
+			       && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
+			       && type.Attributes.HasFlag(TypeAttributes.NotPublic);*/
 		}
 
 		#endregion
-
 
 		#region Properties
 
@@ -205,26 +238,6 @@ namespace Novus.Utilities
 		}
 
 		public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
-
-
-		public static bool IsAnonymous(this Type type)
-		{
-			/*
-			   |       Method |      Mean |    Error |   StdDev |
-			   |------------- |----------:|---------:|---------:|
-			   | IsAnonymous1 | 640.90 ns | 6.119 ns | 5.724 ns |
-			   | IsAnonymous2 |  20.36 ns | 0.125 ns | 0.117 ns |
-			 */
-
-
-			return type.Name.Contains("<>f__AnonymousType");
-
-			// HACK: The only way to detect anonymous types right now.
-			/*return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
-			       && type.IsGenericType && type.Name.Contains("AnonymousType")
-			       && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
-			       && type.Attributes.HasFlag(TypeAttributes.NotPublic);*/
-		}
 
 		[return: MaybeNull]
 		public static ConstructorInfo GetConstructor(this Type type, params object[] args)

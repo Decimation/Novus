@@ -74,7 +74,7 @@ namespace TestBenchmark
 		[Benchmark]
 		public LinkedList<MemoryBasicInformation> Test2()
 		{
-			return Mem.EnumerateRegions(h);
+			return Mem.EnumeratePages(h);
 		}
 	}
 

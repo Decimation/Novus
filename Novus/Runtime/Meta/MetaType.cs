@@ -179,7 +179,8 @@ namespace Novus.Runtime.Meta
 		/// </summary>
 		public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
-		public CorElementType CorElementType => Value.Reference.CorElementType;
+		public CorElementType CorElementType => RuntimeProperties.GetCorElementType(RuntimeType);
+
 
 		// returns random combination of flags if this doesn't have a component size
 		private ushort RawGetComponentSize()
@@ -269,7 +270,7 @@ namespace Novus.Runtime.Meta
 
 		public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
 
-		public Type RuntimeType => RuntimeInfo.ResolveType(Value.Cast());
+		public Type RuntimeType => RuntimeProperties.ResolveType(Value.Cast());
 
 
 		public OptionalSlotsFlags SlotsFlags => Value.Reference.SlotsFlags;

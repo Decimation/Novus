@@ -450,54 +450,54 @@ namespace UnitTest
 		[Test]
 		public void PinnableBlittableTest()
 		{
-			Assert.True(RuntimeInfo.IsPinnable("g"));
-			Assert.False(RuntimeInfo.IsBlittable("g"));
+			Assert.True(RuntimeProperties.IsPinnable("g"));
+			Assert.False(RuntimeProperties.IsBlittable("g"));
 
 
-			Assert.True(RuntimeInfo.IsPinnable(new int[] {1, 2, 3}));
-			Assert.False(RuntimeInfo.IsBlittable(new int[] {1, 2, 3}));
+			Assert.True(RuntimeProperties.IsPinnable(new int[] {1, 2, 3}));
+			Assert.False(RuntimeProperties.IsBlittable(new int[] {1, 2, 3}));
 		}
 
 
 		[Test]
 		public void BoxedTest()
 		{
-			Assert.True(RuntimeInfo.IsBoxed((object) 1));
+			Assert.True(RuntimeProperties.IsBoxed((object) 1));
 		}
 
 		[Test]
 		public void BlankTest()
 		{
-			Assert.True(RuntimeInfo.IsBlank(Array.Empty<int>()));
+			Assert.True(RuntimeProperties.IsBlank(Array.Empty<int>()));
 		}
 
 		[Test]
 		public void PinnableTest()
 		{
 			string s = "foo";
-			Assert.True(RuntimeInfo.IsPinnable(s));
+			Assert.True(RuntimeProperties.IsPinnable(s));
 
 			string[] rg = {"foo", "bar"};
-			Assert.False(RuntimeInfo.IsPinnable(rg));
+			Assert.False(RuntimeProperties.IsPinnable(rg));
 
 			var rg2 = new[] {1, 2, 3};
-			Assert.True(RuntimeInfo.IsPinnable(rg2));
+			Assert.True(RuntimeProperties.IsPinnable(rg2));
 
-			Assert.True(RuntimeInfo.IsPinnable(1));
+			Assert.True(RuntimeProperties.IsPinnable(1));
 
-			Assert.False(RuntimeInfo.IsPinnable(new List<int> {1, 2, 3}));
+			Assert.False(RuntimeProperties.IsPinnable(new List<int> {1, 2, 3}));
 		}
 
 		[Test]
 		public void NilTest()
 		{
 			string s = "foo";
-			Assert.False(RuntimeInfo.IsDefault(s));
+			Assert.False(RuntimeProperties.IsDefault(s));
 
 			string s2 = null;
-			Assert.True(RuntimeInfo.IsDefault(s2));
+			Assert.True(RuntimeProperties.IsDefault(s2));
 
-			Assert.True(RuntimeInfo.IsDefault(default(int)));
+			Assert.True(RuntimeProperties.IsDefault(default(int)));
 		}
 
 		[Test]
@@ -510,14 +510,14 @@ namespace UnitTest
 
 			var p = Mem.AddressOfHeap(s);
 
-
-			RuntimeInfo.Pin(s);
+				
+			Mem.Pin(s);
 			Assert.False(AddPressure(p, s));
 
-			RuntimeInfo.Unpin(s);
+			Mem.Unpin(s);
 			// Assert.True(AddPressure(p, s));
 
-			RuntimeInfo.InvokeWhilePinned(s, (o) =>
+			Mem.InvokeWhilePinned(s, (o) =>
 			{
 				Assert.False(AddPressure(p, o));
 			});
@@ -734,7 +734,7 @@ namespace UnitTest
 
 			IntPtr objFixed;
 
-			fixed (byte* p = &RuntimeInfo.GetPinningHelper(obj).Data) {
+			fixed (byte* p = &Mem.GetPinningHelper(obj).Data) {
 				objFixed = (IntPtr) p;
 			}
 
@@ -762,10 +762,10 @@ namespace UnitTest
 			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.BaseInstance), 22); // NOT 20; SOS is wrong
 
 			Assert.AreEqual(Mem.SizeOf(intArray, SizeOfOptions.Data),
-			                RuntimeInfo.ArrayOverhead + (sizeof(int) * intArray.Length));
+			                RuntimeProperties.ArrayOverhead + (sizeof(int) * intArray.Length));
 
 			Assert.AreEqual(Mem.SizeOf(s, SizeOfOptions.Data),
-			                RuntimeInfo.StringOverhead + (sizeof(char) * s.Length));
+			                RuntimeProperties.StringOverhead + (sizeof(char) * s.Length));
 
 			Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.Heap), Native.INVALID);
 

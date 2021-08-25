@@ -1,6 +1,7 @@
 ﻿using System;
 using Novus.Memory;
 using Novus.Win32;
+// ReSharper disable IdentifierTypo
 
 // ReSharper disable InconsistentNaming
 

@@ -44,7 +44,8 @@ using Console = System.Console;
 
 // ReSharper disable UnusedParameter.Local
 #nullable disable
-#pragma warning disable IDE0060, IDE0079
+#pragma warning disable IDE0060
+#pragma warning disable IDE0079
 
 namespace Test
 {
@@ -124,18 +125,27 @@ namespace Test
 		private static void Main(string[] args)
 		{
 			// ...
-			
-			
-			Activator.CreateInstance<int>();
-			var o1 = GCHeap.AllocObject<List<int>>();
-			Console.WriteLine(o1);
-			Console.WriteLine(o1.Count);
 
+			Pointer<byte> p = Mem.Nullptr;
+			Console.WriteLine(Mem.IsReadable(p));
+			Console.WriteLine(Mem.IsWritable(p));
+			var r = Mem.EnumeratePages(Process.GetCurrentProcess().Handle);
 
-			var o = (List<int>) GCHeap.AllocObject(typeof(List<int>));
-			Console.WriteLine(o.Capacity);
-			Console.WriteLine(o);
+			var r2 = r.First(f => f.Protect.HasFlag(MemoryProtection.NoAccess));
+
+			Console.WriteLine(Mem.IsWritable(r2.BaseAddress));
+			
+			Console.WriteLine(Mem.IsReadable(r2.BaseAddress));
+			//((Pointer<byte>)r2.BaseAddress).Write(1);
+
+			var ptr = Allocator.Alloc(123);
+			Console.WriteLine(Mem.IsReadable(ptr));
+			Console.WriteLine(Mem.IsWritable(ptr));
+
 			
 		}
+
 	}
+
+
 }

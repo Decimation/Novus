@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using JetBrains.Annotations;
+using Kantan.Collections;
 using Novus.Win32.Structures;
 using Kantan.Diagnostics;
 using Kantan.Utilities;

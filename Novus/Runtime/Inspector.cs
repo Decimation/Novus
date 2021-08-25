@@ -11,9 +11,12 @@ using Novus.Utilities;
 using Novus.Win32;
 using Kantan.Model;
 using Kantan.Utilities;
-// ReSharper disable CognitiveComplexity
+// ReSharper disable ConvertIfStatementToConditionalTernaryExpression
 
 // ReSharper disable UnusedMember.Global
+
+// ReSharper disable CognitiveComplexity
+
 
 namespace Novus.Runtime
 {
@@ -22,7 +25,7 @@ namespace Novus.Runtime
 	/// </summary>
 	/// 
 	/// <seealso cref="Mem" />
-	/// <seealso cref="RuntimeInfo" />
+	/// <seealso cref="RuntimeProperties" />
 	/// <seealso cref="ReflectionHelper" />
 	public static class Inspector
 	{
@@ -42,222 +45,198 @@ namespace Novus.Runtime
 			All = Offset | Size | Type | Name | Address | Value
 		}
 
-		private const InspectorOptions DEFAULT = InspectorOptions.All;
-
-
-		public static string DumpInfo<T>([NotNull] ref T value)
+		public enum DumpOptions
 		{
-			/*
-			 *
-			 */
-
-			var addrTable = new ConsoleTable("Addresses", "");
-
-			var addr = Mem.AddressOf(ref value);
-			addrTable.AddRow("Address", addr);
-
-			if (Mem.TryGetAddressOfHeap(value, out var heap)) {
-				addrTable.AddRow("Address (heap)", heap);
-			}
-
-			addrTable.Write(ConsoleTableFormat.Minimal);
-
-			/*
-			 *
-			 */
-
-			var infoTable = new ConsoleTable("Sizes", "");
-
-			infoTable.AddRow("Intrinsic", Mem.SizeOf<T>());
-			infoTable.AddRow("Auto", Mem.SizeOf(value, SizeOfOptions.Auto));
-
-			infoTable.Write(ConsoleTableFormat.Minimal);
-
-			/*
-			 *
-			 */
-
-			var propTable = new ConsoleTable("Runtime info", "");
-
-			propTable.AddRow("Pinnable", RuntimeInfo.IsPinnable(value));
-			propTable.AddRow("Blittable", RuntimeInfo.IsBlittable(value));
-			propTable.AddRow("Boxed", RuntimeInfo.IsBoxed(value));
-			propTable.AddRow("Nil", RuntimeInfo.IsDefault(value));
-			propTable.AddRow("Uninitialized", RuntimeInfo.IsUninitialized(value));
-
-
-			propTable.AddRow("In GC heap", GCHeap.IsHeapPointer(Mem.AddressOfData(ref value)));
-
-			return propTable.ToMinimalString();
+			Layout,
+			Info,
+			Sizes,
 		}
 
-		public static string DumpSizes<T>(ref T value)
+		public static string Dump<T>(ref T value, DumpOptions options, InspectorOptions options2)
 		{
-			var layoutTable = new ConsoleTable("Size Type", "Value");
+			switch (options) {
 
-			var options = Enum.GetValues<SizeOfOptions>().ToList();
+				case DumpOptions.Info:
+					//
 
-			options.Remove(SizeOfOptions.Heap);
+					var addrTable = new ConsoleTable("Addresses", "");
 
+					var addr = Mem.AddressOf(ref value);
+					addrTable.AddRow("Address", addr);
 
-			foreach (var option in options) {
-				var sizeOf = Mem.SizeOf<T>(value, option);
-
-				if (sizeOf == Native.INVALID) {
-					continue;
-				}
-
-				layoutTable.AddRow(Enum.GetName(option), sizeOf);
-			}
-
-			var mt = value.GetMetaType();
-
-			if (!mt.RuntimeType.IsValueType) {
-				layoutTable.AddRow(nameof(SizeOfOptions.Heap), Mem.SizeOf<T>(value, SizeOfOptions.Heap));
-			}
-
-			return layoutTable.ToString();
-		}
-
-		public static string DumpLayout<T>(ref T value, InspectorOptions options = DEFAULT)
-		{
-			var layoutTable = new ConsoleTable();
-
-			var flags = Enums.GetSetFlags(options);
-
-			if (options == InspectorOptions.All) {
-				flags.Remove(InspectorOptions.All);
-
-			}
-
-			layoutTable.AddColumn(flags.Select(Enum.GetName));
-
-
-			// Rewrite options
-
-			options = default;
-
-			foreach (var flag in flags) {
-				options |= flag;
-			}
-
-			var mt     = value.GetMetaType();
-			var fields = mt.Fields.Where(x => !x.IsStatic);
-
-			int s = Mem.SizeOf(value, SizeOfOptions.Auto);
-			var p = Mem.AddressOf(ref value);
-
-
-			foreach (var metaField in fields) {
-
-				var rowValues = new List<object>();
-
-
-				if (options.HasFlag(InspectorOptions.Offset)) {
-					rowValues.Add($"{metaField.Offset:X}");
-				}
-
-				if (options.HasFlag(InspectorOptions.Size)) {
-					rowValues.Add(metaField.Size);
-				}
-
-				if (options.HasFlag(InspectorOptions.Type)) {
-					rowValues.Add(metaField.FieldType.Name);
-				}
-
-				if (options.HasFlag(InspectorOptions.Name)) {
-					rowValues.Add(metaField.Name);
-				}
-
-				if (options.HasFlag(InspectorOptions.Address)) {
-					var addr = Mem.AddressOfData(ref value) + metaField.Offset;
-					rowValues.Add(addr.ToString());
-				}
-
-				if (options.HasFlag(InspectorOptions.Value)) {
-
-					object fieldVal;
-
-					if (!mt.RuntimeType.IsConstructedGenericType) {
-						fieldVal = metaField.Info.GetValue(value);
-					}
-					else {
-						fieldVal = "?";
+					if (Mem.TryGetAddressOfHeap(value, out var heap)) {
+						addrTable.AddRow("Address (heap)", heap);
 					}
 
-					rowValues.Add($"{fieldVal}");
-				}
+					addrTable.Write(ConsoleTableFormat.Minimal);
 
-				layoutTable.AddRow(rowValues.ToArray());
-			}
+					//
+
+					var infoTable = new ConsoleTable("Sizes", "");
+
+					infoTable.AddRow("Intrinsic", Mem.SizeOf<T>());
+					infoTable.AddRow("Auto", Mem.SizeOf(value, SizeOfOptions.Auto));
+
+					infoTable.Write(ConsoleTableFormat.Minimal);
+
+					//
+
+					var propTable = new ConsoleTable("Runtime info", "");
+
+					propTable.AddRow("Pinnable", RuntimeProperties.IsPinnable(value));
+					propTable.AddRow("Blittable", RuntimeProperties.IsBlittable(value));
+					propTable.AddRow("Boxed", RuntimeProperties.IsBoxed(value));
+					propTable.AddRow("Nil", RuntimeProperties.IsDefault(value));
+					propTable.AddRow("Uninitialized", RuntimeProperties.IsUninitialized(value));
 
 
-			if (value is string str) {
-				for (int i = 1; i < str.Length; i++) {
-					char c          = str[i];
-					var  rowValues  = new List<object>();
-					int  offsetBase = (i * sizeof(char));
+					propTable.AddRow("In GC heap", GCHeap.IsHeapPointer(Mem.AddressOfData(ref value)));
 
-					if (options.HasFlag(InspectorOptions.Offset)) {
-						rowValues.Add($"{offsetBase + RuntimeInfo.StringOverhead - sizeof(char):X}");
-					}
+					return propTable.ToMinimalString();
+				case DumpOptions.Sizes:
+					var layoutTable = new ConsoleTable("Size Type", "Value");
 
-					if (options.HasFlag(InspectorOptions.Size)) {
-						rowValues.Add(sizeof(char));
-					}
+					var options1 = Enum.GetValues<SizeOfOptions>().ToList();
 
-					if (options.HasFlag(InspectorOptions.Type)) {
-						rowValues.Add(nameof(Char));
-					}
+					options1.Remove(SizeOfOptions.Heap);
 
-					if (options.HasFlag(InspectorOptions.Name)) {
-						rowValues.Add($"Char #{i + 1}");
-					}
 
-					if (options.HasFlag(InspectorOptions.Address)) {
+					foreach (var option in options1) {
+						var sizeOf = Mem.SizeOf(value, option);
 
-						if (Mem.TryGetAddressOfHeap(value, OffsetOptions.StringData, out var addr)) {
-							addr += offsetBase;
-							rowValues.Add(addr.ToString());
-
+						if (sizeOf == Native.INVALID) {
+							continue;
 						}
 
+						layoutTable.AddRow(Enum.GetName(option), sizeOf);
+					}
+
+					var mt = value.GetMetaType();
+
+					if (!mt.RuntimeType.IsValueType) {
+						layoutTable.AddRow(nameof(SizeOfOptions.Heap), Mem.SizeOf(value, SizeOfOptions.Heap));
+					}
+
+					return layoutTable.ToString();
+				case DumpOptions.Layout:
+					var layoutTable1 = new ConsoleTable();
+
+					var flags = EnumHelper.GetSetFlags(options2);
+
+					if (options2 == InspectorOptions.All) {
+						flags.Remove(InspectorOptions.All);
 
 					}
 
-					if (options.HasFlag(InspectorOptions.Value)) {
-						rowValues.Add($"{c}");
+					layoutTable1.AddColumn(flags.Select(Enum.GetName));
+
+
+					// Rewrite options
+
+					options2 = default;
+
+					foreach (var flag in flags) {
+						options2 |= flag;
 					}
 
-					layoutTable.AddRow(rowValues.ToArray());
-				}
+					var mt1    = value.GetMetaType();
+					var fields = mt1.Fields.Where(x => !x.IsStatic);
+
+					int s = Mem.SizeOf(value, SizeOfOptions.Auto);
+					var p = Mem.AddressOf(ref value);
+
+
+					foreach (var metaField in fields) {
+
+						var rowValues = new List<object>();
+
+
+						if (options2.HasFlag(InspectorOptions.Offset)) {
+							rowValues.Add($"{metaField.Offset:X}");
+						}
+
+						if (options2.HasFlag(InspectorOptions.Size)) {
+							rowValues.Add(metaField.Size);
+						}
+
+						if (options2.HasFlag(InspectorOptions.Type)) {
+							rowValues.Add(metaField.FieldType.Name);
+						}
+
+						if (options2.HasFlag(InspectorOptions.Name)) {
+							rowValues.Add(metaField.Name);
+						}
+
+						if (options2.HasFlag(InspectorOptions.Address)) {
+							var addr1 = Mem.AddressOfData(ref value) + metaField.Offset;
+							rowValues.Add(addr1.ToString());
+						}
+
+						if (options2.HasFlag(InspectorOptions.Value)) {
+
+							object fieldVal;
+
+							if (!mt1.RuntimeType.IsConstructedGenericType) {
+								fieldVal = metaField.Info.GetValue(value);
+							}
+							else {
+								fieldVal = "?";
+							}
+
+							rowValues.Add($"{fieldVal}");
+						}
+
+						layoutTable1.AddRow(rowValues.ToArray());
+					}
+
+
+					if (value is string str) {
+						for (int i = 1; i < str.Length; i++) {
+							char c          = str[i];
+							var  rowValues  = new List<object>();
+							int  offsetBase = (i * sizeof(char));
+
+							if (options2.HasFlag(InspectorOptions.Offset)) {
+								rowValues.Add($"{offsetBase + RuntimeProperties.StringOverhead - sizeof(char):X}");
+							}
+
+							if (options2.HasFlag(InspectorOptions.Size)) {
+								rowValues.Add(sizeof(char));
+							}
+
+							if (options2.HasFlag(InspectorOptions.Type)) {
+								rowValues.Add(nameof(Char));
+							}
+
+							if (options2.HasFlag(InspectorOptions.Name)) {
+								rowValues.Add($"Char #{i + 1}");
+							}
+
+							if (options2.HasFlag(InspectorOptions.Address)) {
+
+								if (Mem.TryGetAddressOfHeap(value, OffsetOptions.StringData, out var addr2)) {
+									addr2 += offsetBase;
+									rowValues.Add(addr2.ToString());
+
+								}
+
+
+							}
+
+							if (options2.HasFlag(InspectorOptions.Value)) {
+								rowValues.Add($"{c}");
+							}
+
+							layoutTable1.AddRow(rowValues.ToArray());
+						}
+					}
+
+
+					return layoutTable1.ToString();
+				default:
+					throw new ArgumentOutOfRangeException(nameof(options));
 			}
 
-
-			return layoutTable.ToString();
 		}
-
-		public static string Dump<T>(T value) =>
-			DumpObject(ref value);
-		
-		public static string DumpObject<T>(ref T value) =>
-			DumpLayout(ref value, InspectorOptions.Name | InspectorOptions.Value);
-
-		#region Native
-
-		public static void DumpSections(IntPtr hModule)
-		{
-			var s = Native.GetPESectionInfo(hModule);
-
-			var table = new ConsoleTable("Number", "Name", "Address", "Size", "Characteristics");
-
-			foreach (var info in s) {
-				table.AddRow(info.Number, info.Name, $"{info.Address.ToInt64():X}", info.Size, info.Characteristics);
-			}
-
-			table.Write();
-		}
-
-		#endregion
 	}
 }

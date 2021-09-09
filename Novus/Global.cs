@@ -16,6 +16,7 @@ using Novus.Properties;
 using Novus.Runtime;
 using Novus.Win32;
 using Kantan.Diagnostics;
+using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Utilities;
 using static Kantan.Diagnostics.LogCategories;
@@ -144,7 +145,7 @@ namespace Novus
 			bool compatible = IsCompatible();
 
 			if (!compatible) {
-				Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed!", C_ERROR);
+				Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed! ({Environment.Version}, {ClrVersion})", C_ERROR);
 				//Guard.Fail();
 			}
 
@@ -159,7 +160,7 @@ namespace Novus
 				//Close();
 			};
 
-			Trace.WriteLine($"[{LIB_NAME}] Loaded", C_INFO);
+			Trace.WriteLine($"[{LIB_NAME}] Loaded ({Environment.Version})", C_INFO);
 
 		}
 

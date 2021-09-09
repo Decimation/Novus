@@ -616,7 +616,7 @@ namespace UnitTest
 		{
 			var h = Allocator.Alloc(256);
 
-			Assert.AreEqual(true, Allocator.IsAllocated(h));
+			Assert.True(Allocator.IsAllocated(h));
 
 			Assert.AreEqual(256, Allocator.GetAllocSize(h));
 
@@ -624,14 +624,14 @@ namespace UnitTest
 
 			Assert.AreEqual(512, Allocator.GetAllocSize(h));
 
-			Assert.Throws<ArgumentException>(() =>
+			Assert.Throws<Exception>(() =>
 			{
 				Allocator.ReAlloc(h, -1);
 			});
 
 			Allocator.Free(h);
 
-			Assert.AreEqual(false, Allocator.IsAllocated(h));
+			Assert.False(Allocator.IsAllocated(h));
 
 			Assert.True(Allocator.ReAlloc(h, -1) == null);
 		}

@@ -121,31 +121,25 @@ namespace Test
 
 	public static unsafe class Program
 	{
-		
 		private static void Main(string[] args)
 		{
 			// ...
 
-			Pointer<byte> p = Mem.Nullptr;
-			Console.WriteLine(Mem.IsReadable(p));
-			Console.WriteLine(Mem.IsWritable(p));
-			var r = Mem.EnumeratePages(Process.GetCurrentProcess().Handle);
-
-			var r2 = r.First(f => f.Protect.HasFlag(MemoryProtection.NoAccess));
-
-			Console.WriteLine(Mem.IsWritable(r2.BaseAddress));
 			
-			Console.WriteLine(Mem.IsReadable(r2.BaseAddress));
-			//((Pointer<byte>)r2.BaseAddress).Write(1);
 
-			var ptr = Allocator.Alloc(123);
-			Console.WriteLine(Mem.IsReadable(ptr));
-			Console.WriteLine(Mem.IsWritable(ptr));
-
-			
 		}
 
+		
 	}
 
+	struct mstr
+	{
+		private Pointer<char> m_pointer;
 
+		public override string ToString()
+		{
+			return base.ToString();
+		}
+	}
+	
 }

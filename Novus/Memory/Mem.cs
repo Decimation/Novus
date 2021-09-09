@@ -14,6 +14,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
+using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
@@ -192,19 +193,13 @@ namespace Novus.Memory
 		/// <summary>
 		///     <paramref name="obj" /> will be *temporarily* pinned while action is being invoked
 		/// </summary>
-		public static void InvokeWhilePinned(object obj, Action<object> action)
-		{
-			PinImpl(obj, action);
-		}
+		public static void InvokeWhilePinned(object obj, Action<object> action) => PinImpl(obj, action);
 
 		/// <summary>
 		///     Used for unsafe pinning of arbitrary objects.
 		///     This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
 		/// </summary>
-		public static PinningHelper GetPinningHelper(object value)
-		{
-			return Unsafe.As<PinningHelper>(value);
-		}
+		public static PinningHelper GetPinningHelper(object value) => Unsafe.As<PinningHelper>(value);
 
 
 		public static void Pin(object obj)
@@ -243,8 +238,8 @@ namespace Novus.Memory
 		/// </summary>
 		public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 		{
-			int        dwSize = Unsafe.SizeOf<T>();
-			Pointer<T> ptr    = AddressOf(ref value);
+			int dwSize = Unsafe.SizeOf<T>();
+			var ptr    = AddressOf(ref value);
 
 			WriteProcessMemory(proc, baseAddr.Address, ptr.Address, dwSize);
 		}
@@ -388,7 +383,7 @@ namespace Novus.Memory
 		{
 			var rg = new List<byte>();
 
-			string[] bytes = s.Split(StringConstants.SPACE);
+			string[] bytes = s.Split(Strings.Constants.SPACE);
 
 			foreach (string b in bytes) {
 				byte n = Byte.Parse(b, NumberStyles.HexNumber);
@@ -431,25 +426,14 @@ namespace Novus.Memory
 			return t2;
 		}
 
-		public static void Copy(Pointer<byte> src, int cb, Pointer<byte> dest)
-		{
-			dest.WriteAll(src.Copy(cb));
-		}
+		public static void Copy(Pointer<byte> src, int cb, Pointer<byte> dest) => dest.WriteAll(src.Copy(cb));
 
 		public static void Copy(Pointer<byte> src, int startIndex, int cb, Pointer<byte> dest)
-		{
-			dest.WriteAll(src.Copy(startIndex, cb));
-		}
+			=> dest.WriteAll(src.Copy(startIndex, cb));
 
-		public static byte[] Copy(Pointer<byte> src, int startIndex, int cb)
-		{
-			return src.Copy(startIndex, cb);
-		}
+		public static byte[] Copy(Pointer<byte> src, int startIndex, int cb) => src.Copy(startIndex, cb);
 
-		public static byte[] Copy(Pointer<byte> src, int cb)
-		{
-			return src.Copy(cb);
-		}
+		public static byte[] Copy(Pointer<byte> src, int cb) => src.Copy(cb);
 
 		#endregion
 
@@ -668,7 +652,7 @@ namespace Novus.Memory
 		///             This may require pinning to prevent the GC from moving the object.
 		///             If the GC compacts the heap, this pointer may become invalid.
 		///         </para>
-		///         <seealso cref="RuntimeProperties.GetPinningHelper" />
+		///         <seealso cref="Mem.GetPinningHelper" />
 		///     </remarks>
 		/// </summary>
 		/// <param name="value">Reference type to return the heap address of</param>
@@ -941,6 +925,58 @@ namespace Novus.Memory
 		{
 			return (data & ~GetBitMask(index, size)) | (value << index);
 		}
+
+		#endregion
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static nuint GetByteCount(nuint elementCount, nuint elementSize)
+		{
+			// This is based on the `mi_count_size_overflow` and `mi_mul_overflow` methods from microsoft/mimalloc.
+			// Original source is Copyright (c) 2019 Microsoft Corporation, Daan Leijen. Licensed under the MIT license
+
+			// sqrt(nuint.MaxValue)
+			nuint multiplyNoOverflow = (nuint) 1 << (4 * sizeof(nuint));
+
+			return ((elementSize >= multiplyNoOverflow) || (elementCount >= multiplyNoOverflow)) && (elementSize > 0) &&
+			       ((nuint.MaxValue / elementSize) < elementCount)
+				       ? nuint.MaxValue
+				       : (elementCount * elementSize);
+		}
+
+		#region CRT allocation
+
+#if !NET6_0_OR_GREATER
+
+		public static Pointer<T> Alloc<T>(nuint elemCnt)
+		{
+			var s = GetByteCount(elemCnt, (nuint) SizeOf<T>());
+
+			var p = Native.malloc(s);
+
+			return p;
+		}
+
+		public static Pointer<T> AllocZero<T>(nuint elemCnt)
+		{
+			var p = Native.calloc(elemCnt, (nuint) SizeOf<T>());
+
+			return p;
+		}
+
+		public static Pointer<T> ReAlloc<T>(Pointer<T> p, nuint elemCnt)
+		{
+			var s = GetByteCount(elemCnt, (nuint) SizeOf<T>());
+
+			var p2 = Native.realloc(p.ToPointer(), s);
+
+			return p2;
+		}
+
+		public static void Free<T>(Pointer<T> p)
+		{
+			Native.free(p.ToPointer());
+		}
+#endif
 
 		#endregion
 	}

@@ -99,6 +99,10 @@ namespace Novus.Win32
 
 		#endregion
 
+
+		public static string GetRootDirectory() => Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
+
+
 		public static string GetShortPath(string dir)
 		{
 			unsafe {

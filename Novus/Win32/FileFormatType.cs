@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Kantan.Model;
+using Kantan.Text;
 using Kantan.Utilities;
 
 // ReSharper disable UnusedMember.Global

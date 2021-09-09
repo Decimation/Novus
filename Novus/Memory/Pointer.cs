@@ -3,6 +3,7 @@ using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using Kantan.Text;
 using Kantan.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -375,10 +376,7 @@ namespace Novus.Memory
 
 
 		[Pure]
-		public Pointer<byte> ReadPointer(int elemOffset = OFFSET)
-		{
-			return ReadPointer<byte>(elemOffset);
-		}
+		public Pointer<byte> ReadPointer(int elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
 
 		[Pure]
 		public Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET)
@@ -423,10 +421,7 @@ namespace Novus.Memory
 		///     the current pointer
 		/// </returns>
 		[Pure]
-		public T[] Copy(int elemCnt)
-		{
-			return Copy(OFFSET, elemCnt);
-		}
+		public T[] Copy(int elemCnt) => Copy(OFFSET, elemCnt);
 
 		public void CopyTo(T[] rg)
 		{

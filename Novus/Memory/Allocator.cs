@@ -17,6 +17,13 @@ namespace Novus.Memory
 	/// </summary>
 	public static class Allocator
 	{
+		/*
+		 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.Windows.cs
+		 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Ucrtbase/Interop.MemAlloc.cs
+		 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.cs
+		 */
+
+
 		private static readonly List<Pointer<byte>> Allocated = new();
 
 		public static int AllocCount => Allocated.Count;

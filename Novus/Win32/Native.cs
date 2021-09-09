@@ -9,10 +9,12 @@ using Novus.Win32.Wrappers;
 #pragma warning disable CA1401, CA2101
 
 // ReSharper disable IdentifierTypo
-// ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 using MA = System.Runtime.InteropServices.MarshalAsAttribute;
 using UT = System.Runtime.InteropServices.UnmanagedType;
+
+// ReSharper disable InconsistentNaming
+#pragma warning disable 649
 
 // ReSharper disable UnusedMember.Local
 
@@ -39,18 +41,46 @@ namespace Novus.Win32
 
 		#region DLL
 
-		public const string KERNEL32_DLL = "Kernel32.dll";
+		/*
+		 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Interop.Libraries.cs
+		 */
 
-		public const string USER32_DLL = "User32.dll";
-
-		public const string SHELL32_DLL = "Shell32.dll";
-
-		public const string DBGHELP_DLL = "DbgHelp.dll";
-
-		public const string URLMON_DLL = "urlmon.dll";
+		public const string KERNEL32_DLL  = "Kernel32.dll";
+		public const string USER32_DLL    = "User32.dll";
+		public const string SHELL32_DLL   = "Shell32.dll";
+		public const string DBGHELP_DLL   = "DbgHelp.dll";
+		public const string URLMON_DLL    = "urlmon.dll";
+		public const string GDI32_DLL     = "gdi32.dll";
+		public const string NTDLL_DLL     = "ntdll.dll";
+		public const string OLE32_DLL     = "ole32.dll";
+		public const string WEBSOCKET_DLL = "websocket.dll";
+		public const string WINHTTP_DLL   = "winhttp.dll";
+		public const string UCRTBASE_DLL  = "ucrtbase.dll";
 
 		#endregion
 
+		#region CRT allocation
+
+#if !NET6_0_OR_GREATER
+
+		// TODO: Remove when .NET 6 releases
+		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+		internal static extern void* calloc(nuint num, nuint size);
+
+		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+		internal static extern void free(void* ptr);
+
+		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+		internal static extern void* malloc(nuint size);
+
+		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+		internal static extern void* realloc(void* ptr, nuint new_size);
+
+		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+		internal static extern int _msize(void* ptr);
+#endif
+
+		#endregion
 
 		#region Symbols
 
@@ -255,10 +285,10 @@ namespace Novus.Win32
 
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		public static extern bool SetConsoleOutputCP(uint wCodePageID);
+		public static extern bool SetConsoleOutputCP(uint wCodePageId);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		public static extern bool SetConsoleCP(uint wCodePageID);
+		public static extern bool SetConsoleCP(uint wCodePageId);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
 		public static extern uint GetConsoleOutputCP();
@@ -399,10 +429,10 @@ namespace Novus.Win32
 		#region Other
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		public static extern void GetSystemInfo(ref SystemInfo Info);
+		public static extern void GetSystemInfo(ref SystemInfo info);
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		public static extern void GetNativeSystemInfo(ref SystemInfo Info);
+		public static extern void GetNativeSystemInfo(ref SystemInfo info);
 
 
 		[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]

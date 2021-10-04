@@ -123,8 +123,8 @@ namespace Novus.Utilities
 
 		public static bool IsRecord(this Type t) => t.GetMethods().Any(m => m.Name == SN_CLONE);
 
-		public static bool IsFixedBuffer(this FieldInfo field) =>
-			Regex.IsMatch(field.FieldType.Name, $@"\A<{field.Name}>{SN_FIXED_BUFFER}\Z");
+		public static bool IsFixedBuffer(this FieldInfo field)
+			=> Regex.IsMatch(field.FieldType.Name, $@"\A<{field.Name}>{SN_FIXED_BUFFER}\Z");
 
 		public static bool IsAnonymous(this Type type)
 		{
@@ -149,23 +149,23 @@ namespace Novus.Utilities
 
 		#region Properties
 
-		public static Type[] GetAllSubclasses(this Type superType) =>
-			GetAllWhere(superType, myType => myType.ExtendsType(superType));
+		public static Type[] GetAllSubclasses(this Type superType)
+			=> GetAllWhere(superType, myType => myType.ExtendsType(superType));
 
 
-		public static Type[] GetAllImplementations(this Type interfaceType) =>
-			GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
+		public static Type[] GetAllImplementations(this Type interfaceType)
+			=> GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
 
 		public static bool ExtendsType(this Type myType, Type superType)
 		{
 			return myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(superType);
 		}
 
-		public static bool ImplementsInterface(this Type type, Type interfaceType) =>
-			type.ImplementsInterface(interfaceType.Name);
+		public static bool ImplementsInterface(this Type type, Type interfaceType)
+			=> type.ImplementsInterface(interfaceType.Name);
 
-		public static bool ImplementsInterface(this Type type, string interfaceName) =>
-			type.GetInterface(interfaceName) != null;
+		public static bool ImplementsInterface(this Type type, string interfaceName)
+			=> type.GetInterface(interfaceName) != null;
 
 		public static bool ImplementsGenericInterface(this Type type, Type genericType)
 		{
@@ -399,6 +399,15 @@ namespace Novus.Utilities
 			return current;
 		}
 
+		public static T GetStaticValue<T>(this PropertyInfo p)
+		{
+			return (T) p.GetValue(null);
+		}
+
+		public static T GetStaticValue<T>(this FieldInfo p)
+		{
+			return (T) p.GetValue(null);
+		}
 
 		public static void Assign<T>(this Type t, string name, T val, object obj = null)
 		{

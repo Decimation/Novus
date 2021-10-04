@@ -47,15 +47,18 @@ namespace Novus
 		/// <summary>
 		/// Creates a <see cref="Resource"/> from an already-loaded module.
 		/// </summary>
-		public Resource(string moduleName, string pdb = null)
+		public Resource(string moduleName, string pdb = null) : this(Process.GetCurrentProcess(), moduleName, pdb) { }
+
+		public Resource(Process p, string moduleName, string pdb = null)
 		{
 			ModuleName = moduleName;
 
-			var module = ProcessHelper.FindModule(moduleName);
+			var module = ProcessHelper.FindModule(p, moduleName);
 
 			Guard.AssertNotNull(module);
 
 			Module = module;
+
 
 			Scanner = new Lazy<SigScanner>(() => new SigScanner(Module));
 
@@ -269,7 +272,7 @@ namespace Novus
 					if (addr.IsNull) {
 						throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 					}
-					
+
 
 					if (field.FieldType == typeof(Pointer<byte>)) {
 						fieldValue = addr;
@@ -302,9 +305,34 @@ namespace Novus
 
 			return fieldValue;
 		}
-		
 
 		#endregion Import
+
+		public static Pointer<byte> FindFunction(Process p, string m, string s)
+		{
+
+			var resource = new Resource(p, m, s);
+
+			return resource.FindExportOrSignature(s);
+		}
+
+		public static Pointer<byte> FindFunction(string m, string s)
+			=> FindFunction(Process.GetCurrentProcess(), m, s);
+
+
+		public Pointer<byte> FindExportOrSignature(string signature)
+		{
+			var p = FindExport(signature);
+
+			if (p.IsNull) {
+				p = FindSignature(signature);
+			}
+			
+
+			return p;
+		}
+
+		public Pointer<byte> FindExport(string signature) => NativeLibrary.GetExport(Module.BaseAddress, signature);
 
 		public Pointer<byte> FindSignature(string signature) => Scanner.Value.FindSignature(signature);
 

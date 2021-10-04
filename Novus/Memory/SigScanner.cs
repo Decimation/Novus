@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
+using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
@@ -56,7 +58,7 @@ namespace Novus.Memory
 
 			Size = (ulong) module.ModuleMemorySize;
 
-			Buffer = Mem.ReadProcessMemory(proc, Address, (int) Size);
+			Buffer = Mem.ReadProcessMemory(proc, Address, (IntPtr) Size);
 		}
 
 		public SigScanner(ProcessModule module) : this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
@@ -68,6 +70,22 @@ namespace Novus.Memory
 			Buffer  = buffer;
 			Size    = size;
 			Address = ptr;
+		}
+
+		public static Pointer<byte> ScanProcess(string sig, Process p = null)
+		{
+			p ??= Process.GetCurrentProcess();
+			var page = p.GetModules();
+
+			var scanners = page.Select(s =>
+			{
+				return new Lazy<SigScanner>(() => new SigScanner(s));
+			}).ToArray();
+
+			var pointers = scanners.Select(s => s.Value.FindSignature(sig));
+
+			return pointers.FirstOrDefault(p => !p.IsNull);
+
 		}
 
 		#endregion
@@ -98,8 +116,8 @@ namespace Novus.Memory
 
 			for (int i = 0; i < strByteArr.Length; i++) {
 				patternBytes[i] = strByteArr[i] == UNKNOWN_STR
-					? UNKNOWN_BYTE
-					: Byte.Parse(strByteArr[i], NumberStyles.HexNumber);
+					                  ? UNKNOWN_BYTE
+					                  : Byte.Parse(strByteArr[i], NumberStyles.HexNumber);
 			}
 
 

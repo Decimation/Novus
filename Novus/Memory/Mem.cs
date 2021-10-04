@@ -83,6 +83,7 @@ namespace Novus.Memory
 
 		public static bool Is64Bit => Environment.Is64BitProcess;
 
+
 		/// <summary>
 		///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
 		/// </summary>
@@ -277,7 +278,7 @@ namespace Novus.Memory
 		/// <param name="addr">Address within the specified process from which to read</param>
 		/// <param name="buffer">Buffer that receives the read contents from the address space</param>
 		/// <param name="cb">Number of bytes to read</param>
-		public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, int cb)
+		public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, nint cb)
 		{
 			IntPtr h = Native.OpenProcess(proc);
 
@@ -286,12 +287,13 @@ namespace Novus.Memory
 			Native.CloseHandle(h);
 		}
 
+
 		/// <summary>
 		///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
 		/// </summary>
-		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> addr, int cb)
+		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> addr, nint cb)
 		{
-			byte[] mem = new byte[cb];
+			byte[] mem = new byte[(long) cb];
 
 			fixed (byte* p = mem) {
 				ReadProcessMemory(proc, addr, p, cb);
@@ -331,7 +333,7 @@ namespace Novus.Memory
 
 			//var i = Activator.CreateInstance(t);
 
-			byte[] rg  = ReadProcessMemory(proc, addr, size);
+			byte[] rg  = ReadProcessMemory(proc, addr, (IntPtr) size);
 			object val = null;
 
 			if (valueType) {
@@ -834,9 +836,10 @@ namespace Novus.Memory
 
 		}
 
-		public static LinkedList<MemoryBasicInformation> EnumeratePages(IntPtr handle)
+		public static LinkedList<MemoryBasicInformation> EnumeratePages(IntPtr handle, bool x = true)
 		{
 			SystemInfo systemInformation = default;
+
 			Native.GetSystemInfo(ref systemInformation);
 
 			MemoryBasicInformation m = default;
@@ -852,12 +855,11 @@ namespace Novus.Memory
 			while (lpMem < d) {
 				int result = Native.VirtualQueryEx(handle, (IntPtr) lpMem, ref m, of);
 
-				rg.AddLast(m);
+				/*var b = m.State == AllocationType.Commit &&
+				        m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE;*/
 
-				/*if (m.State == AllocationType.Commit &&
-				    m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE) {
-					
-				}*/
+				rg.AddLast(m);
+				
 
 				long address = (long) m.BaseAddress + (long) m.RegionSize;
 

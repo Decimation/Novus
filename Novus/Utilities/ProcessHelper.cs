@@ -22,13 +22,33 @@ namespace Novus.Utilities
 		[CanBeNull]
 		public static ProcessModule FindModule(string moduleName)
 		{
-			var modules = Process.GetCurrentProcess().Modules;
-
-			return modules.Cast<ProcessModule>().Where(module => module != null)
-			              .FirstOrDefault(module => module.ModuleName == moduleName);
+			return FindModule(Process.GetCurrentProcess(), moduleName);
 
 		}
 
+		/// <summary>
+		///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
+		///     <paramref name="moduleName" />
+		/// </summary>
+		/// <param name="p">Process from which to load modules</param>
+		/// <param name="moduleName">
+		///     <see cref="ProcessModule.ModuleName" />
+		/// </param>
+		/// <returns>The found <see cref="ProcessModule" />; <c>null</c> otherwise</returns>
+		[CanBeNull]
+		public static ProcessModule FindModule(Process p,string moduleName)
+		{
+
+			return p.GetModules().FirstOrDefault(module => module.ModuleName == moduleName);
+
+		}
+		public static ProcessModule[] GetModules(this Process p)
+		{
+			var modules = p.Modules;
+
+			return modules.Cast<ProcessModule>().Where(module => module != null).ToArray();
+
+		}
 		/// <summary>
 		///     Forcefully kills a <see cref="Process" /> and ensures the process has exited.
 		/// </summary>

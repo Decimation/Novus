@@ -159,6 +159,7 @@ namespace Novus
 			{
 				//Close();
 			};
+			
 
 			Trace.WriteLine($"[{LIB_NAME}] Loaded ({Environment.Version})", C_INFO);
 

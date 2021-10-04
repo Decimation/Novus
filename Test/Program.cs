@@ -125,8 +125,15 @@ namespace Test
 		{
 			// ...
 
-			
+			var ss = Global.Clr.Scanner.Value;
+			var a  =ss.FindSignature("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3");
+			Console.WriteLine(a);
 
+			var pointer = SigScanner.ScanProcess("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3");
+
+			Console.WriteLine(pointer);
+
+			Console.WriteLine(a==pointer);
 		}
 
 		

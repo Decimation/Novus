@@ -58,7 +58,7 @@ namespace Novus.Memory
 
 			Size = (ulong) module.ModuleMemorySize;
 
-			Buffer = Mem.ReadProcessMemory(proc, Address, (IntPtr) Size);
+			Buffer = Mem.ReadProcessMemory(proc, Address, (nint) Size);
 		}
 
 		public SigScanner(ProcessModule module) : this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
@@ -72,20 +72,21 @@ namespace Novus.Memory
 			Address = ptr;
 		}
 
-		public static Pointer<byte> ScanProcess(string sig, Process p = null)
+		public static Pointer<byte>[] ScanProcess(string sig, Process p = null)
 		{
 			p ??= Process.GetCurrentProcess();
 			var page = p.GetModules();
 
 			var scanners = page.Select(s =>
 			{
-				return new Lazy<SigScanner>(() => new SigScanner(s));
+				return new Lazy<SigScanner>(() => new SigScanner(p, s));
 			}).ToArray();
 
-			var pointers = scanners.Select(s => s.Value.FindSignature(sig));
 
-			return pointers.FirstOrDefault(p => !p.IsNull);
+			/*var pointers = scanners.Select(s => s.Value.FindSignature(sig));
+			return pointers.FirstOrDefault(p => !p.IsNull);*/
 
+			return scanners.Select(t => t.Value.FindSignature(sig)).Where(ptr => !ptr.IsNull).ToArray();
 		}
 
 		#endregion
@@ -111,8 +112,9 @@ namespace Novus.Memory
 
 		public static byte[] ReadSignature(string pattern)
 		{
-			string[] strByteArr   = pattern.Split(' ');
-			byte[]   patternBytes = new byte[strByteArr.Length];
+			string[] strByteArr = pattern.Split(' ');
+
+			byte[] patternBytes = new byte[strByteArr.Length];
 
 			for (int i = 0; i < strByteArr.Length; i++) {
 				patternBytes[i] = strByteArr[i] == UNKNOWN_STR

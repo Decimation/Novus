@@ -263,7 +263,7 @@ namespace Novus.Memory
 		public static void WriteProcessMemory(Process proc, Pointer<byte> addr, byte[] value)
 		{
 			fixed (byte* rg = value) {
-				WriteProcessMemory(proc, addr, (IntPtr) rg, value.Length);
+				WriteProcessMemory(proc, addr, (nint) rg, value.Length);
 			}
 		}
 
@@ -293,7 +293,7 @@ namespace Novus.Memory
 		/// </summary>
 		public static byte[] ReadProcessMemory(Process proc, Pointer<byte> addr, nint cb)
 		{
-			byte[] mem = new byte[(long) cb];
+			byte[] mem = new byte[cb];
 
 			fixed (byte* p = mem) {
 				ReadProcessMemory(proc, addr, p, cb);
@@ -794,33 +794,8 @@ namespace Novus.Memory
 			return mbi;
 		}
 
-		/// <remarks>Experimental</remarks>
-		public static bool IsReadable(Pointer<byte> p)
-		{
 
-			const MemoryProtection mask = MemoryProtection.ExecuteRead | MemoryProtection.ExecuteReadWrite |
-			                              MemoryProtection.ReadOnly | MemoryProtection.ReadWrite;
-
-			MemoryProtection protection = QueryPageProtection(p);
-
-			return !((protection & MemoryProtection.GuardOrNoAccess) != 0 || (protection & mask) == 0);
-
-		}
-
-		/// <remarks>Experimental</remarks>
-		public static bool IsWritable(Pointer<byte> p)
-		{
-
-			const MemoryProtection mask = MemoryProtection.ExecuteReadWrite | MemoryProtection.ExecuteWriteCopy |
-			                              MemoryProtection.ReadWrite | MemoryProtection.WriteCopy;
-
-			MemoryProtection protection = QueryPageProtection(p);
-
-			return !((protection & MemoryProtection.GuardOrNoAccess) != 0 || (protection & mask) == 0);
-
-		}
-
-		public static MemoryProtection QueryPageProtection(Pointer<byte> p)
+		public static MemoryBasicInformation QueryMemoryPage(Pointer<byte> p)
 		{
 
 			/*
@@ -831,37 +806,36 @@ namespace Novus.Memory
 			MemoryBasicInformation mbi = default;
 
 			return Native.VirtualQuery(p.Address, ref mbi, Marshal.SizeOf<MemoryBasicInformation>()) != 0
-				       ? mbi.Protect
+				       ? mbi
 				       : throw new Win32Exception();
 
 		}
 
-		public static LinkedList<MemoryBasicInformation> EnumeratePages(IntPtr handle, bool x = true)
+		public static LinkedList<MemoryBasicInformation> EnumeratePages(IntPtr handle)
 		{
-			SystemInfo systemInformation = default;
+			SystemInfo sysInfo = default;
 
-			Native.GetSystemInfo(ref systemInformation);
+			Native.GetSystemInfo(ref sysInfo);
 
-			MemoryBasicInformation m = default;
+			MemoryBasicInformation mbi = default;
 
 			long lpMem = 0L;
 
-			uint of = (uint) Marshal.SizeOf(typeof(MemoryBasicInformation));
+			uint sizeOf = (uint) Marshal.SizeOf(typeof(MemoryBasicInformation));
 
-			long d = systemInformation.MaximumApplicationAddress.ToInt64();
+			long maxAddr = sysInfo.MaximumApplicationAddress.ToInt64();
 
-			var rg = new LinkedList<MemoryBasicInformation>();
+			var ll = new LinkedList<MemoryBasicInformation>();
 
-			while (lpMem < d) {
-				int result = Native.VirtualQueryEx(handle, (IntPtr) lpMem, ref m, of);
+			while (lpMem < maxAddr) {
+				int result = Native.VirtualQueryEx(handle, (IntPtr) lpMem, ref mbi, sizeOf);
 
 				/*var b = m.State == AllocationType.Commit &&
 				        m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE;*/
 
-				rg.AddLast(m);
-				
+				ll.AddLast(mbi);
 
-				long address = (long) m.BaseAddress + (long) m.RegionSize;
+				long address = (long) mbi.BaseAddress + (long) mbi.RegionSize;
 
 				if (lpMem == address)
 					break;
@@ -870,7 +844,7 @@ namespace Novus.Memory
 
 			}
 
-			return rg;
+			return ll;
 		}
 
 		#endregion

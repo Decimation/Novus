@@ -156,9 +156,9 @@ namespace Novus.Win32
 		public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
 		                                            nint size, out int numBytesRead);
 
-		[DllImport(KERNEL32_DLL)]
+		/*[DllImport(KERNEL32_DLL)]
 		public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
-		                                            IntPtr size, out IntPtr numBytesRead);
+		                                            nint size, out IntPtr numBytesRead);*/
 
 		[DllImport(KERNEL32_DLL)]
 		public static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Kantan.Text;
 using Kantan.Utilities;
+using Novus.Win32.Structures;
 
 // ReSharper disable UnusedMember.Global
 
@@ -84,7 +85,6 @@ namespace Novus.Memory
 		///     Whether <see cref="Address" /> is <c>null</c> (<see cref="IntPtr.Zero" />).
 		/// </summary>
 		public bool IsNull => this == Mem.Nullptr;
-
 
 		public Pointer(void* value)
 		{
@@ -245,11 +245,11 @@ namespace Novus.Memory
 
 		public static Pointer<T> operator -(Pointer<T> left, long right) => (void*) (left.ToInt64() - right);
 
-		public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right) =>
-			(void*) (left.ToInt64() + right.ToInt64());
+		public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right)
+			=> (void*) (left.ToInt64() + right.ToInt64());
 
-		public static Pointer<T> operator -(Pointer<T> left, Pointer<T> right) =>
-			(void*) (left.ToInt64() - right.ToInt64());
+		public static Pointer<T> operator -(Pointer<T> left, Pointer<T> right)
+			=> (void*) (left.ToInt64() - right.ToInt64());
 
 		/// <summary>
 		///     Increments the <see cref="Address" /> by the specified number of elements.
@@ -458,6 +458,8 @@ namespace Novus.Memory
 		}
 
 		#endregion
+
+		public MemoryBasicInformation Query() => Mem.QueryMemoryPage(this);
 
 		/// <summary>
 		///     Default offset for <see cref="Pointer{T}" />

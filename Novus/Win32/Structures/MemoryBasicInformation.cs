@@ -5,8 +5,6 @@ using System.Runtime.InteropServices;
 
 namespace Novus.Win32.Structures
 {
-	
-
 	[StructLayout(LayoutKind.Sequential)]
 	public struct MemoryBasicInformation
 	{
@@ -17,6 +15,43 @@ namespace Novus.Win32.Structures
 		public AllocationType   State;
 		public MemoryProtection Protect;
 		public MemType          Type;
+
+
+		/// <summary>Experimental</summary>
+		public bool IsAccessible
+		{
+			get
+			{
+				/*var b = m.State == AllocationType.Commit &&
+				        m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE;*/
+
+				return State == AllocationType.Commit && Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE;
+			}
+		}
+
+		/// <summary>Experimental</summary>
+		public bool IsWritable
+		{
+			get
+			{
+				const MemoryProtection mask = MemoryProtection.ExecuteReadWrite | MemoryProtection.ExecuteWriteCopy |
+				                              MemoryProtection.ReadWrite | MemoryProtection.WriteCopy;
+
+				return !((Protect & MemoryProtection.GuardOrNoAccess) != 0 || (Protect & mask) == 0);
+			}
+		}
+
+		/// <summary>Experimental</summary>
+		public bool IsReadable
+		{
+			get
+			{
+				const MemoryProtection mask = MemoryProtection.ExecuteRead | MemoryProtection.ExecuteReadWrite |
+				                              MemoryProtection.ReadOnly | MemoryProtection.ReadWrite;
+
+				return !((Protect & MemoryProtection.GuardOrNoAccess) != 0 || (Protect & mask) == 0);
+			}
+		}
 
 		/// <inheritdoc />
 		public override string ToString()

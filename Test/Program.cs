@@ -126,17 +126,19 @@ namespace Test
 			// ...
 
 			var ss = Global.Clr.Scanner.Value;
-			var a  =ss.FindSignature("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3");
+			var a  = ss.FindSignature("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3");
 			Console.WriteLine(a);
 
-			var pointer = SigScanner.ScanProcess("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3");
+			int          i  = 256;
+			Pointer<int> px = &i;
+			Console.WriteLine(px.MemoryInformation);
+
+			var pointer = SigScanner.ScanProcess("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3").FirstOrDefault();
 
 			Console.WriteLine(pointer);
 
-			Console.WriteLine(a==pointer);
+			Console.WriteLine(a == pointer);
 		}
-
-		
 	}
 
 	struct mstr
@@ -148,5 +150,4 @@ namespace Test
 			return base.ToString();
 		}
 	}
-	
 }

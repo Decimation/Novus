@@ -6,7 +6,9 @@
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    <NoWarn>CS1591,CA1416,IDE0079</NoWarn>
+    
+    <NoWarn>CS1591,IDE0079</NoWarn>
+
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Low-level utilities and tools for working with the CLR and memory.</Description>
     <PackageProjectUrl>https://github.com/Decimation/Novus</PackageProjectUrl>

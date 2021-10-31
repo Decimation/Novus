@@ -301,7 +301,7 @@ namespace Novus.Runtime
 
 			// As for strings, IsNullOrWhiteSpace should always be true when
 			// IsNullOrEmpty is true
-
+			
 			bool test = value switch
 			{
 				IList list => list.Count == 0,

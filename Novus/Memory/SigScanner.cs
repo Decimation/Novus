@@ -14,6 +14,8 @@ namespace Novus.Memory
 	/// </summary>
 	/// <remarks>
 	/// <a href="https://wiki.alliedmods.net/Signature_scanning">Signature scanning</a>
+	/// <p/>
+	/// Uses IDA signature format
 	/// </remarks>
 	public class SigScanner
 	{
@@ -110,6 +112,7 @@ namespace Novus.Memory
 
 		private const byte UNKNOWN_BYTE = 0x0;
 
+
 		public static byte[] ReadSignature(string pattern)
 		{
 			string[] strByteArr = pattern.Split(' ');
@@ -142,7 +145,7 @@ namespace Novus.Memory
 					continue;
 
 				if (PatternCheck(i, pattern)) {
-					var p = Address + i;
+					Pointer<byte> p = Address + i;
 
 					return p;
 				}

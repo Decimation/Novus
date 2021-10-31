@@ -15,6 +15,8 @@ using System.Resources;
 using System.Runtime.InteropServices;
 using static Kantan.Diagnostics.LogCategories;
 
+// ReSharper disable UnusedMember.Local
+
 // ReSharper disable SuggestVarOrType_DeconstructionDeclarations
 
 #pragma warning disable IDE0059
@@ -57,15 +59,10 @@ namespace Novus
 
 			Guard.AssertNotNull(module);
 
-			Module = module;
-
-
-			Scanner = new Lazy<SigScanner>(() => new SigScanner(Module));
-
-			Address = Module.BaseAddress;
-
-			Symbols = new Lazy<SymbolLoader>(() => pdb is not null ? new SymbolLoader(pdb) : null);
-
+			Module       = module;
+			Scanner      = new Lazy<SigScanner>(() => new SigScanner(Module));
+			Address      = Module.BaseAddress;
+			Symbols      = new Lazy<SymbolLoader>(() => pdb is not null ? new SymbolLoader(pdb) : null);
 			LoadedModule = false;
 		}
 
@@ -115,9 +112,8 @@ namespace Novus
 		public void UnloadAll()
 		{
 			for (int i = m_loadedTypes.Count - 1; i >= 0; i--) {
-				var type = m_loadedTypes[i];
+				Type type = m_loadedTypes[i];
 				Unload(type);
-
 			}
 		}
 
@@ -226,7 +222,7 @@ namespace Novus
 		{
 			object fieldValue = null;
 
-			var name = attribute.Name ?? field.Name;
+			string name = attribute.Name ?? field.Name;
 
 			switch (attribute) {
 				case ImportUnmanagedAttribute unmanagedAttr:
@@ -270,7 +266,13 @@ namespace Novus
 					//Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
 					if (addr.IsNull) {
-						throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
+						// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
+
+						Trace.WriteLine($"Could not find import value for {unmanagedAttr.Name}!", C_ERROR);
+
+						/*unsafe {
+							addr = (IntPtr) ((delegate* managed<void>) &ErrorFunction);
+						}*/
 					}
 
 
@@ -308,6 +310,11 @@ namespace Novus
 
 		#endregion Import
 
+		private static void ErrorFunction()
+		{
+			throw new InvalidOperationException();
+		}
+
 		public static Pointer<byte> FindFunction(Process p, string m, string s)
 		{
 
@@ -316,8 +323,7 @@ namespace Novus
 			return resource.FindExportOrSignature(s);
 		}
 
-		public static Pointer<byte> FindFunction(string m, string s)
-			=> FindFunction(Process.GetCurrentProcess(), m, s);
+		public static Pointer<byte> FindFunction(string m, string s) => FindFunction(Process.GetCurrentProcess(), m, s);
 
 
 		public Pointer<byte> FindExportOrSignature(string signature)
@@ -327,7 +333,6 @@ namespace Novus
 			if (p.IsNull) {
 				p = FindSignature(signature);
 			}
-			
 
 			return p;
 		}

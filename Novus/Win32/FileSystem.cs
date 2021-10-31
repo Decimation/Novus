@@ -180,6 +180,16 @@ namespace Novus.Win32
 			return true;
 		}
 
+		public static string SanitizeFilename(string s)
+		{
+			//https://stackoverflow.com/questions/309485/c-sharp-sanitize-file-name
+
+			var invalids = Path.GetInvalidFileNameChars();
+			var newName = String.Join("_", s.Split(invalids, StringSplitOptions.RemoveEmptyEntries)).TrimEnd('.');
+
+			return newName;
+		}
+
 		/// <summary>
 		///     Determines the file size (not size on disk) of <paramref name="file" />
 		/// </summary>

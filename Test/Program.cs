@@ -46,7 +46,9 @@ using Console = System.Console;
 #nullable disable
 #pragma warning disable IDE0060
 #pragma warning disable IDE0079
-
+#if NET6_0
+#warning Update!
+#endif
 namespace Test
 {
 	/*
@@ -124,14 +126,14 @@ namespace Test
 		private static void Main(string[] args)
 		{
 			// ...
-
+			Console.WriteLine(Environment.Version);
 			var ss = Global.Clr.Scanner.Value;
 			var a  = ss.FindSignature("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3");
 			Console.WriteLine(a);
 
 			int          i  = 256;
+
 			Pointer<int> px = &i;
-			Console.WriteLine(px.MemoryInformation);
 
 			var pointer = SigScanner.ScanProcess("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3").FirstOrDefault();
 

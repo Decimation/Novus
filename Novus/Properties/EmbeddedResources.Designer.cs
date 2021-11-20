@@ -19,7 +19,7 @@ namespace Novus.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EmbeddedResources {
@@ -61,7 +61,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4B2D98.
+        ///   Looks up a localized string similar to 49ACA0.
         /// </summary>
         internal static string Ofs_GCHeap {
             get {
@@ -70,7 +70,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 347790.
+        ///   Looks up a localized string similar to 317BF0.
         /// </summary>
         internal static string Ofs_IsHeapPointer {
             get {
@@ -79,7 +79,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 5.0.11.
+        ///   Looks up a localized string similar to 6.0.0.
         /// </summary>
         internal static string RequiredVersion {
             get {
@@ -160,7 +160,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 F7 41 ? ? ? ? ? 48 8B D9 75 47.
+        ///   Looks up a localized string similar to 48 83 EC 28 F7 41 ? ? ? ? ? 4C 8B D9.
         /// </summary>
         internal static string Sig_GetStaticAddr {
             get {
@@ -178,7 +178,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 F0 81 61.
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 75 1C.
         /// </summary>
         internal static string Sig_Reset {
             get {

@@ -131,7 +131,7 @@ namespace Test
 			var a  = ss.FindSignature("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3");
 			Console.WriteLine(a);
 
-			int          i  = 256;
+			int i = 256;
 
 			Pointer<int> px = &i;
 

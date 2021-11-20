@@ -118,15 +118,15 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Ofs_GCHeap" xml:space="preserve">
-    <value>4B2D98</value>
+    <value>49ACA0</value>
     <comment>g_pGCHeap</comment>
   </data>
   <data name="Ofs_IsHeapPointer" xml:space="preserve">
-    <value>347790</value>
+    <value>317BF0</value>
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>5.0.11</value>
+    <value>6.0.0</value>
   </data>
   <data name="Sig_GetEEClass" xml:space="preserve">
     <value>48 8B 41 28 A8 02 74 04 48 8B 40 26 C3</value>
@@ -161,7 +161,7 @@
     <comment>FieldDesc::GetSize</comment>
   </data>
   <data name="Sig_GetStaticAddr" xml:space="preserve">
-    <value>40 53 48 83 EC 20 F7 41 ? ? ? ? ? 48 8B D9 75 47</value>
+    <value>48 83 EC 28 F7 41 ? ? ? ? ? 4C 8B D9</value>
     <comment>FieldDesc::GetCurrentStaticAddress</comment>
   </data>
   <data name="Sig_IsPointingToNativeCode" xml:space="preserve">
@@ -169,8 +169,8 @@
     <comment>MethodDesc::IsPointingToNativeCode</comment>
   </data>
   <data name="Sig_Reset" xml:space="preserve">
-    <value>48 89 5C 24 ? 57 48 83 EC 20 48 8B D9 F0 81 61</value>
-    <comment>MethodDesc::Reset</comment>
+    <value>40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 75 1C</value>
+    <comment>MethodDesc::ResetCodeEntryPoint</comment>
   </data>
   <data name="Sig_SetEntryPoint" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B FA 48 8B F1 E8 ? ? ? ? 48 8B CE</value>

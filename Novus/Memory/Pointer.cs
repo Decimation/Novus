@@ -1,4 +1,6 @@
-﻿#nullable enable
+﻿global using Pointer = Novus.Memory.Pointer<byte>;
+
+#nullable enable
 using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;

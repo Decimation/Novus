@@ -13,9 +13,9 @@ using Kantan.Diagnostics;
 namespace Novus.Memory;
 
 /// <summary>
-/// Memory allocation manager.
+/// Unmanaged memory allocation manager. Uses <em>HGLOBAL</em> memory.
 /// </summary>
-public static class Allocator
+public static class RuntimeAllocator
 {
 	/*
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.Windows.cs

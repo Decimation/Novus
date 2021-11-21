@@ -1,4 +1,14 @@
-﻿using System;
+﻿// ReSharper disable RedundantUsingDirective.Global
+
+#pragma warning disable IDE0060, IDE0079, IDE0005
+
+
+global using MA = System.Runtime.InteropServices.MarshalAsAttribute;
+global using UT = System.Runtime.InteropServices.UnmanagedType;
+global using PE = System.Linq.Expressions.ParameterExpression;
+global using BE = System.Linq.Expressions.BinaryExpression;
+global using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,6 +30,7 @@ using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Utilities;
 using static Kantan.Diagnostics.LogCategories;
+using static Novus.Utilities.ReflectionHelper;
 
 // ReSharper disable LocalizableElement
 
@@ -28,7 +39,6 @@ using static Kantan.Diagnostics.LogCategories;
 [assembly: InternalsVisibleTo("Test")]
 [assembly: InternalsVisibleTo("TestBenchmark")]
 #nullable disable
-#pragma warning disable IDE0060, IDE0079
 
 namespace Novus;
 
@@ -139,7 +149,7 @@ public static class Global
 		/*
 		 * Setup
 		 */
-			
+
 		Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
 
 		bool compatible = IsCompatible();
@@ -159,7 +169,7 @@ public static class Global
 		{
 			//Close();
 		};
-			
+
 
 		Trace.WriteLine($"[{LIB_NAME}] Loaded ({Environment.Version})", C_INFO);
 
@@ -167,7 +177,7 @@ public static class Global
 
 	public static void Close()
 	{
-		Allocator.Close();
+		RuntimeAllocator.Close();
 		Clr.Dispose();
 
 		IsSetup = false;
@@ -184,12 +194,14 @@ public static class Global
 
 	#region QWrite
 
+	private const string QWRITE_STR_FMT_ARG = "s";
+
 	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
 
-	[StringFormatMethod("s")]
+	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
 	internal static void QWrite(string s, params object[] args) => QWrite(s, DefaultQWriteFunction, args: args);
 
-	[StringFormatMethod("s")]
+	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
 	internal static void QWrite(string s, Action<object> writeFunction = null, string category = null,
 	                            [CallerMemberName] string caller = null, params object[] args)
 	{

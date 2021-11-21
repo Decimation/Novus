@@ -28,8 +28,6 @@ public static unsafe class GCHeap
 		Global.Clr.LoadImports(typeof(GCHeap));
 	}
 
-	
-
 	public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class =>
 		IsHeapPointer(Mem.AddressOfHeap(t), smallHeapOnly);
 

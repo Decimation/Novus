@@ -45,9 +45,7 @@ using Console = System.Console;
 #nullable disable
 #pragma warning disable IDE0060
 #pragma warning disable IDE0079
-#if NET6_0
-#warning Update!
-#endif
+
 namespace Test;
 
 /*
@@ -124,6 +122,8 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+
+		
 		// ...
 		Console.WriteLine(Environment.Version);
 		var ss = Global.Clr.Scanner.Value;
@@ -132,5 +132,7 @@ public static unsafe class Program
 		Console.WriteLine(Native.GetUnicodeName('\u200b'));
 		Console.WriteLine(typeof(RuntimeTypeHandle).GetAnyMethod("Allocate"));
 		Console.WriteLine(GCHeap.GlobalHeap);
+
+		Console.WriteLine(Mem.ToBinaryString("𝑎"));
 	}
 }

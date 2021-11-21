@@ -21,7 +21,7 @@ namespace Novus.Win32;
 
 public static unsafe partial class Native
 {
-	public static IntPtr GetStdOutputHandle() => Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+	public static IntPtr GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
 	public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
 
@@ -126,16 +126,15 @@ public static unsafe partial class Native
 		if (GetConsoleScreenBufferInfo(hConsoleOutput, ref cbsi)) {
 			return cbsi.dwCursorPosition;
 		}
-		else {
-			// The function failed. Call GetLastError() for details.
-			Coord invalid = default;
-			return invalid;
-		}
+
+		// The function failed. Call GetLastError() for details.
+		Coord invalid = default;
+		return invalid;
 	}
 
 	public static void DumpSections(IntPtr hModule)
 	{
-		var s = Native.GetPESectionInfo(hModule);
+		var s = GetPESectionInfo(hModule);
 
 		var table = new ConsoleTable("Number", "Name", "Address", "Size", "Characteristics");
 
@@ -146,21 +145,55 @@ public static unsafe partial class Native
 		table.Write();
 	}
 
+	public static void FlashWindow(IntPtr hWnd)
+	{
+		var fInfo = new FLASHWINFO
+		{
+			cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
+			hwnd      = hWnd,
+			dwFlags   = FlashWindowType.FLASHW_ALL,
+			uCount    = 8,
+			dwTimeout = 75,
+
+		};
+
+
+		FlashWindowEx(ref fInfo);
+	}
+
+	public static void FlashConsoleWindow() => FlashWindow(GetConsoleWindow());
+
+	public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
+
 	public static string GetUnicodeName(uint id)
 	{
-
 		using var reader = new Win32ResourceReader(UNAME_DLL);
 
 		string name = reader.GetString(id);
+
 		return name;
+	}
+
+	public static StringBuilder LoadString(IntPtr hInstance, uint id, int buf = 1024)
+	{
+		var buffer = new StringBuilder(buf);
+
+		LoadString(hInstance, id, buffer, buffer.Capacity);
+
+		if (Marshal.GetLastWin32Error() != 0) {
+			FailWin32Error();
+		}
+
+		return buffer;
 	}
 
 	public static IntPtr LoadLibraryEx(string lpFileName, LoadLibraryFlags dwFlags)
 		=> LoadLibraryEx(lpFileName, IntPtr.Zero, dwFlags);
 
-	public static void FailWin32()
+	public static void FailWin32Error()
 	{
-		var hr        = Marshal.GetHRForLastWin32Error();
+		var hr = Marshal.GetHRForLastWin32Error();
+
 		var exception = Marshal.GetExceptionForHR(hr);
 
 		throw exception!;

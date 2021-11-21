@@ -29,8 +29,25 @@ using UnitTest.TestTypes;
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 #pragma warning disable 0649, IDE0044, CA1822, IDE1006
+#pragma warning disable SYSLIB0014
 
 namespace UnitTest;
+
+
+[TestFixture]
+public unsafe class Tests_NativeUtilities
+{
+
+	[Test]
+	public void NativeLibTest()
+	{
+		const nuint i = 256;
+
+		var a            = NativeMemory.Alloc(i);
+		Assert.AreEqual(Mem.MAllocSize(a), i);
+	}
+
+}
 
 [TestFixture]
 public unsafe class Tests_Pointer
@@ -609,32 +626,32 @@ public class Tests_Allocator
 	[Test]
 	public void AllocatorTest()
 	{
-		var h = Allocator.Alloc(256);
+		var h = RuntimeAllocator.Alloc(256);
 
-		Assert.True(Allocator.IsAllocated(h));
+		Assert.True(RuntimeAllocator.IsAllocated(h));
 
-		Assert.AreEqual(256, Allocator.GetAllocSize(h));
+		Assert.AreEqual(256, RuntimeAllocator.GetAllocSize(h));
 
-		h = Allocator.ReAlloc(h, 512);
+		h = RuntimeAllocator.ReAlloc(h, 512);
 
-		Assert.AreEqual(512, Allocator.GetAllocSize(h));
+		Assert.AreEqual(512, RuntimeAllocator.GetAllocSize(h));
 
 		Assert.Throws<Exception>(() =>
 		{
-			Allocator.ReAlloc(h, -1);
+			RuntimeAllocator.ReAlloc(h, -1);
 		});
 
-		Allocator.Free(h);
+		RuntimeAllocator.Free(h);
 
-		Assert.False(Allocator.IsAllocated(h));
+		Assert.False(RuntimeAllocator.IsAllocated(h));
 
-		Assert.True(Allocator.ReAlloc(h, -1) == null);
+		Assert.True(RuntimeAllocator.ReAlloc(h, -1) == null);
 	}
 
 	[Test]
 	public void AllocUTest()
 	{
-		var s = Allocator.AllocU<Clazz>();
+		var s = RuntimeAllocator.AllocU<Clazz>();
 
 		//var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
 

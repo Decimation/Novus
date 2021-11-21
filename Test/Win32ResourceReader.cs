@@ -2,13 +2,14 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32;
+using Novus.Win32.Structures;
+
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable PossibleNullReferenceException
 
 namespace Test;
 #pragma warning disable IDE0060
-
 /*
  * https://stackoverflow.com/questions/2087682/finding-out-unicode-character-name-in-net
  */
@@ -17,27 +18,23 @@ public sealed class Win32ResourceReader : IDisposable
 {
 	private IntPtr m_hModule;
 
-	public Win32ResourceReader(string filename)
+	public Win32ResourceReader(string filename) : this(
+		Native.LoadLibraryEx(filename, LoadLibraryFlags.AsDataFile | LoadLibraryFlags.AsImageResource)) { }
+
+	public Win32ResourceReader(IntPtr h)
 	{
-		m_hModule = Native.LoadLibraryEx(filename, Native.LoadLibraryFlags.AsDataFile | Native.LoadLibraryFlags.AsImageResource);
+		m_hModule = h;
 
 		if (m_hModule == IntPtr.Zero) {
-			Native.FailWin32();
+			Native.FailWin32Error();
 		}
 	}
 
 	public string GetString(uint id)
 	{
-		var buffer = new StringBuilder(1024);
-
-		Native.LoadString(m_hModule, id, buffer, buffer.Capacity);
-
-		if (Marshal.GetLastWin32Error() != 0) {
-			Native.FailWin32();
-		}
-
-		return buffer.ToString();
+		return Native.LoadString(m_hModule, id).ToString();
 	}
+
 
 	~Win32ResourceReader()
 	{

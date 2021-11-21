@@ -1,4 +1,6 @@
-﻿using System;
+﻿
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,12 +8,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
+
 #pragma warning disable CA1401, CA2101
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable UnusedMember.Global
-using MA = System.Runtime.InteropServices.MarshalAsAttribute;
-using UT = System.Runtime.InteropServices.UnmanagedType;
+
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable 649
@@ -45,44 +47,23 @@ public static unsafe partial class Native
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Interop.Libraries.cs
 	 */
 
-	public const  string KERNEL32_DLL  = "Kernel32.dll";
-	public const  string USER32_DLL    = "User32.dll";
-	public const  string SHELL32_DLL   = "Shell32.dll";
-	public const  string DBGHELP_DLL   = "DbgHelp.dll";
-	public const  string URLMON_DLL    = "urlmon.dll";
-	public const  string GDI32_DLL     = "gdi32.dll";
-	public const  string NTDLL_DLL     = "ntdll.dll";
-	public const  string OLE32_DLL     = "ole32.dll";
-	public const  string WEBSOCKET_DLL = "websocket.dll";
-	public const  string WINHTTP_DLL   = "winhttp.dll";
-	public const  string UCRTBASE_DLL  = "ucrtbase.dll";
+	public const string KERNEL32_DLL  = "Kernel32.dll";
+	public const string USER32_DLL    = "User32.dll";
+	public const string SHELL32_DLL   = "Shell32.dll";
+	public const string DBGHELP_DLL   = "DbgHelp.dll";
+	public const string URLMON_DLL    = "urlmon.dll";
+	public const string GDI32_DLL     = "gdi32.dll";
+	public const string NTDLL_DLL     = "ntdll.dll";
+	public const string OLE32_DLL     = "ole32.dll";
+	public const string WEBSOCKET_DLL = "websocket.dll";
+	public const string WINHTTP_DLL   = "winhttp.dll";
+	public const string UCRTBASE_DLL  = "ucrtbase.dll";
 
 
-	private const string UNAME_DLL     = @"C:\Windows\System32\getuname.dll";
-
-	#endregion
-
-	#region CRT allocation
-
-#if !NET6_0_OR_GREATER
-		// TODO: Remove when .NET 6 releases
-		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-		internal static extern void* calloc(nuint num, nuint size);
-
-		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-		internal static extern void free(void* ptr);
-
-		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-		internal static extern void* malloc(nuint size);
-
-		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-		internal static extern void* realloc(void* ptr, nuint new_size);
-
-		[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-		internal static extern int _msize(void* ptr);
-#endif
+	private const string UNAME_DLL = @"C:\Windows\System32\getuname.dll";
 
 	#endregion
+
 
 	#region Symbols
 
@@ -175,6 +156,9 @@ public static unsafe partial class Native
 	[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory")]
 	public static extern void CopyMemory(IntPtr pdst, byte[] psrc, int cb);
 
+	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+	internal static extern int _msize(void* ptr);
+
 	#endregion
 
 	#region Library
@@ -187,6 +171,12 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool FreeLibrary(IntPtr hModule);
+
+	[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+	public static extern int LoadString(IntPtr hInstance, uint uID, StringBuilder lpBuffer, int nBufferMax);
+
+	[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+	public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, LoadLibraryFlags dwFlags);
 
 	#endregion
 
@@ -202,6 +192,10 @@ public static unsafe partial class Native
 	[return: MarshalAs(UT.Bool)]
 	public static extern bool CloseHandle(IntPtr obj);
 
+	#endregion
+
+	#region UI/UX
+
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string className,
 	                                         string windowTitle);
@@ -215,8 +209,16 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 	public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
 
-	#endregion
+	[DllImport(USER32_DLL)]
+	[return: MA(UT.Bool)]
+	private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
 
+
+	[DllImport(USER32_DLL)]
+	public static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
+	                                                 MessageBoxOptions options);
+
+	#endregion
 
 	#region Virtual
 
@@ -361,13 +363,6 @@ public static unsafe partial class Native
 
 	#endregion
 
-	#region Image
-
-	[DllImport(DBGHELP_DLL)]
-	private static extern ImageNtHeaders* ImageNtHeader(IntPtr hModule);
-
-	#endregion
-
 
 	#region Toolhelp
 
@@ -429,6 +424,9 @@ public static unsafe partial class Native
 	#endregion
 
 	#region Other
+
+	[DllImport(DBGHELP_DLL)]
+	private static extern ImageNtHeaders* ImageNtHeader(IntPtr hModule);
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern void GetSystemInfo(ref SystemInfo info);
@@ -522,46 +520,4 @@ public static unsafe partial class Native
 	}
 
 	#endregion
-
-	[DllImport(USER32_DLL)]
-	[return: MA(UT.Bool)]
-	private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
-
-
-	public static void FlashWindow(IntPtr hWnd)
-	{
-		var fInfo = new FLASHWINFO
-		{
-			cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
-			hwnd      = hWnd,
-			dwFlags   = FlashWindowType.FLASHW_ALL,
-			uCount    = 8,
-			dwTimeout = 75,
-
-		};
-
-
-		FlashWindowEx(ref fInfo);
-	}
-
-	public static void FlashConsoleWindow() => FlashWindow(GetConsoleWindow());
-
-	public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
-
-	[DllImport(USER32_DLL)]
-	public static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
-	                                                 MessageBoxOptions options);
-
-	[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	public static extern int LoadString(IntPtr hInstance, uint uID, StringBuilder lpBuffer, int nBufferMax);
-
-	[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, LoadLibraryFlags dwFlags);
-
-	[Flags]
-	public enum LoadLibraryFlags : uint
-	{
-		AsDataFile      = 0x00000002,
-		AsImageResource = 0x00000020
-	}
 }

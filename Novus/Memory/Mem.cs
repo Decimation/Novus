@@ -6,11 +6,13 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
@@ -22,9 +24,9 @@ using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
-using BE = System.Linq.Expressions.BinaryExpression;
-using PE = System.Linq.Expressions.ParameterExpression;
-using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
+
+// ReSharper disable IdentifierTypo
+// ReSharper disable InconsistentNaming
 
 // ReSharper disable ClassCannotBeInstantiated
 
@@ -53,7 +55,7 @@ namespace Novus.Memory;
 /// <seealso cref="Span{T}" />
 /// <seealso cref="Memory{T}" />
 /// <seealso cref="Buffer" />
-/// <seealso cref="Allocator" />
+/// <seealso cref="RuntimeAllocator" />
 /// <seealso cref="Unsafe" />
 /// <seealso cref="RuntimeHelpers" />
 /// <seealso cref="RuntimeEnvironment" />
@@ -67,6 +69,8 @@ namespace Novus.Memory;
 /// <seealso cref="PEReader" />
 /// <seealso cref="GCHandle" />
 /// <seealso cref="Hook" />
+/// <seealso cref="NativeMemory"/>
+/// <seealso cref="NativeLibrary"/>
 /// <seealso cref="System.Runtime.CompilerServices" />
 public static unsafe class Mem
 {
@@ -108,7 +112,7 @@ public static unsafe class Mem
 	/// <param name="p">Operand</param>
 	/// <param name="lo">Start address (inclusive)</param>
 	/// <param name="hi">End address (inclusive)</param>
-	public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, Pointer<byte> hi)
+	public static bool IsAddressInRange(Pointer p, Pointer lo, Pointer hi)
 	{
 		// [lo, hi]
 
@@ -122,10 +126,11 @@ public static unsafe class Mem
 		return p <= hi && p >= lo;
 	}
 
-	public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, long size)
+	public static bool IsAddressInRange(Pointer p, Pointer lo, long size)
 	{
 		return p >= lo && p <= lo + size;
 	}
+
 
 	public static void AutoAssign<T>(ref T a, T val)
 	{
@@ -407,6 +412,30 @@ public static unsafe class Mem
 		}
 
 		return rg;
+	}
+
+	/// <summary>
+	/// Size of native runtime (e.g., <see cref="NativeMemory"/>) allocations
+	/// </summary>
+	public static nuint MAllocSize(Pointer p) => (nuint) Native._msize(p.ToPointer());
+
+	public static string ToBinaryString(object obj)
+	{
+		byte[] bytes = null;
+
+		if (obj is string s) {
+			bytes = Encoding.Default.GetBytes(s);
+			// bytes = GetStringBytes(s);
+		}
+		else if (obj.GetType().IsNumeric()) {
+			bytes = BitConverter.GetBytes((nint) obj);
+		}
+
+		if (bytes != null) {
+			return string.Join(String.Empty, bytes.Select(x => Convert.ToString(x, 2)));
+		}
+
+		return null;
 	}
 
 	#endregion
@@ -922,7 +951,6 @@ public static unsafe class Mem
 	#region CRT allocation
 
 #if !NET6_0_OR_GREATER
-
 		public static Pointer<T> Alloc<T>(nuint elemCnt)
 		{
 			var s = GetByteCount(elemCnt, (nuint) SizeOf<T>());

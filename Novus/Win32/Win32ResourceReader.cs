@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using Novus.Win32.Structures;
 
-namespace Test;
+namespace Novus.Win32;
 
-public class Win32ResourceReader : IDisposable
+public sealed class Win32ResourceReader : IDisposable
 {
-	private IntPtr _hModule;
+	private IntPtr m_hModule;
 
 	public Win32ResourceReader(string filename)
 	{
-		_hModule = LoadLibraryEx(filename, IntPtr.Zero, LoadLibraryFlags.AsDataFile | LoadLibraryFlags.AsImageResource);
-		if (_hModule == IntPtr.Zero)
-			throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
+		m_hModule = Native.LoadLibraryEx(filename, LoadLibraryFlags.AsDataFile | LoadLibraryFlags.AsImageResource);
+		
 	}
 
 	public string GetString(uint id)
 	{
 		var buffer = new StringBuilder(1024);
-		LoadString(_hModule, id, buffer, buffer.Capacity);
-		if (Marshal.GetLastWin32Error() != 0)
-			throw Marshal.GetExceptionForHR(Marshal.GetHRForLastWin32Error());
+		Native.LoadString(m_hModule, id, buffer, buffer.Capacity);
+		
 		return buffer.ToString();
 	}
 
@@ -37,24 +36,10 @@ public class Win32ResourceReader : IDisposable
 
 	public void Dispose(bool disposing)
 	{
-		if (_hModule != IntPtr.Zero)
-			FreeLibrary(_hModule);
-		_hModule = IntPtr.Zero;
+		if (m_hModule != IntPtr.Zero)
+			Native.FreeLibrary(m_hModule);
+		m_hModule = IntPtr.Zero;
 	}
 
-	[DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-	static extern int LoadString(IntPtr hInstance, uint uID, StringBuilder lpBuffer, int nBufferMax);
-
-	[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-	static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, LoadLibraryFlags dwFlags);
-
-	[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-	static extern bool FreeLibrary(IntPtr hModule);
-
-	[Flags]
-	enum LoadLibraryFlags : uint
-	{
-		AsDataFile      = 0x00000002,
-		AsImageResource = 0x00000020
-	}
+	
 }

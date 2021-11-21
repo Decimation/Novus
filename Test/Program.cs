@@ -38,6 +38,7 @@ using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
+using Novus.Memory.Allocation;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using Console = System.Console;
 
@@ -63,8 +64,6 @@ namespace Test;
  * todo: IL, ILSupport
  *
  */
-
-
 /*
  * Novus				https://github.com/Decimation/Novus
  * NeoCore				https://github.com/Decimation/NeoCore
@@ -76,8 +75,6 @@ namespace Test;
  * Memkit				https://github.com/Decimation/Memkit
  * 
  */
-
-
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -122,17 +119,14 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+		const string s = "foo";
 
-		
-		// ...
-		Console.WriteLine(Environment.Version);
-		var ss = Global.Clr.Scanner.Value;
-		
+		Console.WriteLine(Mem.SizeOf(s, SizeOfOptions.Auto));
 
-		Console.WriteLine(Native.GetUnicodeName('\u200b'));
-		Console.WriteLine(typeof(RuntimeTypeHandle).GetAnyMethod("Allocate"));
-		Console.WriteLine(GCHeap.GlobalHeap);
+		var s2 = Mem.AsCast<string, string>(s);
 
-		Console.WriteLine(Mem.ToBinaryString("𝑎"));
+		var p = AllocManager.Alloc(5);
+		p.WriteAll(new byte[]{1,2,0});
+		Console.WriteLine(Native.strlen((void*) p));
 	}
 }

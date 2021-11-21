@@ -1,4 +1,8 @@
-﻿using System;
+﻿// ReSharper disable RedundantUsingDirective.Global
+
+#pragma warning disable IDE0005
+global using U = System.Runtime.CompilerServices.Unsafe;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -18,6 +22,7 @@ using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Kantan.Text;
 using Kantan.Utilities;
+using Novus.Memory.Allocation;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
@@ -55,7 +60,7 @@ namespace Novus.Memory;
 /// <seealso cref="Span{T}" />
 /// <seealso cref="Memory{T}" />
 /// <seealso cref="Buffer" />
-/// <seealso cref="RuntimeAllocator" />
+/// <seealso cref="AllocManager" />
 /// <seealso cref="Unsafe" />
 /// <seealso cref="RuntimeHelpers" />
 /// <seealso cref="RuntimeEnvironment" />
@@ -131,13 +136,22 @@ public static unsafe class Mem
 		return p >= lo && p <= lo + size;
 	}
 
+	#region CRT
 
-	public static void AutoAssign<T>(ref T a, T val)
-	{
-		if (Unsafe.IsNullRef(ref a) || RuntimeProperties.IsDefault(a)) {
-			a = val;
-		}
-	}
+	public static Pointer Alloc(nuint n) => NativeMemory.AllocZeroed(n);
+	
+	public static void Free(Pointer n) => NativeMemory.Free(n.ToPointer());
+
+	public static void ReAlloc(Pointer n, nuint a) => NativeMemory.Realloc(n.ToPointer(), a);
+
+	public static nuint _strlen(Pointer p) => Native.strlen(p.ToPointer());
+
+	/// <summary>
+	/// Size of native runtime (e.g., <see cref="NativeMemory"/>) allocations
+	/// </summary>
+	public static nuint _msize(Pointer p) => (nuint) Native._msize(p.ToPointer());
+
+	#endregion
 
 	/// <summary>
 	///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
@@ -205,7 +219,7 @@ public static unsafe class Mem
 	///     Used for unsafe pinning of arbitrary objects.
 	///     This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
 	/// </summary>
-	public static PinningHelper GetPinningHelper(object value) => Unsafe.As<PinningHelper>(value);
+	public static PinningHelper GetPinningHelper(object value) => U.As<PinningHelper>(value);
 
 
 	public static void Pin(object obj)
@@ -244,7 +258,7 @@ public static unsafe class Mem
 	/// </summary>
 	public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 	{
-		int dwSize = Unsafe.SizeOf<T>();
+		int dwSize = U.SizeOf<T>();
 		var ptr    = AddressOf(ref value);
 
 		WriteProcessMemory(proc, baseAddr.Address, ptr.Address, dwSize);
@@ -314,7 +328,7 @@ public static unsafe class Mem
 	{
 		T value = default!;
 
-		int size = Unsafe.SizeOf<T>();
+		int size = U.SizeOf<T>();
 
 		Pointer<T> ptr = AddressOf(ref value);
 
@@ -346,7 +360,7 @@ public static unsafe class Mem
 		}
 		else {
 			fixed (byte* ptr = rg) {
-				val = Unsafe.Read<object>(ptr);
+				val = U.Read<object>(ptr);
 			}
 		}
 
@@ -414,10 +428,23 @@ public static unsafe class Mem
 		return rg;
 	}
 
+	public static object AsCast(object t) => AsCast<object, object>(t);
+	
 	/// <summary>
-	/// Size of native runtime (e.g., <see cref="NativeMemory"/>) allocations
+	/// Shortcut to <see cref="Unsafe.As{T,T}"/>
 	/// </summary>
-	public static nuint MAllocSize(Pointer p) => (nuint) Native._msize(p.ToPointer());
+	/// <remarks>Can be used similar to <c>const_cast</c>, <c>static_cast</c>,
+	/// <c>dynamic_cast</c> from <em>C++</em></remarks>
+	public static TTo AsCast<TFrom, TTo>(TFrom t) where TFrom : class
+		where TTo : class
+	{
+		// var ptr  = Mem.AddressOfHeap(t);
+		// var ptr2 = ptr.Cast<T2>();
+		// var t2   = U.As<T2>(ptr2.Reference);
+
+		var t2 = U.As<TTo>(t);
+		return t2;
+	}
 
 	public static string ToBinaryString(object obj)
 	{
@@ -491,7 +518,7 @@ public static unsafe class Mem
 	/// </summary>
 	public static int SizeOf<T>()
 	{
-		return Unsafe.SizeOf<T>();
+		return U.SizeOf<T>();
 	}
 
 	/// <summary>
@@ -655,7 +682,7 @@ public static unsafe class Mem
 		/*var tr = __makeref(t);
 		return *(IntPtr*) (&tr);*/
 
-		return Unsafe.AsPointer(ref value);
+		return U.AsPointer(ref value);
 	}
 
 	public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer<byte> ptr)
@@ -769,7 +796,7 @@ public static unsafe class Mem
 	{
 		int offsetOf = OffsetOf(obj.GetType(), name);
 
-		Pointer<byte> p = AddressOfData(ref Unsafe.AsRef(in obj));
+		Pointer<byte> p = AddressOfData(ref U.AsRef(in obj));
 
 		return p + offsetOf;
 	}

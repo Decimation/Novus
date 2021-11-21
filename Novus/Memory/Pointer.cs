@@ -121,7 +121,7 @@ public unsafe struct Pointer<T> : IFormattable
 	public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 
 	public static implicit operator Pointer<T>(Span<T> ptr) => new(ref ptr.GetPinnableReference());
-
+	
 
 	/// <summary>
 	///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to

@@ -48,17 +48,6 @@ public class Benchmarks11
 	}
 }
 
-public class Benchmarks10
-{
-	private IntPtr h;
-
-	[Benchmark]
-	public List<int> Alloc1()
-	{
-		return GCHeap.AllocObject<List<int>>();
-	}
-		
-}
 
 public class Benchmarks9
 {
@@ -89,26 +78,6 @@ public class Benchmarks8
 	}
 }
 
-public class Benchmarks7
-{
-	[Benchmark]
-	public List<int> Test1()
-	{
-		return Activator.CreateInstance<List<int>>();
-	}
-
-	[Benchmark]
-	public List<int> Test2()
-	{
-		return (List<int>) GCHeap.AllocObject(typeof(List<int>));
-	}
-
-	[Benchmark]
-	public List<int> Test3()
-	{
-		return GCHeap.AllocObject<List<int>>();
-	}
-}
 
 
 public class Benchmarks6

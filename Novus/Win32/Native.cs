@@ -38,6 +38,8 @@ public static unsafe partial class Native
 
 	public const int INVALID = -1;
 
+	public static readonly nuint INVALID2 = unchecked((nuint)(int)-1);
+
 	public const int ERROR_SUCCESS = 0;
 
 
@@ -157,7 +159,10 @@ public static unsafe partial class Native
 	public static extern void CopyMemory(IntPtr pdst, byte[] psrc, int cb);
 
 	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-	internal static extern int _msize(void* ptr);
+	internal static extern nuint _msize(void* ptr);
+	
+	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+	internal static extern nuint strlen(void* ptr);
 
 	#endregion
 

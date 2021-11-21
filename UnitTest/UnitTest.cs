@@ -22,6 +22,7 @@ using Novus.Imports;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
 using Kantan.Numeric;
+using Novus.Memory.Allocation;
 using UnitTest.TestTypes;
 
 // ReSharper disable StringLiteralTypo
@@ -44,7 +45,7 @@ public unsafe class Tests_NativeUtilities
 		const nuint i = 256;
 
 		var a            = NativeMemory.Alloc(i);
-		Assert.AreEqual(Mem.MAllocSize(a), i);
+		Assert.AreEqual(Mem._msize(a), i);
 	}
 
 }
@@ -626,37 +627,37 @@ public class Tests_Allocator
 	[Test]
 	public void AllocatorTest()
 	{
-		var h = RuntimeAllocator.Alloc(256);
+		var h = AllocManager.Alloc(256);
 
-		Assert.True(RuntimeAllocator.IsAllocated(h));
+		Assert.True(AllocManager.IsAllocated(h));
 
-		Assert.AreEqual(256, RuntimeAllocator.GetAllocSize(h));
+		Assert.AreEqual((UIntPtr)256, AllocManager.AllocSize(h));
 
-		h = RuntimeAllocator.ReAlloc(h, 512);
+		h = AllocManager.ReAlloc(h, 512);
 
-		Assert.AreEqual(512, RuntimeAllocator.GetAllocSize(h));
+		Assert.AreEqual((UIntPtr)512, AllocManager.AllocSize(h));
 
 		Assert.Throws<Exception>(() =>
 		{
-			RuntimeAllocator.ReAlloc(h, -1);
+			AllocManager.ReAlloc(h, -1);
 		});
 
-		RuntimeAllocator.Free(h);
+		AllocManager.Free(h);
 
-		Assert.False(RuntimeAllocator.IsAllocated(h));
+		Assert.False(AllocManager.IsAllocated(h));
 
-		Assert.True(RuntimeAllocator.ReAlloc(h, -1) == null);
+		Assert.True(AllocManager.ReAlloc(h, -1) == null);
 	}
 
-	[Test]
+	/*[Test]
 	public void AllocUTest()
 	{
-		var s = RuntimeAllocator.AllocU<Clazz>();
+		var s = SmartAllocator.AllocU<Clazz>();
 
 		//var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
 
 		Assert.AreEqual(s.a, Clazz.i);
-	}
+	}*/
 }
 
 [TestFixture]

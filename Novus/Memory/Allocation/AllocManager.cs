@@ -2,20 +2,22 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Kantan.Diagnostics;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
-using Kantan.Diagnostics;
+
 // ReSharper disable CommentTypo
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.Memory;
+namespace Novus.Memory.Allocation;
+
 
 /// <summary>
-/// Unmanaged memory allocation manager. Uses <em>HGLOBAL</em> memory.
+/// Wraps an <see cref="IAllocator"/>
 /// </summary>
-public static class RuntimeAllocator
+public static class AllocManager
 {
 	/*
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.Windows.cs
@@ -24,10 +26,11 @@ public static class RuntimeAllocator
 	 */
 
 
+	public static IAllocator Allocator { get; set; } = new NativeAllocator();
+
 	private static readonly List<Pointer<byte>> Allocated = new();
 
 	public static int AllocCount => Allocated.Count;
-
 
 	public static void Close()
 	{
@@ -38,13 +41,13 @@ public static class RuntimeAllocator
 
 	public static bool IsAllocated(Pointer<byte> ptr) => Allocated.Contains(ptr);
 
-	public static int GetAllocSize(Pointer<byte> ptr)
+	public static nuint AllocSize(Pointer<byte> ptr)
 	{
 		if (!IsAllocated(ptr)) {
-			return Native.INVALID;
+			return Native.INVALID2;
 		}
 
-		return (int) Native.LocalSize(ptr.Address);
+		return (nuint) Allocator.AllocSize(ptr);
 	}
 
 	[MustUseReturnValue]
@@ -61,7 +64,7 @@ public static class RuntimeAllocator
 		int elemSize = Mem.SizeOf<T>();
 		int cb       = Mem.FlatSize(elemSize, elemCnt);
 
-		ptr = Marshal.ReAllocHGlobal(ptr.Address, (IntPtr) cb);
+		ptr = Allocator.ReAlloc(ptr.Address, (nuint) cb);
 
 		Allocated.Add(ptr);
 
@@ -70,7 +73,7 @@ public static class RuntimeAllocator
 
 	private static void FreeInternal(Pointer<byte> ptr)
 	{
-		Marshal.FreeHGlobal(ptr.Address);
+		Allocator.Free(ptr.Address);
 		Allocated.Remove(ptr);
 	}
 
@@ -102,9 +105,9 @@ public static class RuntimeAllocator
 		Guard.AssertPositive(elemCnt);
 
 		int elemSize = Mem.SizeOf<T>();
-		int cb       = Mem.FlatSize(elemSize, elemCnt);
+		var cb       = (nuint) Mem.FlatSize(elemSize, elemCnt);
 
-		Pointer<T> h = Marshal.AllocHGlobal(cb);
+		Pointer<T> h = Allocator.Alloc(cb);
 		h.Clear(elemCnt);
 
 		Allocated.Add(h);
@@ -112,7 +115,7 @@ public static class RuntimeAllocator
 		return h;
 	}
 
-	[MustUseReturnValue]
+	/*[MustUseReturnValue]
 	public static T AllocU<T>(params object[] args)
 	{
 		// NOTE: WIP
@@ -142,12 +145,12 @@ public static class RuntimeAllocator
 
 		var vals = flds.Select(f => f.GetValue(def)).ToArray();
 
-		var val2 = FormatterServices.PopulateObjectMembers(val, flds, vals);*/
+		var val2 = FormatterServices.PopulateObjectMembers(val, flds, vals);#1#
 
 		//FormatterServices?
 
 		//return (T) val2;
 
 		return val;
-	}
+	}*/
 }

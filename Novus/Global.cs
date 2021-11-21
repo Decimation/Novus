@@ -28,6 +28,7 @@ using Novus.Win32;
 using Kantan.Diagnostics;
 using Kantan.Text;
 using Kantan.Utilities;
+using Novus.Memory.Allocation;
 using Novus.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 using static Novus.Utilities.ReflectionHelper;
@@ -177,7 +178,7 @@ public static class Global
 
 	public static void Close()
 	{
-		RuntimeAllocator.Close();
+		AllocManager.Close();
 		Clr.Dispose();
 
 		IsSetup = false;

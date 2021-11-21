@@ -7,7 +7,6 @@ using System.Text;
 using Kantan.Model;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
-using Test;
 
 // ReSharper disable StringLiteralTypo
 

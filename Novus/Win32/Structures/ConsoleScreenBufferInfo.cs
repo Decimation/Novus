@@ -1,16 +1,15 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Novus.Win32.Structures
+namespace Novus.Win32.Structures;
+
+[StructLayout(LayoutKind.Sequential)]
+public struct ConsoleScreenBufferInfo
 {
-	[StructLayout(LayoutKind.Sequential)]
-	public struct ConsoleScreenBufferInfo
-	{
-		public Coord dwSize;
+	public Coord dwSize;
 
-		public Coord dwCursorPosition;
+	public Coord dwCursorPosition;
 
-		//public short wAttributes;
-		public SmallRect srWindow;
-		public Coord     dwMaximumWindowSize;
-	}
+	//public short wAttributes;
+	public SmallRect srWindow;
+	public Coord     dwMaximumWindowSize;
 }

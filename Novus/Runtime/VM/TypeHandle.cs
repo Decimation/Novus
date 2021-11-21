@@ -9,35 +9,34 @@ using Novus.Memory;
 
 
 
-namespace Novus.Runtime.VM
+namespace Novus.Runtime.VM;
+
+[NativeStructure]
+[StructLayout(LayoutKind.Sequential)]
+public unsafe struct TypeHandle
 {
-	[NativeStructure]
-	[StructLayout(LayoutKind.Sequential)]
-	public unsafe struct TypeHandle
+	static TypeHandle()
 	{
-		static TypeHandle()
+		Global.Clr.LoadImports(typeof(TypeHandle));
+	}
+
+	private void* Value { get; }
+
+
+	internal Pointer<MethodTable> MethodTable
+	{
+		get
 		{
-			Global.Clr.LoadImports(typeof(TypeHandle));
-		}
+			fixed (TypeHandle* p = &this) {
 
-		private void* Value { get; }
-
-
-		internal Pointer<MethodTable> MethodTable
-		{
-			get
-			{
-				fixed (TypeHandle* p = &this) {
-
-					return Func_GetMethodTable(p);
-				}
+				return Func_GetMethodTable(p);
 			}
 		}
-
-		/// <summary>
-		/// <see cref="TypeHandle.MethodTable"/>
-		/// </summary>
-		[field: ImportClr("Sig_GetMethodTable")]
-		private static delegate* unmanaged[Thiscall]<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
 	}
+
+	/// <summary>
+	/// <see cref="TypeHandle.MethodTable"/>
+	/// </summary>
+	[field: ImportClr("Sig_GetMethodTable")]
+	private static delegate* unmanaged[Thiscall]<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
 }

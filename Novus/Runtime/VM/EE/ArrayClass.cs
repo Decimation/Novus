@@ -2,20 +2,19 @@
 using Novus.Imports;
 using Novus.Utilities;
 
-namespace Novus.Runtime.VM.EE
-{
-	/// <summary>
-	/// Substructure of <see cref="EEClass"/>
-	/// </summary>
-	[NativeStructure]
-	[StructLayout(LayoutKind.Sequential)]
-	public struct ArrayClass
-	{
-		internal byte Rank { get; }
+namespace Novus.Runtime.VM.EE;
 
-		/// <summary>
-		/// Cache of <see cref="MethodTable.ElementTypeHandle"/>
-		/// </summary>
-		internal CorElementType ElementType { get; }
-	}
+/// <summary>
+/// Substructure of <see cref="EEClass"/>
+/// </summary>
+[NativeStructure]
+[StructLayout(LayoutKind.Sequential)]
+public struct ArrayClass
+{
+	internal byte Rank { get; }
+
+	/// <summary>
+	/// Cache of <see cref="MethodTable.ElementTypeHandle"/>
+	/// </summary>
+	internal CorElementType ElementType { get; }
 }

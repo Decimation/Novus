@@ -1,4 +1,3 @@
-namespace UnitTest.TestTypes
-{
-	internal interface IInterface { }
-}
+namespace UnitTest.TestTypes;
+
+internal interface IInterface { }

@@ -9,102 +9,101 @@ using System.Runtime.InteropServices;
 // ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo
 
-namespace Novus.Win32.Structures
+namespace Novus.Win32.Structures;
+
+[StructLayout(LayoutKind.Sequential)]
+public struct ShellExecuteInfo
 {
-	[StructLayout(LayoutKind.Sequential)]
-	public struct ShellExecuteInfo
-	{
-		public int    cbSize;
-		public uint   fMask;
-		public IntPtr hwnd;
-
-		/// <summary>
-		/// <see cref="ShellExecuteVerbs"/>; <see cref="ProcessStartInfo.Verb"/>
-		/// </summary>
-		[MarshalAs(UnmanagedType.LPTStr)]
-		public string lpVerb;
-
-		[MarshalAs(UnmanagedType.LPTStr)]
-		public string lpFile;
-
-		[MarshalAs(UnmanagedType.LPTStr)]
-		public string lpParameters;
-
-		[MarshalAs(UnmanagedType.LPTStr)]
-		public string lpDirectory;
-
-		public int    nShow;
-		public IntPtr hInstApp;
-		public IntPtr lpIDList;
-
-		[MarshalAs(UnmanagedType.LPTStr)]
-		public string lpClass;
-
-		public IntPtr hkeyClass;
-		public uint   dwHotKey;
-		public IntPtr hIcon;
-		public IntPtr hProcess;
-	}
+	public int    cbSize;
+	public uint   fMask;
+	public IntPtr hwnd;
 
 	/// <summary>
-	/// <see cref="ShellExecuteInfo.lpVerb"/>
-	/// <a href="https://www.pinvoke.net/default.aspx/shell32/ShellExecuteEx.html">See</a>
+	/// <see cref="ShellExecuteVerbs"/>; <see cref="ProcessStartInfo.Verb"/>
 	/// </summary>
-	public static class ShellExecuteVerbs
-	{
-		/// <summary>
-		/// Opens a file or a application
-		/// </summary>
-		public const string Open = "open";
+	[MarshalAs(UnmanagedType.LPTStr)]
+	public string lpVerb;
 
-		/// <summary>
-		/// Opens dialog when no program is associated to the extension
-		/// </summary>
-		public const string OpenAs = "openas";
+	[MarshalAs(UnmanagedType.LPTStr)]
+	public string lpFile;
 
-		public const string OpenNew = "opennew";
+	[MarshalAs(UnmanagedType.LPTStr)]
+	public string lpParameters;
 
-		/// <summary>
-		/// In Windows 7 and Vista, opens the UAC dialog and in others, open the Run as... Dialog
-		/// </summary>
-		public const string Runas = "runas";
+	[MarshalAs(UnmanagedType.LPTStr)]
+	public string lpDirectory;
 
-		/// <summary>
-		/// Specifies that the operation is the default for the selected file type.
-		/// </summary>
-		public const string Null = "null";
+	public int    nShow;
+	public IntPtr hInstApp;
+	public IntPtr lpIDList;
 
-		/// <summary>
-		/// Opens the default text editor for the file.
-		/// </summary>
-		public const string Edit = "edit";
+	[MarshalAs(UnmanagedType.LPTStr)]
+	public string lpClass;
 
-		/// <summary>
-		/// Opens the Windows Explorer in the folder specified in <seealso cref="ShellExecuteInfo.lpDirectory"/>.
-		/// </summary>
-		public const string Explore = "explore";
+	public IntPtr hkeyClass;
+	public uint   dwHotKey;
+	public IntPtr hIcon;
+	public IntPtr hProcess;
+}
 
-		/// <summary>
-		/// Opens the properties window of the file.
-		/// </summary>
-		public const string Properties = "properties";
+/// <summary>
+/// <see cref="ShellExecuteInfo.lpVerb"/>
+/// <a href="https://www.pinvoke.net/default.aspx/shell32/ShellExecuteEx.html">See</a>
+/// </summary>
+public static class ShellExecuteVerbs
+{
+	/// <summary>
+	/// Opens a file or a application
+	/// </summary>
+	public const string Open = "open";
 
-		public const string Copy  = "copy";
-		public const string Cut   = "cut";
-		public const string Paste = "paste";
+	/// <summary>
+	/// Opens dialog when no program is associated to the extension
+	/// </summary>
+	public const string OpenAs = "openas";
 
-		/// <summary>
-		/// Pastes a shortcut
-		/// </summary>
-		public const string PasteLink = "pastelink";
+	public const string OpenNew = "opennew";
 
-		public const string Delete  = "delete";
-		public const string Print   = "print";
-		public const string PrintTo = "printto";
+	/// <summary>
+	/// In Windows 7 and Vista, opens the UAC dialog and in others, open the Run as... Dialog
+	/// </summary>
+	public const string Runas = "runas";
 
-		/// <summary>
-		/// Start a search
-		/// </summary>
-		public const string Find = "find";
-	}
+	/// <summary>
+	/// Specifies that the operation is the default for the selected file type.
+	/// </summary>
+	public const string Null = "null";
+
+	/// <summary>
+	/// Opens the default text editor for the file.
+	/// </summary>
+	public const string Edit = "edit";
+
+	/// <summary>
+	/// Opens the Windows Explorer in the folder specified in <seealso cref="ShellExecuteInfo.lpDirectory"/>.
+	/// </summary>
+	public const string Explore = "explore";
+
+	/// <summary>
+	/// Opens the properties window of the file.
+	/// </summary>
+	public const string Properties = "properties";
+
+	public const string Copy  = "copy";
+	public const string Cut   = "cut";
+	public const string Paste = "paste";
+
+	/// <summary>
+	/// Pastes a shortcut
+	/// </summary>
+	public const string PasteLink = "pastelink";
+
+	public const string Delete  = "delete";
+	public const string Print   = "print";
+	public const string PrintTo = "printto";
+
+	/// <summary>
+	/// Start a search
+	/// </summary>
+	public const string Find = "find";
 }

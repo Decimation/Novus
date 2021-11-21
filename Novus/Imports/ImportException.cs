@@ -5,14 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 
-namespace Novus.Imports
-{
-	public sealed class ImportException : Exception
-	{
-		/// <inheritdoc />
-		public ImportException() { }
+namespace Novus.Imports;
 
-		/// <inheritdoc />
-		public ImportException([CanBeNull] string message) : base(message) { }
-	}
+public sealed class ImportException : Exception
+{
+	/// <inheritdoc />
+	public ImportException() { }
+
+	/// <inheritdoc />
+	public ImportException([CanBeNull] string message) : base(message) { }
 }

@@ -3,27 +3,26 @@ using System;
 // ReSharper disable CA1822
 // ReSharper disable LocalizableElement
 #pragma warning disable CA1822
-namespace UnitTest.TestTypes
+namespace UnitTest.TestTypes;
+
+internal class Clazz
 {
-	internal class Clazz
+	public       int    a;
+	public const int    i = 123_321;
+	public       string s;
+
+	public        int prop  { get; set; }
+	public static int sprop { get; set; }
+
+	public Clazz()
 	{
-		public       int    a;
-		public const int    i = 123_321;
-		public       string s;
+		a = i;
+	}
 
-		public int prop { get; set; }
-		public static int sprop { get; set; }
+	public void SayHi() => Console.WriteLine("hi");
 
-		public Clazz()
-		{
-			a = i;
-		}
-
-		public void SayHi() => Console.WriteLine("hi");
-
-		public override string ToString()
-		{
-			return $"{a}";
-		}
+	public override string ToString()
+	{
+		return $"{a}";
 	}
 }

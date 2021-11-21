@@ -65,6 +65,7 @@
 
 
   <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
     <None Include="..\icon64.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>

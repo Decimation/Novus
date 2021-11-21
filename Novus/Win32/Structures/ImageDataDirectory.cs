@@ -3,12 +3,11 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
 // ReSharper disable StructCanBeMadeReadOnly
-namespace Novus.Win32.Structures
+namespace Novus.Win32.Structures;
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct ImageDataDirectory
 {
-	[StructLayout(LayoutKind.Sequential)]
-	internal struct ImageDataDirectory
-	{
-		public uint VirtualAddress;
-		public uint Size;
-	}
+	public uint VirtualAddress;
+	public uint Size;
 }

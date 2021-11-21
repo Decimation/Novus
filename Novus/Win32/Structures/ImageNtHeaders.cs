@@ -1,15 +1,14 @@
 ﻿using System.Runtime.InteropServices;
 
 // ReSharper disable StructCanBeMadeReadOnly
-namespace Novus.Win32.Structures
+namespace Novus.Win32.Structures;
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+internal struct ImageNtHeaders
 {
-	[StructLayout(LayoutKind.Sequential, Pack = 1)]
-	internal struct ImageNtHeaders
-	{
-		public uint Signature { get; }
+	public uint Signature { get; }
 
-		public ImageFileHeader FileHeader { get; }
+	public ImageFileHeader FileHeader { get; }
 
-		public ImageOptionalHeader OptionalHeader { get; }
-	}
+	public ImageOptionalHeader OptionalHeader { get; }
 }

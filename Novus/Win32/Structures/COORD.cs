@@ -1,18 +1,17 @@
 ﻿using System.Runtime.InteropServices;
 // ReSharper disable InconsistentNaming
 
-namespace Novus.Win32.Structures
-{
-	[StructLayout(LayoutKind.Sequential)]
-	public struct Coord
-	{
-		public short X;
-		public short Y;
+namespace Novus.Win32.Structures;
 
-		public Coord(short x, short y)
-		{
-			X = x;
-			Y = y;
-		}
+[StructLayout(LayoutKind.Sequential)]
+public struct Coord
+{
+	public short X;
+	public short Y;
+
+	public Coord(short x, short y)
+	{
+		X = x;
+		Y = y;
 	}
 }

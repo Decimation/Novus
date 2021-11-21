@@ -2,7 +2,7 @@
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable RedundantUnsafeContext
 
-#pragma warning disable IDE0005
+#pragma warning disable IDE0005, CS0436
 
 using System;
 using System.Buffers;
@@ -24,7 +24,6 @@ using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading;
 using System.Xml;
 using Novus;
@@ -49,107 +48,89 @@ using Console = System.Console;
 #if NET6_0
 #warning Update!
 #endif
-namespace Test
+namespace Test;
+
+/*
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.6
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.5
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.4
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.2
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\3.1.9
+ * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
+ *
+ * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
+ *
+ * todo: integrate pdbex
+ * todo: IL, ILSupport
+ *
+ */
+
+
+/*
+ * Novus				https://github.com/Decimation/Novus
+ * NeoCore				https://github.com/Decimation/NeoCore
+ * RazorSharp			https://github.com/Decimation/RazorSharp
+ * 
+ * Kantan				https://github.com/Decimation/Kantan
+ * SimpleSharp			https://github.com/Decimation/SimpleSharp
+ *
+ * Memkit				https://github.com/Decimation/Memkit
+ * 
+ */
+
+
+/* Runtime
+ *
+ * https://github.com/dotnet/runtime
+ *
+ *
+ *
+ * Field
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
+ *
+ * Method
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
+ *
+ * EEClass
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
+ *
+ * MethodTable
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
+ *
+ * TypeHandle
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.inl
+ *
+ * Marshal Native
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
+ *
+ * Other
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
+ */
+
+public static unsafe class Program
 {
-	/*
-	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.6
-	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.5
-	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.4
-	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.2
-	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0
-	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\3.1.9
-	 * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
-	 *
-	 * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
-	 *
-	 * todo: integrate pdbex
-	 * todo: IL, ILSupport
-	 *
-	 */
-
-
-	/*
-	 * Novus				https://github.com/Decimation/Novus
-	 * NeoCore				https://github.com/Decimation/NeoCore
-	 * RazorSharp			https://github.com/Decimation/RazorSharp
-	 * 
-	 * Kantan				https://github.com/Decimation/Kantan
-	 * SimpleSharp			https://github.com/Decimation/SimpleSharp
-	 *
-	 * Memkit				https://github.com/Decimation/Memkit
-	 * 
-	 */
-
-
-	/* Runtime
-	 *
-	 * https://github.com/dotnet/runtime
-	 *
-	 *
-	 *
-	 * Field
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
-	 *
-	 * Method
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
-	 *
-	 * EEClass
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
-	 *
-	 * MethodTable
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
-	 *
-	 * TypeHandle
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.h
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.cpp
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.inl
-	 *
-	 * Marshal Native
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
-	 *
-	 * Other
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
-	 * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
-	 */
-
-	public static unsafe class Program
+	private static void Main(string[] args)
 	{
-		private static void Main(string[] args)
-		{
-			// ...
-			Console.WriteLine(Environment.Version);
-			var ss = Global.Clr.Scanner.Value;
-			var a  = ss.FindSignature("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3");
-			Console.WriteLine(a);
+		// ...
+		Console.WriteLine(Environment.Version);
+		var ss = Global.Clr.Scanner.Value;
+		
 
-			int i = 256;
-
-			Pointer<int> px = &i;
-
-			var pointer = SigScanner.ScanProcess("48 8B 41 28 A8 02 74 ? 48 8B 40 26 C3").FirstOrDefault();
-
-			Console.WriteLine(pointer);
-
-			Console.WriteLine(a == pointer);
-		}
-	}
-
-	struct mstr
-	{
-		private Pointer<char> m_pointer;
-
-		public override string ToString()
-		{
-			return base.ToString();
-		}
+		Console.WriteLine(Native.GetUnicodeName('\u200b'));
+		Console.WriteLine(typeof(RuntimeTypeHandle).GetAnyMethod("Allocate"));
+		Console.WriteLine(GCHeap.GlobalHeap);
 	}
 }

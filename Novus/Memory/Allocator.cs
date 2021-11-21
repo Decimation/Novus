@@ -10,145 +10,144 @@ using Kantan.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.Memory
+namespace Novus.Memory;
+
+/// <summary>
+/// Memory allocation manager.
+/// </summary>
+public static class Allocator
 {
-	/// <summary>
-	/// Memory allocation manager.
-	/// </summary>
-	public static class Allocator
+	/*
+	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.Windows.cs
+	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Ucrtbase/Interop.MemAlloc.cs
+	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.cs
+	 */
+
+
+	private static readonly List<Pointer<byte>> Allocated = new();
+
+	public static int AllocCount => Allocated.Count;
+
+
+	public static void Close()
 	{
-		/*
-		 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.Windows.cs
-		 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Ucrtbase/Interop.MemAlloc.cs
-		 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.cs
-		 */
+		foreach (var pointer in Allocated) {
+			FreeInternal(pointer);
+		}
+	}
 
+	public static bool IsAllocated(Pointer<byte> ptr) => Allocated.Contains(ptr);
 
-		private static readonly List<Pointer<byte>> Allocated = new();
-
-		public static int AllocCount => Allocated.Count;
-
-
-		public static void Close()
-		{
-			foreach (var pointer in Allocated) {
-				FreeInternal(pointer);
-			}
+	public static int GetAllocSize(Pointer<byte> ptr)
+	{
+		if (!IsAllocated(ptr)) {
+			return Native.INVALID;
 		}
 
-		public static bool IsAllocated(Pointer<byte> ptr) => Allocated.Contains(ptr);
+		return (int) Native.LocalSize(ptr.Address);
+	}
 
-		public static int GetAllocSize(Pointer<byte> ptr)
-		{
-			if (!IsAllocated(ptr)) {
-				return Native.INVALID;
-			}
-
-			return (int) Native.LocalSize(ptr.Address);
+	[MustUseReturnValue]
+	public static Pointer<T> ReAlloc<T>(Pointer<T> ptr, int elemCnt)
+	{
+		if (!IsAllocated(ptr)) {
+			return null;
 		}
 
-		[MustUseReturnValue]
-		public static Pointer<T> ReAlloc<T>(Pointer<T> ptr, int elemCnt)
-		{
-			if (!IsAllocated(ptr)) {
-				return null;
-			}
+		Guard.AssertPositive(elemCnt);
 
-			Guard.AssertPositive(elemCnt);
+		Allocated.Remove(ptr);
 
-			Allocated.Remove(ptr);
+		int elemSize = Mem.SizeOf<T>();
+		int cb       = Mem.FlatSize(elemSize, elemCnt);
 
-			int elemSize = Mem.SizeOf<T>();
-			int cb       = Mem.FlatSize(elemSize, elemCnt);
+		ptr = Marshal.ReAllocHGlobal(ptr.Address, (IntPtr) cb);
 
-			ptr = Marshal.ReAllocHGlobal(ptr.Address, (IntPtr) cb);
+		Allocated.Add(ptr);
 
-			Allocated.Add(ptr);
+		return ptr;
+	}
 
-			return ptr;
+	private static void FreeInternal(Pointer<byte> ptr)
+	{
+		Marshal.FreeHGlobal(ptr.Address);
+		Allocated.Remove(ptr);
+	}
+
+
+	public static void Free(Pointer<byte> ptr)
+	{
+		if (!IsAllocated(ptr)) {
+			return;
 		}
 
-		private static void FreeInternal(Pointer<byte> ptr)
-		{
-			Marshal.FreeHGlobal(ptr.Address);
-			Allocated.Remove(ptr);
-		}
+		FreeInternal(ptr);
+	}
+
+	/// <summary>
+	/// Allocates memory for <paramref name="cb"/> elements of type <see cref="byte"/>.
+	/// </summary>
+	/// <param name="cb">Number of bytes</param>
+	[MustUseReturnValue]
+	public static Pointer<byte> Alloc(int cb) => Alloc<byte>(cb);
+
+	/// <summary>
+	/// Allocates memory for <paramref name="elemCnt"></paramref> elements of type <typeparamref name="T"/>.
+	/// </summary>
+	/// <typeparam name="T">Element type</typeparam>
+	/// <param name="elemCnt">Number of elements</param>
+	[MustUseReturnValue]
+	public static Pointer<T> Alloc<T>(int elemCnt)
+	{
+		Guard.AssertPositive(elemCnt);
+
+		int elemSize = Mem.SizeOf<T>();
+		int cb       = Mem.FlatSize(elemSize, elemCnt);
+
+		Pointer<T> h = Marshal.AllocHGlobal(cb);
+		h.Clear(elemCnt);
+
+		Allocated.Add(h);
+
+		return h;
+	}
+
+	[MustUseReturnValue]
+	public static T AllocU<T>(params object[] args)
+	{
+		// NOTE: WIP
+
+		var mt = typeof(T).AsMetaType();
+
+		var alloc = Alloc(mt.BaseSize);
+
+		alloc += Mem.Size;
+
+		alloc.WritePointer(mt.Value);
+
+		var alloc2 = Alloc<T>(1);
+
+		alloc2.WritePointer(alloc);
 
 
-		public static void Free(Pointer<byte> ptr)
-		{
-			if (!IsAllocated(ptr)) {
-				return;
-			}
+		var val = alloc2.Value;
 
-			FreeInternal(ptr);
-		}
-
-		/// <summary>
-		/// Allocates memory for <paramref name="cb"/> elements of type <see cref="byte"/>.
-		/// </summary>
-		/// <param name="cb">Number of bytes</param>
-		[MustUseReturnValue]
-		public static Pointer<byte> Alloc(int cb) => Alloc<byte>(cb);
-
-		/// <summary>
-		/// Allocates memory for <paramref name="elemCnt"></paramref> elements of type <typeparamref name="T"/>.
-		/// </summary>
-		/// <typeparam name="T">Element type</typeparam>
-		/// <param name="elemCnt">Number of elements</param>
-		[MustUseReturnValue]
-		public static Pointer<T> Alloc<T>(int elemCnt)
-		{
-			Guard.AssertPositive(elemCnt);
-
-			int elemSize = Mem.SizeOf<T>();
-			int cb       = Mem.FlatSize(elemSize, elemCnt);
-
-			Pointer<T> h = Marshal.AllocHGlobal(cb);
-			h.Clear(elemCnt);
-
-			Allocated.Add(h);
-
-			return h;
-		}
-
-		[MustUseReturnValue]
-		public static T AllocU<T>(params object[] args)
-		{
-			// NOTE: WIP
-
-			var mt = typeof(T).AsMetaType();
-
-			var alloc = Alloc(mt.BaseSize);
-
-			alloc += Mem.Size;
-
-			alloc.WritePointer(mt.Value);
-
-			var alloc2 = Alloc<T>(1);
-
-			alloc2.WritePointer(alloc);
+		//RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
+		ReflectionHelper.CallConstructor(val, args);
 
 
-			var val = alloc2.Value;
+		/*var def = Activator.CreateInstance<T>();
 
-			//RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
-			ReflectionHelper.CallConstructor(val, args);
+		var flds = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
 
+		var vals = flds.Select(f => f.GetValue(def)).ToArray();
 
-			/*var def = Activator.CreateInstance<T>();
+		var val2 = FormatterServices.PopulateObjectMembers(val, flds, vals);*/
 
-			var flds = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		//FormatterServices?
 
-			var vals = flds.Select(f => f.GetValue(def)).ToArray();
+		//return (T) val2;
 
-			var val2 = FormatterServices.PopulateObjectMembers(val, flds, vals);*/
-
-			//FormatterServices?
-
-			//return (T) val2;
-
-			return val;
-		}
+		return val;
 	}
 }

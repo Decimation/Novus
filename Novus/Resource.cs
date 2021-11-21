@@ -25,340 +25,339 @@ using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus
+namespace Novus;
+
+/// <summary>
+/// Represents a runtime component which contains data and resources.
+/// </summary>
+/// <seealso cref="EmbeddedResources"/>
+public class Resource : IDisposable
 {
+	public Pointer<byte> Address { get; }
+
+	public ProcessModule Module { get; }
+
+	public string ModuleName { get; }
+
+	public Lazy<SigScanner> Scanner { get; }
+
+	public Lazy<SymbolLoader> Symbols { get; }
+
+	public bool LoadedModule { get; private init; }
+
+
 	/// <summary>
-	/// Represents a runtime component which contains data and resources.
+	/// Creates a <see cref="Resource"/> from an already-loaded module.
 	/// </summary>
-	/// <seealso cref="EmbeddedResources"/>
-	public class Resource : IDisposable
+	public Resource(string moduleName, string pdb = null) : this(Process.GetCurrentProcess(), moduleName, pdb) { }
+
+	public Resource(Process p, string moduleName, string pdb = null)
 	{
-		public Pointer<byte> Address { get; }
+		ModuleName = moduleName;
 
-		public ProcessModule Module { get; }
+		var module = ProcessHelper.FindModule(p, moduleName);
 
-		public string ModuleName { get; }
+		Guard.AssertNotNull(module);
 
-		public Lazy<SigScanner> Scanner { get; }
+		Module       = module;
+		Scanner      = new Lazy<SigScanner>(() => new SigScanner(Module));
+		Address      = Module.BaseAddress;
+		Symbols      = new Lazy<SymbolLoader>(() => pdb is not null ? new SymbolLoader(pdb) : null);
+		LoadedModule = false;
+	}
 
-		public Lazy<SymbolLoader> Symbols { get; }
+	/// <summary>
+	/// Loads a module and creates a <see cref="Resource"/> from it.
+	/// </summary>
+	public static Resource LoadModule(string moduleFile)
+	{
+		var f = new FileInfo(moduleFile);
 
-		public bool LoadedModule { get; private init; }
+		Debug.WriteLine($"Loading {f.Name}");
 
+		//var l = Native.LoadLibrary(f.FullName);
+		var l = NativeLibrary.Load(f.FullName);
 
-		/// <summary>
-		/// Creates a <see cref="Resource"/> from an already-loaded module.
-		/// </summary>
-		public Resource(string moduleName, string pdb = null) : this(Process.GetCurrentProcess(), moduleName, pdb) { }
-
-		public Resource(Process p, string moduleName, string pdb = null)
+		var r = new Resource(f.Name)
 		{
-			ModuleName = moduleName;
-
-			var module = ProcessHelper.FindModule(p, moduleName);
-
-			Guard.AssertNotNull(module);
-
-			Module       = module;
-			Scanner      = new Lazy<SigScanner>(() => new SigScanner(Module));
-			Address      = Module.BaseAddress;
-			Symbols      = new Lazy<SymbolLoader>(() => pdb is not null ? new SymbolLoader(pdb) : null);
-			LoadedModule = false;
-		}
-
-		/// <summary>
-		/// Loads a module and creates a <see cref="Resource"/> from it.
-		/// </summary>
-		public static Resource LoadModule(string moduleFile)
-		{
-			var f = new FileInfo(moduleFile);
-
-			Debug.WriteLine($"Loading {f.Name}");
-
-			//var l = Native.LoadLibrary(f.FullName);
-			var l = NativeLibrary.Load(f.FullName);
-
-			var r = new Resource(f.Name)
-			{
-				LoadedModule = true
-			};
-
-			return r;
-		}
-
-		/*
-		 * Native internal CLR functions
-		 *
-		 * Originally, IL had to be used to call native functions as the calli opcode was needed.
-		 *
-		 * Now, we can use C# 9 unmanaged function pointers because they are implemented using
-		 * the calli opcode.
-		 *
-		 * Delegate function pointers are backed by IntPtr.
-		 *
-		 * https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-9.0/function-pointers
-		 * https://github.com/dotnet/csharplang/blob/master/proposals/csharp-9.0/function-pointers.md
-		 * https://devblogs.microsoft.com/dotnet/improvements-in-native-code-interop-in-net-5-0/
-		 *
-		 * Normal delegates using the UnmanagedFunctionPointer attribute is also possible, but it's
-		 * better to use the new unmanaged function pointers.
-		 *
-		 *
-		 * https://github.com/Decimation/Novus/tree/10a2fde6d3df0e359c13f6808bf169723ffd414d/Novus/Native
-		 */
-
-		#region Import
-
-		public void UnloadAll()
-		{
-			for (int i = m_loadedTypes.Count - 1; i >= 0; i--) {
-				Type type = m_loadedTypes[i];
-				Unload(type);
-			}
-		}
-
-		public void Unload(Type t)
-		{
-			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
-
-			foreach (var (_, member) in annotatedTuples) {
-				var field = (FieldInfo) member;
-
-				field.SetValue(null, null);
-			}
-
-			Trace.WriteLine($"Unloaded type {t.Name}", C_INFO);
-			m_loadedTypes.Remove(t);
-		}
-
-		/// <summary>
-		/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
-		/// </summary>
-		/// <param name="t">Enclosing type</param>
-		public void LoadImports(Type t)
-		{
-			if (m_loadedTypes.Contains(t)) {
-				return;
-			}
-
-			var mgr = GetManager(t.Assembly);
-
-			if (!m_managers.Contains(mgr)) {
-				m_managers.Add(mgr);
-			}
-
-			Debug.WriteLine($"Loading type {t.Name}", C_DEBUG);
-
-			var annotatedTuples = t.GetAnnotated<ImportAttribute>();
-
-			foreach (var (attribute, member) in annotatedTuples) {
-				var field = (FieldInfo) member;
-
-				var fieldValue = GetImportValue(attribute, field);
-
-				// Set value
-
-				field.SetValue(null, fieldValue);
-
-				Debug.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}", C_DEBUG);
-			}
-
-			m_loadedTypes.Add(t);
-
-			Trace.WriteLine($"Loaded type {t.Name}", C_INFO);
-
-		}
-
-		private readonly List<Type> m_loadedTypes = new();
-
-		private readonly List<ResourceManager> m_managers = new()
-		{
-			EmbeddedResources.ResourceManager,
+			LoadedModule = true
 		};
 
-		private static ResourceManager GetManager(Assembly assembly)
-		{
-			string name = null;
+		return r;
+	}
 
-			foreach (string v in assembly.GetManifestResourceNames()) {
-				string value = assembly.GetName().Name;
+	/*
+	 * Native internal CLR functions
+	 *
+	 * Originally, IL had to be used to call native functions as the calli opcode was needed.
+	 *
+	 * Now, we can use C# 9 unmanaged function pointers because they are implemented using
+	 * the calli opcode.
+	 *
+	 * Delegate function pointers are backed by IntPtr.
+	 *
+	 * https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/proposals/csharp-9.0/function-pointers
+	 * https://github.com/dotnet/csharplang/blob/master/proposals/csharp-9.0/function-pointers.md
+	 * https://devblogs.microsoft.com/dotnet/improvements-in-native-code-interop-in-net-5-0/
+	 *
+	 * Normal delegates using the UnmanagedFunctionPointer attribute is also possible, but it's
+	 * better to use the new unmanaged function pointers.
+	 *
+	 *
+	 * https://github.com/Decimation/Novus/tree/10a2fde6d3df0e359c13f6808bf169723ffd414d/Novus/Native
+	 */
 
-				if (v.Contains(value!) || v.Contains("EmbeddedResources")) {
-					name = v;
-					break;
-				}
-			}
+	#region Import
 
-			if (name == null) {
-				return null;
-			}
+	public void UnloadAll()
+	{
+		for (int i = m_loadedTypes.Count - 1; i >= 0; i--) {
+			Type type = m_loadedTypes[i];
+			Unload(type);
+		}
+	}
 
-			name = name[..name.LastIndexOf('.')];
+	public void Unload(Type t)
+	{
+		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
-			var resourceManager = new ResourceManager(name, assembly);
+		foreach (var (_, member) in annotatedTuples) {
+			var field = (FieldInfo) member;
 
-			return resourceManager;
+			field.SetValue(null, null);
 		}
 
-		private object GetObject(ImportAttribute attr)
-		{
-			if (attr is ImportUnmanagedAttribute { Value: { } } unmanaged) {
-				return unmanaged.Value;
+		Trace.WriteLine($"Unloaded type {t.Name}", C_INFO);
+		m_loadedTypes.Remove(t);
+	}
+
+	/// <summary>
+	/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
+	/// </summary>
+	/// <param name="t">Enclosing type</param>
+	public void LoadImports(Type t)
+	{
+		if (m_loadedTypes.Contains(t)) {
+			return;
+		}
+
+		var mgr = GetManager(t.Assembly);
+
+		if (!m_managers.Contains(mgr)) {
+			m_managers.Add(mgr);
+		}
+
+		Debug.WriteLine($"Loading type {t.Name}", C_DEBUG);
+
+		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
+
+		foreach (var (attribute, member) in annotatedTuples) {
+			var field = (FieldInfo) member;
+
+			var fieldValue = GetImportValue(attribute, field);
+
+			// Set value
+
+			field.SetValue(null, fieldValue);
+
+			Debug.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}", C_DEBUG);
+		}
+
+		m_loadedTypes.Add(t);
+
+		Trace.WriteLine($"Loaded type {t.Name}", C_INFO);
+
+	}
+
+	private readonly List<Type> m_loadedTypes = new();
+
+	private readonly List<ResourceManager> m_managers = new()
+	{
+		EmbeddedResources.ResourceManager,
+	};
+
+	private static ResourceManager GetManager(Assembly assembly)
+	{
+		string name = null;
+
+		foreach (string v in assembly.GetManifestResourceNames()) {
+			string value = assembly.GetName().Name;
+
+			if (v.Contains(value!) || v.Contains("EmbeddedResources")) {
+				name = v;
+				break;
 			}
+		}
 
-			foreach (var manager in m_managers) {
-				var value = manager.GetObject(attr.Name);
-
-				if (value != null) {
-					//Debug.WriteLine($"{manager.BaseName}:: {value}", C_DEBUG);
-					return value;
-				}
-			}
-
+		if (name == null) {
 			return null;
 		}
 
-		private object GetImportValue(ImportAttribute attribute, FieldInfo field)
-		{
-			object fieldValue = null;
+		name = name[..name.LastIndexOf('.')];
 
-			string name = attribute.Name ?? field.Name;
+		var resourceManager = new ResourceManager(name, assembly);
 
-			switch (attribute) {
-				case ImportUnmanagedAttribute unmanagedAttr:
+		return resourceManager;
+	}
+
+	private object GetObject(ImportAttribute attr)
+	{
+		if (attr is ImportUnmanagedAttribute { Value: { } } unmanaged) {
+			return unmanaged.Value;
+		}
+
+		foreach (var manager in m_managers) {
+			var value = manager.GetObject(attr.Name);
+
+			if (value != null) {
+				//Debug.WriteLine($"{manager.BaseName}:: {value}", C_DEBUG);
+				return value;
+			}
+		}
+
+		return null;
+	}
+
+	private object GetImportValue(ImportAttribute attribute, FieldInfo field)
+	{
+		object fieldValue = null;
+
+		string name = attribute.Name ?? field.Name;
+
+		switch (attribute) {
+			case ImportUnmanagedAttribute unmanagedAttr:
+			{
+				/*
+				 * Name is the name of the resource file key
+				 */
+
+				Guard.Assert(unmanagedAttr.ManageType == ImportManageType.Unmanaged);
+
+				/*
+				 * Get value
+				 *
+				 * If value is specified, use it; otherwise, look in resources
+				 */
+
+				var resValue = (string) GetObject(attribute);
+
+				Guard.AssertNotNull(resValue);
+
+				/*
+				 * Get resource
+				 */
+
+				//string mod           = unmanagedAttr.ModuleName;
+				var unmanagedType = unmanagedAttr.UnmanagedType;
+
+				// Find address
+
+				var addr = unmanagedType switch
 				{
-					/*
-					 * Name is the name of the resource file key
-					 */
+					UnmanagedImportType.Signature => FindSignature(resValue),
+					UnmanagedImportType.Offset    => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
+					UnmanagedImportType.Symbol => (Pointer<byte>) Module.BaseAddress +
+					                              (Symbols.Value?.GetSymbol(name)?.Offset
+					                               ?? throw new InvalidOperationException()),
 
-					Guard.Assert(unmanagedAttr.ManageType == ImportManageType.Unmanaged);
+					_ => null
+				};
 
-					/*
-					 * Get value
-					 *
-					 * If value is specified, use it; otherwise, look in resources
-					 */
+				//Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
-					var resValue = (string) GetObject(attribute);
+				if (addr.IsNull) {
+					// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 
-					Guard.AssertNotNull(resValue);
+					Trace.WriteLine($"Could not find import value for {unmanagedAttr.Name}!", C_ERROR);
 
-					/*
-					 * Get resource
-					 */
-
-					//string mod           = unmanagedAttr.ModuleName;
-					var unmanagedType = unmanagedAttr.UnmanagedType;
-
-					// Find address
-
-					var addr = unmanagedType switch
-					{
-						UnmanagedImportType.Signature => FindSignature(resValue),
-						UnmanagedImportType.Offset    => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
-						UnmanagedImportType.Symbol => (Pointer<byte>) Module.BaseAddress +
-						                              (Symbols.Value?.GetSymbol(name)?.Offset
-						                               ?? throw new InvalidOperationException()),
-
-						_ => null
-					};
-
-					//Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
-
-					if (addr.IsNull) {
-						// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
-
-						Trace.WriteLine($"Could not find import value for {unmanagedAttr.Name}!", C_ERROR);
-
-						/*unsafe {
-							addr = (IntPtr) ((delegate* managed<void>) &ErrorFunction);
-						}*/
-					}
-
-
-					if (field.FieldType == typeof(Pointer<byte>)) {
-						fieldValue = addr;
-					}
-					else {
-						fieldValue = (IntPtr) addr;
-					}
-
-
-					break;
+					/*unsafe {
+						addr = (IntPtr) ((delegate* managed<void>) &ErrorFunction);
+					}*/
 				}
 
-				case ImportManagedAttribute managedAttr:
-				{
-					/*
-					 * Name is the name of the member
-					 */
 
-					Guard.Assert(managedAttr.ManageType == ImportManageType.Managed);
-
-					var fn = managedAttr.Type.GetAnyMethod(name);
-
-					var ptr = fn.MethodHandle.GetFunctionPointer();
-
-					fieldValue = ptr;
-
-					break;
+				if (field.FieldType == typeof(Pointer<byte>)) {
+					fieldValue = addr;
 				}
+				else {
+					fieldValue = (IntPtr) addr;
+				}
+
+
+				break;
 			}
 
-			return fieldValue;
-		}
+			case ImportManagedAttribute managedAttr:
+			{
+				/*
+				 * Name is the name of the member
+				 */
 
-		#endregion Import
+				Guard.Assert(managedAttr.ManageType == ImportManageType.Managed);
 
-		private static void ErrorFunction()
-		{
-			throw new InvalidOperationException();
-		}
+				var fn = managedAttr.Type.GetAnyMethod(name);
 
-		public static Pointer<byte> FindFunction(Process p, string m, string s)
-		{
+				var ptr = fn.MethodHandle.GetFunctionPointer();
 
-			var resource = new Resource(p, m, s);
+				fieldValue = ptr;
 
-			return resource.FindExportOrSignature(s);
-		}
-
-		public static Pointer<byte> FindFunction(string m, string s) => FindFunction(Process.GetCurrentProcess(), m, s);
-
-
-		public Pointer<byte> FindExportOrSignature(string signature)
-		{
-			var p = FindExport(signature);
-
-			if (p.IsNull) {
-				p = FindSignature(signature);
+				break;
 			}
-
-			return p;
 		}
 
-		public Pointer<byte> FindExport(string signature) => NativeLibrary.GetExport(Module.BaseAddress, signature);
+		return fieldValue;
+	}
 
-		public Pointer<byte> FindSignature(string signature) => Scanner.Value.FindSignature(signature);
+	#endregion Import
 
-		public Pointer<byte> GetOffset(long ofs) => Address + (ofs);
+	private static void ErrorFunction()
+	{
+		throw new InvalidOperationException();
+	}
 
-		public void Dispose()
-		{
-			UnloadAll();
-			Symbols.Value?.Dispose();
+	public static Pointer<byte> FindFunction(Process p, string m, string s)
+	{
 
-			if (LoadedModule) {
-				//Native.FreeLibrary(Module.BaseAddress);
-				NativeLibrary.Free(Module.BaseAddress);
-			}
+		var resource = new Resource(p, m, s);
 
-			GC.SuppressFinalize(this);
+		return resource.FindExportOrSignature(s);
+	}
+
+	public static Pointer<byte> FindFunction(string m, string s) => FindFunction(Process.GetCurrentProcess(), m, s);
+
+
+	public Pointer<byte> FindExportOrSignature(string signature)
+	{
+		var p = FindExport(signature);
+
+		if (p.IsNull) {
+			p = FindSignature(signature);
 		}
 
-		public override string ToString()
-		{
-			return $"{Module.ModuleName} ({Scanner.Value.Address})";
+		return p;
+	}
+
+	public Pointer<byte> FindExport(string signature) => NativeLibrary.GetExport(Module.BaseAddress, signature);
+
+	public Pointer<byte> FindSignature(string signature) => Scanner.Value.FindSignature(signature);
+
+	public Pointer<byte> GetOffset(long ofs) => Address + (ofs);
+
+	public void Dispose()
+	{
+		UnloadAll();
+		Symbols.Value?.Dispose();
+
+		if (LoadedModule) {
+			//Native.FreeLibrary(Module.BaseAddress);
+			NativeLibrary.Free(Module.BaseAddress);
 		}
+
+		GC.SuppressFinalize(this);
+	}
+
+	public override string ToString()
+	{
+		return $"{Module.ModuleName} ({Scanner.Value.Address})";
 	}
 }

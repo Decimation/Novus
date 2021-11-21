@@ -1,6 +1,4 @@
-﻿
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -38,7 +36,7 @@ public static unsafe partial class Native
 
 	public const int INVALID = -1;
 
-	public static readonly nuint INVALID2 = unchecked((nuint)(int)-1);
+	public static readonly nuint INVALID2 = unchecked((nuint) (int) -1);
 
 	public const int ERROR_SUCCESS = 0;
 
@@ -160,7 +158,7 @@ public static unsafe partial class Native
 
 	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
 	internal static extern nuint _msize(void* ptr);
-	
+
 	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
 	internal static extern nuint strlen(void* ptr);
 
@@ -525,4 +523,9 @@ public static unsafe partial class Native
 	}
 
 	#endregion
+
+	[DllImport(KERNEL32_DLL)]
+	internal static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize,
+	                                                 IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, 
+	                                                 out IntPtr lpThreadId);
 }

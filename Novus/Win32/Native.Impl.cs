@@ -24,6 +24,64 @@ public static unsafe partial class Native
 
 	public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
 
+	public static bool Inject(string dllPath, int pid)
+	{
+		/*
+		 * Adapted from https://github.com/TimothyJClark/SharpInjector/blob/master/SharpInjector/Injector.cs
+		 */
+
+
+		IntPtr processHandle = OpenProcess(ProcessAccess.CreateThread |
+		                                   ProcessAccess.VmOperation | ProcessAccess.VmWrite, 
+		                                   false, pid);
+
+		if (processHandle == IntPtr.Zero) {
+			return false;
+		}
+
+
+		IntPtr kernel32Base = LoadLibrary(KERNEL32_DLL);
+
+		if (kernel32Base == IntPtr.Zero) {
+			return false;
+		}
+
+		IntPtr loadLibraryAddr = GetProcAddress(kernel32Base, "LoadLibraryA");
+
+		if (loadLibraryAddr == IntPtr.Zero) {
+			return false;
+		}
+
+		IntPtr remoteAddress = VirtualAllocEx(processHandle, IntPtr.Zero, (uint) dllPath.Length,
+		                                      AllocationType.Commit | AllocationType.Reserve,
+		                                      MemoryProtection.ExecuteReadWrite);
+
+		if (remoteAddress == IntPtr.Zero) {
+			return false;
+		}
+
+		var b = WriteProcessMemory(processHandle, remoteAddress,
+		                           Marshal.StringToHGlobalAnsi(dllPath), dllPath.Length, out int _);
+
+		if (!b) {
+			return false;
+		}
+
+		IntPtr remoteThread = CreateRemoteThread(processHandle, IntPtr.Zero, 0,
+		                                         loadLibraryAddr, remoteAddress,
+		                                         0, out _);
+
+		if (remoteThread == IntPtr.Zero) {
+			return false;
+		}
+
+		CloseHandle(remoteThread);
+		VirtualFreeEx(processHandle, remoteAddress, dllPath.Length, AllocationType.Release);
+		CloseHandle(processHandle);
+
+		return true;
+	}
+
 	public static string GetWindowText(IntPtr hWnd)
 	{
 		const int CAPACITY = 1024;

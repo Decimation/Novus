@@ -120,13 +120,11 @@ public static unsafe class Program
 	private static void Main(string[] args)
 	{
 		const string s = "foo";
+		
 
-		Console.WriteLine(Mem.SizeOf(s, SizeOfOptions.Auto));
 
-		var s2 = Mem.AsCast<string, string>(s);
+		var dll = @"C:\Users\Deci\VSProjects\Pneumatix\x64\Release\Payload.dll";
 
-		var p = AllocManager.Alloc(5);
-		p.WriteAll(new byte[]{1,2,0});
-		Console.WriteLine(Native.strlen((void*) p));
+		Native.Inject(dll, Process.GetCurrentProcess().Id);
 	}
 }

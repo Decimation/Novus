@@ -228,7 +228,7 @@ public readonly unsafe struct ReadOnlyPointer<T> : IFormattable
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private void* Offset(int elemCnt)
 	{
-		return (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
+		return (void*) ((long) m_value + (long)Mem.GetByteCount(ElementSize, elemCnt));
 	}
 		
 

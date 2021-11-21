@@ -205,19 +205,7 @@ public class Tests_Meta
 	{
 		return 2;
 	}
-
-	[Test]
-	public void Test1()
-	{
-		var m1 = typeof(Tests_Meta).GetAnyMethod(nameof(Get1)).AsMetaMethod();
-		var m2 = typeof(Tests_Meta).GetAnyMethod(nameof(Get2)).AsMetaMethod();
-
-		//m1.EntryPoint = m2.EntryPoint;
-		Hook.Set(m1, m2);
-		Assert.AreEqual(Get1(), Get2());
-		Hook.Restore(m1);
-		Assert.AreEqual(Get1(), 1);
-	}
+	
 }
 
 

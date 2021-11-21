@@ -2,6 +2,8 @@
 
 #pragma warning disable IDE0060, IDE0079, IDE0005
 
+global using U = System.Runtime.CompilerServices.Unsafe;
+global using M = Novus.Memory.Mem;
 
 global using MA = System.Runtime.InteropServices.MarshalAsAttribute;
 global using UT = System.Runtime.InteropServices.UnmanagedType;

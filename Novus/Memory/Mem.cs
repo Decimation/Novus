@@ -1,7 +1,6 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
 #pragma warning disable IDE0005, CS1574
-global using U = System.Runtime.CompilerServices.Unsafe;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,6 +15,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using JetBrains.Annotations;
@@ -137,7 +137,6 @@ public static unsafe class Mem
 	}
 
 	#region CRT
-	
 
 	public static nuint _strlen(Pointer p) => Native.strlen(p.ToPointer());
 
@@ -147,31 +146,6 @@ public static unsafe class Mem
 	public static nuint _msize(Pointer p) => (nuint) Native._msize(p.ToPointer());
 
 	#endregion
-
-	/// <summary>
-	///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
-	///     <code>
-	///  fixed (byte* pData = &amp;PinHelper.GetPinningHelper(value).Data)
-	///  {
-	///  }
-	///  </code>
-	///     <remarks>
-	///         <para><c>pData</c> is what <c>Object::GetData()</c> returns in VM.</para>
-	///         <para><c>pData</c> is also equal to offsetting the pointer by <see cref="OffsetOptions.Fields" />. </para>
-	///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
-	///     </remarks>
-	/// </summary>
-	[UsedImplicitly]
-	public sealed class PinningHelper
-	{
-		/// <summary>
-		///     Represents the first field in an object.
-		/// </summary>
-		/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
-		public byte Data;
-
-		private PinningHelper() { }
-	}
 
 	#region Pin
 
@@ -238,6 +212,31 @@ public static unsafe class Mem
 		PinResetEvents[obj].Set();
 
 		Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
+	}
+
+	/// <summary>
+	///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
+	///     <code>
+	///  fixed (byte* pData = &amp;PinHelper.GetPinningHelper(value).Data)
+	///  {
+	///  }
+	///  </code>
+	///     <remarks>
+	///         <para><c>pData</c> is what <c>Object::GetData()</c> returns in VM.</para>
+	///         <para><c>pData</c> is also equal to offsetting the pointer by <see cref="OffsetOptions.Fields" />. </para>
+	///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
+	///     </remarks>
+	/// </summary>
+	[UsedImplicitly]
+	public sealed class PinningHelper
+	{
+		/// <summary>
+		///     Represents the first field in an object.
+		/// </summary>
+		/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
+		public byte Data;
+
+		private PinningHelper() { }
 	}
 
 	#endregion
@@ -423,8 +422,10 @@ public static unsafe class Mem
 		return rg;
 	}
 
+	public static ref T RefCast<T>(in T t) => ref U.AsRef(in t);
+
 	public static object AsCast(object t) => AsCast<object, object>(t);
-	
+
 	/// <summary>
 	/// Shortcut to <see cref="Unsafe.As{T,T}"/>
 	/// </summary>
@@ -492,6 +493,8 @@ public static unsafe class Mem
 
 	#region Size
 
+	public static nuint GetByteCount(int elemCnt, int elemSize) => GetByteCount((nuint) elemCnt, (nuint) elemSize);
+
 	/// <summary>
 	///     Calculates the total byte size of <paramref name="elemCnt" /> elements with
 	///     the size of <paramref name="elemSize" />.
@@ -500,12 +503,18 @@ public static unsafe class Mem
 	/// <param name="elemCnt">Number of elements</param>
 	/// <returns>Total byte size of all elements</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static int FlatSize(int elemSize, int elemCnt)
+	public static nuint GetByteCount(nuint elemCnt, nuint elemSize)
 	{
-		//todo: this is over-engineering
-		// (void*) (((long) m_value) + byteOffset)
-		// (void*) (((long) m_value) + (elemOffset * ElementSize))
-		return elemCnt * elemSize;
+		// This is based on the `mi_count_size_overflow` and `mi_mul_overflow` methods from microsoft/mimalloc.
+		// Original source is Copyright (c) 2019 Microsoft Corporation, Daan Leijen. Licensed under the MIT license
+
+		// sqrt(nuint.MaxValue)
+		nuint multiplyNoOverflow = (nuint) 1 << (4 * sizeof(nuint));
+
+		return (elemSize >= multiplyNoOverflow || elemCnt >= multiplyNoOverflow)
+		       && elemSize > 0 && nuint.MaxValue / elemSize < elemCnt
+			       ? nuint.MaxValue
+			       : elemCnt * elemSize;
 	}
 
 	/// <summary>
@@ -615,10 +624,7 @@ public static unsafe class Mem
 	///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 	/// </remarks>
 	/// <returns>The size of the type in heap memory, in bytes</returns>
-	public static int HeapSizeOf<T>(T value) where T : class
-	{
-		return HeapSizeOfInternal(value);
-	}
+	public static int HeapSizeOf<T>(T value) where T : class => HeapSizeOfInternal(value);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static int HeapSizeOfInternal<T>(T value)
@@ -691,10 +697,7 @@ public static unsafe class Mem
 		return true;
 	}
 
-	public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr)
-	{
-		return TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
-	}
+	public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr) => TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
 
 	/// <summary>
 	///     Returns the address of reference type <paramref name="value" />'s heap memory, offset by the specified
@@ -714,9 +717,7 @@ public static unsafe class Mem
 	/// <exception cref="ArgumentOutOfRangeException">If <paramref name="offset"></paramref> is out of range.</exception>
 	public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
 		where T : class
-	{
-		return AddressOfHeapInternal(value, offset);
-	}
+		=> AddressOfHeapInternal(value, offset);
 
 	private static Pointer<byte> AddressOfHeapInternal<T>(T value, OffsetOptions offset)
 	{
@@ -773,10 +774,7 @@ public static unsafe class Mem
 
 	#region Field
 
-	public static Pointer<byte> AddressOfField(object obj, string name)
-	{
-		return AddressOfField<object, byte>(obj, name);
-	}
+	public static Pointer<byte> AddressOfField(object obj, string name) => AddressOfField<object, byte>(obj, name);
 
 	public static Pointer<TField> AddressOfField<TField>(Type t, string name, [NNINN("t")] object o = null)
 	{
@@ -955,56 +953,7 @@ public static unsafe class Mem
 
 	#endregion
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static nuint GetByteCount(nuint elementCount, nuint elementSize)
-	{
-		// This is based on the `mi_count_size_overflow` and `mi_mul_overflow` methods from microsoft/mimalloc.
-		// Original source is Copyright (c) 2019 Microsoft Corporation, Daan Leijen. Licensed under the MIT license
-
-		// sqrt(nuint.MaxValue)
-		nuint multiplyNoOverflow = (nuint) 1 << (4 * sizeof(nuint));
-
-		return ((elementSize >= multiplyNoOverflow) || (elementCount >= multiplyNoOverflow)) && (elementSize > 0) &&
-		       ((nuint.MaxValue / elementSize) < elementCount)
-			       ? nuint.MaxValue
-			       : (elementCount * elementSize);
-	}
-
-	#region CRT allocation
-
-#if !NET6_0_OR_GREATER
-		public static Pointer<T> Alloc<T>(nuint elemCnt)
-		{
-			var s = GetByteCount(elemCnt, (nuint) SizeOf<T>());
-
-			var p = Native.malloc(s);
-
-			return p;
-		}
-
-		public static Pointer<T> AllocZero<T>(nuint elemCnt)
-		{
-			var p = Native.calloc(elemCnt, (nuint) SizeOf<T>());
-
-			return p;
-		}
-
-		public static Pointer<T> ReAlloc<T>(Pointer<T> p, nuint elemCnt)
-		{
-			var s = GetByteCount(elemCnt, (nuint) SizeOf<T>());
-
-			var p2 = Native.realloc(p.ToPointer(), s);
-
-			return p2;
-		}
-
-		public static void Free<T>(Pointer<T> p)
-		{
-			Native.free(p.ToPointer());
-		}
-#endif
-
-	#endregion
+	
 }
 
 /// <summary>

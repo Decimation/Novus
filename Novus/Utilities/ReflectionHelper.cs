@@ -1,4 +1,5 @@
-﻿using System;
+﻿global using static Novus.Utilities.ReflectionOperatorHelpers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -187,8 +188,9 @@ public static class ReflectionHelper
 
 		var b  = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
 		var b2 = t == typeof(BigInteger);
+		var b3 = t == typeof(IntPtr) || t == typeof(UIntPtr);
 
-		return b || b2;
+		return b || b2 || b3;
 	}
 
 	public static bool IsReal(this Type t)

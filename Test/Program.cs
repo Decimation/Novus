@@ -2,8 +2,9 @@
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable RedundantUnsafeContext
 
+global using U = System.Runtime.CompilerServices.Unsafe;
+global using M = Novus.Memory.Mem;
 #pragma warning disable IDE0005, CS0436
-
 using System;
 using System.Buffers;
 using System.Collections;
@@ -119,12 +120,24 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		const string s = "foo";
+		string s = "foo";
+
+		// var dll = @"C:\Users\Deci\VSProjects\Pneumatix\x64\Release\Payload.dll";
+		// Native.Inject(dll, Process.GetCurrentProcess().Id);
+
+		a(s);
+		a(in s);
+		b(ref s);
 		
+	}
 
+	static void b(ref string a)
+	{
+		Console.WriteLine(Mem.AddressOf(ref a));
+	}
 
-		var dll = @"C:\Users\Deci\VSProjects\Pneumatix\x64\Release\Payload.dll";
-
-		Native.Inject(dll, Process.GetCurrentProcess().Id);
+	static void a(in string a)
+	{
+		Console.WriteLine(Mem.AddressOf(ref M.RefCast(in a)));
 	}
 }

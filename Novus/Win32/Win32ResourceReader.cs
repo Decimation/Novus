@@ -12,14 +12,14 @@ public sealed class Win32ResourceReader : IDisposable
 	public Win32ResourceReader(string filename)
 	{
 		m_hModule = Native.LoadLibraryEx(filename, LoadLibraryFlags.AsDataFile | LoadLibraryFlags.AsImageResource);
-		
+
 	}
 
 	public string GetString(uint id)
 	{
 		var buffer = new StringBuilder(1024);
 		Native.LoadString(m_hModule, id, buffer, buffer.Capacity);
-		
+
 		return buffer.ToString();
 	}
 
@@ -36,10 +36,10 @@ public sealed class Win32ResourceReader : IDisposable
 
 	public void Dispose(bool disposing)
 	{
-		if (m_hModule != IntPtr.Zero)
+		if (m_hModule != IntPtr.Zero) {
 			Native.FreeLibrary(m_hModule);
+		}
+
 		m_hModule = IntPtr.Zero;
 	}
-
-	
 }

@@ -88,6 +88,11 @@ public unsafe struct Pointer<T> : IFormattable
 	/// </summary>
 	public bool IsNull => this == Mem.Nullptr;
 
+	public Pointer() : this(null)
+	{
+		
+	}
+
 	public Pointer(void* value)
 	{
 		m_value = value;
@@ -320,7 +325,7 @@ public unsafe struct Pointer<T> : IFormattable
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private void* Offset(int elemCnt)
 	{
-		return (void*) ((long) m_value + Mem.FlatSize(ElementSize, elemCnt));
+		return (void*) ((long) m_value +(long) Mem.GetByteCount(ElementSize, elemCnt));
 	}
 
 	[Pure]

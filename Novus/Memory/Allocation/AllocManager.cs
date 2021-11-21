@@ -62,7 +62,7 @@ public static class AllocManager
 		Allocated.Remove(ptr);
 
 		int elemSize = Mem.SizeOf<T>();
-		int cb       = Mem.FlatSize(elemSize, elemCnt);
+		int cb       = (int) Mem.GetByteCount(elemSize, elemCnt);
 
 		ptr = Allocator.ReAlloc(ptr.Address, (nuint) cb);
 
@@ -105,7 +105,7 @@ public static class AllocManager
 		Guard.AssertPositive(elemCnt);
 
 		int elemSize = Mem.SizeOf<T>();
-		var cb       = (nuint) Mem.FlatSize(elemSize, elemCnt);
+		var cb       = (nuint) Mem.GetByteCount(elemSize, elemCnt);
 
 		Pointer<T> h = Allocator.Alloc(cb);
 		h.Clear(elemCnt);

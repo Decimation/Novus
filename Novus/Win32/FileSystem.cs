@@ -12,7 +12,7 @@ using Novus.Win32.Structures;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
 
-#pragma warning disable 8603
+#pragma warning disable 8603, CA1416
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable TailRecursiveCall

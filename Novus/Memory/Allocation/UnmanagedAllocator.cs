@@ -30,11 +30,7 @@ public sealed class UnmanagedAllocator : IAllocator
 	public void Free(Pointer ptr) => Marshal.FreeHGlobal(ptr.Address);
 
 
-	/// <summary>
-	/// Allocates memory for <paramref name="cb"></paramref> elements of type <typeparamref name="T"/>.
-	/// </summary>
-	/// <typeparam name="T">Element type</typeparam>
-	/// <param name="cb">Number of elements</param>
+	
 	[MustUseReturnValue]
 	public Pointer Alloc(nuint cb) => Marshal.AllocHGlobal((int) cb);
 }

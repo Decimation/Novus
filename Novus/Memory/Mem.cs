@@ -1,6 +1,6 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
-#pragma warning disable IDE0005
+#pragma warning disable IDE0005, CS1574
 global using U = System.Runtime.CompilerServices.Unsafe;
 using System;
 using System.Collections;
@@ -137,12 +137,7 @@ public static unsafe class Mem
 	}
 
 	#region CRT
-
-	public static Pointer Alloc(nuint n) => NativeMemory.AllocZeroed(n);
 	
-	public static void Free(Pointer n) => NativeMemory.Free(n.ToPointer());
-
-	public static void ReAlloc(Pointer n, nuint a) => NativeMemory.Realloc(n.ToPointer(), a);
 
 	public static nuint _strlen(Pointer p) => Native.strlen(p.ToPointer());
 

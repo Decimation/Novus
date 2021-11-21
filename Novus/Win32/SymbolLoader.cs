@@ -9,6 +9,8 @@ using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Novus.Win32.Structures;
 using Novus.Win32.Wrappers;
+#pragma warning disable CS0618
+#pragma warning disable SYSLIB0014 // Type or member is obsolete
 
 // ReSharper disable UnusedMember.Global
 

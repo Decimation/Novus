@@ -10,7 +10,7 @@ namespace Novus.Win32.Structures;
 [StructLayout(LayoutKind.Sequential)]
 public struct Input
 {
-	public uint       type;
+	public InputType  type;
 	public InputUnion U;
 }
 
@@ -59,12 +59,12 @@ public struct KeyboardInput
 [Flags]
 public enum KeyEventFlags : uint
 {
+	KEYDOWN     = 0x0000,
 	EXTENDEDKEY = 0x0001,
 	KEYUP       = 0x0002,
 	SCANCODE    = 0x0008,
 	UNICODE     = 0x0004
 }
-
 
 [StructLayout(LayoutKind.Sequential)]
 public struct HardwareInput

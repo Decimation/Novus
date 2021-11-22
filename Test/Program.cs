@@ -120,24 +120,28 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		string s = "foo";
+		var a = Native.SendInput( new[]
+		{
+			new Input()
+			{
+				type = InputType.Keyboard,
+				U = new InputUnion()
+				{
+					ki = new KeyboardInput()
+					{
+						// dwFlags     = (KeyEventFlags.KeyDown | KeyEventFlags.SCANCODE),
+						// wScan       = ScanCodeShort.KEY_W,
 
-		// var dll = @"C:\Users\Deci\VSProjects\Pneumatix\x64\Release\Payload.dll";
-		// Native.Inject(dll, Process.GetCurrentProcess().Id);
+						wVk         = VirtualKey.KEY_G,
+						dwFlags     = 0,
+						dwExtraInfo = new UIntPtr((uint) Native.GetMessageExtraInfo().ToInt64())
+					},
+				}
+			}
+		});
+		Console.WriteLine(a);
 
-		a(s);
-		a(in s);
-		b(ref s);
-		
 	}
 
-	static void b(ref string a)
-	{
-		Console.WriteLine(Mem.AddressOf(ref a));
-	}
-
-	static void a(in string a)
-	{
-		Console.WriteLine(Mem.AddressOf(ref M.RefCast(in a)));
-	}
+	
 }

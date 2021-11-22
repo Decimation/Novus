@@ -32,7 +32,7 @@ public static unsafe partial class Native
 
 
 		IntPtr processHandle = OpenProcess(ProcessAccess.CreateThread |
-		                                   ProcessAccess.VmOperation | ProcessAccess.VmWrite, 
+		                                   ProcessAccess.VmOperation | ProcessAccess.VmWrite,
 		                                   false, pid);
 
 		if (processHandle == IntPtr.Zero) {
@@ -80,6 +80,11 @@ public static unsafe partial class Native
 		CloseHandle(processHandle);
 
 		return true;
+	}
+
+	public static int SendInput(Input[] inputs)
+	{
+		return (int) SendInput((uint) inputs.Length, inputs, Marshal.SizeOf<Input>() * inputs.Length);
 	}
 
 	public static string GetWindowText(IntPtr hWnd)

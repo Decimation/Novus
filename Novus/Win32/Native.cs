@@ -382,6 +382,8 @@ public static unsafe partial class Native
 
 	#region Input
 
+	
+
 	[DllImport(USER32_DLL)]
 	internal static extern uint SendInput(uint nInputs,
 	                                      [MA(UT.LPArray), In] Input[] pInputs,
@@ -526,6 +528,6 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL)]
 	internal static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize,
-	                                                 IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, 
+	                                                 IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags,
 	                                                 out IntPtr lpThreadId);
 }

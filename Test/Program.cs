@@ -121,8 +121,6 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		
-		
 		uarray<int> u;
 		Debugger.Break();
 

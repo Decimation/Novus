@@ -104,6 +104,7 @@ public unsafe struct Pointer<T> : IFormattable
 
 
 	#region Conversion
+	
 
 	public static explicit operator Pointer<T>(ulong ul) => new((void*) ul);
 

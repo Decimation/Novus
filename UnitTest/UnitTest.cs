@@ -34,6 +34,18 @@ using UnitTest.TestTypes;
 
 namespace UnitTest;
 
+[TestFixture]
+public class Tests_UArray
+{
+	[Test]
+	public void Test1()
+	{
+		var u = Mem.AllocUArray<int>(6, false);
+		u.Free();
+		Assert.True(!u.Allocated);
+
+	}
+}
 
 [TestFixture]
 public unsafe class Tests_NativeUtilities

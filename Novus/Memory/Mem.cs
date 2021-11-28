@@ -966,7 +966,7 @@ public static unsafe class Mem
 			ptr = NativeMemory.AllocZeroed((nuint) s, (nuint)U.SizeOf<T>());
 		}
 
-		var u = new uarray<T>(ptr, s);
+		var u = new uarray<T>(ptr, s, useManager);
 
 		return u;
 	}

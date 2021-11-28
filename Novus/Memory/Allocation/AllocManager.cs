@@ -25,10 +25,11 @@ public static class AllocManager
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.cs
 	 */
 
+	
 
 	public static IAllocator Allocator { get; set; } = new NativeAllocator();
 
-	private static readonly List<Pointer<byte>> Allocated = new();
+	private static readonly List<Pointer> Allocated = new();
 
 	public static int AllocCount => Allocated.Count;
 
@@ -39,9 +40,9 @@ public static class AllocManager
 		}
 	}
 
-	public static bool IsAllocated(Pointer<byte> ptr) => Allocated.Contains(ptr);
+	public static bool IsAllocated(Pointer ptr) => Allocated.Contains(ptr);
 
-	public static nuint AllocSize(Pointer<byte> ptr)
+	public static nuint AllocSize(Pointer ptr)
 	{
 		if (!IsAllocated(ptr)) {
 			return Native.INVALID2;
@@ -71,14 +72,14 @@ public static class AllocManager
 		return ptr;
 	}
 
-	private static void FreeInternal(Pointer<byte> ptr)
+	private static void FreeInternal(Pointer ptr)
 	{
 		Allocator.Free(ptr.Address);
 		Allocated.Remove(ptr);
 	}
 
 
-	public static void Free(Pointer<byte> ptr)
+	public static void Free(Pointer ptr)
 	{
 		if (!IsAllocated(ptr)) {
 			return;
@@ -92,7 +93,7 @@ public static class AllocManager
 	/// </summary>
 	/// <param name="cb">Number of bytes</param>
 	[MustUseReturnValue]
-	public static Pointer<byte> Alloc(int cb) => Alloc<byte>(cb);
+	public static Pointer Alloc(int cb) => Alloc<byte>(cb);
 
 	/// <summary>
 	/// Allocates memory for <paramref name="elemCnt"></paramref> elements of type <typeparamref name="T"/>.

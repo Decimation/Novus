@@ -4,6 +4,8 @@
 
 global using U = System.Runtime.CompilerServices.Unsafe;
 global using M = Novus.Memory.Mem;
+using Kantan.Text;
+using Novus.Memory;
 #pragma warning disable IDE0005, CS0436
 using System;
 using System.Buffers;
@@ -29,7 +31,6 @@ using System.Threading;
 using System.Xml;
 using Novus;
 using Novus.Imports;
-using Novus.Memory;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
@@ -120,7 +121,23 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		var a = Native.SendInput( new[]
+		
+		
+		uarray<int> u;
+		Debugger.Break();
+
+		u = Mem.AllocUArray<int>(6 , false);
+		u[0] = 1;
+		
+		Console.WriteLine(u);
+		Console.WriteLine(u.QuickJoin());
+		u.Free();
+
+	}
+
+	private static void Test1()
+	{
+		/*var a = Native.SendInput( new[]
 		{
 			new Input()
 			{
@@ -139,9 +156,7 @@ public static unsafe class Program
 				}
 			}
 		});
-		Console.WriteLine(a);
-
+		
+		Console.WriteLine(a);*/
 	}
-
-	
 }

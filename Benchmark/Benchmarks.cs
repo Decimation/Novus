@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using Novus;
 using Novus.Memory;
+using Novus.Memory.Allocation;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
@@ -16,6 +17,18 @@ using Novus.Win32.Wrappers;
 
 #pragma warning disable
 namespace TestBenchmark;
+
+[RyuJitX64Job]
+public class Benchmarks12
+{
+	
+	[Benchmark]
+	public uarray<int> alloc()
+	{
+		return Mem.AllocUArray<int>(10 , false);
+	}
+
+}
 
 public class Benchmarks11
 {

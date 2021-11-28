@@ -87,10 +87,12 @@ public static unsafe class Mem
 	/// <summary>
 	///     Represents a <c>null</c> <see cref="Pointer{T}" /> or <see cref="ReadOnlyPointer{T}" />
 	/// </summary>
-	public static readonly Pointer<byte> Nullptr = null;
+	public static readonly Pointer Nullptr = null;
 
 
 	public static bool Is64Bit => Environment.Is64BitProcess;
+
+
 
 
 	/// <summary>
@@ -250,7 +252,7 @@ public static unsafe class Mem
 	///     Writes a value of type <typeparamref name="T" /> with value <paramref name="value" /> to
 	///     <paramref name="baseAddr" /> in <paramref name="proc" />
 	/// </summary>
-	public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
+	public static void WriteProcessMemory<T>(Process proc, Pointer baseAddr, T value)
 	{
 		int dwSize = U.SizeOf<T>();
 		var ptr    = AddressOf(ref value);
@@ -261,7 +263,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Root abstraction of <see cref="Native.WriteProcessMemory" />
 	/// </summary>
-	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> ptrBuffer, int dwSize)
+	public static void WriteProcessMemory(Process proc, Pointer addr, Pointer ptrBuffer, int dwSize)
 	{
 		IntPtr hProc = Native.OpenProcess(proc);
 
@@ -273,7 +275,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, byte[] value)
+	public static void WriteProcessMemory(Process proc, Pointer addr, byte[] value)
 	{
 		fixed (byte* rg = value) {
 			WriteProcessMemory(proc, addr, (nint) rg, value.Length);
@@ -291,7 +293,7 @@ public static unsafe class Mem
 	/// <param name="addr">Address within the specified process from which to read</param>
 	/// <param name="buffer">Buffer that receives the read contents from the address space</param>
 	/// <param name="cb">Number of bytes to read</param>
-	public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, nint cb)
+	public static void ReadProcessMemory(Process proc, Pointer addr, Pointer buffer, nint cb)
 	{
 		IntPtr h = Native.OpenProcess(proc);
 
@@ -304,7 +306,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	public static byte[] ReadProcessMemory(Process proc, Pointer<byte> addr, nint cb)
+	public static byte[] ReadProcessMemory(Process proc, Pointer addr, nint cb)
 	{
 		byte[] mem = new byte[cb];
 
@@ -318,7 +320,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads a value of type <typeparamref name="T" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
-	public static T ReadProcessMemory<T>(Process proc, Pointer<byte> addr)
+	public static T ReadProcessMemory<T>(Process proc, Pointer addr)
 	{
 		T value = default!;
 
@@ -335,7 +337,7 @@ public static unsafe class Mem
 	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
 	[CanBeNull]
-	public static object ReadProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
+	public static object ReadProcessMemory(Process proc, Pointer addr, MetaType mt)
 	{
 		//todo
 
@@ -414,7 +416,7 @@ public static unsafe class Mem
 		byte[] rg = new byte[s.Length * sizeof(char)];
 
 		fixed (char* p = s) {
-			Pointer<byte> p2 = p;
+			Pointer p2 = p;
 
 			p2.CopyTo(rg);
 		}
@@ -469,9 +471,9 @@ public static unsafe class Mem
 	{
 		var t2 = Activator.CreateInstance<T>();
 
-		Pointer<byte> p  = AddressOfData(ref t);
+		Pointer p  = AddressOfData(ref t);
 		int           s  = SizeOf(t, SizeOfOptions.Data);
-		Pointer<byte> p2 = AddressOfData(ref t2);
+		Pointer p2 = AddressOfData(ref t2);
 
 		//p2.WriteAll(p.Copy(s));
 
@@ -480,14 +482,14 @@ public static unsafe class Mem
 		return t2;
 	}
 
-	public static void Copy(Pointer<byte> src, int cb, Pointer<byte> dest) => dest.WriteAll(src.Copy(cb));
+	public static void Copy(Pointer src, int cb, Pointer dest) => dest.WriteAll(src.Copy(cb));
 
-	public static void Copy(Pointer<byte> src, int startIndex, int cb, Pointer<byte> dest)
+	public static void Copy(Pointer src, int startIndex, int cb, Pointer dest)
 		=> dest.WriteAll(src.Copy(startIndex, cb));
 
-	public static byte[] Copy(Pointer<byte> src, int startIndex, int cb) => src.Copy(startIndex, cb);
+	public static byte[] Copy(Pointer src, int startIndex, int cb) => src.Copy(startIndex, cb);
 
-	public static byte[] Copy(Pointer<byte> src, int cb) => src.Copy(cb);
+	public static byte[] Copy(Pointer src, int cb) => src.Copy(cb);
 
 	#endregion
 
@@ -686,7 +688,7 @@ public static unsafe class Mem
 		return U.AsPointer(ref value);
 	}
 
-	public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer<byte> ptr)
+	public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer ptr)
 	{
 		if (RuntimeProperties.IsStruct(value)) {
 			ptr = null;
@@ -697,7 +699,7 @@ public static unsafe class Mem
 		return true;
 	}
 
-	public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr) => TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
+	public static bool TryGetAddressOfHeap<T>(T value, out Pointer ptr) => TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
 
 	/// <summary>
 	///     Returns the address of reference type <paramref name="value" />'s heap memory, offset by the specified
@@ -715,18 +717,18 @@ public static unsafe class Mem
 	/// <param name="offset">Offset type</param>
 	/// <returns>The address of <paramref name="value" /></returns>
 	/// <exception cref="ArgumentOutOfRangeException">If <paramref name="offset"></paramref> is out of range.</exception>
-	public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
+	public static Pointer AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
 		where T : class
 		=> AddressOfHeapInternal(value, offset);
 
-	private static Pointer<byte> AddressOfHeapInternal<T>(T value, OffsetOptions offset)
+	private static Pointer AddressOfHeapInternal<T>(T value, OffsetOptions offset)
 	{
 		// It is already assumed value is a class type
 
 		//var tr = __makeref(value);
 		//var heapPtr = **(IntPtr**) (&tr);
 
-		Pointer<byte> heapPtr = AddressOf(ref value).ReadPointer();
+		Pointer heapPtr = AddressOf(ref value).ReadPointer();
 
 		// NOTE:
 		// Strings have their data offset by RuntimeInfo.OffsetToStringData
@@ -761,7 +763,7 @@ public static unsafe class Mem
 	///     this will return the equivalent of <see cref="AddressOfHeap{T}(T, OffsetOptions)" /> with
 	///     <see cref="OffsetOptions.Fields" />.
 	/// </summary>
-	public static Pointer<byte> AddressOfData<T>(ref T value)
+	public static Pointer AddressOfData<T>(ref T value)
 	{
 		Pointer<T> addr = AddressOf(ref value);
 
@@ -774,13 +776,13 @@ public static unsafe class Mem
 
 	#region Field
 
-	public static Pointer<byte> AddressOfField(object obj, string name) => AddressOfField<object, byte>(obj, name);
+	public static Pointer AddressOfField(object obj, string name) => AddressOfField<object, byte>(obj, name);
 
 	public static Pointer<TField> AddressOfField<TField>(Type t, string name, [NNINN("t")] object o = null)
 	{
 		MetaField field = t.GetAnyResolvedField(name).AsMetaField();
 
-		Pointer<byte> p = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
+		Pointer p = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
 
 		return p.Cast<TField>();
 	}
@@ -789,7 +791,7 @@ public static unsafe class Mem
 	{
 		int offsetOf = OffsetOf(obj.GetType(), name);
 
-		Pointer<byte> p = AddressOfData(ref U.AsRef(in obj));
+		Pointer p = AddressOfData(ref U.AsRef(in obj));
 
 		return p + offsetOf;
 	}
@@ -809,22 +811,22 @@ public static unsafe class Mem
 
 	#region Virtual
 
-	public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize,
-	                                         AllocationType type, MemoryProtection mp)
+	public static Pointer VirtualAlloc(Process proc, Pointer lpAddr, int dwSize,
+	                                   AllocationType type, MemoryProtection mp)
 	{
 		IntPtr ptr = Native.VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
 
 		return ptr;
 	}
 
-	public static bool VirtualFree(Process hProcess, Pointer<byte> lpAddress, int dwSize, AllocationType dwFreeType)
+	public static bool VirtualFree(Process hProcess, Pointer lpAddress, int dwSize, AllocationType dwFreeType)
 	{
 		bool p = Native.VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
 
 		return p;
 	}
 
-	public static bool VirtualProtect(Process hProcess, Pointer<byte> lpAddress, int dwSize,
+	public static bool VirtualProtect(Process hProcess, Pointer lpAddress, int dwSize,
 	                                  MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
 	{
 		bool p = Native.VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
@@ -833,7 +835,7 @@ public static unsafe class Mem
 		return p;
 	}
 
-	public static MemoryBasicInformation VirtualQuery(Process proc, Pointer<byte> lpAddr)
+	public static MemoryBasicInformation VirtualQuery(Process proc, Pointer lpAddr)
 	{
 		var mbi = new MemoryBasicInformation();
 
@@ -844,7 +846,7 @@ public static unsafe class Mem
 	}
 
 
-	public static MemoryBasicInformation QueryMemoryPage(Pointer<byte> p)
+	public static MemoryBasicInformation QueryMemoryPage(Pointer p)
 	{
 
 		/*
@@ -953,7 +955,21 @@ public static unsafe class Mem
 
 	#endregion
 
-	
+	public static uarray<T> AllocUArray<T>(int s, bool useManager)
+	{
+		Pointer<T> ptr;
+
+		if (useManager) {
+			ptr = AllocManager.Alloc<T>(s);
+		}
+		else {
+			ptr = NativeMemory.AllocZeroed((nuint) s, (nuint)U.SizeOf<T>());
+		}
+
+		var u = new uarray<T>(ptr, s);
+
+		return u;
+	}
 }
 
 /// <summary>

@@ -387,6 +387,13 @@ public static class FileSystem
 
 	#endregion
 
+	public static string AppendToFilename(string filename, string append)
+	{
+		var withoutExtension  = Path.GetFileNameWithoutExtension(filename);
+		var extension = Path.GetExtension(filename);
+		return withoutExtension + append + extension;
+	}
+
 	/// <summary>
 	///     Environment variable target
 	/// </summary>

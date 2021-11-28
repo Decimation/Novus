@@ -13,6 +13,7 @@ using Novus.Memory;
 using Kantan.Utilities;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using JetBrains.Annotations;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
@@ -50,6 +51,7 @@ public static class ReflectionHelper
 	public static FieldInfo GetAnyField(this Type t, string name) => t.GetField(name, ALL_FLAGS);
 
 	public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
+	public static MethodInfo GetAnyMethod(this Type t, string name, Type[] a) => t.GetMethod(name, ALL_FLAGS,a);
 
 	public static PropertyInfo GetAnyProperty(this Type t, string name) => t.GetProperty(name, ALL_FLAGS);
 
@@ -192,7 +194,7 @@ public static class ReflectionHelper
 
 		return b || b2 || b3;
 	}
-
+	
 	public static bool IsReal(this Type t)
 	{
 		var c = Type.GetTypeCode(t);

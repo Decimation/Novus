@@ -8,7 +8,7 @@ public static class Program
 	{
 		// cd .\Benchmark\ ; dotnet build -c Release ; dotnet run -c Release
 			
-		BenchmarkRunner.Run<Benchmarks12>();
+		BenchmarkRunner.Run<Benchmarks15>();
 
 
 	}

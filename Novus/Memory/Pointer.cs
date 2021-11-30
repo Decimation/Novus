@@ -1,5 +1,5 @@
 ﻿global using Pointer = Novus.Memory.Pointer<byte>;
-
+using System.Runtime.InteropServices;
 #nullable enable
 using System;
 using System.Globalization;
@@ -88,10 +88,7 @@ public unsafe struct Pointer<T> : IFormattable
 	/// </summary>
 	public bool IsNull => this == Mem.Nullptr;
 
-	public Pointer() : this(null)
-	{
-		
-	}
+	public Pointer() : this(null) { }
 
 	public Pointer(void* value)
 	{
@@ -104,7 +101,6 @@ public unsafe struct Pointer<T> : IFormattable
 
 
 	#region Conversion
-	
 
 	public static explicit operator Pointer<T>(ulong ul) => new((void*) ul);
 
@@ -127,7 +123,7 @@ public unsafe struct Pointer<T> : IFormattable
 	public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 
 	public static implicit operator Pointer<T>(Span<T> ptr) => new(ref ptr.GetPinnableReference());
-	
+
 
 	/// <summary>
 	///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to
@@ -326,7 +322,7 @@ public unsafe struct Pointer<T> : IFormattable
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private void* Offset(int elemCnt)
 	{
-		return (void*) ((long) m_value +(long) Mem.GetByteCount(ElementSize, elemCnt));
+		return (void*) ((long) m_value + (long) Mem.GetByteCount(ElementSize, elemCnt));
 	}
 
 	[Pure]
@@ -367,15 +363,16 @@ public unsafe struct Pointer<T> : IFormattable
 	/// <param name="elemCnt">Number of elements to zero</param>
 	public void Clear(int elemCnt = ELEM_CNT)
 	{
-		for (int i = 0; i < elemCnt; i++)
+		for (int i = 0; i < elemCnt; i++) {
 			this[i] = default!;
+		}
 	}
 
 	/// <summary>
 	///     Writes all elements of <paramref name="rg" /> to the current pointer.
 	/// </summary>
 	/// <param name="rg">Values to write</param>
-	public void WriteAll(T[] rg)
+	public void WriteAll(params T[] rg)
 	{
 		for (int j = 0; j < rg.Length; j++) {
 			this[j] = rg[j];
@@ -387,16 +384,43 @@ public unsafe struct Pointer<T> : IFormattable
 	public Pointer<byte> ReadPointer(int elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
 
 	[Pure]
-	public Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET)
-	{
-		return Cast<Pointer<TType>>().Read(elemOffset);
-	}
+	public Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET) => Cast<Pointer<TType>>().Read(elemOffset);
 
 	public void WritePointer<TType>(Pointer<TType> ptr, int elemOffset = OFFSET)
+		=> Cast<Pointer<TType>>().Write(ptr, elemOffset);
+
+	public void Copy(Pointer<T> dest, int startIndex, int elemCnt)
 	{
-		Cast<Pointer<TType>>().Write(ptr, elemOffset);
+
+		//|  Copy3 | 7.428 ns | 0.0473 ns | 0.0395 ns |
+
+		var count = (long) Mem.GetByteCount(elemCnt, ElementSize);
+
+		Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest, count, count);
+
+		//(void*)
+
+		/*for (int i = startIndex; i < elemCnt + startIndex; i++) {
+			dest[i - startIndex] = this[i];
+		}*/
 	}
 
+	public void Copy(Pointer<T> dest, int elemCnt) => Copy(dest, OFFSET, elemCnt);
+
+	public void Copy(T[] rg, int startIndex, int elemCnt)
+	{
+		/*var       s   = rg.AsMemory();
+		using var pin = s.Pin();
+		Copy(pin.Pointer, elemCnt, startIndex);*/
+
+		// |  Copy3 | 3.690 ns | 0.0655 ns | 0.0580 ns |
+
+		for (int i = startIndex; i < elemCnt + startIndex; i++) {
+			rg[i - startIndex] = this[i];
+		}
+	}
+
+	public void Copy(T[] rg) => Copy(rg, OFFSET, rg.Length);
 
 	/// <summary>
 	///     Copies <paramref name="elemCnt" /> elements into an array of type <typeparamref name="T" />,
@@ -409,12 +433,11 @@ public unsafe struct Pointer<T> : IFormattable
 	///     the current pointer
 	/// </returns>
 	[Pure]
-	public T[] Copy(int startIndex, int elemCnt)
+	public T[] ToArray(int startIndex, int elemCnt)
 	{
 		var rg = new T[elemCnt];
 
-		for (int i = startIndex; i < elemCnt + startIndex; i++)
-			rg[i - startIndex] = this[i];
+		Copy(rg, startIndex, elemCnt);
 
 		return rg;
 	}
@@ -429,14 +452,7 @@ public unsafe struct Pointer<T> : IFormattable
 	///     the current pointer
 	/// </returns>
 	[Pure]
-	public T[] Copy(int elemCnt) => Copy(OFFSET, elemCnt);
-
-	public void CopyTo(T[] rg)
-	{
-		for (int i = 0; i < rg.Length; i++) {
-			rg[i] = this[i];
-		}
-	}
+	public T[] ToArray(int elemCnt) => ToArray(OFFSET, elemCnt);
 
 	#endregion
 

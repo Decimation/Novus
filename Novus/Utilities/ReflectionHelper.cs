@@ -51,6 +51,7 @@ public static class ReflectionHelper
 	public static FieldInfo GetAnyField(this Type t, string name) => t.GetField(name, ALL_FLAGS);
 
 	public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
+
 	public static MethodInfo GetAnyMethod(this Type t, string name, Type[] a) => t.GetMethod(name, ALL_FLAGS,a);
 
 	public static PropertyInfo GetAnyProperty(this Type t, string name) => t.GetProperty(name, ALL_FLAGS);

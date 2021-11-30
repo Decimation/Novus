@@ -8,7 +8,12 @@ using Novus.Memory.Allocation;
 
 namespace Novus.Memory;
 
-public readonly struct uarray<T> : IDisposable, IEnumerable<T>, IFormattable
+/*
+ * Some code adapted from
+ * https://github.com/ikorin24/UnmanagedArray
+ */
+
+public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 {
 	public Pointer<T> Address { get; }
 
@@ -16,18 +21,35 @@ public readonly struct uarray<T> : IDisposable, IEnumerable<T>, IFormattable
 
 	public int Size { get; }
 
-	public bool Allocator { get; }
-	public Pointer<T> AddressOf(int i)
-	{
-		ref T t = ref U.Add(ref this[i], i);
+	public bool IsAllocated => !Address.IsNull;
 
-		return new(ref t);
+	public ref T this[int i] => ref Address[i];
+
+	public UArray() : this(Mem.Nullptr, 0) { }
+
+	public UArray(Pointer<T> p, int i)
+	{
+		Address = p;
+		Length  = i;
+		Size    = (int) Mem.GetByteCount(Length, Mem.SizeOf<T>());
 	}
 
-	public void Copy(params T[] t)
+	public static implicit operator Pointer<T>(UArray<T> value) => value.Address;
+
+	public static implicit operator Pointer<byte>(UArray<T> value) => value.Address;
+
+	public Pointer<T> AddressOfIndex(int i)
+	{
+		ref T value = ref U.Add(ref this[i], i);
+
+		return new(ref value);
+	}
+
+
+	public void CopyFrom(params T[] values)
 	{
 		unsafe {
-			var memory = t.AsMemory();
+			var memory = values.AsMemory();
 
 			using var pin = memory.Pin();
 
@@ -41,36 +63,6 @@ public readonly struct uarray<T> : IDisposable, IEnumerable<T>, IFormattable
 	}
 
 
-	public static implicit operator Pointer<T>(uarray<T> x)
-	{
-		return x.Address;
-	}
-
-	public static implicit operator Pointer<byte>(uarray<T> x)
-	{
-		return x.Address;
-	}
-
-
-	public bool Allocated
-	{
-		get
-		{
-			return ((!Allocator || AllocManager.IsAllocated(this)) || !Address.IsNull) &&
-			       (Allocator || !Address.IsNull);
-		}
-	}
-
-	public uarray() : this(Mem.Nullptr, 0, false) { }
-
-	public uarray(Pointer<T> p, int i, bool allocator)
-	{
-		Address = p;
-		Length  = i;
-		Size    = (int) Mem.GetByteCount(Length, Mem.SizeOf<T>());
-		Allocator = allocator;
-	}
-
 	public void Free()
 	{
 		AllocManager.Free(Address);
@@ -79,7 +71,6 @@ public readonly struct uarray<T> : IDisposable, IEnumerable<T>, IFormattable
 			fixed (void* p = &this) {
 				U.Write<Pointer<Pointer<T>>>(p, Mem.Nullptr);
 			}
-
 		}
 	}
 
@@ -88,32 +79,111 @@ public readonly struct uarray<T> : IDisposable, IEnumerable<T>, IFormattable
 		Free();
 	}
 
-	public ref T this[int i] => ref Address[i];
 
-
-	public IEnumerator<T> GetEnumerator()
+	/// <summary>Get enumerator instance.</summary>
+	/// <returns></returns>
+	public Enumerator GetEnumerator()
 	{
-		for (int i = 0; i < Length; i++) {
-			yield return this[i];
-		}
+		return new(this);
+	}
+
+	IEnumerator<T> IEnumerable<T>.GetEnumerator()
+	{
+		// Avoid boxing by using class enumerator.
+		return new EnumeratorClass(this);
 	}
 
 	IEnumerator IEnumerable.GetEnumerator()
 	{
-		return GetEnumerator();
+		// Avoid boxing by using class enumerator.
+		return new EnumeratorClass(this);
 	}
 
 	public override string ToString()
 	{
 		return $"{Address} [{Length}]";
 	}
+	
 
-	public string ToString(string format, IFormatProvider formatProvider)
+	/// <summary>Enumerator of <see cref="UArray{T}"/></summary>
+	public struct Enumerator : IEnumerator<T>
 	{
-		return format switch
+		private readonly Pointer<T> _ptr;
+		private readonly int        _len;
+		private          int        _index;
+		
+		public T Current { get; private set; }
+
+		internal Enumerator(UArray<T> array)
 		{
-			"T" => null,
-			_   => null,
-		};
+			_ptr    = array.Address;
+			_len    = array.Length;
+			_index  = 0;
+			Current = default;
+		}
+		
+		public void Dispose() { }
+		
+		public bool MoveNext()
+		{
+			if ((uint) _index < (uint) _len) {
+				Current = _ptr[_index];
+				_index++;
+				return true;
+			}
+
+			_index  = _len + 1;
+			Current = default;
+			return false;
+		}
+
+		object IEnumerator.Current => Current;
+
+		void IEnumerator.Reset()
+		{
+			_index  = 0;
+			Current = default;
+		}
+	}
+
+	/// <summary>Enumerator of <see cref="UArray{T}"/></summary>
+	public class EnumeratorClass : IEnumerator<T>
+	{
+		private readonly Pointer<T> _ptr;
+		private readonly int        _len;
+		private          int        _index;
+		
+		public T Current { get; private set; }
+
+		internal EnumeratorClass(UArray<T> array)
+		{
+			_ptr    = array.Address;
+			_len    = array.Length;
+			_index  = 0;
+			Current = default;
+		}
+		
+		public void Dispose() { }
+
+		public bool MoveNext()
+		{
+			if ((uint) _index < (uint) _len) {
+				Current = _ptr[_index];
+				_index++;
+				return true;
+			}
+
+			_index  = _len + 1;
+			Current = default;
+			return false;
+		}
+
+		object IEnumerator.Current => Current;
+
+		void IEnumerator.Reset()
+		{
+			_index  = 0;
+			Current = default;
+		}
 	}
 }

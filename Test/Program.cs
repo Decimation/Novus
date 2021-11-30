@@ -121,16 +121,12 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		uarray<int> u;
-		Debugger.Break();
+		UArray<int> u;
 
-		u = Mem.AllocUArray<int>(6 , false);
-		u[0] = 1;
-		
-		Console.WriteLine(u);
-		Console.WriteLine(u.QuickJoin());
-		u.Free();
-
+		var         o =  GCHeap.AllocObject<List<int>>();
+		Console.WriteLine(o);
+		o.Add(1);
+		Console.WriteLine(o.QuickJoin());
 	}
 
 	private static void Test1()

@@ -84,5 +84,5 @@ internal unsafe struct CorILMethodFat
 
 	internal int LocalVarSigToken => (int) (m_localVarSigTok);
 
-	internal byte[] CodeIL => Code.Copy(CodeSize);
+	internal byte[] CodeIL => Code.ToArray(CodeSize);
 }

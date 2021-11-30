@@ -35,14 +35,50 @@ using UnitTest.TestTypes;
 namespace UnitTest;
 
 [TestFixture]
+public class Tests_GCHeap
+{
+	[Test]
+	public unsafe void GCTest()
+	{
+		var s   = "bar";
+		var ptr = Mem.AddressOfHeap(s).ToPointer();
+		Assert.True(GCHeap.IsHeapPointer(ptr));
+
+		var p = new Point();
+		Assert.False(GCHeap.IsHeapPointer(&p));
+
+		Assert.True(GCHeap.IsHeapPointer(s));
+
+
+	}
+
+	[Test]
+	public void Alloc()
+	{
+
+		var o = GCHeap.AllocObject<List<int>>();
+
+		o.Add(1);
+
+		Assert.True(o.Count == 1);
+		Assert.True(GCHeap.IsHeapPointer(o));
+
+
+	}
+}
+
+[TestFixture]
 public class Tests_UArray
 {
 	[Test]
 	public void Test1()
 	{
-		var u = Mem.AllocUArray<int>(6, false);
+		var u  = Mem.AllocUArray<int>(6);
+		var rg = new[] { 1, 2, 3, 4, 5, 6 };
+		u.CopyFrom(rg);
+		Assert.True(u.SequenceEqual(rg));
 		u.Free();
-		Assert.True(!u.Allocated);
+		Assert.True(!u.IsAllocated);
 
 	}
 }
@@ -50,21 +86,67 @@ public class Tests_UArray
 [TestFixture]
 public unsafe class Tests_NativeUtilities
 {
-
 	[Test]
 	public void NativeLibTest()
 	{
 		const nuint i = 256;
 
-		var a            = NativeMemory.Alloc(i);
+		var a = NativeMemory.Alloc(i);
 		Assert.AreEqual(Mem._msize(a), i);
 	}
-
 }
 
 [TestFixture]
 public unsafe class Tests_Pointer
 {
+	[Test]
+	public void Test3()
+	{
+		Pointer<int> p1 = stackalloc int[4];
+		Pointer<int> p2 = stackalloc int[4];
+
+		var rg2 = new[] { 1, 2, 3, 4 };
+		p1.WriteAll(rg2);
+		p1.Copy(p2, rg2.Length);
+
+		for (int i = 0; i < rg2.Length; i++) {
+			Assert.True(p1[i] == p2[i]);
+		}
+
+		p2.Clear(rg2.Length);
+		p1.Copy(p2, 1, rg2.Length - 1);
+		var rg1 = new[] { 2, 3, 4 };
+		for (int i = 1; i < rg1.Length-1; i++) {
+			Assert.True(p2[i] == p1[i+1]);
+		}
+
+
+	}
+	[Test]
+	public void Test4()
+	{
+		Pointer<int> p1  = stackalloc int[4];
+		var          rg2 = new[] { 1, 2, 3, 4 };
+		var          rg4 = new int[4];
+
+		p1.WriteAll(rg2);
+		p1.Copy(rg4);
+		Assert.True(rg2.SequenceEqual(rg4));
+		var rg3 = p1.ToArray(1, rg4.Length - 1);
+		Assert.True(rg3.SequenceEqual(new[] { 2, 3, 4 }));
+	}
+	[Test]
+	public void Test2()
+	{
+		Pointer<int> p1  = stackalloc int[4];
+		var          rg2 = new[] { 1, 2, 3, 4 };
+		p1.WriteAll(rg2);
+		var rg1 = p1.ToArray(4);
+		Assert.True(rg2.SequenceEqual(rg1));
+		var rg3 = p1.ToArray(1, rg2.Length - 1);
+		Assert.True(rg3.SequenceEqual(new[] { 2, 3, 4 }));
+	}
+
 	[Test]
 	public void Test1()
 	{
@@ -75,7 +157,7 @@ public unsafe class Tests_Pointer
 		Assert.AreEqual(ptr1.Value, i);
 		Assert.AreEqual(ptr1.Reference, i);
 
-		var          rg   = new int[] {1, 2, 3};
+		var          rg   = new int[] { 1, 2, 3 };
 		Pointer<int> ptr2 = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
 
 		fixed (int* p1 = rg) {
@@ -83,14 +165,13 @@ public unsafe class Tests_Pointer
 
 			for (int j = 0; j < rg.Length; j++) {
 				Assert.True(ptr2.Address == Marshal.UnsafeAddrOfPinnedArrayElement(rg, j));
-				Assert.True(cpy++        == ptr2++);
+				Assert.True(cpy++ == ptr2++);
 			}
 		}
 
 
 	}
 }
-
 
 [TestFixture]
 public unsafe class Tests_Resources
@@ -116,7 +197,6 @@ public unsafe class Tests_Resources
 	}
 }
 
-
 [TestFixture]
 public class Tests_Native
 {
@@ -135,9 +215,8 @@ public class Tests_Native
 	[TestCase('\u200b', "Zero Width Space")]
 	public void UnicodeNamesTest(uint id, string s)
 	{
-		Assert.AreEqual(Native.GetUnicodeName(id),s);
+		Assert.AreEqual(Native.GetUnicodeName(id), s);
 	}
-
 }
 
 [TestFixture]
@@ -199,27 +278,11 @@ public class Tests_ReflectionHelper
 	public void Test6()
 	{
 		const string foo = "foo";
-		var          a   = new {s = foo, a = 321};
+		var          a   = new { s = foo, a = 321 };
 		Assert.True(a.GetType().IsAnonymous());
 
 	}
 }
-
-[TestFixture]
-public class Tests_Meta
-{
-	public int Get1()
-	{
-		return 1;
-	}
-
-	public int Get2()
-	{
-		return 2;
-	}
-	
-}
-
 
 [TestFixture]
 public class Tests_Metadata
@@ -251,11 +314,9 @@ public class Tests_Metadata
 
 		Assert.AreEqual(c.prop, p.Value);
 
-			
 
 		//
 
-			
 
 	}
 
@@ -269,7 +330,7 @@ public class Tests_Metadata
 		p2.Value = 123;
 
 		Assert.AreEqual(Clazz.sprop, p2.Value);
-			
+
 	}
 
 
@@ -386,22 +447,7 @@ public class Tests_Metadata
 		Assert.AreEqual(mt.StaticFieldsCount, 1);
 		Assert.AreEqual(mt.InstanceFieldsSize, sizeof(char) + sizeof(int));
 	}
-	
 
-	[Test]
-	public unsafe void GCTest()
-	{
-		var s   = "bar";
-		var ptr = Mem.AddressOfHeap(s).ToPointer();
-		Assert.True(GCHeap.IsHeapPointer(ptr));
-
-		var p = new Point();
-		Assert.False(GCHeap.IsHeapPointer(&p));
-
-		Assert.True(GCHeap.IsHeapPointer(s));
-
-
-	}
 
 	[Test]
 	public unsafe void StaticTest()
@@ -413,7 +459,6 @@ public class Tests_Metadata
 
 		p.Value = 25;
 		Assert.AreEqual(p.Value, 25);
-			
 
 
 	}
@@ -467,8 +512,8 @@ public class Tests_Runtime
 		Assert.False(RuntimeProperties.IsBlittable("g"));
 
 
-		Assert.True(RuntimeProperties.IsPinnable(new int[] {1, 2, 3}));
-		Assert.False(RuntimeProperties.IsBlittable(new int[] {1, 2, 3}));
+		Assert.True(RuntimeProperties.IsPinnable(new int[] { 1, 2, 3 }));
+		Assert.False(RuntimeProperties.IsBlittable(new int[] { 1, 2, 3 }));
 	}
 
 
@@ -490,15 +535,15 @@ public class Tests_Runtime
 		string s = "foo";
 		Assert.True(RuntimeProperties.IsPinnable(s));
 
-		string[] rg = {"foo", "bar"};
+		string[] rg = { "foo", "bar" };
 		Assert.False(RuntimeProperties.IsPinnable(rg));
 
-		var rg2 = new[] {1, 2, 3};
+		var rg2 = new[] { 1, 2, 3 };
 		Assert.True(RuntimeProperties.IsPinnable(rg2));
 
 		Assert.True(RuntimeProperties.IsPinnable(1));
 
-		Assert.False(RuntimeProperties.IsPinnable(new List<int> {1, 2, 3}));
+		Assert.False(RuntimeProperties.IsPinnable(new List<int> { 1, 2, 3 }));
 	}
 
 	[Test]
@@ -515,7 +560,7 @@ public class Tests_Runtime
 
 	[Test]
 	[TestCase("foo")]
-	[TestCase(new int[] {1, 2, 3})]
+	[TestCase(new int[] { 1, 2, 3 })]
 	public void PinTest(object s)
 	{
 
@@ -523,7 +568,7 @@ public class Tests_Runtime
 
 		var p = Mem.AddressOfHeap(s);
 
-				
+
 		Mem.Pin(s);
 		Assert.False(AddPressure(p, s));
 
@@ -631,11 +676,11 @@ public class Tests_Allocator
 
 		Assert.True(AllocManager.IsAllocated(h));
 
-		Assert.AreEqual((UIntPtr)256, AllocManager.AllocSize(h));
+		Assert.AreEqual((UIntPtr) 256, AllocManager.AllocSize(h));
 
 		h = AllocManager.ReAlloc(h, 512);
 
-		Assert.AreEqual((UIntPtr)512, AllocManager.AllocSize(h));
+		Assert.AreEqual((UIntPtr) 512, AllocManager.AllocSize(h));
 
 		Assert.Throws<Exception>(() =>
 		{
@@ -670,7 +715,7 @@ public class Tests_Mem
 	public void CopyTest()
 	{
 		const string foo = "foo";
-		var          a   = new MyClass() {s = foo, a = 321};
+		var          a   = new MyClass() { s = foo, a = 321 };
 		var          a2  = Mem.CopyInstance(a);
 
 		Assert.AreEqual(a2, a);
@@ -724,7 +769,7 @@ public class Tests_Mem
 
 		IntPtr arrayFixed;
 
-		var rg = new[] {1, 2, 3};
+		var rg = new[] { 1, 2, 3 };
 
 		fixed (int* c = rg) {
 			arrayFixed = (IntPtr) c;
@@ -759,7 +804,7 @@ public class Tests_Mem
 	[Test]
 	public unsafe void SizeTest()
 	{
-		var intArray = new[] {1, 2, 3};
+		var intArray = new[] { 1, 2, 3 };
 		Assert.AreEqual(Mem.SizeOf(intArray, SizeOfOptions.Heap), 36);
 
 		var s = "foo";
@@ -825,7 +870,7 @@ public class Tests_Mem
 	[Test]
 	public void ArrayTest()
 	{
-		int[] rg = {1, 2, 3};
+		int[] rg = { 1, 2, 3 };
 
 		var ptr = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
 
@@ -837,7 +882,7 @@ public class Tests_Mem
 
 		ptr[0] = 100;
 
-		Assert.True(rg.SequenceEqual(new[] {100, 2, 3}));
+		Assert.True(rg.SequenceEqual(new[] { 100, 2, 3 }));
 	}
 
 	[Test]
@@ -902,7 +947,7 @@ public class Tests_Mem
 	[Test]
 	public void FieldTest()
 	{
-		var a = new Clazz() {s = "a"};
+		var a = new Clazz() { s = "a" };
 
 		var pointer = Mem.AddressOfField<Object, string>(a, "s");
 
@@ -912,15 +957,14 @@ public class Tests_Mem
 
 		Assert.AreEqual(a.s, "g");
 
-			
 
 	}
 
 	[Test]
 	public void SpecialReadTest()
 	{
-		var a = new Clazz {a  = 321};
-		var b = new Struct {a = 123};
+		var a = new Clazz { a  = 321 };
+		var b = new Struct { a = 123 };
 
 		var proc = Process.GetCurrentProcess();
 		var a1   = Mem.AddressOf(ref a);

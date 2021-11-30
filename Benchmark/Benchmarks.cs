@@ -19,15 +19,102 @@ using Novus.Win32.Wrappers;
 namespace TestBenchmark;
 
 [RyuJitX64Job]
-public class Benchmarks12
+public class Benchmarks13
 {
-	
-	[Benchmark]
-	public uarray<int> alloc()
+	private Pointer<int> ptr;
+
+	[GlobalSetup]
+	public void setup()
 	{
-		return Mem.AllocUArray<int>(10 , false);
+		ptr = AllocManager.Alloc<int>(3);
+		ptr.WriteAll(new[] { 1, 2, 3 });
 	}
 
+	[Benchmark]
+	public Pointer<int> AddressOfIndex()
+	{
+		return ptr.AddressOfIndex(3);
+	}
+}
+[RyuJitX64Job]
+public unsafe class Benchmarks15
+{
+	private int[]        dest1;
+	private Pointer<int> src1;
+	private int          len;
+	
+	[GlobalSetup]
+	public void setup()
+	{
+		len   = 4;
+		src1  = NativeMemory.AllocZeroed((nuint) len);
+		dest1 = new int[len];
+	}
+
+	
+
+	
+
+	[Benchmark]
+	public void Copy3()
+	{
+		src1.Copy(dest1,0, (int)len);
+	}
+
+}
+[RyuJitX64Job]
+public unsafe class Benchmarks14
+{
+	private void*         src, dest;
+	private nuint         len;
+	private Pointer<byte> src1, dest1;
+
+	[GlobalSetup]
+	public void setup()
+	{
+		len   = 256;
+		src   = NativeMemory.AllocZeroed(len);
+		dest  = NativeMemory.AllocZeroed(len);
+		src1  = src;
+		dest1 = dest;
+
+	}
+
+	[GlobalCleanup]
+	public void cleanup()
+	{
+		NativeMemory.Free(src);
+		NativeMemory.Free(dest);
+
+	}
+
+	[Benchmark]
+	public void Copy()
+	{
+		Buffer.MemoryCopy(src, dest, len, len);
+	}
+	
+	[Benchmark]
+	public void Copy3()
+	{
+		src1.Copy(dest1, (int) len);
+	}
+
+	[Benchmark]
+	public void Copy2()
+	{
+		Unsafe.CopyBlock(dest, src, (uint) len);
+	}
+}
+
+[RyuJitX64Job]
+public class Benchmarks12
+{
+	[Benchmark]
+	public UArray<int> alloc()
+	{
+		return Mem.AllocUArray<int>(10);
+	}
 }
 
 public class Benchmarks11
@@ -61,7 +148,6 @@ public class Benchmarks11
 	}
 }
 
-
 public class Benchmarks9
 {
 	private IntPtr h;
@@ -90,8 +176,6 @@ public class Benchmarks8
 		return a.GetType().IsAnonymous();
 	}
 }
-
-
 
 public class Benchmarks6
 {

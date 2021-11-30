@@ -65,7 +65,7 @@ public class SigScanner
 
 	public SigScanner(ProcessModule module) : this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
 
-	public SigScanner(Pointer<byte> p, ulong c) : this(p, c, p.Copy((int) c)) { }
+	public SigScanner(Pointer<byte> p, ulong c) : this(p, c, p.ToArray((int) c)) { }
 
 	public SigScanner(Pointer<byte> ptr, ulong size, byte[] buffer)
 	{

@@ -100,6 +100,13 @@ public static unsafe partial class Native
 		return sb.ToString();
 	}
 
+	public static IntPtr SearchForWindow(string title)
+	{
+		SearchData sd = new() { Title = title };
+		EnumWindows(EnumProc, ref sd);
+		return sd.hWnd;
+	}
+
 	internal static IntPtr CreateFile(string fileName, FileAccess access, FileShare share,
 	                                  FileMode mode, FileAttributes attributes)
 	{

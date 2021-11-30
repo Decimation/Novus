@@ -418,7 +418,7 @@ public static unsafe class Mem
 		fixed (char* p = s) {
 			Pointer p2 = p;
 
-			p2.CopyTo(rg);
+			p2.Copy(rg);
 		}
 
 		return rg;
@@ -482,14 +482,14 @@ public static unsafe class Mem
 		return t2;
 	}
 
-	public static void Copy(Pointer src, int cb, Pointer dest) => dest.WriteAll(src.Copy(cb));
+	public static void Copy(Pointer src, int cb, Pointer dest) => dest.WriteAll(src.ToArray(cb));
 
 	public static void Copy(Pointer src, int startIndex, int cb, Pointer dest)
-		=> dest.WriteAll(src.Copy(startIndex, cb));
+		=> dest.WriteAll(src.ToArray(startIndex, cb));
 
-	public static byte[] Copy(Pointer src, int startIndex, int cb) => src.Copy(startIndex, cb);
+	public static byte[] Copy(Pointer src, int startIndex, int cb) => src.ToArray(startIndex, cb);
 
-	public static byte[] Copy(Pointer src, int cb) => src.Copy(cb);
+	public static byte[] Copy(Pointer src, int cb) => src.ToArray(cb);
 
 	#endregion
 
@@ -955,18 +955,15 @@ public static unsafe class Mem
 
 	#endregion
 
-	public static uarray<T> AllocUArray<T>(int s, bool useManager)
+	public static UArray<T> AllocUArray<T>(int s)
 	{
 		Pointer<T> ptr;
 
-		if (useManager) {
-			ptr = AllocManager.Alloc<T>(s);
-		}
-		else {
+		
 			ptr = NativeMemory.AllocZeroed((nuint) s, (nuint)U.SizeOf<T>());
-		}
+		
 
-		var u = new uarray<T>(ptr, s, useManager);
+		var u = new UArray<T>(ptr, s);
 
 		return u;
 	}

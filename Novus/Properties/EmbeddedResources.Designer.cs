@@ -88,6 +88,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05.
+        /// </summary>
+        internal static string Sig_AllocObject {
+            get {
+                return ResourceManager.GetString("Sig_AllocObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 48 8B 41 28 A8 02 74 04 48 8B 40 26 C3.
         /// </summary>
         internal static string Sig_GetEEClass {

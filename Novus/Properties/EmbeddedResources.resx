@@ -128,6 +128,10 @@
   <data name="RequiredVersion" xml:space="preserve">
     <value>6.0.0</value>
   </data>
+  <data name="Sig_AllocObject" xml:space="preserve">
+    <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05</value>
+    <comment>AllocateObject</comment>
+  </data>
   <data name="Sig_GetEEClass" xml:space="preserve">
     <value>48 8B 41 28 A8 02 74 04 48 8B 40 26 C3</value>
     <comment>MethodTable::GetClass</comment>

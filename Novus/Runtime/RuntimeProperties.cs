@@ -266,7 +266,7 @@ public static unsafe class RuntimeProperties
 		var ptr = Mem.AddressOfData(ref t);
 		int s   = Mem.SizeOf(t, SizeOfOptions.BaseFields);
 
-		bool b = ptr.Copy(s).All(x => x == 0);
+		bool b = ptr.ToArray(s).All(x => x == 0);
 
 		return b;
 	}

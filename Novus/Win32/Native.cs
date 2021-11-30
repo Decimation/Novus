@@ -479,12 +479,7 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
 	private static extern int GetWindowTextLength(IntPtr hWnd);
 
-	public static IntPtr SearchForWindow(string title)
-	{
-		SearchData sd = new() { Title = title };
-		EnumWindows(EnumProc, ref sd);
-		return sd.hWnd;
-	}
+	
 
 	private class SearchData
 	{

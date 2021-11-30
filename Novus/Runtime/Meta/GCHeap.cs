@@ -3,8 +3,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
+using Kantan.Diagnostics;
+using Kantan.Native;
 using Novus.Imports;
 using Novus.Memory;
+using Novus.Runtime.VM;
 using Novus.Utilities;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -28,11 +31,34 @@ public static unsafe class GCHeap
 		Global.Clr.LoadImports(typeof(GCHeap));
 	}
 
-	public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class =>
-		IsHeapPointer(Mem.AddressOfHeap(t), smallHeapOnly);
+	public static bool IsHeapPointer<T>(T t, bool smallHeapOnly = false) where T : class
+		=> IsHeapPointer(Mem.AddressOfHeap(t), smallHeapOnly);
 
-	public static bool IsHeapPointer(Pointer<byte> ptr, bool smallHeapOnly = false) =>
-		Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
+	public static bool IsHeapPointer(Pointer<byte> ptr, bool smallHeapOnly = false)
+		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
+
+	private static Pointer AllocObject(Pointer<MethodTable> t, BOOL b = BOOL.FALSE)
+		=> Func_AllocObject((MethodTable*) t, b);
+
+	public static object AllocObject(MetaType type, params object[] args)
+	{
+		Guard.Assert(!type.RuntimeType.IsValueType);
+
+		var ptr = (void*) AllocObject(type.Value);
+		var obj = U.Read<object>(&ptr);
+
+		ReflectionHelper.CallConstructor(obj, args);
+
+		return obj;
+	}
+
+	public static T AllocObject<T>(params object[] args) where T : class
+	{
+		var ptr = AllocObject(typeof(T), args);
+		var obj = U.As<T>(ptr);
+		
+		return obj;
+	}
 
 	/// <summary>
 	/// <c>g_pGCHeap</c>
@@ -45,5 +71,11 @@ public static unsafe class GCHeap
 	/// </summary>
 	[field: ImportClr("Ofs_IsHeapPointer", UnmanagedImportType.Offset)]
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
-	
+
+
+	/// <summary>
+	/// <see cref="IsHeapPointer"/>
+	/// </summary>
+	[field: ImportClr("Sig_AllocObject")]
+	private static delegate* unmanaged<MethodTable*, BOOL, void*> Func_AllocObject { get; }
 }

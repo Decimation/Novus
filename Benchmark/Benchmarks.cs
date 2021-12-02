@@ -36,13 +36,33 @@ public class Benchmarks13
 		return ptr.AddressOfIndex(3);
 	}
 }
+
+
+[RyuJitX64Job]
+public class Benchmarks16
+{
+	[GlobalSetup]
+	public void setup()
+	{
+		Global.Setup();
+		RuntimeHelpers.RunClassConstructor(typeof(GCHeap).TypeHandle);
+	}
+
+	[Benchmark]
+	public bool test1()
+	{
+		return GCHeap.IsHeapPointer("foo");
+	}
+}
+
+
 [RyuJitX64Job]
 public unsafe class Benchmarks15
 {
 	private int[]        dest1;
 	private Pointer<int> src1;
 	private int          len;
-	
+
 	[GlobalSetup]
 	public void setup()
 	{
@@ -51,17 +71,14 @@ public unsafe class Benchmarks15
 		dest1 = new int[len];
 	}
 
-	
-
-	
 
 	[Benchmark]
 	public void Copy3()
 	{
-		src1.Copy(dest1,0, (int)len);
+		src1.Copy(dest1, 0, (int) len);
 	}
-
 }
+
 [RyuJitX64Job]
 public unsafe class Benchmarks14
 {
@@ -93,7 +110,7 @@ public unsafe class Benchmarks14
 	{
 		Buffer.MemoryCopy(src, dest, len, len);
 	}
-	
+
 	[Benchmark]
 	public void Copy3()
 	{
@@ -114,37 +131,6 @@ public class Benchmarks12
 	public UArray<int> alloc()
 	{
 		return Mem.AllocUArray<int>(10);
-	}
-}
-
-public class Benchmarks11
-{
-	private int i;
-
-	private Pointer<int>         ptr;
-	private ReadOnlyPointer<int> ptr2;
-
-	[GlobalSetup]
-	public void Setup()
-	{
-		unsafe {
-			fixed (int* p = &i) {
-				ptr  = p;
-				ptr2 = p;
-			}
-		}
-	}
-
-	[Benchmark]
-	public int Normal()
-	{
-		return ptr.Value;
-	}
-
-	[Benchmark]
-	public int ReadOnly()
-	{
-		return ptr2.Value;
 	}
 }
 

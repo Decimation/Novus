@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Novus.Memory.Allocation;
 
 namespace Novus.Memory;
@@ -12,7 +13,7 @@ namespace Novus.Memory;
  * Some code adapted from
  * https://github.com/ikorin24/UnmanagedArray
  */
-
+[StructLayout(LayoutKind.Sequential)]
 public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 {
 	public Pointer<T> Address { get; }
@@ -68,12 +69,15 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 		AllocManager.Free(Address);
 
 		unsafe {
-			fixed (void* p = &this) {
+			fixed (UArray<T>* p = &this) {
+				//hack
 				U.Write<Pointer<Pointer<T>>>(p, Mem.Nullptr);
 			}
+			
 		}
 	}
 
+	
 	public void Dispose()
 	{
 		Free();
@@ -82,21 +86,18 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 
 	/// <summary>Get enumerator instance.</summary>
 	/// <returns></returns>
-	public Enumerator GetEnumerator()
-	{
-		return new(this);
-	}
+	public UArrayEnumerator GetEnumerator() => new(this);
 
 	IEnumerator<T> IEnumerable<T>.GetEnumerator()
 	{
 		// Avoid boxing by using class enumerator.
-		return new EnumeratorClass(this);
+		return new UArrayEnumeratorClass(this);
 	}
 
 	IEnumerator IEnumerable.GetEnumerator()
 	{
 		// Avoid boxing by using class enumerator.
-		return new EnumeratorClass(this);
+		return new UArrayEnumeratorClass(this);
 	}
 
 	public override string ToString()
@@ -106,7 +107,7 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 	
 
 	/// <summary>Enumerator of <see cref="UArray{T}"/></summary>
-	public struct Enumerator : IEnumerator<T>
+	public struct UArrayEnumerator : IEnumerator<T>
 	{
 		private readonly Pointer<T> _ptr;
 		private readonly int        _len;
@@ -114,7 +115,7 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 		
 		public T Current { get; private set; }
 
-		internal Enumerator(UArray<T> array)
+		internal UArrayEnumerator(UArray<T> array)
 		{
 			_ptr    = array.Address;
 			_len    = array.Length;
@@ -147,7 +148,7 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 	}
 
 	/// <summary>Enumerator of <see cref="UArray{T}"/></summary>
-	public class EnumeratorClass : IEnumerator<T>
+	public sealed class UArrayEnumeratorClass : IEnumerator<T>
 	{
 		private readonly Pointer<T> _ptr;
 		private readonly int        _len;
@@ -155,7 +156,7 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 		
 		public T Current { get; private set; }
 
-		internal EnumeratorClass(UArray<T> array)
+		internal UArrayEnumeratorClass(UArray<T> array)
 		{
 			_ptr    = array.Address;
 			_len    = array.Length;

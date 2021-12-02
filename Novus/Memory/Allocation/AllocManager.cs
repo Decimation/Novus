@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
@@ -29,7 +30,7 @@ public static class AllocManager
 
 	public static IAllocator Allocator { get; set; } = new NativeAllocator();
 
-	private static readonly List<Pointer> Allocated = new();
+	private static List<Pointer> Allocated { get; } = new();
 
 	public static int AllocCount => Allocated.Count;
 
@@ -42,13 +43,13 @@ public static class AllocManager
 
 	public static bool IsAllocated(Pointer ptr) => Allocated.Contains(ptr);
 
-	public static nuint AllocSize(Pointer ptr)
+	public static nuint GetSize(Pointer ptr)
 	{
 		if (!IsAllocated(ptr)) {
 			return Native.INVALID2;
 		}
 
-		return (nuint) Allocator.AllocSize(ptr);
+		return (nuint) Allocator.GetSize(ptr);
 	}
 
 	[MustUseReturnValue]

@@ -5,6 +5,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
+    <EnablePreviewFeatures>True</EnablePreviewFeatures>
+    <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute>
     <NoWarn>
       HAA0601
       HAA0601,

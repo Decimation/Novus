@@ -100,6 +100,28 @@ public unsafe class Tests_NativeUtilities
 public unsafe class Tests_Pointer
 {
 	[Test]
+	public void Test5()
+	{
+		Span<int>    s = stackalloc int[4] { 1, 2, 3, 4 };
+		Pointer<int> p = s;
+		Assert.AreEqual(s[0], p[0]);
+		p++;
+		Assert.AreEqual(s[1], p.Value);
+
+		var rg2 = new string[] { "foo", "bar" };
+		var rg  = new[] { 1, 2, 3, 4 };
+
+		var p2       = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
+		var asMemory = rg.AsMemory();
+		var pin      = asMemory.Pin();
+
+		Assert.True(pin.Pointer == p2.ToPointer());
+
+		var p3 = Mem.AddressOfHeap(rg2, OffsetOptions.ArrayData).Cast<string>();
+		Assert.True(p3.Value == rg2[0]);
+	}
+
+	[Test]
 	public void Test3()
 	{
 		Pointer<int> p1 = stackalloc int[4];
@@ -116,12 +138,14 @@ public unsafe class Tests_Pointer
 		p2.Clear(rg2.Length);
 		p1.Copy(p2, 1, rg2.Length - 1);
 		var rg1 = new[] { 2, 3, 4 };
-		for (int i = 1; i < rg1.Length-1; i++) {
-			Assert.True(p2[i] == p1[i+1]);
+
+		for (int i = 1; i < rg1.Length - 1; i++) {
+			Assert.True(p2[i] == p1[i + 1]);
 		}
 
 
 	}
+
 	[Test]
 	public void Test4()
 	{
@@ -135,6 +159,7 @@ public unsafe class Tests_Pointer
 		var rg3 = p1.ToArray(1, rg4.Length - 1);
 		Assert.True(rg3.SequenceEqual(new[] { 2, 3, 4 }));
 	}
+
 	[Test]
 	public void Test2()
 	{
@@ -676,11 +701,11 @@ public class Tests_Allocator
 
 		Assert.True(AllocManager.IsAllocated(h));
 
-		Assert.AreEqual((UIntPtr) 256, AllocManager.AllocSize(h));
+		Assert.AreEqual((UIntPtr) 256, AllocManager.GetSize(h));
 
 		h = AllocManager.ReAlloc(h, 512);
 
-		Assert.AreEqual((UIntPtr) 512, AllocManager.AllocSize(h));
+		Assert.AreEqual((UIntPtr) 512, AllocManager.GetSize(h));
 
 		Assert.Throws<Exception>(() =>
 		{

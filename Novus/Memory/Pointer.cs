@@ -322,7 +322,8 @@ public unsafe struct Pointer<T> : IFormattable
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private void* Offset(int elemCnt)
 	{
-		return (void*) ((long) m_value + (long) Mem.GetByteCount(ElementSize, elemCnt));
+		// return (void*) ((long) m_value + (long) Mem.GetByteCount(ElementSize, elemCnt));
+		return U.Add<T>(m_value, elemCnt);
 	}
 
 	[Pure]
@@ -391,14 +392,12 @@ public unsafe struct Pointer<T> : IFormattable
 
 	public void Copy(Pointer<T> dest, int startIndex, int elemCnt)
 	{
-
 		//|  Copy3 | 7.428 ns | 0.0473 ns | 0.0395 ns |
 
 		var count = (long) Mem.GetByteCount(elemCnt, ElementSize);
 
-		Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest, count, count);
-
-		//(void*)
+		Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest, 
+		                  count, count);
 
 		/*for (int i = startIndex; i < elemCnt + startIndex; i++) {
 			dest[i - startIndex] = this[i];

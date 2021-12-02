@@ -314,5 +314,5 @@ public static unsafe class RuntimeProperties
 
 	#endregion
 
-	public static CorElementType GetCorElementType(Type t) => Func_GetCorType(t);
+	public static CorElementType GetCorElementType(this Type t) => Func_GetCorType(t);
 }

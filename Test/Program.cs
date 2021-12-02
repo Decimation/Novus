@@ -4,6 +4,8 @@
 
 global using U = System.Runtime.CompilerServices.Unsafe;
 global using M = Novus.Memory.Mem;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Versioning;
 using Kantan.Text;
 using Novus.Memory;
 #pragma warning disable IDE0005, CS0436
@@ -121,12 +123,40 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		UArray<int> u;
+		UArray<int> u = M.AllocUArray<int>(4);
 
-		var         o =  GCHeap.AllocObject<List<int>>();
+		u.Dispose();
+
+
+		var o = GCHeap.AllocObject<List<int>>();
 		Console.WriteLine(o);
 		o.Add(1);
 		Console.WriteLine(o.QuickJoin());
+		Console.WriteLine(typeof(float).IsSigned());
+
+		var s      = new List<int>() { 1, 2, 3 };
+		var format = ReflectionHelper.Clone(s);
+		Console.WriteLine(s.QuickJoin());
+		Console.WriteLine(format.QuickJoin());
+		Console.WriteLine(M.AddressOfHeap(s));
+		Console.WriteLine(M.AddressOfHeap(format));
+
+		Pointer<int> p = stackalloc int[4] { 1, 2, 3, 4 };
+		Console.WriteLine(p.Read(2));
+	}
+
+	[RequiresPreviewFeatures]
+	public interface IParseable<TSelf>
+		where TSelf : IParseable<TSelf>
+	{
+		static abstract TSelf Parse(string s, IFormatProvider provider);
+
+		static abstract bool TryParse([NotNullWhen(true)] string s, IFormatProvider provider, out TSelf result);
+	}
+
+	struct MyStruct
+	{
+		fixed byte i[256];
 	}
 
 	private static void Test1()

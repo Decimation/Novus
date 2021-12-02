@@ -93,16 +93,11 @@ public static unsafe class Mem
 	public static bool Is64Bit => Environment.Is64BitProcess;
 
 
-
-
 	/// <summary>
 	///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
 	/// </summary>
 	/// <param name="name">Field name</param>
-	public static int OffsetOf<T>(string name)
-	{
-		return OffsetOf(typeof(T), name);
-	}
+	public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
 
 	/// <summary>
 	///     Returns the offset of the field <paramref name="name" /> within the type <paramref name="t" />.
@@ -111,7 +106,7 @@ public static unsafe class Mem
 	/// <param name="name">Field name</param>
 	public static int OffsetOf(Type t, string name)
 	{
-		MetaField f = t.GetAnyResolvedField(name).AsMetaField();
+		MetaField f = t.GetAnyResolvedField(name);
 
 		return f.Offset;
 	}
@@ -472,7 +467,7 @@ public static unsafe class Mem
 		var t2 = Activator.CreateInstance<T>();
 
 		Pointer p  = AddressOfData(ref t);
-		int           s  = SizeOf(t, SizeOfOptions.Data);
+		int     s  = SizeOf(t, SizeOfOptions.Data);
 		Pointer p2 = AddressOfData(ref t2);
 
 		//p2.WriteAll(p.Copy(s));
@@ -699,7 +694,8 @@ public static unsafe class Mem
 		return true;
 	}
 
-	public static bool TryGetAddressOfHeap<T>(T value, out Pointer ptr) => TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
+	public static bool TryGetAddressOfHeap<T>(T value, out Pointer ptr)
+		=> TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
 
 	/// <summary>
 	///     Returns the address of reference type <paramref name="value" />'s heap memory, offset by the specified
@@ -955,13 +951,10 @@ public static unsafe class Mem
 
 	#endregion
 
+	[MustUseReturnValue]
 	public static UArray<T> AllocUArray<T>(int s)
 	{
-		Pointer<T> ptr;
-
-		
-			ptr = NativeMemory.AllocZeroed((nuint) s, (nuint)U.SizeOf<T>());
-		
+		Pointer<T> ptr = NativeMemory.AllocZeroed((nuint) s, (nuint) U.SizeOf<T>());
 
 		var u = new UArray<T>(ptr, s);
 

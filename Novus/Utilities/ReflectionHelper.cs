@@ -52,7 +52,7 @@ public static class ReflectionHelper
 
 	public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
 
-	public static MethodInfo GetAnyMethod(this Type t, string name, Type[] a) => t.GetMethod(name, ALL_FLAGS,a);
+	public static MethodInfo GetAnyMethod(this Type t, string name, Type[] a) => t.GetMethod(name, ALL_FLAGS, a);
 
 	public static PropertyInfo GetAnyProperty(this Type t, string name) => t.GetProperty(name, ALL_FLAGS);
 
@@ -88,6 +88,49 @@ public static class ReflectionHelper
 		        where Attribute.IsDefined(member, typeof(TAttribute))
 		        select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
 	}
+
+	[return: MaybeNull]
+	public static ConstructorInfo GetConstructor(this Type type, params object[] args)
+	{
+		if (args.Length == 0) {
+			var ctor = type.GetConstructor(Type.EmptyTypes);
+
+			return ctor;
+		}
+
+		var ctors    = type.GetConstructors();
+		var argTypes = args.Select(x => x.GetType()).ToArray();
+
+		foreach (var ctor in ctors) {
+			var paramz = ctor.GetParameters();
+
+
+			if (paramz.Length == args.Length) {
+				if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
+					return ctor;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public static T GetStaticValue<T>(this PropertyInfo p)
+	{
+		return (T) p.GetValue(null);
+	}
+
+	public static T GetStaticValue<T>(this FieldInfo p)
+	{
+		return (T) p.GetValue(null);
+	}
+
+	public static Type[] GetAllSubclasses(this Type superType)
+		=> GetAllWhere(superType, myType => myType.ExtendsType(superType));
+
+
+	public static Type[] GetAllImplementations(this Type interfaceType)
+		=> GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
 
 	#endregion
 
@@ -153,13 +196,6 @@ public static class ReflectionHelper
 
 	#region Properties
 
-	public static Type[] GetAllSubclasses(this Type superType)
-		=> GetAllWhere(superType, myType => myType.ExtendsType(superType));
-
-
-	public static Type[] GetAllImplementations(this Type interfaceType)
-		=> GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
-
 	public static bool ExtendsType(this Type myType, Type superType)
 	{
 		return myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(superType);
@@ -195,7 +231,7 @@ public static class ReflectionHelper
 
 		return b || b2 || b3;
 	}
-	
+
 	public static bool IsReal(this Type t)
 	{
 		var c = Type.GetTypeCode(t);
@@ -243,32 +279,6 @@ public static class ReflectionHelper
 	}
 
 	public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
-
-	[return: MaybeNull]
-	public static ConstructorInfo GetConstructor(this Type type, params object[] args)
-	{
-		if (args.Length == 0) {
-			var ctor = type.GetConstructor(Type.EmptyTypes);
-
-			return ctor;
-		}
-
-		var ctors    = type.GetConstructors();
-		var argTypes = args.Select(x => x.GetType()).ToArray();
-
-		foreach (var ctor in ctors) {
-			var paramz = ctor.GetParameters();
-
-
-			if (paramz.Length == args.Length) {
-				if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
-					return ctor;
-				}
-			}
-		}
-
-		return null;
-	}
 
 	#endregion
 
@@ -377,7 +387,15 @@ public static class ReflectionHelper
 
 	#endregion
 
-	public static T Consolidate<T>(T current, IList<T> values)
+	public static T Clone<T>(T t) where T : class
+	{
+		var f  = t.GetType().GetAnyMethod("MemberwiseClone");
+		var r  = f.Invoke(t, Array.Empty<object>());
+		var t2 = Unsafe.As<T>(r);
+		return t2;
+	}
+
+	public static T Consolidate<T>(T current, IList<object> values)
 	{
 		var fields = typeof(T).GetRuntimeFields()
 		                      .Where(f => !f.IsStatic);
@@ -402,16 +420,6 @@ public static class ReflectionHelper
 		}
 
 		return current;
-	}
-
-	public static T GetStaticValue<T>(this PropertyInfo p)
-	{
-		return (T) p.GetValue(null);
-	}
-
-	public static T GetStaticValue<T>(this FieldInfo p)
-	{
-		return (T) p.GetValue(null);
 	}
 
 	public static void Assign<T>(this Type t, string name, T val, object obj = null)

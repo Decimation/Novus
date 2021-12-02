@@ -18,7 +18,7 @@ public sealed class UnmanagedAllocator : IAllocator
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.cs
 	 */
 
-	public nuint AllocSize(Pointer ptr) => (nuint) Native.LocalSize(ptr.Address);
+	public nuint GetSize(Pointer ptr) => (nuint) Native.LocalSize(ptr.Address);
 
 	[MustUseReturnValue]
 	public Pointer ReAlloc(Pointer ptr, nuint cb)
@@ -29,8 +29,6 @@ public sealed class UnmanagedAllocator : IAllocator
 
 	public void Free(Pointer ptr) => Marshal.FreeHGlobal(ptr.Address);
 
-
-	
 	[MustUseReturnValue]
 	public Pointer Alloc(nuint cb) => Marshal.AllocHGlobal((int) cb);
 }

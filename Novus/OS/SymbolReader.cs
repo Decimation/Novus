@@ -11,8 +11,10 @@ using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Wrappers;
 using Novus.Properties;
+// ReSharper disable UnusedParameter.Local
 
 // ReSharper disable InconsistentNaming
+#pragma warning disable IDE0060
 
 #pragma warning disable CS0618
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
@@ -27,7 +29,7 @@ public sealed class SymbolReader : IDisposable
 
 	private ulong m_modBase;
 
-	public bool AllLoaded => m_modBase != 0 && Symbols is { };
+	public bool AllLoaded => m_modBase != 0 && Symbols.Any();
 
 	public string Image { get; }
 

@@ -11,6 +11,7 @@ using Novus.OS.Win32.Structures;
 
 namespace Novus.OS;
 
+
 public sealed class KeyboardListener : IDisposable
 {
 	public KeyboardListener() : this(IntPtr.Zero) { }

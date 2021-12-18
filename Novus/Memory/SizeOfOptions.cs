@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using Novus.OS.Win32;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
@@ -22,7 +23,7 @@ public enum SizeOfOptions
 	///     <para> Equals <see cref="Marshal.SizeOf(System.Type)" /></para>
 	///     <para> Equals <see cref="StructLayoutAttribute.Size" /> when type isn't zero-sized.</para>
 	/// </remarks>
-	/// <returns>The native size if the type has a native representation; <see cref="Win32.Native.INVALID" /> otherwise</returns>
+	/// <returns>The native size if the type has a native representation; <see cref="OS.Win32.Native.INVALID" /> otherwise</returns>
 	Native,
 
 	/// <summary>
@@ -33,7 +34,7 @@ public enum SizeOfOptions
 	///     <para>Returned from <see cref="EEClassLayoutInfo.ManagedSize" /></para>
 	/// </remarks>
 	/// <returns>
-	///     Managed size if the type has an <see cref="EEClassLayoutInfo" />; <see cref="Win32.Native.INVALID" />
+	///     Managed size if the type has an <see cref="EEClassLayoutInfo" />; <see cref="OS.Win32.Native.INVALID" />
 	///     otherwise
 	/// </returns>
 	Managed,

@@ -23,12 +23,13 @@ using Kantan.Diagnostics;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Memory.Allocation;
+using Novus.OS.Win32;
+using Novus.OS.Win32.Structures;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
-using Novus.Win32.Structures;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming

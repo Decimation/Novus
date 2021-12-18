@@ -1,5 +1,6 @@
 ﻿using System;
 using Novus.Memory;
+using Novus.OS.Win32;
 using Novus.Win32;
 // ReSharper disable IdentifierTypo
 

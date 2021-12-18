@@ -7,11 +7,12 @@ using BenchmarkDotNet.Attributes;
 using Novus;
 using Novus.Memory;
 using Novus.Memory.Allocation;
+using Novus.OS.Win32;
+using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Wrappers;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
-using Novus.Win32.Structures;
-using Novus.Win32.Wrappers;
 
 // ReSharper disable InconsistentNaming
 

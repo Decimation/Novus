@@ -1,5 +1,6 @@
 ﻿global using Pointer = Novus.Memory.Pointer<byte>;
 using System.Runtime.InteropServices;
+using Novus.OS.Win32.Structures;
 #nullable enable
 using System;
 using System.Globalization;
@@ -7,7 +8,6 @@ using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Kantan.Text;
 using Kantan.Utilities;
-using Novus.Win32.Structures;
 
 // ReSharper disable UnusedMember.Global
 

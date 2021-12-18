@@ -5,6 +5,7 @@
 global using U = System.Runtime.CompilerServices.Unsafe;
 global using M = Novus.Memory.Mem;
 using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.Runtime.Versioning;
 using Kantan.Text;
 using Novus.Memory;
@@ -38,8 +39,6 @@ using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
-using Novus.Win32.Structures;
-using Novus.Win32.Wrappers;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
 using Novus.Memory.Allocation;
@@ -127,37 +126,22 @@ public static unsafe class Program
 
 		u.Dispose();
 
+		dynamic o = new ExpandoObject();
 
-		var o = GCHeap.AllocObject<List<int>>();
+		// o.a = (Func<int>) (() => { return 1; });
+		var dictionary = (IDictionary<string, object>) o;
+		dictionary.Add("a", 1);
+
 		Console.WriteLine(o);
-		o.Add(1);
-		Console.WriteLine(o.QuickJoin());
-		Console.WriteLine(typeof(float).IsSigned());
-
-		var s      = new List<int>() { 1, 2, 3 };
-		var format = ReflectionHelper.Clone(s);
-		Console.WriteLine(s.QuickJoin());
-		Console.WriteLine(format.QuickJoin());
-		Console.WriteLine(M.AddressOfHeap(s));
-		Console.WriteLine(M.AddressOfHeap(format));
-
-		Pointer<int> p = stackalloc int[4] { 1, 2, 3, 4 };
-		Console.WriteLine(p.Read(2));
+		Console.WriteLine(o.a);
+		
 	}
 
-	[RequiresPreviewFeatures]
-	public interface IParseable<TSelf>
-		where TSelf : IParseable<TSelf>
+	interface IInterface
 	{
-		static abstract TSelf Parse(string s, IFormatProvider provider);
-
-		static abstract bool TryParse([NotNullWhen(true)] string s, IFormatProvider provider, out TSelf result);
+		public int a { get; }
 	}
 
-	struct MyStruct
-	{
-		fixed byte i[256];
-	}
 
 	private static void Test1()
 	{

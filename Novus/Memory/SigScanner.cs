@@ -112,7 +112,7 @@ public class SigScanner
 
 	private const byte UNKNOWN_BYTE = 0x0;
 
-
+	//todo: Convert.To/FromHexString
 	public static byte[] ReadSignature(string pattern)
 	{
 		string[] strByteArr = pattern.Split(' ');

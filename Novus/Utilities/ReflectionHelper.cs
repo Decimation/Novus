@@ -44,6 +44,9 @@ public static class ReflectionHelper
 
 	#region Members
 
+	public static IEnumerable<FieldInfo>  GetAllFields(this Type t)  => t.GetFields(ALL_FLAGS);
+	public static IEnumerable<MethodInfo> GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
+
 	public static IEnumerable<MemberInfo> GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
 
 	public static IEnumerable<MemberInfo> GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);

@@ -11,6 +11,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using Kantan.Model;
 using Kantan.Utilities;
+using Novus.OS.Win32;
 
 // ReSharper disable ConvertIfStatementToConditionalTernaryExpression
 

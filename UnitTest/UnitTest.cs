@@ -23,6 +23,7 @@ using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
 using Kantan.Numeric;
 using Novus.Memory.Allocation;
+using Novus.OS.Win32;
 using UnitTest.TestTypes;
 
 // ReSharper disable StringLiteralTypo

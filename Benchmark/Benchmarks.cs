@@ -7,12 +7,12 @@ using BenchmarkDotNet.Attributes;
 using Novus;
 using Novus.Memory;
 using Novus.Memory.Allocation;
+using Novus.OS;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Wrappers;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
-using Novus.Win32;
 
 // ReSharper disable InconsistentNaming
 
@@ -382,14 +382,14 @@ public class Benchmarks
 		return sl.GetSymbol("g_pGCHeap");
 	}
 
-	private SymbolLoader sl;
+	private SymbolReader sl;
 
 	[GlobalSetup]
 	public void GlobalSetup()
 	{
 
 		Global.Setup();
-		sl = new SymbolLoader(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb");
+		sl = new SymbolReader(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb");
 		sl.LoadAll();
 	}
 

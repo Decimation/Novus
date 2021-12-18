@@ -3,7 +3,6 @@ using Novus.Imports;
 using Novus.Memory;
 using Novus.Properties;
 using Novus.Utilities;
-using Novus.Win32;
 using Kantan.Diagnostics;
 using System;
 using System.Collections.Generic;
@@ -13,6 +12,7 @@ using System.IO;
 using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
+using Novus.OS;
 using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable UnusedMember.Local
@@ -41,7 +41,7 @@ public class Resource : IDisposable
 
 	public Lazy<SigScanner> Scanner { get; }
 
-	public Lazy<SymbolLoader> Symbols { get; }
+	public Lazy<SymbolReader> Symbols { get; }
 
 	public bool LoadedModule { get; private init; }
 
@@ -62,7 +62,7 @@ public class Resource : IDisposable
 		Module       = module;
 		Scanner      = new Lazy<SigScanner>(() => new SigScanner(Module));
 		Address      = Module.BaseAddress;
-		Symbols      = new Lazy<SymbolLoader>(() => pdb is not null ? new SymbolLoader(pdb) : null);
+		Symbols      = new Lazy<SymbolReader>(() => pdb is not null ? new SymbolReader(pdb) : null);
 		LoadedModule = false;
 	}
 

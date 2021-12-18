@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Kantan.Model;
 using Kantan.Text;
-using Kantan.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
@@ -10,7 +8,7 @@ using Kantan.Utilities;
 #nullable enable
 
 
-namespace Novus.Win32;
+namespace Novus.OS;
 /*
  * https://github.com/cdgriffith/puremagic/blob/master/puremagic/magic_data.json
  */

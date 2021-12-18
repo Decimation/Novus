@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Novus.OS.Win32.Structures;
+// ReSharper disable IdentifierTypo
+// ReSharper disable InconsistentNaming
 
 namespace Novus.OS.Win32;
 

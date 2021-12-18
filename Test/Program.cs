@@ -6,9 +6,11 @@ global using U = System.Runtime.CompilerServices.Unsafe;
 global using M = Novus.Memory.Mem;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.Resources;
 using System.Runtime.Versioning;
 using Kantan.Text;
 using Novus.Memory;
+using Novus.OS.Win32;
 #pragma warning disable IDE0005, CS0436
 using System;
 using System.Buffers;
@@ -38,7 +40,6 @@ using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
-using Novus.Win32;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
 using Novus.Memory.Allocation;
@@ -127,13 +128,20 @@ public static unsafe class Program
 		u.Dispose();
 
 		dynamic o = new ExpandoObject();
-
+		ReflectionHelper.AddMember((ExpandoObject)o, "f", 1);
 		// o.a = (Func<int>) (() => { return 1; });
 		var dictionary = (IDictionary<string, object>) o;
 		dictionary.Add("a", 1);
 
 		Console.WriteLine(o);
+		Console.WriteLine(o);
 		Console.WriteLine(o.a);
+		ResourceReader r;
+
+		Console.WriteLine(Native.GetUnicodeName('A'));
+
+		const nuint n = 1;
+		Console.WriteLine(Native.INVALID2.ToString("X"));
 		
 	}
 

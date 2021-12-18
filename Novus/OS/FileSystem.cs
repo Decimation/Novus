@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
-using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
@@ -28,7 +27,7 @@ using Novus.OS.Win32.Structures;
 #nullable enable
 
 
-namespace Novus.Win32;
+namespace Novus.OS;
 
 /// <summary>
 ///     Utilities for working with the file system, files, etc.

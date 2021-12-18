@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
@@ -11,7 +9,7 @@ using Novus.OS.Win32.Structures;
 
 // ReSharper disable EmptyDestructor
 
-namespace Novus.Win32;
+namespace Novus.OS;
 
 public sealed class KeyboardListener : IDisposable
 {

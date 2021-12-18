@@ -1,10 +1,15 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Text;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
 
-namespace Novus.Win32;
+namespace Novus.OS;
+
+/*
+ * Adapted from
+ * https://stackoverflow.com/questions/2087682/finding-out-unicode-character-name-in-net
+ */
+
 
 public sealed class Win32ResourceReader : IDisposable
 {
@@ -13,12 +18,11 @@ public sealed class Win32ResourceReader : IDisposable
 	public Win32ResourceReader(string filename)
 	{
 		m_hModule = Native.LoadLibraryEx(filename, LoadLibraryFlags.AsDataFile | LoadLibraryFlags.AsImageResource);
-
 	}
 
 	public string GetString(uint id)
 	{
-		var buffer = new StringBuilder(1024);
+		var buffer = new StringBuilder(Native.SIZE_1);
 		Native.LoadString(m_hModule, id, buffer, buffer.Capacity);
 
 		return buffer.ToString();

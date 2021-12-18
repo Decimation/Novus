@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
 using Kantan.Text;
-using Novus.Memory;
-using Kantan.Utilities;
 using Novus.OS.Win32;
 
 // ReSharper disable UnusedMember.Global
 #nullable enable
 
-namespace Novus.Win32;
+namespace Novus.OS;
 
 /// <summary>
 ///     Utilities for working with the command prompt.

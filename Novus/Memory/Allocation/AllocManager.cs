@@ -7,7 +7,6 @@ using Kantan.Diagnostics;
 using Novus.OS.Win32;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
-using Novus.Win32;
 
 // ReSharper disable CommentTypo
 

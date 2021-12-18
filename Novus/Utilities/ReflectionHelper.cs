@@ -1,9 +1,17 @@
-﻿global using static Novus.Utilities.ReflectionOperatorHelpers;
+﻿#pragma warning disable IDE1006
+// ReSharper disable RedundantUsingDirective.Global
+global using MI = System.Reflection.MethodInfo;
+global using PI = System.Reflection.PropertyInfo;
+global using MMI = System.Reflection.MemberInfo;
+global using FI = System.Reflection.FieldInfo;
+global using static Novus.Utilities.ReflectionOperatorHelpers;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Numerics;
@@ -23,7 +31,6 @@ using Kantan.Diagnostics;
 
 // ReSharper disable UnusedTypeParameter
 // ReSharper disable UnusedMember.Global
-#pragma warning disable IDE1006
 
 namespace Novus.Utilities;
 
@@ -44,47 +51,47 @@ public static class ReflectionHelper
 
 	#region Members
 
-	public static IEnumerable<FieldInfo>  GetAllFields(this Type t)  => t.GetFields(ALL_FLAGS);
-	public static IEnumerable<MethodInfo> GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
+	public static IEnumerable<FI> GetAllFields(this Type t)  => t.GetFields(ALL_FLAGS);
+	public static IEnumerable<MI> GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
 
-	public static IEnumerable<MemberInfo> GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
+	public static IEnumerable<MMI> GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
 
-	public static IEnumerable<MemberInfo> GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);
+	public static IEnumerable<MMI> GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);
 
-	public static FieldInfo GetAnyField(this Type t, string name) => t.GetField(name, ALL_FLAGS);
+	public static FI GetAnyField(this Type t, string name) => t.GetField(name, ALL_FLAGS);
 
-	public static MethodInfo GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
+	public static MI GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
 
-	public static MethodInfo GetAnyMethod(this Type t, string name, Type[] a) => t.GetMethod(name, ALL_FLAGS, a);
+	public static MI GetAnyMethod(this Type t, string name, Type[] a) => t.GetMethod(name, ALL_FLAGS, a);
 
-	public static PropertyInfo GetAnyProperty(this Type t, string name) => t.GetProperty(name, ALL_FLAGS);
+	public static PI GetAnyProperty(this Type t, string name) => t.GetProperty(name, ALL_FLAGS);
 
 	/// <summary>
 	/// Resolves the internal field from the member with name <paramref name="fname"/>.
 	/// </summary>
 	/// <remarks>Returns the backing field if <paramref name="fname"/> is a property; otherwise returns the normal field</remarks>
-	public static FieldInfo GetAnyResolvedField(this Type t, string fname)
+	public static FI GetAnyResolvedField(this Type t, string fname)
 	{
 		var member = t.GetAnyMember(fname).First();
 
 
 		var field = member.MemberType == MemberTypes.Property
 			            ? t.GetBackingField(fname)
-			            : member as FieldInfo;
+			            : member as FI;
 
 		return field;
 	}
 
-	public static FieldInfo GetResolvedField(this MemberInfo member)
+	public static FI GetResolvedField(this MMI member)
 	{
 		var field = member.MemberType == MemberTypes.Property
 			            ? member.DeclaringType.GetBackingField(member.Name)
-			            : member as FieldInfo;
+			            : member as FI;
 
 		return field;
 	}
 
-	public static (TAttribute Attribute, MemberInfo Member)[] GetAnnotated<TAttribute>(this Type t)
+	public static (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>(this Type t)
 		where TAttribute : Attribute
 	{
 		return (from member in t.GetAllMembers()
@@ -118,12 +125,12 @@ public static class ReflectionHelper
 		return null;
 	}
 
-	public static T GetStaticValue<T>(this PropertyInfo p)
+	public static T GetStaticValue<T>(this PI p)
 	{
 		return (T) p.GetValue(null);
 	}
 
-	public static T GetStaticValue<T>(this FieldInfo p)
+	public static T GetStaticValue<T>(this FI p)
 	{
 		return (T) p.GetValue(null);
 	}
@@ -140,7 +147,7 @@ public static class ReflectionHelper
 
 	#region Special
 
-	public static IEnumerable<FieldInfo> GetAllBackingFields(this Type t)
+	public static IEnumerable<FI> GetAllBackingFields(this Type t)
 	{
 		var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(SN_BACKING_FIELD)).ToArray();
 
@@ -148,14 +155,14 @@ public static class ReflectionHelper
 		return rg;
 	}
 
-	public static FieldInfo GetBackingField(this MemberInfo m)
+	public static FI GetBackingField(this MMI m)
 	{
 		var fv = m.DeclaringType.GetAnyResolvedField(m.Name);
 
 		return fv;
 	}
 
-	public static FieldInfo GetBackingField(this Type t, string name)
+	public static FI GetBackingField(this Type t, string name)
 	{
 		var fi = t.GetRuntimeFields()
 		          .FirstOrDefault(a => Regex.IsMatch(a.Name, $@"\A<{name}>{SN_BACKING_FIELD}\Z"));
@@ -169,11 +176,11 @@ public static class ReflectionHelper
 	private const string SN_CLONE          = "<Clone>$";
 	private const string SN_FIXED_BUFFER   = "e__FixedBuffer";
 
-	public static bool IsExtensionMethod(this MethodInfo m) => m.IsDefined(typeof(ExtensionAttribute));
+	public static bool IsExtensionMethod(this MI m) => m.IsDefined(typeof(ExtensionAttribute));
 
 	public static bool IsRecord(this Type t) => t.GetMethods().Any(m => m.Name == SN_CLONE);
 
-	public static bool IsFixedBuffer(this FieldInfo field)
+	public static bool IsFixedBuffer(this FI field)
 		=> Regex.IsMatch(field.FieldType.Name, $@"\A<{field.Name}>{SN_FIXED_BUFFER}\Z");
 
 	public static bool IsAnonymous(this Type type)
@@ -296,12 +303,12 @@ public static class ReflectionHelper
 	/// <param name="value">Instance of type; <c>null</c> if the method is static</param>
 	/// <param name="fnArgs">Method arguments</param>
 	/// <returns>Return value of the method specified by <paramref name="method"/></returns>
-	public static object CallGeneric(MethodInfo method, Type[] args, object value, params object[] fnArgs)
+	public static object CallGeneric(MI method, Type[] args, object value, params object[] fnArgs)
 	{
 		return method.MakeGenericMethod(args).Invoke(value, fnArgs);
 	}
 
-	public static object CallGeneric(MethodInfo method, Type arg, object value, params object[] fnArgs)
+	public static object CallGeneric(MI method, Type arg, object value, params object[] fnArgs)
 	{
 		return CallGeneric(method, new[] { arg }, value, fnArgs);
 	}
@@ -434,29 +441,39 @@ public static class ReflectionHelper
 
 public static class ReflectionOperatorHelpers
 {
-	public static MemberInfo memberof<T>(Expression<Func<T>> expression)
+	public static MMI memberof<T>(Expression<Func<T>> expression)
 	{
+		if (expression.Body is ConstantExpression) {
+			return null;
+		}
+
 		var body = (MemberExpression) expression.Body;
 		return body.Member;
 	}
 
-	public static FieldInfo fieldof<T>(Expression<Func<T>> expression)
+	public static ConstantExpression constof<T>(Expression<Func<T>> expression)
 	{
-		return (FieldInfo) memberof(expression);
+		var body = (ConstantExpression) expression.Body;
+		return body;
 	}
 
-	public static PropertyInfo propertyof<T>(Expression<Func<T>> expression)
+	public static FI fieldof<T>(Expression<Func<T>> expression)
 	{
-		return (PropertyInfo) memberof(expression);
+		return (FI) memberof(expression);
 	}
 
-	public static MethodInfo methodof<T>(Expression<Func<T>> expression)
+	public static PI propertyof<T>(Expression<Func<T>> expression)
+	{
+		return (PI) memberof(expression);
+	}
+
+	public static MI methodof<T>(Expression<Func<T>> expression)
 	{
 		var body = (MethodCallExpression) expression.Body;
 		return body.Method;
 	}
 
-	public static MethodInfo methodof(Expression<Action> expression)
+	public static MI methodof(Expression<Action> expression)
 	{
 		var body = (MethodCallExpression) expression.Body;
 		return body.Method;

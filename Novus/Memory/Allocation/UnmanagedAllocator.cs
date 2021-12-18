@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Novus.OS.Win32;
-using Novus.Win32;
 
 // ReSharper disable UnusedMember.Global
 

@@ -26,11 +26,11 @@ using Kantan.Collections;
 using Novus.Memory;
 using Novus.Properties;
 using Novus.Runtime;
-using Novus.Win32;
 using Kantan.Diagnostics;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Memory.Allocation;
+using Novus.OS;
 using Novus.OS.Win32;
 using Novus.Utilities;
 using static Kantan.Diagnostics.LogCategories;
@@ -102,7 +102,7 @@ namespace Novus;
 ///         </item>
 ///         <item>
 ///             <description>
-///                 <see cref="SymbolLoader" />
+///                 <see cref="SymbolReader" />
 ///             </description>
 ///         </item>
 ///         <item>
@@ -159,7 +159,8 @@ public static class Global
 		bool compatible = IsCompatible();
 
 		if (!compatible) {
-			Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed! ({Environment.Version}, {ClrVersion})", C_ERROR);
+			Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed! " +
+			                $"({Environment.Version}, {ClrVersion})", C_ERROR);
 			//Guard.Fail();
 		}
 

@@ -7,7 +7,6 @@ using System.Text;
 using Kantan.Model;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Wrappers;
-using Novus.Win32;
 
 #pragma warning disable CA1401, CA2101
 
@@ -32,15 +31,21 @@ public static unsafe partial class Native
 	 */
 
 
+	public const int INVALID = -1;
+
+	public static readonly nuint INVALID2 = nuint.MaxValue;
+
+	public const int ERROR_SUCCESS = 0;
+
+	public const int SIZE_1 = 32 << 5;
+
+	#region EXE
+
 	public const string CMD_EXE = "cmd.exe";
 
 	public const string EXPLORER_EXE = "explorer.exe";
 
-	public const int INVALID = -1;
-
-	public static readonly nuint INVALID2 = unchecked((nuint) (int) -1);
-
-	public const int ERROR_SUCCESS = 0;
+	#endregion
 
 
 	#region DLL
@@ -60,11 +65,10 @@ public static unsafe partial class Native
 	public const string WEBSOCKET_DLL = "websocket.dll";
 	public const string WINHTTP_DLL   = "winhttp.dll";
 	public const string UCRTBASE_DLL  = "ucrtbase.dll";
-
-
-	private const string UNAME_DLL = @"C:\Windows\System32\getuname.dll";
+	public const string UNAME_DLL     = "getuname.dll";
 
 	#endregion
+
 	public static IntPtr GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
 	public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
@@ -75,54 +79,49 @@ public static unsafe partial class Native
 		 * Adapted from https://github.com/TimothyJClark/SharpInjector/blob/master/SharpInjector/Injector.cs
 		 */
 
+		//todo: WIP
 
 		IntPtr processHandle = OpenProcess(ProcessAccess.CreateThread |
-										   ProcessAccess.VmOperation | ProcessAccess.VmWrite,
-										   false, pid);
+		                                   ProcessAccess.VmOperation | ProcessAccess.VmWrite,
+		                                   false, pid);
 
-		if (processHandle == IntPtr.Zero)
-		{
+		if (processHandle == IntPtr.Zero) {
 			return false;
 		}
 
 
 		IntPtr kernel32Base = LoadLibrary(KERNEL32_DLL);
 
-		if (kernel32Base == IntPtr.Zero)
-		{
+		if (kernel32Base == IntPtr.Zero) {
 			return false;
 		}
 
 		IntPtr loadLibraryAddr = GetProcAddress(kernel32Base, "LoadLibraryA");
 
-		if (loadLibraryAddr == IntPtr.Zero)
-		{
+		if (loadLibraryAddr == IntPtr.Zero) {
 			return false;
 		}
 
-		IntPtr remoteAddress = VirtualAllocEx(processHandle, IntPtr.Zero, (uint)dllPath.Length,
-											  AllocationType.Commit | AllocationType.Reserve,
-											  MemoryProtection.ExecuteReadWrite);
+		IntPtr remoteAddress = VirtualAllocEx(processHandle, IntPtr.Zero, (uint) dllPath.Length,
+		                                      AllocationType.Commit | AllocationType.Reserve,
+		                                      MemoryProtection.ExecuteReadWrite);
 
-		if (remoteAddress == IntPtr.Zero)
-		{
+		if (remoteAddress == IntPtr.Zero) {
 			return false;
 		}
 
 		var b = WriteProcessMemory(processHandle, remoteAddress,
-								   Marshal.StringToHGlobalAnsi(dllPath), dllPath.Length, out int _);
+		                           Marshal.StringToHGlobalAnsi(dllPath), dllPath.Length, out int _);
 
-		if (!b)
-		{
+		if (!b) {
 			return false;
 		}
 
 		IntPtr remoteThread = CreateRemoteThread(processHandle, IntPtr.Zero, 0,
-												 loadLibraryAddr, remoteAddress,
-												 0, out _);
+		                                         loadLibraryAddr, remoteAddress,
+		                                         0, out _);
 
-		if (remoteThread == IntPtr.Zero)
-		{
+		if (remoteThread == IntPtr.Zero) {
 			return false;
 		}
 
@@ -135,12 +134,12 @@ public static unsafe partial class Native
 
 	public static int SendInput(Input[] inputs)
 	{
-		return (int)SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>() * inputs.Length);
+		return (int) SendInput((uint) inputs.Length, inputs, Marshal.SizeOf<Input>() * inputs.Length);
 	}
 
 	public static string GetWindowText(IntPtr hWnd)
 	{
-		const int CAPACITY = 1024;
+		const int CAPACITY = SIZE_1;
 
 		var sb = new StringBuilder(CAPACITY);
 
@@ -159,21 +158,21 @@ public static unsafe partial class Native
 	}
 
 	internal static IntPtr CreateFile(string fileName, FileAccess access, FileShare share,
-									  FileMode mode, FileAttributes attributes)
+	                                  FileMode mode, FileAttributes attributes)
 	{
 		return CreateFile(fileName, access, share, IntPtr.Zero,
-						  mode, attributes, IntPtr.Zero);
+		                  mode, attributes, IntPtr.Zero);
 	}
 
 	public static void SetConsoleFont(string name, short y,
-									  FontFamily ff = FontFamily.FF_DONTCARE,
-									  FontWeight fw = FontWeight.FW_NORMAL)
+	                                  FontFamily ff = FontFamily.FF_DONTCARE,
+	                                  FontWeight fw = FontWeight.FW_NORMAL)
 	{
 		ConsoleFontInfo ex = default;
 
-		ex.FontFamily = ff;
-		ex.FontWeight = fw;
-		ex.FaceName = name;
+		ex.FontFamily   = ff;
+		ex.FontWeight   = fw;
+		ex.FaceName     = name;
 		ex.dwFontSize.X = 0;
 		ex.dwFontSize.Y = y;
 
@@ -183,7 +182,7 @@ public static unsafe partial class Native
 	public static ConsoleFontInfo GetConsoleFont()
 	{
 		ConsoleFontInfo ex = default;
-		ex.cbSize = (uint)Marshal.SizeOf<ConsoleFontInfo>();
+		ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
 
 		GetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
 		return ex;
@@ -191,24 +190,23 @@ public static unsafe partial class Native
 
 	public static void SetConsoleFont(ConsoleFontInfo ex)
 	{
-		ex.cbSize = (uint)Marshal.SizeOf<ConsoleFontInfo>();
+		ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
 
 		SetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
 	}
+
 	private static bool EnumProc(IntPtr hWnd, ref SearchData data)
 	{
 		// Check classname and title
 		// This is different from FindWindow() in that the code below allows partial matches
-		var sb = new StringBuilder(1024);
-		var v = GetWindowText(hWnd, sb, sb.Capacity);
+		var sb = new StringBuilder(SIZE_1);
+		var v  = GetWindowText(hWnd, sb, sb.Capacity);
 
-		if (v != ERROR_SUCCESS)
-		{
+		if (v != ERROR_SUCCESS) {
 			return false;
 		}
 
-		if (sb.ToString().Contains(data.Title))
-		{
+		if (sb.ToString().Contains(data.Title)) {
 
 			data.hWnd = hWnd;
 			return false; // Found the wnd, halt enumeration
@@ -217,6 +215,7 @@ public static unsafe partial class Native
 
 		return true;
 	}
+
 	public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
 	{
 		//todo
@@ -225,15 +224,14 @@ public static unsafe partial class Native
 		var pNtHdr = ImageNtHeader(hModule);
 
 		// section table immediately follows the IMAGE_NT_HEADERS
-		var pSectionHdr = (IntPtr)(pNtHdr + 1);
-		var arr = new ImageSectionInfo[pNtHdr->FileHeader.NumberOfSections];
+		var pSectionHdr = (IntPtr) (pNtHdr + 1);
+		var arr         = new ImageSectionInfo[pNtHdr->FileHeader.NumberOfSections];
 
 		int size = Marshal.SizeOf<ImageSectionHeader>();
 
-		for (int scn = 0; scn < pNtHdr->FileHeader.NumberOfSections; ++scn)
-		{
+		for (int scn = 0; scn < pNtHdr->FileHeader.NumberOfSections; ++scn) {
 			var struc = Marshal.PtrToStructure<ImageSectionHeader>(pSectionHdr);
-			arr[scn] = new ImageSectionInfo(struc, scn, hModule + (int)struc.VirtualAddress);
+			arr[scn] = new ImageSectionInfo(struc, scn, hModule + (int) struc.VirtualAddress);
 
 			pSectionHdr += size;
 		}
@@ -245,15 +243,14 @@ public static unsafe partial class Native
 	{
 		var snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module | SnapshotFlags.Module32, procId);
 
-		var mod = new ModuleEntry32 { dwSize = (uint)Marshal.SizeOf(typeof(ModuleEntry32)) };
+		var mod = new ModuleEntry32 { dwSize = (uint) Marshal.SizeOf(typeof(ModuleEntry32)) };
 
 		if (!Module32First(snapshot, ref mod))
 			return null;
 
 		List<ModuleEntry32> modules = new();
 
-		do
-		{
+		do {
 			modules.Add(mod);
 		} while (Module32Next(snapshot, ref mod));
 
@@ -266,8 +263,7 @@ public static unsafe partial class Native
 	{
 		ConsoleScreenBufferInfo cbsi = default;
 
-		if (GetConsoleScreenBufferInfo(hConsoleOutput, ref cbsi))
-		{
+		if (GetConsoleScreenBufferInfo(hConsoleOutput, ref cbsi)) {
 			return cbsi.dwCursorPosition;
 		}
 
@@ -282,8 +278,7 @@ public static unsafe partial class Native
 
 		var table = new ConsoleTable("Number", "Name", "Address", "Size", "Characteristics");
 
-		foreach (var info in s)
-		{
+		foreach (var info in s) {
 			table.AddRow(info.Number, info.Name, $"{info.Address.ToInt64():X}", info.Size, info.Characteristics);
 		}
 
@@ -294,10 +289,10 @@ public static unsafe partial class Native
 	{
 		var fInfo = new FLASHWINFO
 		{
-			cbSize = (uint)Marshal.SizeOf<FLASHWINFO>(),
-			hwnd = hWnd,
-			dwFlags = FlashWindowType.FLASHW_ALL,
-			uCount = 8,
+			cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
+			hwnd      = hWnd,
+			dwFlags   = FlashWindowType.FLASHW_ALL,
+			uCount    = 8,
 			dwTimeout = 75,
 
 		};
@@ -310,23 +305,25 @@ public static unsafe partial class Native
 
 	public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
 
-	public static string GetUnicodeName(uint id)
+	public static string GetUnicodeName(ushort id)
 	{
-		using var reader = new Win32ResourceReader(UNAME_DLL);
+		/*using var reader = new Win32ResourceReader(UNAME_DLL);
+		string    name   = reader.GetString(id);
+		return name;*/
 
-		string name = reader.GetString(id);
-
+		var buf  = new StringBuilder(SIZE_1);
+		var i    = GetUName(id, buf);
+		var name = buf.ToString();
 		return name;
 	}
 
-	public static StringBuilder LoadString(IntPtr hInstance, uint id, int buf = 1024)
+	public static StringBuilder LoadString(IntPtr hInstance, uint id, int buf = SIZE_1)
 	{
 		var buffer = new StringBuilder(buf);
 
 		LoadString(hInstance, id, buffer, buffer.Capacity);
 
-		if (Marshal.GetLastWin32Error() != 0)
-		{
+		if (Marshal.GetLastWin32Error() != 0) {
 			FailWin32Error();
 		}
 
@@ -344,5 +341,4 @@ public static unsafe partial class Native
 
 		throw exception!;
 	}
-
 }

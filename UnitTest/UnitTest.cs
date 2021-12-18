@@ -2,7 +2,6 @@
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
-using Novus.Win32;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -23,6 +22,7 @@ using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
 using Kantan.Numeric;
 using Novus.Memory.Allocation;
+using Novus.OS;
 using Novus.OS.Win32;
 using UnitTest.TestTypes;
 
@@ -229,7 +229,7 @@ public class Tests_Native
 	[Test]
 	public void SymbolsTest()
 	{
-		var m = new SymbolLoader(@"C:\Symbols\coreclr.pdb");
+		var m = new SymbolReader(@"C:\Symbols\coreclr.pdb");
 
 		var s = m.GetSymbol("g_pGCHeap");
 

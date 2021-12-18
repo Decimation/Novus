@@ -5,20 +5,20 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Wrappers;
+// ReSharper disable InconsistentNaming
 
 #pragma warning disable CS0618
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.Win32;
+namespace Novus.OS;
 
-public sealed class SymbolLoader : IDisposable
+public sealed class SymbolReader : IDisposable
 {
 	private bool m_disposed;
 
@@ -32,7 +32,7 @@ public sealed class SymbolLoader : IDisposable
 
 	public List<Symbol> SymbolsCache { get; }
 
-	public SymbolLoader(IntPtr process, string image)
+	public SymbolReader(IntPtr process, string image)
 	{
 		Process      = process;
 		Image        = image;
@@ -43,7 +43,7 @@ public sealed class SymbolLoader : IDisposable
 		LoadAll();
 	}
 
-	public SymbolLoader(string image) : this(Native.GetCurrentProcess(), image) { }
+	public SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
 
 	public void Dispose()
 	{
@@ -70,7 +70,7 @@ public sealed class SymbolLoader : IDisposable
 		 */
 
 		if (m_disposed) {
-			throw new ObjectDisposedException(nameof(SymbolLoader));
+			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
 
@@ -95,7 +95,7 @@ public sealed class SymbolLoader : IDisposable
 	public void LoadAll()
 	{
 		if (m_disposed) {
-			throw new ObjectDisposedException(nameof(SymbolLoader));
+			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
 		if (AllLoaded) {

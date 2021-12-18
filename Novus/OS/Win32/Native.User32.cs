@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 using Novus.OS.Win32.Structures;
+// ReSharper disable UnusedMember.Local
 
 namespace Novus.OS.Win32;
 

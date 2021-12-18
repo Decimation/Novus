@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Novus.OS.Win32.Structures;
+// ReSharper disable InconsistentNaming
 
 namespace Novus.OS.Win32;
 

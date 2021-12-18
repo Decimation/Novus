@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="MicrosoftSymbolsServer" xml:space="preserve">
+    <value>https://msdl.microsoft.com/download/symbols/{fileName}/{pdbData.Guid:N}{pdbData.Age}/{fileName}</value>
+  </data>
   <data name="Ofs_GCHeap" xml:space="preserve">
     <value>49ACA0</value>
     <comment>g_pGCHeap</comment>

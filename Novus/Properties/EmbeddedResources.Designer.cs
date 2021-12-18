@@ -61,6 +61,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://msdl.microsoft.com/download/symbols/{fileName}/{pdbData.Guid:N}{pdbData.Age}/{fileName}.
+        /// </summary>
+        internal static string MicrosoftSymbolsServer {
+            get {
+                return ResourceManager.GetString("MicrosoftSymbolsServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 49ACA0.
         /// </summary>
         internal static string Ofs_GCHeap {

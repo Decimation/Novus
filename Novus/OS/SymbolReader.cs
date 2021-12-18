@@ -9,6 +9,8 @@ using JetBrains.Annotations;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Wrappers;
+using Novus.Properties;
+
 // ReSharper disable InconsistentNaming
 
 #pragma warning disable CS0618
@@ -24,23 +26,27 @@ public sealed class SymbolReader : IDisposable
 
 	private ulong m_modBase;
 
-	public bool AllLoaded => m_modBase != 0 && SymbolsCache.Any();
+	public bool AllLoaded => m_modBase != 0 && m_symbolsThunk.IsValueCreated;
 
 	public string Image { get; }
 
 	public IntPtr Process { get; }
 
-	public List<Symbol> SymbolsCache { get; }
+
+	private readonly Lazy<List<Symbol>> m_symbolsThunk;
+
+	public List<Symbol> Symbols => m_symbolsThunk.Value;
 
 	public SymbolReader(IntPtr process, string image)
 	{
-		Process      = process;
-		Image        = image;
-		SymbolsCache = new List<Symbol>();
-		m_modBase    = LoadModule();
-		m_disposed   = false;
+		Process    = process;
+		Image      = image;
+		m_modBase  = LoadModule();
+		m_disposed = false;
 
+		m_symbolsThunk = new Lazy<List<Symbol>>(Load);
 		LoadAll();
+
 	}
 
 	public SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
@@ -74,7 +80,7 @@ public sealed class SymbolReader : IDisposable
 		}
 
 
-		var sym = SymbolsCache.FirstOrDefault(s => s.Name.Contains(name));
+		var sym = Symbols.FirstOrDefault(s => s.Name.Contains(name));
 
 		//todo: SymFromName...
 		/*var d = new DebugSymbol();
@@ -92,22 +98,33 @@ public sealed class SymbolReader : IDisposable
 		return sym;
 	}
 
-	public void LoadAll()
+	public void LoadAll() { }
+
+	private List<Symbol> Load()
 	{
 		if (m_disposed) {
 			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
 		if (AllLoaded) {
-			return;
+			return Symbols;
 		}
 
-		const string mask = "*!*";
+		const string MASK = "*!*";
 
 
-		Native.SymEnumSymbols(Process, m_modBase, mask, EnumSymCallback, IntPtr.Zero);
+		var list = new List<Symbol>();
 
-		Debug.WriteLine($"{SymbolsCache.Count}");
+		Native.SymEnumSymbols(Process, m_modBase, MASK, (ptr, u, context) =>
+		{
+			var b = EnumSymCallback(ptr, u, context, out var s);
+			list.Add(s);
+			return b;
+		}, IntPtr.Zero);
+
+		Debug.WriteLine($"{list.Count}");
+
+		return list;
 
 	}
 
@@ -115,18 +132,18 @@ public sealed class SymbolReader : IDisposable
 	{
 		Native.SymCleanup(Process);
 		Native.SymUnloadModule64(Process, m_modBase);
-		SymbolsCache.Clear();
+		Symbols.Clear();
 		m_modBase  = 0;
 		m_disposed = true;
 	}
 
-	private unsafe bool EnumSymCallback(IntPtr info, uint symbolSize, IntPtr pUserContext)
+	private static unsafe bool EnumSymCallback(IntPtr info, uint symbolSize, IntPtr pUserContext, out Symbol item)
 	{
 		var symbol = (SymbolInfo*) info;
 
-		var item = new Symbol(symbol);
+		item = new Symbol(symbol);
 
-		SymbolsCache.Add(item);
+		// Symbols.Add(item);
 
 		return true;
 	}
@@ -143,13 +160,13 @@ public sealed class SymbolReader : IDisposable
 		Native.SymInitialize(Process, IntPtr.Zero, false);
 
 
-		const int baseOfDll = 0x400000;
-
-		const int dllSize = 0x20000;
+		const int BASE_OF_DLL = 0x400000;
+		const int DLL_SIZE    = 0x20000;
 
 
 		ulong modBase = Native.SymLoadModuleEx(Process, IntPtr.Zero, Image,
-		                                       null, baseOfDll, dllSize, IntPtr.Zero, 0);
+		                                       null, BASE_OF_DLL, DLL_SIZE,
+		                                       IntPtr.Zero, 0);
 
 		return modBase;
 	}
@@ -195,8 +212,7 @@ public sealed class SymbolReader : IDisposable
 		}
 
 
-		var uriString =
-			$"https://msdl.microsoft.com/download/symbols/{fileName}/{pdbData.Guid:N}{pdbData.Age}/{fileName}";
+		var uriString = EmbeddedResources.MicrosoftSymbolsServer;
 
 		Debug.WriteLine($"Downloading {uriString}");
 

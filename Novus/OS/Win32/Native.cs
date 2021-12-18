@@ -303,7 +303,7 @@ public static unsafe partial class Native
 
 	public static void FlashConsoleWindow() => FlashWindow(GetConsoleWindow());
 
-	public static void   BringConsoleToFront()   => SetForegroundWindow(GetConsoleWindow());
+	public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
 
 	public static string GetUnicodeName(ushort id)
 	{
@@ -311,6 +311,8 @@ public static unsafe partial class Native
 		string    name   = reader.GetString(id);
 		return name;*/
 
+		//http://www.pinvoke.net/default.aspx/getuname/GetUName.html
+		//https://stackoverflow.com/questions/2087682/finding-out-unicode-character-name-in-net
 		var buf  = new StringBuilder(SIZE_1);
 		var i    = GetUName(id, buf);
 		var name = buf.ToString();

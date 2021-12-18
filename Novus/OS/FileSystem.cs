@@ -318,6 +318,17 @@ public static class FileSystem
 		return null;
 	}
 
+	public static string ResolvePath(string s)
+	{
+		var p = SearchInPath(s);
+
+		if (p is not {}) {
+			return s;
+		}
+
+		return s;
+	}
+
 	public static string? SearchInPath(string s)
 	{
 		string[] path = GetEnvironmentPathDirectories();

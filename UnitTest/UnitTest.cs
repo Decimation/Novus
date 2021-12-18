@@ -24,6 +24,7 @@ using Kantan.Numeric;
 using Novus.Memory.Allocation;
 using Novus.OS;
 using Novus.OS.Win32;
+using NUnit.Framework.Internal;
 using UnitTest.TestTypes;
 
 // ReSharper disable StringLiteralTypo
@@ -237,6 +238,14 @@ public class Tests_Native
 		var s = m.GetSymbol("g_pGCHeap");
 
 		Assert.NotNull(s);
+	}
+
+	[Test]
+	public void SymbolsTest2()
+	{
+		var d=SymbolReader.ResolveSymbolFile(@"C:\Symbols\charmap.exe");
+		TestContext.WriteLine(d);
+
 	}
 
 

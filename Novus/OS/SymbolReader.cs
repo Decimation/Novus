@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection.PortableExecutable;
+using System.Web;
 using JetBrains.Annotations;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
@@ -26,16 +27,16 @@ public sealed class SymbolReader : IDisposable
 
 	private ulong m_modBase;
 
-	public bool AllLoaded => m_modBase != 0 && m_symbolsThunk.IsValueCreated;
+	public bool AllLoaded => m_modBase != 0 && Symbols is { };
 
 	public string Image { get; }
 
 	public IntPtr Process { get; }
 
+	public List<Symbol> Symbols { get; }
 
-	private readonly Lazy<List<Symbol>> m_symbolsThunk;
 
-	public List<Symbol> Symbols => m_symbolsThunk.Value;
+	private const string MASK_ALL = "*!*";
 
 	public SymbolReader(IntPtr process, string image)
 	{
@@ -44,17 +45,11 @@ public sealed class SymbolReader : IDisposable
 		m_modBase  = LoadModule();
 		m_disposed = false;
 
-		m_symbolsThunk = new Lazy<List<Symbol>>(Load);
+		Symbols = new List<Symbol>();
 		LoadAll();
-
 	}
 
 	public SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
-
-	public void Dispose()
-	{
-		Cleanup();
-	}
 
 
 	[CanBeNull]
@@ -98,33 +93,25 @@ public sealed class SymbolReader : IDisposable
 		return sym;
 	}
 
-	public void LoadAll() { }
 
-	private List<Symbol> Load()
+	public void LoadAll(string mask = MASK_ALL)
 	{
 		if (m_disposed) {
 			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
 		if (AllLoaded) {
-			return Symbols;
+			return;
 		}
 
-		const string MASK = "*!*";
 
-
-		var list = new List<Symbol>();
-
-		Native.SymEnumSymbols(Process, m_modBase, MASK, (ptr, u, context) =>
+		Native.SymEnumSymbols(Process, m_modBase, MASK_ALL, (ptr, u, context) =>
 		{
-			var b = EnumSymCallback(ptr, u, context, out var s);
-			list.Add(s);
+			var b = EnumSymCallback(ptr, u, context, out var symbol);
+			Symbols.Add(symbol);
 			return b;
 		}, IntPtr.Zero);
 
-		Debug.WriteLine($"{list.Count}");
-
-		return list;
 
 	}
 
@@ -159,10 +146,8 @@ public sealed class SymbolReader : IDisposable
 		// Initialize DbgHelp and load symbols for all modules of the current process 
 		Native.SymInitialize(Process, IntPtr.Zero, false);
 
-
 		const int BASE_OF_DLL = 0x400000;
 		const int DLL_SIZE    = 0x20000;
-
 
 		ulong modBase = Native.SymLoadModuleEx(Process, IntPtr.Zero, Image,
 		                                       null, BASE_OF_DLL, DLL_SIZE,
@@ -172,11 +157,19 @@ public sealed class SymbolReader : IDisposable
 	}
 
 	/// <summary>
-	/// Searches for symbol file or downloads it
+	///     Searches for symbol file locally; otherwise; downloads it
 	/// </summary>
 	/// <param name="fname">PE file</param>
-	public static string FindOrDownloadSymbolFile(string fname)
+	/// <param name="cacheDirectoryPath">Output folder</param>
+	/// <returns>
+	///     Path to the symbol file if it was found
+	///     <em>or</em> path to the downloaded symbol file
+	/// </returns>
+	public static string ResolveSymbolFile(string fname, [CanBeNull] string cacheDirectoryPath = null)
 	{
+		// fname=FileSystem.SearchInPath(fname);
+		fname = Path.GetFullPath(fname);
+
 		using var peReader = new PEReader(File.OpenRead(fname));
 
 		var codeViewEntry = peReader.ReadDebugDirectory()
@@ -184,8 +177,9 @@ public sealed class SymbolReader : IDisposable
 
 		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 
-		var cacheDirectoryPath = Global.ProgramData;
+		// var cacheDirectoryPath = Global.ProgramData;
 
+		cacheDirectoryPath ??= FileSystem.GetPath(KnownFolder.Downloads);
 		using var wc = new WebClient();
 
 		// Check if the correct version of the PDB is already cached
@@ -207,19 +201,27 @@ public sealed class SymbolReader : IDisposable
 		var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
 
 		if (File.Exists(pdbFilePath)) {
-			Debug.WriteLine($"Using {pdbFilePath}");
+			Debug.WriteLine($"Using {pdbFilePath}", nameof(ResolveSymbolFile));
 			return pdbFilePath;
 		}
 
 
-		var uriString = EmbeddedResources.MicrosoftSymbolsServer;
+		var uriString = EmbeddedResources.MicrosoftSymbolServer +
+		                $"{fileName}/" +
+		                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
 
-		Debug.WriteLine($"Downloading {uriString}");
+		Debug.WriteLine($"Downloading {uriString}", nameof(ResolveSymbolFile));
+
 
 		//await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
 		wc.DownloadFile(new Uri(uriString), pdbFilePath);
-		Debug.WriteLine($"Downloaded to {pdbFilePath}");
+		Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(ResolveSymbolFile));
 
 		return pdbFilePath;
+	}
+
+	public void Dispose()
+	{
+		Cleanup();
 	}
 }

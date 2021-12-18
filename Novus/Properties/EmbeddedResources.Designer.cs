@@ -61,11 +61,11 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://msdl.microsoft.com/download/symbols/{fileName}/{pdbData.Guid:N}{pdbData.Age}/{fileName}.
+        ///   Looks up a localized string similar to https://msdl.microsoft.com/download/symbols/.
         /// </summary>
-        internal static string MicrosoftSymbolsServer {
+        internal static string MicrosoftSymbolServer {
             get {
-                return ResourceManager.GetString("MicrosoftSymbolsServer", resourceCulture);
+                return ResourceManager.GetString("MicrosoftSymbolServer", resourceCulture);
             }
         }
         

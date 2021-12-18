@@ -10,6 +10,7 @@ using System.Resources;
 using System.Runtime.Versioning;
 using Kantan.Text;
 using Novus.Memory;
+using Novus.OS;
 using Novus.OS.Win32;
 #pragma warning disable IDE0005, CS0436
 using System;
@@ -144,6 +145,9 @@ public static unsafe class Program
 
 
 		Global.QWrite(dd.QuickJoin());
+
+		var d = SymbolReader.ResolveSymbolFile(@"C:\Symbols\charmap.exe");
+		Console.WriteLine(d);
 	}
 
 	interface IInterface

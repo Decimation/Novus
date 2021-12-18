@@ -199,16 +199,19 @@ public static class Global
 
 	#region QWrite
 
+	
+
 	private const string QWRITE_STR_FMT_ARG = "s";
 
 	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
 
+	
 	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
 	internal static void QWrite(string s, params object[] args) => QWrite(s, DefaultQWriteFunction, args: args);
 
 	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
 	internal static void QWrite(string s, Action<object> writeFunction = null, string category = null,
-	                            [CallerMemberName] string caller = null, params object[] args)
+								[CallerArgumentExpression("s")] string sz = null, params object[] args)
 	{
 		writeFunction ??= DefaultQWriteFunction;
 
@@ -245,8 +248,8 @@ public static class Global
 
 		}
 
-		if (caller is { }) {
-			s = $"[{caller}] " + s;
+		if (sz is { }) {
+			s = $"[{sz}] " + s;
 		}
 
 		writeFunction(s);

@@ -239,7 +239,7 @@ public class Tests_Native
 
 	[Test]
 	[TestCase('\u200b', "Zero Width Space")]
-	public void UnicodeNamesTest(uint id, string s)
+	public void UnicodeNamesTest(ushort id, string s)
 	{
 		Assert.AreEqual(Native.GetUnicodeName(id), s);
 	}

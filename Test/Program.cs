@@ -128,21 +128,22 @@ public static unsafe class Program
 		u.Dispose();
 
 		dynamic o = new ExpandoObject();
-		ReflectionHelper.AddMember((ExpandoObject)o, "f", 1);
 		// o.a = (Func<int>) (() => { return 1; });
 		var dictionary = (IDictionary<string, object>) o;
 		dictionary.Add("a", 1);
 
 		Console.WriteLine(o);
-		Console.WriteLine(o);
 		Console.WriteLine(o.a);
-		ResourceReader r;
 
 		Console.WriteLine(Native.GetUnicodeName('A'));
 
-		const nuint n = 1;
 		Console.WriteLine(Native.INVALID2.ToString("X"));
 		
+		
+		var dd=ReflectionHelper.DumpDependencies();
+
+
+		Global.QWrite(dd.QuickJoin());
 	}
 
 	interface IInterface

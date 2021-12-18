@@ -303,7 +303,7 @@ public static unsafe partial class Native
 
 	public static void FlashConsoleWindow() => FlashWindow(GetConsoleWindow());
 
-	public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
+	public static void   BringConsoleToFront()   => SetForegroundWindow(GetConsoleWindow());
 
 	public static string GetUnicodeName(ushort id)
 	{

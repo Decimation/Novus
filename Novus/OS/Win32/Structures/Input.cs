@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Kantan.OS.Structures;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable IdentifierTypo

@@ -323,7 +323,7 @@ public static unsafe partial class Native
 	{
 		var buffer = new StringBuilder(buf);
 
-		LoadString(hInstance, id, buffer, buffer.Capacity);
+		_ = LoadString(hInstance, id, buffer, buffer.Capacity);
 
 		if (Marshal.GetLastWin32Error() != 0) {
 			FailWin32Error();

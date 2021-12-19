@@ -1,10 +1,10 @@
 ﻿// ReSharper disable UnusedMember.Global
 // ReSharper disable IdentifierTypo
 
+
 #pragma warning disable CA1069
 namespace Novus.OS.Win32.Structures;
-
-public enum VirtualKey : short
+/*public enum VirtualKey : short
 {
 	///<summary>
 	///Left mouse button
@@ -867,7 +867,7 @@ public enum VirtualKey : short
 	///Clear key
 	///</summary>
 	OEM_CLEAR = 0xFE
-}
+}*/
 
 
 /*

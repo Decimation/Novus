@@ -30,9 +30,6 @@
   <ItemGroup>
 
     <!-- ??? -->
-    <Reference Include="Kantan">
-      <HintPath>..\..\Kantan\Kantan\bin\Release\net5.0\Kantan.dll</HintPath>
-    </Reference>
 
 
     <Compile Update="Properties\EmbeddedResources.Designer.cs">
@@ -71,6 +68,13 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Reference Include="Kantan">
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

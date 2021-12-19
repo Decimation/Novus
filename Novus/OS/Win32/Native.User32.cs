@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using Kantan.OS.Structures;
 using Novus.OS.Win32.Structures;
 // ReSharper disable UnusedMember.Local
 
 namespace Novus.OS.Win32;
-
+#pragma warning disable CA1401,CA2101
 public static unsafe partial class Native
 {
 	[DllImport(USER32_DLL, SetLastError = true)]

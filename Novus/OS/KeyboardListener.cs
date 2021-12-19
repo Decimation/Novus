@@ -2,8 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using Novus.OS.Win32;
-using Novus.OS.Win32.Structures;
+using Kantan.OS;
+using Kantan.OS.Structures;
 
 // ReSharper disable UnusedMember.Global
 
@@ -16,18 +16,19 @@ public sealed class KeyboardListener : IDisposable
 	public KeyboardListener() : this(IntPtr.Zero) { }
 
 	public KeyboardListener(string windowName, ISet<VirtualKey> whitelist = null) : this(
-		Native.FindWindow(windowName), whitelist) { }
+		Native.FindWindow(windowName), whitelist)
+	{ }
 
 	public KeyboardListener(IntPtr handle, ISet<VirtualKey> whitelist = null)
 	{
 		m_thread = new Thread(Listen)
 		{
-			Priority     = ThreadPriority.AboveNormal,
+			Priority = ThreadPriority.AboveNormal,
 			IsBackground = false,
 		};
 
 		m_keyHistory = new ConcurrentDictionary<VirtualKey, KeyEventArgs>();
-		ScopeHandle  = handle;
+		ScopeHandle = handle;
 		KeyWhitelist = whitelist ?? new HashSet<VirtualKey>();
 	}
 
@@ -51,8 +52,9 @@ public sealed class KeyboardListener : IDisposable
 
 	private static bool IsVkPrevious(short k)
 	{
-		unsafe {
-			byte* b = (byte*) &k;
+		unsafe
+		{
+			byte* b = (byte*)&k;
 			return b[0] == K_PREV;
 		}
 
@@ -60,66 +62,72 @@ public sealed class KeyboardListener : IDisposable
 
 	private static bool IsVkDown(short keyState)
 	{
-		unsafe {
-			byte* b = (byte*) &keyState;
+		unsafe
+		{
+			byte* b = (byte*)&keyState;
 			return (b[1] & K_DOWN) != 0;
 		}
 	}
-	
 
 	private void HandleKey(VirtualKey keyShort)
 	{
-		if ((KeyWhitelist.Count > 0 && !KeyWhitelist.Contains(keyShort))) {
+		if ((KeyWhitelist.Count > 0 && !KeyWhitelist.Contains(keyShort)))
+		{
 			return;
 		}
 
 		short shift = Native.GetAsyncKeyState(VirtualKey.SHIFT);
-		short ctrl  = Native.GetAsyncKeyState(VirtualKey.CONTROL);
-		short alt   = Native.GetAsyncKeyState(VirtualKey.MENU);
+		short ctrl = Native.GetAsyncKeyState(VirtualKey.CONTROL);
+		short alt = Native.GetAsyncKeyState(VirtualKey.MENU);
 
 		bool shiftDown = IsVkDown(shift);
-		bool ctrDown   = IsVkDown(ctrl);
-		bool altDown   = IsVkDown(alt);
+		bool ctrDown = IsVkDown(ctrl);
+		bool altDown = IsVkDown(alt);
 
 		ConsoleModifiers c = 0;
 
-		if (shiftDown) {
+		if (shiftDown)
+		{
 			c |= ConsoleModifiers.Shift;
 		}
 
-		if (altDown) {
+		if (altDown)
+		{
 			c |= ConsoleModifiers.Alt;
 		}
 
-		if (ctrDown) {
+		if (ctrDown)
+		{
 			c |= ConsoleModifiers.Control;
 		}
 
-		short key     = Native.GetAsyncKeyState(keyShort);
-		bool  keyPrev = IsVkPrevious(key);
-		bool  keyDown = IsVkDown(key);
+		short key = Native.GetAsyncKeyState(keyShort);
+		bool keyPrev = IsVkPrevious(key);
+		bool keyDown = IsVkDown(key);
 
 		bool stroke = m_keyHistory.ContainsKey(keyShort)
-		              && m_keyHistory[keyShort].IsDown
-		              && !keyDown;
+					  && m_keyHistory[keyShort].IsDown
+					  && !keyDown;
 
 		var args = new KeyEventArgs
 		{
-			Key        = keyShort,
-			IsDown     = keyDown,
+			Key = keyShort,
+			IsDown = keyDown,
 			IsPrevious = keyPrev,
-			IsStroke   = stroke,
-			Value      = key,
-			Modifiers  = c
+			IsStroke = stroke,
+			Value = key,
+			Modifiers = c
 		};
 
 		KeyEvent?.Invoke(null, args);
 
-		if (args.IsStroke) {
+		if (args.IsStroke)
+		{
 			KeyStroke?.Invoke(null, args);
 		}
 
-		if (args.IsDown) {
+		if (args.IsDown)
+		{
 			KeyDown?.Invoke(null, args);
 		}
 
@@ -129,9 +137,11 @@ public sealed class KeyboardListener : IDisposable
 
 	private void Listen()
 	{
-		while (IsActive) {
+		while (IsActive)
+		{
 
-			if (ScopeHandle != IntPtr.Zero && Native.GetForegroundWindow() != ScopeHandle) {
+			if (ScopeHandle != IntPtr.Zero && Native.GetForegroundWindow() != ScopeHandle)
+			{
 				continue;
 			}
 
@@ -139,8 +149,9 @@ public sealed class KeyboardListener : IDisposable
 
 			Native.GetKeyboardState(rg);
 
-			for (int i = 0; i < rg.Length; i++) {
-				HandleKey((VirtualKey) i);
+			for (int i = 0; i < rg.Length; i++)
+			{
+				HandleKey((VirtualKey)i);
 			}
 
 		}
@@ -151,7 +162,7 @@ public sealed class KeyboardListener : IDisposable
 		Stop();
 		m_keyHistory.Clear();
 		KeyWhitelist.Clear();
-		ScopeHandle = IntPtr.Zero;
+		// ScopeHandle = IntPtr.Zero;
 
 	}
 
@@ -160,9 +171,9 @@ public sealed class KeyboardListener : IDisposable
 	/// <summary>
 	/// When set, restricts listening to this handle
 	/// </summary>
-	public IntPtr ScopeHandle { get; set; }
+	public IntPtr ScopeHandle { get; init; }
 
-	public ISet<VirtualKey> KeyWhitelist { get; set; }
+	public ISet<VirtualKey> KeyWhitelist { get; init; }
 
 	/// <summary>
 	/// Keyboard monitor thread
@@ -210,10 +221,10 @@ public sealed class KeyEventArgs : EventArgs
 	public override string ToString()
 	{
 		return $"{nameof(Key)}: {Key}, " +
-		       $"{nameof(IsDown)}: {IsDown}," +
-		       $" {nameof(IsPrevious)}: {IsPrevious}, " +
-		       $"{nameof(IsStroke)}: {IsStroke}, " +
-		       $"{nameof(Value)}: {Value}, " +
-		       $"{nameof(Modifiers)}: {Modifiers}";
+			   $"{nameof(IsDown)}: {IsDown}," +
+			   $" {nameof(IsPrevious)}: {IsPrevious}, " +
+			   $"{nameof(IsStroke)}: {IsStroke}, " +
+			   $"{nameof(Value)}: {Value}, " +
+			   $"{nameof(Modifiers)}: {Modifiers}";
 	}
 }

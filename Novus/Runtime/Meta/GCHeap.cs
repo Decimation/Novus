@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
-using Kantan.Native;
+using Kantan.OS;
 using Novus.Imports;
 using Novus.Memory;
 using Novus.Runtime.VM;

@@ -6,14 +6,14 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Novus.OS.Win32.Structures;
+
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 
 namespace Novus.OS.Win32;
-
+#pragma warning disable CA1401,CA2101
 public static unsafe partial class Native
 {
-
 	#region Console
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
@@ -62,7 +62,7 @@ public static unsafe partial class Native
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 	internal static extern bool WriteConsoleOutput(IntPtr hConsoleOutput,
 												   /* This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
-	                                               whose size is specified by the dwBufferSize parameter.*/
+												   whose size is specified by the dwBufferSize parameter.*/
 												   [MarshalAs(UnmanagedType.LPArray), In] CharInfo[,] lpBuffer,
 												   Coord dwBufferSize,
 												   Coord dwBufferCoord,
@@ -103,16 +103,13 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	private static extern IntPtr CreateFile(string fileName, FileAccess fileAccess, FileShare fileShare,
-	                                        IntPtr securityAttributes, FileMode creationDisposition,
-	                                        FileAttributes flagsAndAttributes, IntPtr template);
+											IntPtr securityAttributes, FileMode creationDisposition,
+											FileAttributes flagsAndAttributes, IntPtr template);
 
 	[DllImport(KERNEL32_DLL)]
 	private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
 
 	#endregion
-
-
-
 
 
 	#region Memory
@@ -128,7 +125,7 @@ public static unsafe partial class Native
 
 	/*[DllImport(KERNEL32_DLL)]
 	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
-	                                            nint size, out IntPtr numBytesRead);*/
+												nint size, out IntPtr numBytesRead);*/
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
@@ -241,7 +238,6 @@ public static unsafe partial class Native
 	#endregion
 
 
-
 	[DllImport(KERNEL32_DLL, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
 	public static extern int MultiByteToWideChar(int codePage, CharConversionFlags dwFlags, byte[] lpMultiByteStr,
 												 int cchMultiByte,
@@ -302,4 +298,12 @@ public static unsafe partial class Native
 	internal static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize,
 													 IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags,
 													 out IntPtr lpThreadId);
+
+	public const uint INFINITE       = 0xFFFFFFFF;
+	public const uint WAIT_ABANDONED = 0x00000080;
+	public const uint WAIT_OBJECT_0  = 0x00000000;
+	public const uint WAIT_TIMEOUT   = 0x00000102;
+
+	[DllImport(KERNEL32_DLL, SetLastError = true)]
+	public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
 }

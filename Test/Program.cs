@@ -8,6 +8,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Resources;
 using System.Runtime.Versioning;
+using Kantan.OS;
+using Kantan.OS.Structures;
 using Kantan.Text;
 using Novus.Memory;
 using Novus.OS;
@@ -125,9 +127,6 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		UArray<int> u = M.AllocUArray<int>(4);
-
-		u.Dispose();
 
 		dynamic o = new ExpandoObject();
 		// o.a = (Func<int>) (() => { return 1; });
@@ -136,7 +135,7 @@ public static unsafe class Program
 
 		Console.WriteLine(o);
 		Console.WriteLine(o.a);
-
+		
 		var kl = new KeyboardListener()
 		{
 			KeyWhitelist =
@@ -153,12 +152,7 @@ public static unsafe class Program
 		kl.Start();
 		Thread.Sleep(TimeSpan.FromSeconds(10));
 	}
-
-	interface IInterface
-	{
-		public int a { get; }
-	}
-
+	
 
 	private static void Test1()
 	{

@@ -116,11 +116,11 @@ public sealed class KeyboardListener : IDisposable
 		KeyEvent?.Invoke(null, args);
 
 		if (args.IsStroke) {
-			KeyStroke?.Invoke(null, keyShort);
+			KeyStroke?.Invoke(null, args);
 		}
 
 		if (args.IsDown) {
-			KeyDown?.Invoke(null, keyShort);
+			KeyDown?.Invoke(null, args);
 		}
 
 
@@ -175,9 +175,9 @@ public sealed class KeyboardListener : IDisposable
 
 	public event EventHandler<KeyEventArgs> KeyEvent;
 
-	public event EventHandler<VirtualKey> KeyDown;
+	public event EventHandler<KeyEventArgs> KeyDown;
 
-	public event EventHandler<VirtualKey> KeyStroke;
+	public event EventHandler<KeyEventArgs> KeyStroke;
 
 	#endregion
 

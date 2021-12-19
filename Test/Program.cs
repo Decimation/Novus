@@ -141,16 +141,14 @@ public static unsafe class Program
 		{
 			KeyWhitelist =
 			{
-				VirtualKey.KEY_G
+				VirtualKey.LBUTTON
 			}
 		};
 
-		kl.KeyEvent += (sender, key) =>
+		kl.KeyStroke += (sender, key) =>
 		{
-			if (key.Value != 0 && key.Value != short.MinValue) {
-				Console.WriteLine($"! {key}");
+			Console.WriteLine($"! {key}");
 
-			}
 		};
 		kl.Start();
 		Thread.Sleep(TimeSpan.FromSeconds(10));

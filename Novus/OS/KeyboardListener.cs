@@ -11,25 +11,24 @@ using Novus.OS.Win32.Structures;
 
 namespace Novus.OS;
 
-
 public sealed class KeyboardListener : IDisposable
 {
 	public KeyboardListener() : this(IntPtr.Zero) { }
 
-	public KeyboardListener(string s, ISet<VirtualKey> k = null) : this(Native.FindWindow(s), k) { }
+	public KeyboardListener(string windowName, ISet<VirtualKey> whitelist = null) : this(
+		Native.FindWindow(windowName), whitelist) { }
 
-	public KeyboardListener(IntPtr h, ISet<VirtualKey> k = null)
+	public KeyboardListener(IntPtr handle, ISet<VirtualKey> whitelist = null)
 	{
 		m_thread = new Thread(Listen)
 		{
 			Priority     = ThreadPriority.AboveNormal,
 			IsBackground = false,
-
 		};
 
 		m_keyHistory = new ConcurrentDictionary<VirtualKey, KeyEventArgs>();
-		ScopeHandle  = h;
-		KeyWhitelist = k ?? new HashSet<VirtualKey>();
+		ScopeHandle  = handle;
+		KeyWhitelist = whitelist ?? new HashSet<VirtualKey>();
 	}
 
 	public void Start()
@@ -66,30 +65,52 @@ public sealed class KeyboardListener : IDisposable
 			return (b[1] & K_DOWN) != 0;
 		}
 	}
+	
 
 	private void HandleKey(VirtualKey keyShort)
 	{
 		if ((KeyWhitelist.Count > 0 && !KeyWhitelist.Contains(keyShort))) {
 			return;
-
 		}
 
-		short keyState = Native.GetAsyncKeyState(keyShort);
-			
-		bool prev = IsVkPrevious(keyState);
-		bool down = IsVkDown(keyState);
+		short shift = Native.GetAsyncKeyState(VirtualKey.SHIFT);
+		short ctrl  = Native.GetAsyncKeyState(VirtualKey.CONTROL);
+		short alt   = Native.GetAsyncKeyState(VirtualKey.MENU);
 
+		bool shiftDown = IsVkDown(shift);
+		bool ctrDown   = IsVkDown(ctrl);
+		bool altDown   = IsVkDown(alt);
+
+		ConsoleModifiers c = 0;
+
+		if (shiftDown) {
+			c |= ConsoleModifiers.Shift;
+		}
+
+		if (altDown) {
+			c |= ConsoleModifiers.Alt;
+		}
+
+		if (ctrDown) {
+			c |= ConsoleModifiers.Control;
+		}
+
+		short key     = Native.GetAsyncKeyState(keyShort);
+		bool  keyPrev = IsVkPrevious(key);
+		bool  keyDown = IsVkDown(key);
 
 		bool stroke = m_keyHistory.ContainsKey(keyShort)
-		              && m_keyHistory[keyShort].IsDown && !down;
+		              && m_keyHistory[keyShort].IsDown
+		              && !keyDown;
 
 		var args = new KeyEventArgs
 		{
 			Key        = keyShort,
-			IsDown     = down,
-			IsPrevious = prev,
+			IsDown     = keyDown,
+			IsPrevious = keyPrev,
 			IsStroke   = stroke,
-			Raw        = keyState
+			Value      = key,
+			Modifiers  = c
 		};
 
 		KeyEvent?.Invoke(null, args);
@@ -114,7 +135,7 @@ public sealed class KeyboardListener : IDisposable
 				continue;
 			}
 
-			byte[] rg = new byte[VK_COUNT];
+			var rg = new byte[VK_COUNT];
 
 			Native.GetKeyboardState(rg);
 
@@ -128,6 +149,10 @@ public sealed class KeyboardListener : IDisposable
 	public void Dispose()
 	{
 		Stop();
+		m_keyHistory.Clear();
+		KeyWhitelist.Clear();
+		ScopeHandle = IntPtr.Zero;
+
 	}
 
 	public bool IsActive { get; private set; }
@@ -161,7 +186,8 @@ public sealed class KeyboardListener : IDisposable
 
 	private const int K_DOWN = 0x80;
 
-	private const int K_PREV   = 1;
+	private const int K_PREV = 1;
+
 	private const int VK_COUNT = 256;
 
 	#endregion
@@ -169,20 +195,25 @@ public sealed class KeyboardListener : IDisposable
 
 public sealed class KeyEventArgs : EventArgs
 {
-	public VirtualKey Key { get; init; }
+	public VirtualKey Key { get; internal init; }
 
-	public bool IsDown { get; init; }
+	public bool IsDown { get; internal init; }
 
-	public bool IsPrevious { get; init; }
+	public bool IsPrevious { get; internal init; }
 
-	public bool  IsStroke { get; init; }
-	public short Raw      { get; set; }
+	public bool IsStroke { get; internal init; }
+
+	public short Value { get; internal set; }
+
+	public ConsoleModifiers Modifiers { get; internal init; }
 
 	public override string ToString()
 	{
-		return $"{nameof(Key)}: {Key}, "                +
-		       $"{nameof(IsDown)}: {IsDown},"           +
+		return $"{nameof(Key)}: {Key}, " +
+		       $"{nameof(IsDown)}: {IsDown}," +
 		       $" {nameof(IsPrevious)}: {IsPrevious}, " +
-		       $"{nameof(IsStroke)}: {IsStroke}, "      + $"{nameof(Raw)}: {Raw}";
+		       $"{nameof(IsStroke)}: {IsStroke}, " +
+		       $"{nameof(Value)}: {Value}, " +
+		       $"{nameof(Modifiers)}: {Modifiers}";
 	}
 }

@@ -12,6 +12,7 @@ using Kantan.Text;
 using Novus.Memory;
 using Novus.OS;
 using Novus.OS.Win32;
+using Novus.OS.Win32.Structures;
 #pragma warning disable IDE0005, CS0436
 using System;
 using System.Buffers;
@@ -136,18 +137,23 @@ public static unsafe class Program
 		Console.WriteLine(o);
 		Console.WriteLine(o.a);
 
-		Console.WriteLine(Native.GetUnicodeName('A'));
+		var kl = new KeyboardListener()
+		{
+			KeyWhitelist =
+			{
+				VirtualKey.KEY_G
+			}
+		};
 
-		Console.WriteLine(Native.INVALID2.ToString("X"));
-		
-		
-		var dd=ReflectionHelper.DumpDependencies();
+		kl.KeyEvent += (sender, key) =>
+		{
+			if (key.Value != 0 && key.Value != short.MinValue) {
+				Console.WriteLine($"! {key}");
 
-
-		Global.QWrite(dd.QuickJoin());
-
-		var d = SymbolReader.ResolveSymbolFile(@"C:\Symbols\charmap.exe");
-		Console.WriteLine(d);
+			}
+		};
+		kl.Start();
+		Thread.Sleep(TimeSpan.FromSeconds(10));
 	}
 
 	interface IInterface

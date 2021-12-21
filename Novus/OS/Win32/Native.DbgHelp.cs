@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.DbgHelp;
+
 // ReSharper disable InconsistentNaming
 
 namespace Novus.OS.Win32;

@@ -49,7 +49,7 @@ public static class Command
 
 		args = args.Replace('\"', '\'');
 
-		var startInfo = new ProcessStartInfo("python")
+		var startInfo = new ProcessStartInfo(Native.PYTHON_EXE)
 		{
 			Arguments              = $"-c \"{args}\"",
 			UseShellExecute        = false,

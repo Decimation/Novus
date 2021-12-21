@@ -1,6 +1,7 @@
 ﻿// ReSharper disable LocalizableElement
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable RedundantUnsafeContext
+global using Native = Novus.OS.Win32.Native;
 
 global using U = System.Runtime.CompilerServices.Unsafe;
 global using M = Novus.Memory.Mem;
@@ -11,6 +12,7 @@ using System.Runtime.Versioning;
 using Kantan.OS;
 using Kantan.OS.Structures;
 using Kantan.Text;
+using Kantan.Utilities.Structures;
 using Novus.Memory;
 using Novus.OS;
 using Novus.OS.Win32;
@@ -135,7 +137,7 @@ public static unsafe class Program
 
 		Console.WriteLine(o);
 		Console.WriteLine(o.a);
-		
+
 		var kl = new KeyboardListener()
 		{
 			KeyWhitelist =
@@ -152,30 +154,6 @@ public static unsafe class Program
 		kl.Start();
 		Thread.Sleep(TimeSpan.FromSeconds(10));
 	}
-	
 
-	private static void Test1()
-	{
-		/*var a = Native.SendInput( new[]
-		{
-			new Input()
-			{
-				type = InputType.Keyboard,
-				U = new InputUnion()
-				{
-					ki = new KeyboardInput()
-					{
-						// dwFlags     = (KeyEventFlags.KeyDown | KeyEventFlags.SCANCODE),
-						// wScan       = ScanCodeShort.KEY_W,
 
-						wVk         = VirtualKey.KEY_G,
-						dwFlags     = 0,
-						dwExtraInfo = new UIntPtr((uint) Native.GetMessageExtraInfo().ToInt64())
-					},
-				}
-			}
-		});
-		
-		Console.WriteLine(a);*/
-	}
 }

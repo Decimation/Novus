@@ -27,7 +27,7 @@ namespace Novus.Runtime;
 /// 
 /// <seealso cref="Mem" />
 /// <seealso cref="RuntimeProperties" />
-/// <seealso cref="ReflectionHelper" />
+/// <seealso cref="Utilities.ReflectionHelper" />
 public static class Inspector
 {
 	[Flags]
@@ -88,7 +88,7 @@ public static class Inspector
 				propTable.AddRow("Blittable", RuntimeProperties.IsBlittable(value));
 				propTable.AddRow("Boxed", RuntimeProperties.IsBoxed(value));
 				propTable.AddRow("Nil", RuntimeProperties.IsDefault(value));
-				propTable.AddRow("Uninitialized", RuntimeProperties.IsUninitialized(value));
+				propTable.AddRow("Uninitialized", RuntimeProperties.IsNullMemory(value));
 
 
 				propTable.AddRow("In GC heap", GCHeap.IsHeapPointer(Mem.AddressOfData(ref value)));

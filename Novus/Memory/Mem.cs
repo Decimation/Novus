@@ -25,6 +25,7 @@ using Kantan.Utilities;
 using Novus.Memory.Allocation;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.Kernel32;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
@@ -44,6 +45,8 @@ using Novus.Utilities;
 // ReSharper disable UnusedMember.Global
 
 #pragma warning disable IDE0059
+#pragma warning disable IDE1006
+
 
 namespace Novus.Memory;
 

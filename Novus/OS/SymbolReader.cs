@@ -9,6 +9,7 @@ using System.Web;
 using JetBrains.Annotations;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.DbgHelp;
 using Novus.OS.Win32.Wrappers;
 using Novus.Properties;
 // ReSharper disable UnusedParameter.Local

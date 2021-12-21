@@ -6,6 +6,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Kantan.Model;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.DbgHelp;
+using Novus.OS.Win32.Structures.Kernel32;
+using Novus.OS.Win32.Structures.Other;
+using Novus.OS.Win32.Structures.User32;
 using Novus.OS.Win32.Wrappers;
 
 #pragma warning disable CA1401, CA2101
@@ -44,6 +48,9 @@ public static unsafe partial class Native
 	public const string CMD_EXE = "cmd.exe";
 
 	public const string EXPLORER_EXE = "explorer.exe";
+
+
+	public const string PYTHON_EXE = "python";
 
 	#endregion
 
@@ -132,9 +139,9 @@ public static unsafe partial class Native
 		return true;
 	}
 
-	public static int SendInput(Input[] inputs)
+	public static int SendInput(InputRecord[] inputs)
 	{
-		return (int) SendInput((uint) inputs.Length, inputs, Marshal.SizeOf<Input>() * inputs.Length);
+		return (int) SendInput((uint) inputs.Length, inputs, Marshal.SizeOf<InputRecord>() * inputs.Length);
 	}
 
 	public static string GetWindowText(IntPtr hWnd)
@@ -313,8 +320,9 @@ public static unsafe partial class Native
 
 		//http://www.pinvoke.net/default.aspx/getuname/GetUName.html
 		//https://stackoverflow.com/questions/2087682/finding-out-unicode-character-name-in-net
-		var buf  = new StringBuilder(SIZE_1);
-		var i    = GetUName(id, buf);
+		var buf = new StringBuilder(SIZE_1);
+		_ = GetUName(id, buf);
+
 		var name = buf.ToString();
 		return name;
 	}
@@ -341,6 +349,7 @@ public static unsafe partial class Native
 
 		var exception = Marshal.GetExceptionForHR(hr);
 
-		throw exception!;
+		// ReSharper disable once PossibleNullReferenceException
+		throw exception;
 	}
 }

@@ -1,6 +1,8 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
 #pragma warning disable IDE0060, IDE0079, IDE0005
+global using Native = Novus.OS.Win32.Native;
+global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 
 global using U = System.Runtime.CompilerServices.Unsafe;
 global using M = Novus.Memory.Mem;
@@ -39,7 +41,7 @@ using static Novus.Utilities.ReflectionHelper;
 // ReSharper disable LocalizableElement
 
 // ReSharper disable UnusedMember.Global
-[assembly: InternalsVisibleTo("Ultrakiller")]
+// [assembly: InternalsVisibleTo("Ultrakiller")]
 [assembly: InternalsVisibleTo("Test")]
 [assembly: InternalsVisibleTo("TestBenchmark")]
 #nullable disable

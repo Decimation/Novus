@@ -1,4 +1,5 @@
 ﻿using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.DbgHelp;
 
 namespace Novus.OS.Win32.Wrappers;
 

@@ -11,6 +11,7 @@ using Kantan.Diagnostics;
 using Kantan.Utilities;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.Kernel32;
 
 #pragma warning disable 8603, CA1416
 

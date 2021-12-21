@@ -10,6 +10,7 @@ using Novus.Memory.Allocation;
 using Novus.OS;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.Kernel32;
 using Novus.OS.Win32.Wrappers;
 using Novus.Runtime.Meta;
 using Novus.Utilities;

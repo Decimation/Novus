@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.Kernel32;
+using Novus.OS.Win32.Structures.Other;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
@@ -103,8 +105,8 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	private static extern IntPtr CreateFile(string fileName, FileAccess fileAccess, FileShare fileShare,
-											IntPtr securityAttributes, FileMode creationDisposition,
-											FileAttributes flagsAndAttributes, IntPtr template);
+	                                        IntPtr securityAttributes, FileMode creationDisposition,
+	                                        FileAttributes flagsAndAttributes, IntPtr template);
 
 	[DllImport(KERNEL32_DLL)]
 	private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
@@ -185,8 +187,8 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
-											   uint dwSize, AllocationType flAllocationType,
-											   MemoryProtection flProtect);
+	                                           uint dwSize, AllocationType flAllocationType,
+	                                           MemoryProtection flProtect);
 
 	[DllImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
@@ -296,8 +298,8 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL)]
 	internal static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize,
-													 IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags,
-													 out IntPtr lpThreadId);
+	                                                 IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags,
+	                                                 out IntPtr lpThreadId);
 
 	public const uint INFINITE       = 0xFFFFFFFF;
 	public const uint WAIT_ABANDONED = 0x00000080;

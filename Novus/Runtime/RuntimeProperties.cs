@@ -181,10 +181,7 @@ public static unsafe class RuntimeProperties
 	///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 	/// </summary>
 	/// <remarks>Inverse of <see cref="ResolveTypeHandle(System.Type)" /></remarks>
-	public static Type ResolveType(Pointer<MethodTable> handle)
-	{
-		return Func_GetTypeFromHandle(handle.Address);
-	}
+	public static Type ResolveType(Pointer<MethodTable> handle) => Func_GetTypeFromHandle(handle.Address);
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
@@ -192,9 +189,9 @@ public static unsafe class RuntimeProperties
 	/// <remarks>Inverse of <see cref="ResolveType" /></remarks>
 	public static Pointer<MethodTable> ResolveTypeHandle(Type t)
 	{
-		var handle          = t.TypeHandle.Value;
-		var typeHandleValue = *(TypeHandle*) &handle;
-		return typeHandleValue.MethodTable;
+		var handle = t.TypeHandle.Value;
+		var value  = *(TypeHandle*) &handle;
+		return value.MethodTable;
 	}
 
 	#endregion
@@ -254,14 +251,15 @@ public static unsafe class RuntimeProperties
 	/// <returns><c>true</c> if boxed; <c>false</c> otherwise</returns>
 	public static bool IsBoxed<T>([CBN] T value)
 	{
-		return (typeof(T).IsInterface || typeof(T) == typeof(object)) && value != null && IsStruct(value);
+		return (typeof(T).IsInterface || typeof(T) == typeof(object)) 
+		       && value != null && IsStruct(value);
 	}
 
 	/// <summary>
-	/// Determines whether <paramref name="t"/> is uninitialized; that is,
-	/// all of its fields are <c>null</c>.
+	///     Determines whether the memory of <paramref name="t" /> is null; that is,
+	///     all of its fields are <c>null</c>.
 	/// </summary>
-	public static bool IsUninitialized<T>(T t)
+	public static bool IsNullMemory<T>(T t)
 	{
 		var ptr = Mem.AddressOfData(ref t);
 		int s   = Mem.SizeOf(t, SizeOfOptions.BaseFields);
@@ -272,12 +270,15 @@ public static unsafe class RuntimeProperties
 	}
 
 	/// <summary>
-	///     Heuristically determines whether <paramref name="value" /> is blank.
+	///     Heuristically determines whether <paramref name="value" /> is empty.
 	///     This always returns <c>true</c> if <paramref name="value" /> is <c>null</c> or nil.
 	/// </summary>
 	/// <remarks>
-	///     Blank is defined as one of the following: <c>null</c>, nil (<see cref="IsDefault{T}" />),
-	///     non-unique, or unmodified
+	///     Blank is defined as one of the following:
+	///     <c>null</c>,
+	///     nil (<see cref="IsDefault{T}" />),
+	///     non-unique,
+	///     or unmodified
 	/// </remarks>
 	/// <example>
 	///     If <paramref name="value" /> is a <see cref="string" />, this function returns <c>true</c> if the
@@ -289,7 +290,7 @@ public static unsafe class RuntimeProperties
 	///     <c>true</c> if <paramref name="value" /> is <c>null</c> or nil; or
 	///     if <paramref name="value" /> is heuristically determined to be blank.
 	/// </returns>
-	public static bool IsBlank<T>([CBN] T value)
+	public static bool IsEmpty<T>([CBN] T value)
 	{
 		if (IsDefault(value)) {
 			return true;
@@ -301,7 +302,7 @@ public static unsafe class RuntimeProperties
 
 		// As for strings, IsNullOrWhiteSpace should always be true when
 		// IsNullOrEmpty is true
-			
+
 		bool test = value switch
 		{
 			IList list => list.Count == 0,

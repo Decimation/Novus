@@ -21,11 +21,15 @@ using Novus.Imports;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
 using Kantan.Numeric;
+using Kantan.OS.Structures;
 using Novus.Memory.Allocation;
 using Novus.OS;
 using Novus.OS.Win32;
+using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.User32;
 using NUnit.Framework.Internal;
 using UnitTest.TestTypes;
+using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
 
 // ReSharper disable StringLiteralTypo
 
@@ -36,8 +40,35 @@ using UnitTest.TestTypes;
 
 namespace UnitTest;
 
+[TestFixture]
+public class Tests_Other
+{
+	[Test]
+	public static void SendInputTest()
+	{
+		var a = Native.SendInput(new[]
+		{
+			new InputRecord()
+			{
+				type = InputType.Keyboard,
+				U = new InputUnion()
+				{
+					ki = new KeyboardInput()
+					{
+						// dwFlags     = (KeyEventFlags.KeyDown | KeyEventFlags.SCANCODE),
+						// wScan       = ScanCodeShort.KEY_W,
 
+						wVk         = VirtualKey.KEY_G,
+						dwFlags     = 0,
+						dwExtraInfo = new UIntPtr((uint) Native.GetMessageExtraInfo().ToInt64())
+					},
+				}
+			}
+		});
 
+		Console.WriteLine(a);
+	}
+}
 
 [TestFixture]
 public class Tests_GCHeap
@@ -71,7 +102,6 @@ public class Tests_GCHeap
 
 	}
 }
-
 [TestFixture]
 public class Tests_UArray
 {
@@ -564,7 +594,7 @@ public class Tests_Runtime
 	[Test]
 	public void BlankTest()
 	{
-		Assert.True(RuntimeProperties.IsBlank(Array.Empty<int>()));
+		Assert.True(RuntimeProperties.IsEmpty(Array.Empty<int>()));
 	}
 
 	[Test]

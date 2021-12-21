@@ -19,7 +19,7 @@
       HAA0301,
       HAA0302,
       HAA0303,
-      HAA0101,
+      HAA0101,IDE1006
     </NoWarn>
   </PropertyGroup>
 
@@ -33,8 +33,8 @@
 
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.0.0-beta.2" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
   </ItemGroup>
 
   <ItemGroup>

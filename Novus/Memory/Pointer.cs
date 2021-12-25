@@ -442,6 +442,7 @@ public unsafe struct Pointer<T> : IFormattable
 		return rg;
 	}
 
+	
 	/// <summary>
 	///     Copies <paramref name="elemCnt" /> elements into an array of type <typeparamref name="T" />,
 	///     starting from index 0.

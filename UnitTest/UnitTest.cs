@@ -15,13 +15,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Kantan.Cli;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 using Novus;
 using Novus.Imports;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
 using Kantan.Numeric;
-using Kantan.OS.Structures;
 using Novus.Memory.Allocation;
 using Novus.OS;
 using Novus.OS.Win32;
@@ -40,6 +40,20 @@ using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
 
 namespace UnitTest;
 
+[TestFixture]
+public class Tests_Sig
+{
+	[Test]
+	[TestCase(@"48 89 54 24 ? 4C 89 44 24", @"C:\Users\Deci\VSProjects\Pneumatix\x64\Release\Pneumatix.exe")]
+	public void Test1(string s, string d)
+	{
+		var r=File.ReadAllBytes(d);
+
+		var ss = new SigScanner(r.AsSpan());
+		var sig=ss.FindSignature(s);
+		Assert.True(!sig.IsNull);
+	}
+}
 [TestFixture]
 public class Tests_Other
 {
@@ -273,7 +287,7 @@ public class Tests_Native
 	[Test]
 	public void SymbolsTest2()
 	{
-		var d=SymbolReader.ResolveSymbolFile(@"C:\Symbols\charmap.exe");
+		var d=SymbolReader.DownloadSymbolFile(@"C:\Symbols\charmap.exe");
 		TestContext.WriteLine(d);
 
 	}

@@ -2,8 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using Kantan.OS.Structures;
-using Kantan.Utilities.Structures;
+using Kantan.Cli;
 using Novus.OS.Win32;
 
 // ReSharper disable UnusedMember.Global

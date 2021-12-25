@@ -12,6 +12,7 @@ using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.DbgHelp;
 using Novus.OS.Win32.Wrappers;
 using Novus.Properties;
+
 // ReSharper disable UnusedParameter.Local
 
 // ReSharper disable InconsistentNaming
@@ -159,6 +160,36 @@ public sealed class SymbolReader : IDisposable
 		return modBase;
 	}
 
+	public static string GetSymbolFile(string s, string o = null)
+	{
+		o ??= FileSystem.GetPath(KnownFolder.Downloads);
+
+		const string symchk     = "symchk";
+		var    process    = Command.Run(symchk, s);
+		var    info       = process.StartInfo;
+		var    collection = info.ArgumentList;
+		collection.Add("/ocdb");
+		collection.Add(o);
+
+		process.Start();
+		process.WaitForExit();
+		var error = process.StandardError.ReadToEnd();
+		var ee    = process.StandardOutput.ReadToEnd();
+
+		if (!String.IsNullOrWhiteSpace(error))
+		
+		{
+			process.Dispose();
+			return null;
+		}
+		var f = ee.Split(' ')[1];
+
+		process.Dispose();
+		// var combine = Path.Combine(Path.GetFileName(s), o);
+		// return combine;
+		return f;
+	}
+
 	/// <summary>
 	///     Searches for symbol file locally; otherwise; downloads it
 	/// </summary>
@@ -168,7 +199,7 @@ public sealed class SymbolReader : IDisposable
 	///     Path to the symbol file if it was found
 	///     <em>or</em> path to the downloaded symbol file
 	/// </returns>
-	public static string ResolveSymbolFile(string fname, [CanBeNull] string cacheDirectoryPath = null)
+	public static string DownloadSymbolFile(string fname, [CanBeNull] string cacheDirectoryPath = null)
 	{
 		// fname=FileSystem.SearchInPath(fname);
 		fname = Path.GetFullPath(fname);
@@ -204,7 +235,7 @@ public sealed class SymbolReader : IDisposable
 		var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
 
 		if (File.Exists(pdbFilePath)) {
-			Debug.WriteLine($"Using {pdbFilePath}", nameof(ResolveSymbolFile));
+			Debug.WriteLine($"Using {pdbFilePath}", nameof(DownloadSymbolFile));
 			return pdbFilePath;
 		}
 
@@ -213,12 +244,12 @@ public sealed class SymbolReader : IDisposable
 		                $"{fileName}/" +
 		                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
 
-		Debug.WriteLine($"Downloading {uriString}", nameof(ResolveSymbolFile));
+		Debug.WriteLine($"Downloading {uriString}", nameof(DownloadSymbolFile));
 
 
 		//await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
 		wc.DownloadFile(new Uri(uriString), pdbFilePath);
-		Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(ResolveSymbolFile));
+		Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(DownloadSymbolFile));
 
 		return pdbFilePath;
 	}

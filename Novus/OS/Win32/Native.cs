@@ -126,7 +126,7 @@ public static unsafe partial class Native
 
 		IntPtr remoteThread = CreateRemoteThread(processHandle, IntPtr.Zero, 0,
 		                                         loadLibraryAddr, remoteAddress,
-		                                         0, out _);
+		                                         0, out var rId);
 
 		if (remoteThread == IntPtr.Zero) {
 			return false;
@@ -146,11 +146,10 @@ public static unsafe partial class Native
 
 	public static string GetWindowText(IntPtr hWnd)
 	{
-		const int CAPACITY = SIZE_1;
 
-		var sb = new StringBuilder(CAPACITY);
+		var sb = new StringBuilder(SIZE_1);
 
-		var sz = GetWindowText(hWnd, sb, CAPACITY);
+		var sz = GetWindowText(hWnd, sb, SIZE_1);
 
 		sb.Length = sz;
 

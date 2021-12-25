@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using Kantan.OS.Structures;
+using Kantan.Cli;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.User32;
 using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
+// ReSharper disable UnusedMember.Global
 
 // ReSharper disable UnusedMember.Local
 

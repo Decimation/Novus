@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Kantan.Text;
 using Novus.OS.Win32;
@@ -23,15 +24,26 @@ public static class Command
 	{
 		// https://stackoverflow.com/questions/5519328/executing-batch-file-in-c-sharp
 
+		var process = Run(Native.CMD_EXE);
+		process.StartInfo.Arguments = $"/C {cmd}";
+		return process;
+	}
+
+	public static Process Run(string e, params string[] cmd)
+	{
 		var startInfo = new ProcessStartInfo
 		{
-			FileName               = Native.CMD_EXE,
-			Arguments              = $"/C {cmd}",
+			FileName               = e,
 			RedirectStandardOutput = true,
 			RedirectStandardError  = true,
 			UseShellExecute        = false,
-			CreateNoWindow         = true
+			CreateNoWindow         = true,
+			
 		};
+
+		foreach (string s in cmd) {
+			startInfo.ArgumentList.Add(s);
+		}
 
 		var process = new Process
 		{

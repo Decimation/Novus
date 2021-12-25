@@ -1,18 +1,16 @@
 ﻿// ReSharper disable LocalizableElement
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable RedundantUnsafeContext
-global using Native = Novus.OS.Win32.Native;
 
+global using Native = Novus.OS.Win32.Native;
 global using U = System.Runtime.CompilerServices.Unsafe;
 global using M = Novus.Memory.Mem;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Resources;
 using System.Runtime.Versioning;
-using Kantan.OS;
-using Kantan.OS.Structures;
+using Kantan.Cli;
 using Kantan.Text;
-using Kantan.Utilities.Structures;
 using Novus.Memory;
 using Novus.OS;
 using Novus.OS.Win32;
@@ -51,6 +49,7 @@ using Kantan.Utilities;
 using Novus.Memory.Allocation;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using Console = System.Console;
+
 
 // ReSharper disable UnusedParameter.Local
 #nullable disable
@@ -129,7 +128,12 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+		
+		Console.WriteLine(SymbolReader.GetSymbolFile(@"C:\Users\Deci\Downloads\ntdll.dll", @"C:\users\deci\downloads"));
+	}
 
+	private static void t1()
+	{
 		dynamic o = new ExpandoObject();
 		// o.a = (Func<int>) (() => { return 1; });
 		var dictionary = (IDictionary<string, object>) o;
@@ -154,6 +158,4 @@ public static unsafe class Program
 		kl.Start();
 		Thread.Sleep(TimeSpan.FromSeconds(10));
 	}
-
-
 }

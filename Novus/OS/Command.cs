@@ -29,11 +29,11 @@ public static class Command
 		return process;
 	}
 
-	public static Process Run(string e, params string[] cmd)
+	public static Process Run(string fname, params string[] args)
 	{
 		var startInfo = new ProcessStartInfo
 		{
-			FileName               = e,
+			FileName               = fname,
 			RedirectStandardOutput = true,
 			RedirectStandardError  = true,
 			UseShellExecute        = false,
@@ -41,7 +41,7 @@ public static class Command
 			
 		};
 
-		foreach (string s in cmd) {
+		foreach (string s in args) {
 			startInfo.ArgumentList.Add(s);
 		}
 

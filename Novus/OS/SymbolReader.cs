@@ -98,6 +98,42 @@ public sealed class SymbolReader : IDisposable
 	}
 
 
+	public static string GetSymbolFile(string s, string o = null)
+	{
+		o ??= FileSystem.GetPath(KnownFolder.Downloads);
+
+		// symchk.exe .\urlmon.dll /s SRV*"C:\Symbols\"*http://msdl.microsoft.com/download/symbols /osdbc \.
+
+		const string symchk  = "symchk";
+		var          process = Command.Run(symchk);
+		var          info    = process.StartInfo;
+
+		info.Arguments = $"{s} /s SRV*\"{o}\"*http://msdl.microsoft.com/download/symbols /oscdb {o}";
+
+		process.Start();
+		process.WaitForExit();
+		var error = process.StandardError.ReadToEnd();
+		var ee    = process.StandardOutput.ReadToEnd();
+
+		if (!String.IsNullOrWhiteSpace(error)) {
+			process.Dispose();
+			return null;
+		}
+
+		process.Dispose();
+		// var f = ee.Split(' ')[1];
+		// var combine = Path.Combine(Path.GetFileName(s), o);
+		// return combine;
+
+		var outFile = ee.Split("PDB: ")[1].Split("DBG: ")[0].Trim();
+
+
+		
+
+
+		return outFile;
+	}
+
 	public void LoadAll(string mask = MASK_ALL)
 	{
 		if (m_disposed) {
@@ -158,36 +194,6 @@ public sealed class SymbolReader : IDisposable
 		                                       IntPtr.Zero, 0);
 
 		return modBase;
-	}
-
-	public static string GetSymbolFile(string s, string o = null)
-	{
-		o ??= FileSystem.GetPath(KnownFolder.Downloads);
-
-		const string symchk     = "symchk";
-		var    process    = Command.Run(symchk, s);
-		var    info       = process.StartInfo;
-		var    collection = info.ArgumentList;
-		collection.Add("/ocdb");
-		collection.Add(o);
-
-		process.Start();
-		process.WaitForExit();
-		var error = process.StandardError.ReadToEnd();
-		var ee    = process.StandardOutput.ReadToEnd();
-
-		if (!String.IsNullOrWhiteSpace(error))
-		
-		{
-			process.Dispose();
-			return null;
-		}
-		var f = ee.Split(' ')[1];
-
-		process.Dispose();
-		// var combine = Path.Combine(Path.GetFileName(s), o);
-		// return combine;
-		return f;
 	}
 
 	/// <summary>

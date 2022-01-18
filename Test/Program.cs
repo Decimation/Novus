@@ -128,11 +128,12 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+
+		Console.WriteLine("h");
 		
-		Console.WriteLine(SymbolReader.GetSymbolFile(@"C:\Users\Deci\Downloads\ntdll.dll", @"C:\users\deci\downloads"));
 	}
 
-	private static void t1()
+	private static void Test1()
 	{
 		dynamic o = new ExpandoObject();
 		// o.a = (Func<int>) (() => { return 1; });

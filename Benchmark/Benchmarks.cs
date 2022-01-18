@@ -21,24 +21,38 @@ using Novus.Utilities;
 namespace TestBenchmark;
 
 [RyuJitX64Job]
-public class Benchmarks13
+public class Benchmarks17
 {
-	private Pointer<int> ptr;
+	private UArray<int> u1;
+
+	private int[] u2;
+
 
 	[GlobalSetup]
-	public void setup()
+	public void GlobalSetup()
 	{
-		ptr = AllocManager.Alloc<int>(3);
-		ptr.WriteAll(new[] { 1, 2, 3 });
+		u1 = Mem.AllocUArray<int>(5);
+		u2 = new int[5];
+
+		for (int i = 0; i < 5; i++) {
+			u1[i] = i;
+			u2[i] = i;
+
+		}
 	}
 
 	[Benchmark]
-	public Pointer<int> AddressOfIndex()
+	public int Index()
 	{
-		return ptr.AddressOfIndex(3);
+		return u1[0];
+	}
+
+	[Benchmark]
+	public int Index2()
+	{
+		return u2[0];
 	}
 }
-
 
 [RyuJitX64Job]
 public class Benchmarks16
@@ -56,7 +70,6 @@ public class Benchmarks16
 		return GCHeap.IsHeapPointer("foo");
 	}
 }
-
 
 [RyuJitX64Job]
 public unsafe class Benchmarks15
@@ -123,6 +136,25 @@ public unsafe class Benchmarks14
 	public void Copy2()
 	{
 		Unsafe.CopyBlock(dest, src, (uint) len);
+	}
+}
+
+[RyuJitX64Job]
+public class Benchmarks13
+{
+	private Pointer<int> ptr;
+
+	[GlobalSetup]
+	public void setup()
+	{
+		ptr = AllocManager.Alloc<int>(3);
+		ptr.WriteAll(new[] { 1, 2, 3 });
+	}
+
+	[Benchmark]
+	public Pointer<int> AddressOfIndex()
+	{
+		return ptr.AddressOfIndex(3);
 	}
 }
 

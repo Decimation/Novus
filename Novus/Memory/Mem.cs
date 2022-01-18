@@ -442,6 +442,7 @@ public static unsafe class Mem
 		return t2;
 	}
 
+
 	public static string ToBinaryString(object obj)
 	{
 		byte[] bytes = null;
@@ -459,6 +460,17 @@ public static unsafe class Mem
 		}
 
 		return null;
+	}
+
+	public static void Write<T>(this Span<T> s, params T[] v)
+	{
+		for (int i = 0; i < v.Length; i++) {
+			s[i] = v[i];
+		}
+	}
+	public static Pointer<T> ToPointer<T>(this Span<T> s)
+	{
+		return AddressOf(ref s.GetPinnableReference());
 	}
 
 	#endregion

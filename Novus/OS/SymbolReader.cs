@@ -7,6 +7,7 @@ using System.Net;
 using System.Reflection.PortableExecutable;
 using System.Web;
 using JetBrains.Annotations;
+using Kantan.Diagnostics;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.DbgHelp;
@@ -98,42 +99,6 @@ public sealed class SymbolReader : IDisposable
 	}
 
 
-	public static string GetSymbolFile(string s, string o = null)
-	{
-		o ??= FileSystem.GetPath(KnownFolder.Downloads);
-
-		// symchk.exe .\urlmon.dll /s SRV*"C:\Symbols\"*http://msdl.microsoft.com/download/symbols /osdbc \.
-
-		const string symchk  = "symchk";
-		var          process = Command.Run(symchk);
-		var          info    = process.StartInfo;
-
-		info.Arguments = $"{s} /s SRV*\"{o}\"*http://msdl.microsoft.com/download/symbols /oscdb {o}";
-
-		process.Start();
-		process.WaitForExit();
-		var error = process.StandardError.ReadToEnd();
-		var ee    = process.StandardOutput.ReadToEnd();
-
-		if (!String.IsNullOrWhiteSpace(error)) {
-			process.Dispose();
-			return null;
-		}
-
-		process.Dispose();
-		// var f = ee.Split(' ')[1];
-		// var combine = Path.Combine(Path.GetFileName(s), o);
-		// return combine;
-
-		var outFile = ee.Split("PDB: ")[1].Split("DBG: ")[0].Trim();
-
-
-		
-
-
-		return outFile;
-	}
-
 	public void LoadAll(string mask = MASK_ALL)
 	{
 		if (m_disposed) {
@@ -196,6 +161,57 @@ public sealed class SymbolReader : IDisposable
 		return modBase;
 	}
 
+	public void Dispose()
+	{
+		Cleanup();
+	}
+
+	public static string GetSymbolFile(string s, [CanBeNull] string o = null)
+	{
+		o ??= FileSystem.GetPath(KnownFolder.Downloads);
+
+		// symchk.exe .\urlmon.dll /s SRV*"C:\Symbols\"*http://msdl.microsoft.com/download/symbols /osdbc \.
+		//symchk /os <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /oc <output>
+
+		//symchk <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /osc <output>
+
+		if (!File.Exists(s)) {
+			throw new FileNotFoundException(null, s);
+		}
+
+		const string symchk  = "symchk";
+		var          process = Command.Run(symchk);
+		var          info    = process.StartInfo;
+
+		info.Arguments = $"{s} /su SRV**{EmbeddedResources.MicrosoftSymbolServer} /oscdb {o}";
+
+		process.Start();
+		process.WaitForExit();
+
+		var error = process.StandardError.ReadToEnd();
+		// var ee    = process.StandardOutput.ReadToEnd();
+
+		if (!String.IsNullOrWhiteSpace(error)) {
+			process.Dispose();
+			return null;
+		}
+
+		process.Dispose();
+		// var f = ee.Split(' ')[1];
+		// var combine = Path.Combine(Path.GetFileName(s), o);
+		// return combine;
+
+		// var outFile = ee.Split("PDB: ")[1].Split("DBG: ")[0].Trim();
+		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(s) + ".pdb");
+
+		if (!File.Exists(outFile)) {
+			throw new FileNotFoundException(null, outFile);
+		}
+
+
+		return outFile;
+	}
+
 	/// <summary>
 	///     Searches for symbol file locally; otherwise; downloads it
 	/// </summary>
@@ -255,13 +271,9 @@ public sealed class SymbolReader : IDisposable
 
 		//await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
 		wc.DownloadFile(new Uri(uriString), pdbFilePath);
+
 		Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(DownloadSymbolFile));
 
 		return pdbFilePath;
-	}
-
-	public void Dispose()
-	{
-		Cleanup();
 	}
 }

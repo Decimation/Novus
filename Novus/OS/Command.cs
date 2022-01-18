@@ -38,7 +38,7 @@ public static class Command
 			RedirectStandardError  = true,
 			UseShellExecute        = false,
 			CreateNoWindow         = true,
-			
+
 		};
 
 		foreach (string s in args) {
@@ -71,7 +71,8 @@ public static class Command
 
 		var proc = new Process
 		{
-			StartInfo = startInfo
+			StartInfo = startInfo, 
+			EnableRaisingEvents = true
 		};
 
 		return proc;
@@ -114,8 +115,10 @@ public static class Command
 
 		var proc = new Process
 		{
-			StartInfo = startInfo
+			StartInfo           = startInfo,
+			EnableRaisingEvents = true
 		};
+
 
 		return proc;
 	}

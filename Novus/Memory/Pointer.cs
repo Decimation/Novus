@@ -123,7 +123,7 @@ public unsafe struct Pointer<T> : IFormattable
 
 	public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 
-	public static implicit operator Pointer<T>(Span<T> ptr) => new(ref ptr.GetPinnableReference());
+	public static implicit operator Pointer<T>(Span<T> s) => s.ToPointer();
 
 
 	/// <summary>
@@ -397,7 +397,7 @@ public unsafe struct Pointer<T> : IFormattable
 
 		var count = (long) Mem.GetByteCount(elemCnt, ElementSize);
 
-		Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest, 
+		Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest,
 		                  count, count);
 
 		/*for (int i = startIndex; i < elemCnt + startIndex; i++) {
@@ -442,7 +442,7 @@ public unsafe struct Pointer<T> : IFormattable
 		return rg;
 	}
 
-	
+
 	/// <summary>
 	///     Copies <paramref name="elemCnt" /> elements into an array of type <typeparamref name="T" />,
 	///     starting from index 0.

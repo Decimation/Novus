@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using Kantan.Cli.Controls;
 using Kantan.Model;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.DbgHelp;
@@ -25,6 +26,11 @@ using Novus.OS.Win32.Wrappers;
 
 namespace Novus.OS.Win32;
 
+enum MyEnum
+{
+	
+}
+
 /// <summary>
 ///     Native interop; Win32 API
 /// </summary>
@@ -42,6 +48,23 @@ public static unsafe partial class Native
 	public const int ERROR_SUCCESS = 0;
 
 	public const int SIZE_1 = 32 << 5;
+
+	public const uint S_OK           = 0x00000000;
+
+	#region HRESULT
+
+	public const uint E_ABORT        = 0x80004004;
+	public const uint E_ACCESSDENIED = 0x80070005;
+	public const uint E_FAIL         = 0x80004005;
+	public const uint E_HANDLE       = 0x80070006;
+	public const uint E_INVALIDARG   = 0x80070057;
+	public const uint E_NOINTERFACE  = 0x80004002;
+	public const uint E_NOTIMPL      = 0x80004001;
+	public const uint E_OUTOFMEMORY  = 0x8007000E;
+	public const uint E_POINTER      = 0x80004003;
+	public const uint E_UNEXPECTED   = 0x8000FFFF;
+
+	#endregion
 
 	#region EXE
 

@@ -13,6 +13,8 @@ namespace Novus.Memory;
  * Some code adapted from
  * https://github.com/ikorin24/UnmanagedArray
  */
+
+
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 {

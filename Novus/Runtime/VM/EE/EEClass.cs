@@ -12,7 +12,7 @@ using Novus.Utilities;
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace Novus.Runtime.VM.EE;
-
+#pragma warning disable CA1069
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct EEClass

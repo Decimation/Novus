@@ -47,13 +47,14 @@ public class Tests_Sig
 	[TestCase(@"48 89 54 24 ? 4C 89 44 24", @"C:\Users\Deci\VSProjects\Pneumatix\x64\Release\Pneumatix.exe")]
 	public void Test1(string s, string d)
 	{
-		var r=File.ReadAllBytes(d);
+		var r = File.ReadAllBytes(d);
 
-		var ss = new SigScanner(r.AsSpan());
-		var sig=ss.FindSignature(s);
+		var ss  = new SigScanner(r.AsSpan());
+		var sig = ss.FindSignature(s);
 		Assert.True(!sig.IsNull);
 	}
 }
+
 [TestFixture]
 public class Tests_Other
 {
@@ -116,6 +117,7 @@ public class Tests_GCHeap
 
 	}
 }
+
 [TestFixture]
 public class Tests_UArray
 {
@@ -222,6 +224,30 @@ public unsafe class Tests_Pointer
 	}
 
 	[Test]
+	[TestCase(new int[] { 1, 2, 3 })]
+	public void Test6(int[] r)
+	{
+		Span<int> s = stackalloc int[r.Length];
+		r.CopyTo(s);
+
+		var p = s.ToPointer();
+
+		for (int i = 0; i < r.Length; i++) {
+			Assert.AreEqual(s[i], p[i]);
+		}
+
+		var array = r.Reverse().ToArray();
+
+		for (int i = 0; i < r.Length; i++) {
+			p[i] = array[i];
+		}
+
+		Assert.True(s.ToArray().SequenceEqual(p.ToArray(r.Length)));
+		Assert.True(s.ToArray().SequenceEqual(array));
+
+	}
+
+	[Test]
 	public void Test1()
 	{
 		int i = 256;
@@ -287,7 +313,7 @@ public class Tests_Native
 	[Test]
 	public void SymbolsTest2()
 	{
-		var d=SymbolReader.DownloadSymbolFile(@"C:\Symbols\charmap.exe");
+		var d = SymbolReader.DownloadSymbolFile(@"C:\Symbols\charmap.exe");
 		TestContext.WriteLine(d);
 
 	}
@@ -928,6 +954,14 @@ public class Tests_Mem
 		var bytes  = Mem.GetStringBytes(s);
 		var bytes1 = Encoding.Unicode.GetBytes(s);
 		Assert.True(bytes1.SequenceEqual(bytes));
+	}
+
+	[Test]
+	[TestCase("foo")]
+	[TestCase(new int[] { 1, 2, 3, 4, 5 })]
+	public void SizeTest2(object value)
+	{
+		Assert.AreEqual(RuntimeProperties.GetRawObjDataSize(value), Mem.SizeOf(value, SizeOfOptions.Data));
 	}
 
 	[Test]

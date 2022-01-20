@@ -98,6 +98,4 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
-
-
 }

@@ -9,12 +9,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Resources;
 using System.Runtime.Versioning;
+
 using Kantan.Cli;
 using Kantan.Text;
 using Novus.Memory;
 using Novus.OS;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.DbgHelp;
+using Novus.OS.Win32.Structures.Kernel32;
+using static Novus.OS.Win32.Native;
 #pragma warning disable IDE0005, CS0436
 using System;
 using System.Buffers;
@@ -49,7 +53,9 @@ using Kantan.Utilities;
 using Novus.Memory.Allocation;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using Console = System.Console;
-
+using DWORD = System.UInt32;
+using UINT = System.UInt32;
+using HINSTANCE = System.IntPtr;
 
 // ReSharper disable UnusedParameter.Local
 #nullable disable
@@ -109,10 +115,10 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
  *
- * TypeHandle
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.cpp
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.inl
+ * TypeIntPtr
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.inl
  *
  * Marshal Native
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
@@ -123,15 +129,25 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Threading;
 
 public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+		float a = 3.14f;
+		int   b = 0;
+		Console.WriteLine(M.reinterpret_cast<float,int>(&a));
 
-		Console.WriteLine("h");
-		
 	}
+
 
 	private static void Test1()
 	{

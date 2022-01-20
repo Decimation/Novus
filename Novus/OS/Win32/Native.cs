@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Kantan.Cli.Controls;
@@ -25,11 +26,6 @@ using Novus.OS.Win32.Wrappers;
 // ReSharper disable UnusedMember.Local
 
 namespace Novus.OS.Win32;
-
-enum MyEnum
-{
-	
-}
 
 /// <summary>
 ///     Native interop; Win32 API
@@ -99,6 +95,10 @@ public static unsafe partial class Native
 
 	#endregion
 
+	static Native()
+	{
+			
+	}
 	public static IntPtr GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
 	public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
@@ -285,6 +285,12 @@ public static unsafe partial class Native
 
 		return modules;
 	}
+
+	[DllImport(USER32_DLL, SetLastError = false)]
+	public static extern IntPtr GetDesktopWindow();
+
+	[DllImport(USER32_DLL)]
+	private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
 
 	public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
 

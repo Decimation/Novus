@@ -13,5 +13,4 @@ public static unsafe partial class Native
 {
 	[DllImport(UNAME_DLL, SetLastError = true)]
 	private static extern int GetUName(ushort wCharCode, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpBuf);
-
 }

@@ -288,6 +288,9 @@ public static unsafe partial class Native
 												int dwMimeFlags,
 												out IntPtr ppwzMimeOut,
 												int dwReserved);
+	[DllImport(SHELL32_DLL)]
+
+	public static extern IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters, string lpDirectory, int nShowCmd);
 
 	[DllImport(SHELL32_DLL, CharSet = CharSet.Auto)]
 	public static extern bool ShellExecuteEx(ref ShellExecuteInfo lpExecInfo);

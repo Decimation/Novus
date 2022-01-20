@@ -241,6 +241,41 @@ public static unsafe class Mem
 
 	#endregion
 
+	#region Cast
+
+	public static ref T ref_cast<T>(in T t) => ref U.AsRef(in t);
+
+	public static object as_cast(object t) => as_cast<object, object>(t);
+
+	public static ref TTo reinterpret_cast<TFrom, TTo>(ref TFrom t)
+		=> ref reinterpret_cast<TFrom, TTo>(new Pointer<TFrom>(ref t));
+
+	public static ref TTo reinterpret_cast<TFrom, TTo>(Pointer<TFrom> t)
+	{
+		var p = AddressOf(ref t);
+		return ref p.Cast<TTo>().Reference;
+	}
+
+
+	/// <summary>
+	/// Shortcut to <see cref="Unsafe.As{T,T}"/>
+	/// </summary>
+	/// <remarks>Can be used similar to <c>const_cast</c>, <c>static_cast</c>,
+	/// <c>dynamic_cast</c> from <em>C++</em></remarks>
+	public static TTo as_cast<TFrom, TTo>(TFrom t)
+		where TFrom : class 
+		where TTo : class
+	{
+		// var ptr  = Mem.AddressOfHeap(t);
+		// var ptr2 = ptr.Cast<T2>();
+		// var t2   = U.As<T2>(ptr2.Reference);
+
+		var t2 = U.As<TTo>(t);
+		return t2;
+	}
+
+	#endregion
+
 
 	#region Read/write
 
@@ -422,26 +457,6 @@ public static unsafe class Mem
 		return rg;
 	}
 
-	public static ref T RefCast<T>(in T t) => ref U.AsRef(in t);
-
-	public static object AsCast(object t) => AsCast<object, object>(t);
-
-	/// <summary>
-	/// Shortcut to <see cref="Unsafe.As{T,T}"/>
-	/// </summary>
-	/// <remarks>Can be used similar to <c>const_cast</c>, <c>static_cast</c>,
-	/// <c>dynamic_cast</c> from <em>C++</em></remarks>
-	public static TTo AsCast<TFrom, TTo>(TFrom t) where TFrom : class
-		where TTo : class
-	{
-		// var ptr  = Mem.AddressOfHeap(t);
-		// var ptr2 = ptr.Cast<T2>();
-		// var t2   = U.As<T2>(ptr2.Reference);
-
-		var t2 = U.As<TTo>(t);
-		return t2;
-	}
-
 
 	public static string ToBinaryString(object obj)
 	{
@@ -468,6 +483,7 @@ public static unsafe class Mem
 			s[i] = v[i];
 		}
 	}
+
 	public static Pointer<T> ToPointer<T>(this Span<T> s)
 	{
 		return AddressOf(ref s.GetPinnableReference());

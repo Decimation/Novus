@@ -14,6 +14,7 @@ using System.Resources;
 using System.Runtime.InteropServices;
 using Novus.OS;
 using static Kantan.Diagnostics.LogCategories;
+using static Novus.Imports.ImportType;
 
 // ReSharper disable UnusedMember.Local
 
@@ -55,7 +56,7 @@ public class Resource : IDisposable
 	{
 		ModuleName = moduleName;
 
-		var module = ProcessHelper.FindModule(p, moduleName);
+		var module = p.FindModule(moduleName);
 
 		Guard.AssertNotNull(module);
 
@@ -248,20 +249,12 @@ public class Resource : IDisposable
 				 */
 
 				//string mod           = unmanagedAttr.ModuleName;
-				var unmanagedType = unmanagedAttr.UnmanagedType;
+				var unmanagedType = unmanagedAttr.Type;
 
 				// Find address
 
-				var addr = unmanagedType switch
-				{
-					UnmanagedImportType.Signature => FindSignature(resValue),
-					UnmanagedImportType.Offset    => GetOffset((Int32.Parse(resValue, NumberStyles.HexNumber))),
-					UnmanagedImportType.Symbol => (Pointer<byte>) Module.BaseAddress +
-					                              (Symbols.Value?.GetSymbol(name)?.Offset
-					                               ?? throw new InvalidOperationException()),
 
-					_ => null
-				};
+				var addr = FindImport(resValue, unmanagedType);
 
 				//Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
@@ -308,6 +301,13 @@ public class Resource : IDisposable
 		return fieldValue;
 	}
 
+	public Pointer GetSymbol(string name)
+	{
+		return (Pointer<byte>) Module.BaseAddress +
+		       (Symbols.Value?.GetSymbol(name)?.Offset
+		        ?? throw new InvalidOperationException());
+	}
+
 	#endregion Import
 
 	private static void ErrorFunction()
@@ -315,33 +315,37 @@ public class Resource : IDisposable
 		throw new InvalidOperationException();
 	}
 
-	public static Pointer<byte> FindFunction(Process p, string m, string s)
+	public static Pointer<byte> FindImport(Process p, string m, string s, ImportType x)
 	{
+		using var resource = new Resource(p, m, s);
 
-		var resource = new Resource(p, m, s);
-
-		return resource.FindExportOrSignature(s);
+		return resource.FindImport(s, x);
 	}
 
-	public static Pointer<byte> FindFunction(string m, string s) => FindFunction(Process.GetCurrentProcess(), m, s);
+	public static Pointer<byte> FindImport(string m, string s, ImportType x)
+		=> FindImport(Process.GetCurrentProcess(), m, s, x);
 
 
-	public Pointer<byte> FindExportOrSignature(string signature)
+	public Pointer<byte> FindImport(string s, ImportType x)
 	{
-		var p = FindExport(signature);
-
-		if (p.IsNull) {
-			p = FindSignature(signature);
-		}
-
-		return p;
+		return x switch
+		{
+			Signature => GetSignature(s),
+			Export    => GetExport(s),
+			Offset    => GetOffset(s),
+			Symbol    => GetSymbol(s),
+			_         => throw new ArgumentOutOfRangeException(nameof(x), x, null)
+		};
 	}
 
-	public Pointer<byte> FindExport(string signature) => NativeLibrary.GetExport(Module.BaseAddress, signature);
+	private Pointer GetOffset([NN] string s)
+	{
+		return Address + (Int64.TryParse(s, NumberStyles.HexNumber, null, out long l) ? l : Int64.Parse(s));
+	}
 
-	public Pointer<byte> FindSignature(string signature) => Scanner.Value.FindSignature(signature);
+	public Pointer<byte> GetExport(string name) => NativeLibrary.GetExport(Module.BaseAddress, name);
 
-	public Pointer<byte> GetOffset(long ofs) => Address + (ofs);
+	public Pointer<byte> GetSignature(string signature) => Scanner.Value.FindSignature(signature);
 
 	public void Dispose()
 	{

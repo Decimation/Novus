@@ -1,6 +1,8 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
 #pragma warning disable IDE0060, IDE0079, IDE0005
+global using NN = JetBrains.Annotations.NotNullAttribute;
+
 global using Native = Novus.OS.Win32.Native;
 global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 
@@ -12,6 +14,7 @@ global using UT = System.Runtime.InteropServices.UnmanagedType;
 global using PE = System.Linq.Expressions.ParameterExpression;
 global using BE = System.Linq.Expressions.BinaryExpression;
 global using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
+using CBN = JetBrains.Annotations.CanBeNullAttribute;
 using System;
 using System.Collections;
 using System.Collections.Generic;

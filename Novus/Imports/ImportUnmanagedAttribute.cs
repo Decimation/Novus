@@ -17,26 +17,27 @@ public class ImportUnmanagedAttribute : ImportAttribute
 {
 	public string ModuleName { get; set; }
 
-	public UnmanagedImportType UnmanagedType { get; set; }
+	public ImportType Type { get; set; }
 
 	[CanBeNull]
 	public string Value { get; set; }
 
-	public ImportUnmanagedAttribute(string moduleName, UnmanagedImportType unmanagedType, string value = null)
-		: this(moduleName, null, unmanagedType, value) { }
+	public ImportUnmanagedAttribute(string moduleName, ImportType type, string value = null)
+		: this(moduleName, null, type, value) { }
 
-	public ImportUnmanagedAttribute(string moduleName, string name, UnmanagedImportType unmanagedType,
+	public ImportUnmanagedAttribute(string moduleName, string name, ImportType type,
 	                                string value = null) : base(name, ImportManageType.Unmanaged)
 	{
 		ModuleName    = moduleName;
-		UnmanagedType = unmanagedType;
+		Type = type;
 		Value         = value;
 	}
 }
 
-public enum UnmanagedImportType
+public enum ImportType
 {
 	Signature,
 	Offset,
-	Symbol
+	Symbol,
+	Export
 }

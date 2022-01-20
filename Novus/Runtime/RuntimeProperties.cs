@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CBN = JetBrains.Annotations.CanBeNullAttribute;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,8 +25,7 @@ using Novus.Utilities;
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable ClassCannotBeInstantiated
 // ReSharper disable UnusedMember.Global
-using CBN = JetBrains.Annotations.CanBeNullAttribute;
-using NN = JetBrains.Annotations.NotNullAttribute;
+
 
 // ReSharper disable ArgumentsStyleLiteral
 

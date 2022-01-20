@@ -41,21 +41,6 @@ using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
 namespace UnitTest;
 
 [TestFixture]
-public class Tests_Sig
-{
-	[Test]
-	[TestCase(@"48 89 54 24 ? 4C 89 44 24", @"C:\Users\Deci\VSProjects\Pneumatix\x64\Release\Pneumatix.exe")]
-	public void Test1(string s, string d)
-	{
-		var r = File.ReadAllBytes(d);
-
-		var ss  = new SigScanner(r.AsSpan());
-		var sig = ss.FindSignature(s);
-		Assert.True(!sig.IsNull);
-	}
-}
-
-[TestFixture]
 public class Tests_Other
 {
 	[Test]
@@ -81,7 +66,9 @@ public class Tests_Other
 			}
 		});
 
-		Console.WriteLine(a);
+		if (a!=0) {
+			Assert.Pass();
+		}
 	}
 }
 
@@ -279,7 +266,7 @@ public unsafe class Tests_Resources
 	private const string s  = "C:\\Users\\Deci\\VSProjects\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
 	private const string s2 = "SandboxLibrary.dll";
 
-	[ImportUnmanaged(s2, UnmanagedImportType.Signature, "89 54 24 10 89 4C 24 08")]
+	[ImportUnmanaged(s2, ImportType.Signature, "89 54 24 10 89 4C 24 08")]
 	private static delegate* unmanaged<int, int, int> doSomething;
 
 	[Test]
@@ -311,9 +298,10 @@ public class Tests_Native
 	}
 
 	[Test]
-	public void SymbolsTest2()
+	[TestCase(@"C:\Symbols\charmap.exe")]
+	public void SymbolsTest2(string a)
 	{
-		var d = SymbolReader.DownloadSymbolFile(@"C:\Symbols\charmap.exe");
+		var d = SymbolReader.GetSymbolFile(a);
 		TestContext.WriteLine(d);
 
 	}

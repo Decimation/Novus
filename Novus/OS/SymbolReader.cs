@@ -45,6 +45,7 @@ public sealed class SymbolReader : IDisposable
 
 	public SymbolReader(IntPtr process, string image)
 	{
+		Guard.AssertFileExists(image);
 		Process    = process;
 		Image      = image;
 		m_modBase  = LoadModule();
@@ -166,8 +167,25 @@ public sealed class SymbolReader : IDisposable
 		Cleanup();
 	}
 
-	public static string GetSymbolFile(string s, [CanBeNull] string o = null)
+	public enum SymbolSource
 	{
+		Symchk,
+		Download
+	}
+
+	public static string GetSymbolFile(string fname, [CanBeNull] string o = null,
+	                                   SymbolSource src = SymbolSource.Symchk)
+	{
+		switch (src) {
+
+			case SymbolSource.Symchk:
+				break;
+			case SymbolSource.Download:
+				return Download();
+			default:
+				throw new ArgumentOutOfRangeException(nameof(src), src, null);
+		}
+
 		o ??= FileSystem.GetPath(KnownFolder.Downloads);
 
 		// symchk.exe .\urlmon.dll /s SRV*"C:\Symbols\"*http://msdl.microsoft.com/download/symbols /osdbc \.
@@ -175,15 +193,15 @@ public sealed class SymbolReader : IDisposable
 
 		//symchk <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /osc <output>
 
-		if (!File.Exists(s)) {
-			throw new FileNotFoundException(null, s);
+		if (!File.Exists(fname)) {
+			throw new FileNotFoundException(null, fname);
 		}
 
 		const string symchk  = "symchk";
 		var          process = Command.Run(symchk);
 		var          info    = process.StartInfo;
 
-		info.Arguments = $"{s} /su SRV**{EmbeddedResources.MicrosoftSymbolServer} /oscdb {o}";
+		info.Arguments = $"{fname} /su SRV**{EmbeddedResources.MicrosoftSymbolServer} /oscdb {o}";
 
 		process.Start();
 		process.WaitForExit();
@@ -202,7 +220,7 @@ public sealed class SymbolReader : IDisposable
 		// return combine;
 
 		// var outFile = ee.Split("PDB: ")[1].Split("DBG: ")[0].Trim();
-		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(s) + ".pdb");
+		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(fname) + ".pdb");
 
 		if (!File.Exists(outFile)) {
 			throw new FileNotFoundException(null, outFile);
@@ -210,70 +228,63 @@ public sealed class SymbolReader : IDisposable
 
 
 		return outFile;
-	}
 
-	/// <summary>
-	///     Searches for symbol file locally; otherwise; downloads it
-	/// </summary>
-	/// <param name="fname">PE file</param>
-	/// <param name="cacheDirectoryPath">Output folder</param>
-	/// <returns>
-	///     Path to the symbol file if it was found
-	///     <em>or</em> path to the downloaded symbol file
-	/// </returns>
-	public static string DownloadSymbolFile(string fname, [CanBeNull] string cacheDirectoryPath = null)
-	{
-		// fname=FileSystem.SearchInPath(fname);
-		fname = Path.GetFullPath(fname);
+		string Download()
+		{
+			// fname=FileSystem.SearchInPath(fname);
+			fname = Path.GetFullPath(fname);
 
-		using var peReader = new PEReader(File.OpenRead(fname));
+			using var peReader = new PEReader(File.OpenRead(fname));
 
-		var codeViewEntry = peReader.ReadDebugDirectory()
-		                            .First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+			var codeViewEntry = peReader.ReadDebugDirectory()
+			                            .First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
 
-		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
+			var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 
-		// var cacheDirectoryPath = Global.ProgramData;
+			// var cacheDirectoryPath = Global.ProgramData;
 
-		cacheDirectoryPath ??= FileSystem.GetPath(KnownFolder.Downloads);
-		using var wc = new WebClient();
+			o ??= FileSystem.GetPath(KnownFolder.Downloads);
+			using var wc = new WebClient();
 
-		// Check if the correct version of the PDB is already cached
-		var path       = Path.ChangeExtension(fname, "pdb");
-		var fileName   = Path.GetFileName(path);
-		var pdbDirPath = Path.Combine(cacheDirectoryPath, fileName);
+			// Check if the correct version of the PDB is already cached
+			var path       = Path.ChangeExtension(fname, "pdb");
+			var fileName   = Path.GetFileName(path);
+			var pdbDirPath = Path.Combine(o, fileName);
 
-		if (!Directory.Exists(pdbDirPath)) {
-			Directory.CreateDirectory(pdbDirPath);
-		}
+			if (!Directory.Exists(pdbDirPath)) {
+				Directory.CreateDirectory(pdbDirPath);
+			}
 
-		var pdbPlusGuidDirPath = Path.Combine(pdbDirPath, pdbData.Guid.ToString());
+			var pdbPlusGuidDirPath = Path.Combine(pdbDirPath, pdbData.Guid.ToString());
 
-		if (!Directory.Exists(pdbPlusGuidDirPath)) {
-			Directory.CreateDirectory(pdbPlusGuidDirPath);
-		}
+			if (!Directory.Exists(pdbPlusGuidDirPath)) {
+				Directory.CreateDirectory(pdbPlusGuidDirPath);
+			}
 
-		//var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, path);
-		var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
+			//var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, path);
+			var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
 
-		if (File.Exists(pdbFilePath)) {
-			Debug.WriteLine($"Using {pdbFilePath}", nameof(DownloadSymbolFile));
+			if (File.Exists(pdbFilePath)) {
+				Debug.WriteLine($"Using {pdbFilePath}", nameof(GetSymbolFile));
+				goto ret;
+			}
+
+
+			var uriString = EmbeddedResources.MicrosoftSymbolServer +
+			                $"{fileName}/" +
+			                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
+
+			Debug.WriteLine($"Downloading {uriString}", nameof(GetSymbolFile));
+
+
+			//await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
+			wc.DownloadFile(new Uri(uriString), pdbFilePath);
+
+			Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(GetSymbolFile));
+
+			ret:
+
 			return pdbFilePath;
 		}
-
-
-		var uriString = EmbeddedResources.MicrosoftSymbolServer +
-		                $"{fileName}/" +
-		                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
-
-		Debug.WriteLine($"Downloading {uriString}", nameof(DownloadSymbolFile));
-
-
-		//await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
-		wc.DownloadFile(new Uri(uriString), pdbFilePath);
-
-		Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(DownloadSymbolFile));
-
-		return pdbFilePath;
 	}
 }

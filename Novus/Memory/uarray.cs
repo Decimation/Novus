@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using Novus.Memory.Allocation;
+// ReSharper disable StaticMemberInGenericType
 
 namespace Novus.Memory;
 
@@ -19,7 +20,6 @@ namespace Novus.Memory;
 [StructLayout(LayoutKind.Sequential)]
 public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 {
-	// ReSharper disable once StaticMemberInGenericType
 	private static readonly nuint s_elementSize;
 
 	public int ElementSize => (int) s_elementSize;

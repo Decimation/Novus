@@ -32,16 +32,10 @@ namespace Novus.OS.Win32;
 /// </summary>
 public static unsafe partial class Native
 {
-	/*
-	 * CsWin32 and Microsoft.Windows.Sdk tanks VS performance; won't use it for now
-	 */
-
-
+	
 	public const int INVALID = -1;
-	
 
-	public static readonly nuint INVALID3 = unchecked((nuint) (-1));
-	
+	public const nuint U_INVALID = 0xFFFFFFFF;
 
 	public const int ERROR_SUCCESS = 0;
 
@@ -71,7 +65,7 @@ public static unsafe partial class Native
 	public const string EXPLORER_EXE = "explorer.exe";
 
 
-	public const string PYTHON_EXE = "python";
+	public const string PYTHON_EXE = "python.exe";
 
 	#endregion
 
@@ -98,6 +92,7 @@ public static unsafe partial class Native
 	#endregion
 
 	static Native() { }
+
 	public static IntPtr GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
 	public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
@@ -168,7 +163,6 @@ public static unsafe partial class Native
 
 	public static string GetWindowText(IntPtr hWnd)
 	{
-
 		var sb = new StringBuilder(SIZE_1);
 
 		var sz = GetWindowText(hWnd, sb, SIZE_1);
@@ -271,7 +265,10 @@ public static unsafe partial class Native
 	{
 		var snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module | SnapshotFlags.Module32, procId);
 
-		var mod = new ModuleEntry32 { dwSize = (uint) Marshal.SizeOf(typeof(ModuleEntry32)) };
+		var mod = new ModuleEntry32
+		{
+			dwSize = (uint) Marshal.SizeOf(typeof(ModuleEntry32))
+		};
 
 		if (!Module32First(snapshot, ref mod))
 			return null;
@@ -285,11 +282,6 @@ public static unsafe partial class Native
 		return modules;
 	}
 
-	[DllImport(USER32_DLL, SetLastError = false)]
-	public static extern IntPtr GetDesktopWindow();
-
-	[DllImport(USER32_DLL)]
-	private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
 
 	public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
 
@@ -369,6 +361,13 @@ public static unsafe partial class Native
 
 	public static IntPtr LoadLibraryEx(string lpFileName, LoadLibraryFlags dwFlags)
 		=> LoadLibraryEx(lpFileName, IntPtr.Zero, dwFlags);
+
+	public static nint HRFromWin32(nint x)
+	{
+		const int FACILITY_WIN32 = 7;
+
+		return (nint) (x <= 0 ? x : (x & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);
+	}
 
 	public static void FailWin32Error()
 	{

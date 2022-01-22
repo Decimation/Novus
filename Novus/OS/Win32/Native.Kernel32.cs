@@ -128,7 +128,8 @@ public static unsafe partial class Native
 	/*[DllImport(KERNEL32_DLL)]
 	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
 												nint size, out IntPtr numBytesRead);*/
-
+	[DllImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", SetLastError = false)]
+	private static extern void MoveMemory(void* dst, void* src, int size);
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
 	                                             int size, out int numberBytesWritten);

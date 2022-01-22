@@ -142,21 +142,16 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		
+
 		UArray<int> r = new(4) { };
 		Console.WriteLine(r);
 		r.Pin(0);
 		Console.WriteLine(r.IsAllocated);
 		r.Unpin();
-		Console.WriteLine(HRESULT_FROM_WIN32(ulong.MaxValue));
-		Console.WriteLine();
+		
 	}
 
-	static int HRESULT_FROM_WIN32(ulong x)
-	{
-		return (int) ((x) <= 0 ? (x) : (((x) & 0x0000FFFF) | (7 << 16) | 0x80000000));
-	}
-	
+
 	private static void Test1()
 	{
 		dynamic o = new ExpandoObject();

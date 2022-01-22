@@ -5,6 +5,7 @@ using Kantan.Cli;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.User32;
 using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
+
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable UnusedMember.Local
@@ -13,6 +14,12 @@ namespace Novus.OS.Win32;
 #pragma warning disable CA1401,CA2101
 public static unsafe partial class Native
 {
+	[DllImport(USER32_DLL, SetLastError = false)]
+	public static extern IntPtr GetDesktopWindow();
+
+	[DllImport(USER32_DLL)]
+	private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
+
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string className,
 	                                         string windowTitle);
@@ -80,7 +87,6 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
 	private static extern int GetWindowTextLength(IntPtr hWnd);
-
 
 
 	private class SearchData

@@ -14,6 +14,7 @@ using Kantan.Text;
 using Kantan.Utilities;
 
 // ReSharper disable UnusedMember.Global
+// ReSharper disable StaticMemberInGenericType
 
 
 namespace Novus.Memory;
@@ -47,6 +48,10 @@ namespace Novus.Memory;
 /// <seealso cref="Unsafe" />
 public unsafe struct Pointer<T> : IFormattable, IPinnable
 {
+	private static readonly nuint s_elementSize;
+
+	static Pointer() => s_elementSize = (nuint) M.SizeOf<T>();
+
 	/// <summary>
 	///     Internal pointer value.
 	/// </summary>
@@ -55,7 +60,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Size of element type <typeparamref name="T" />.
 	/// </summary>
-	public int ElementSize => Mem.SizeOf<T>();
+	public int ElementSize => (int) s_elementSize;
 
 	/// <summary>
 	///     Indexes <see cref="Address" /> as a reference.

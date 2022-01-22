@@ -1,4 +1,7 @@
-﻿global using Pointer = Novus.Memory.Pointer<byte>;
+﻿
+global using Pointer = Novus.Memory.Pointer<byte>;
+
+using System.Buffers;
 using System.Runtime.InteropServices;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.Kernel32;
@@ -42,7 +45,7 @@ namespace Novus.Memory;
 /// <seealso cref="IntPtr" />
 /// <seealso cref="UIntPtr" />
 /// <seealso cref="Unsafe" />
-public unsafe struct Pointer<T> : IFormattable
+public unsafe struct Pointer<T> : IFormattable, IPinnable
 {
 	/// <summary>
 	///     Internal pointer value.
@@ -171,9 +174,8 @@ public unsafe struct Pointer<T> : IFormattable
 
 	[Pure]
 	public uint ToUInt32() => (uint) m_value;
+	
 
-	[Pure]
-	public Span<T> AsSpan(int elemCnt) => new(m_value, elemCnt);
 
 	#endregion
 
@@ -495,4 +497,14 @@ public unsafe struct Pointer<T> : IFormattable
 	///     Default increment/decrement/element count for <see cref="Pointer{T}" />
 	/// </summary>
 	private const int ELEM_CNT = 1;
+
+	public MemoryHandle Pin(int elementIndex)
+	{
+		return new(Offset(elementIndex));
+	}
+
+	public void Unpin()
+	{
+		//todo
+	}
 }

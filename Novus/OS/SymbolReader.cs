@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Web;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;

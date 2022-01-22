@@ -38,14 +38,16 @@ public static unsafe partial class Native
 
 
 	public const int INVALID = -1;
+	
 
-	public static readonly nuint INVALID2 = nuint.MaxValue;
+	public static readonly nuint INVALID3 = unchecked((nuint) (-1));
+	
 
 	public const int ERROR_SUCCESS = 0;
 
 	public const int SIZE_1 = 32 << 5;
 
-	public const uint S_OK           = 0x00000000;
+	public const uint S_OK = 0x00000000;
 
 	#region HRESULT
 
@@ -95,10 +97,7 @@ public static unsafe partial class Native
 
 	#endregion
 
-	static Native()
-	{
-			
-	}
+	static Native() { }
 	public static IntPtr GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
 	public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);

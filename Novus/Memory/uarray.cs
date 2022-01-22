@@ -2,8 +2,10 @@
 // ReSharper disable IdentifierTypo
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using Novus.Memory.Allocation;
 
@@ -14,10 +16,14 @@ namespace Novus.Memory;
  * https://github.com/ikorin24/UnmanagedArray
  */
 
-
 [StructLayout(LayoutKind.Sequential)]
-public readonly struct UArray<T> : IDisposable, IEnumerable<T>
+public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 {
+	// ReSharper disable once StaticMemberInGenericType
+	private static readonly nuint s_elementSize;
+
+	public int ElementSize => (int) s_elementSize;
+
 	public Pointer<T> Address { get; }
 
 	public int Length { get; }
@@ -30,56 +36,66 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 
 	public UArray() : this(Mem.Nullptr, 0) { }
 
-	public UArray(Pointer<T> p, int i)
+	public UArray(int s) : this(NativeMemory.AllocZeroed((nuint) s, s_elementSize), s) { }
+
+	private UArray(Pointer<T> p, int i)
 	{
 		Address = p;
 		Length  = i;
 		Size    = (int) Mem.GetByteCount(Length, Mem.SizeOf<T>());
 	}
 
-	public static implicit operator Pointer<T>(UArray<T> value) => value.Address;
-
-	public static implicit operator Pointer<byte>(UArray<T> value) => value.Address;
-
-	public Pointer<T> AddressOfIndex(int i)
+	static UArray()
 	{
-		ref T value = ref U.Add(ref this[i], i);
-
-		return new(ref value);
+		s_elementSize = (nuint) U.SizeOf<T>();
 	}
 
+	public static implicit operator Pointer<T>(UArray<T> value) => value.Address;
+
+	public static implicit operator Pointer(UArray<T> value) => value.Address;
+
+	public Pointer<T> AddressOfIndex(int i) => Address.AddressOfIndex(i);
+
+
+	public MemoryHandle Pin(int elementIndex) => Address.Pin(elementIndex);
+
+	public void Unpin() => Address.Unpin();
+
+	public Span<T> AsSpan() => new(Address.ToPointer(), Length);
+
+	public Span<T> AsMemory() => new(Address.ToPointer(), Length);
+
+	public Stream AsStream() => new UnmanagedMemoryStream(Address.ToPointer<byte>(), Length);
+
+	public T[] ToArray() => Address.ToArray(Length);
 
 	public void CopyFrom(params T[] values)
 	{
-		unsafe {
-			var memory = values.AsMemory();
+		var memory = values.AsMemory();
 
-			using var pin = memory.Pin();
+		using var pin = memory.Pin();
 
-			Buffer.MemoryCopy(pin.Pointer, (void*) Address, Size, Size);
+		Buffer.MemoryCopy(pin.Pointer, (void*) Address, Size, Size);
 
-			/*for (int i = 0; i < t.Length; i++) {
+		/*for (int i = 0; i < t.Length; i++) {
 				this[i] = t[i];
 			}*/
-		}
 
 	}
 
 
-	public void Free()
+	private void Free()
 	{
 		AllocManager.Free(Address);
 
-		unsafe {
-			fixed (UArray<T>* p = &this) {
-				//hack
-				U.Write<Pointer<Pointer<T>>>(p, Mem.Nullptr);
-			}
-			
+		fixed (UArray<T>* p = &this) {
+			//hack
+			U.Write<Pointer<Pointer<T>>>(p, Mem.Nullptr);
 		}
+
 	}
 
-	
+
 	public void Dispose()
 	{
 		Free();
@@ -106,7 +122,7 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 	{
 		return $"{Address} [{Length}]";
 	}
-	
+
 
 	/// <summary>Enumerator of <see cref="UArray{T}"/></summary>
 	public struct UArrayEnumerator : IEnumerator<T>
@@ -114,7 +130,7 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 		private readonly Pointer<T> _ptr;
 		private readonly int        _len;
 		private          int        _index;
-		
+
 		public T Current { get; private set; }
 
 		internal UArrayEnumerator(UArray<T> array)
@@ -124,9 +140,9 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 			_index  = 0;
 			Current = default;
 		}
-		
+
 		public void Dispose() { }
-		
+
 		public bool MoveNext()
 		{
 			if ((uint) _index < (uint) _len) {
@@ -155,7 +171,7 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 		private readonly Pointer<T> _ptr;
 		private readonly int        _len;
 		private          int        _index;
-		
+
 		public T Current { get; private set; }
 
 		internal UArrayEnumeratorClass(UArray<T> array)
@@ -165,7 +181,7 @@ public readonly struct UArray<T> : IDisposable, IEnumerable<T>
 			_index  = 0;
 			Current = default;
 		}
-		
+
 		public void Dispose() { }
 
 		public bool MoveNext()

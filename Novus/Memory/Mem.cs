@@ -982,15 +982,7 @@ public static unsafe class Mem
 
 	#endregion
 
-	[MustUseReturnValue]
-	public static UArray<T> AllocUArray<T>(int s)
-	{
-		Pointer<T> ptr = NativeMemory.AllocZeroed((nuint) s, (nuint) U.SizeOf<T>());
-
-		var u = new UArray<T>(ptr, s);
-
-		return u;
-	}
+	
 }
 
 /// <summary>

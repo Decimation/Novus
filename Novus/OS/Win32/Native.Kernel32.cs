@@ -46,41 +46,41 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern bool GetConsoleScreenBufferInfo(IntPtr hConsoleOutput,
-														 ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
+	                                                     ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern bool WriteConsoleOutputCharacter(IntPtr hConsoleOutput, StringBuilder lpCharacter,
-														  uint nLength, Coord dwWriteCoord,
-														  out uint lpNumberOfCharsWritten);
+	                                                      uint nLength, Coord dwWriteCoord,
+	                                                      out uint lpNumberOfCharsWritten);
 
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern bool WriteConsoleOutput(IntPtr hConsoleOutput, CharInfo[] lpBuffer, Coord dwBufferSize,
-												 Coord dwBufferCoord, ref SmallRect lpWriteRegion
+	                                             Coord dwBufferCoord, ref SmallRect lpWriteRegion
 	);
 
 	/* Writes character and color attribute data to a specified rectangular block of character cells in a console screen buffer.
 	The data to be written is taken from a correspondingly sized rectangular block at a specified location in the source buffer */
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 	internal static extern bool WriteConsoleOutput(IntPtr hConsoleOutput,
-												   /* This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
-												   whose size is specified by the dwBufferSize parameter.*/
-												   [MarshalAs(UnmanagedType.LPArray), In] CharInfo[,] lpBuffer,
-												   Coord dwBufferSize,
-												   Coord dwBufferCoord,
-												   ref SmallRect lpWriteRegion);
+	                                               /* This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
+	                                               whose size is specified by the dwBufferSize parameter.*/
+	                                               [MarshalAs(UnmanagedType.LPArray), In] CharInfo[,] lpBuffer,
+	                                               Coord dwBufferSize,
+	                                               Coord dwBufferCoord,
+	                                               ref SmallRect lpWriteRegion);
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern bool WriteConsole(IntPtr hConsoleOutput, string lpBuffer, uint nNumberOfCharsToWrite,
-										   out uint lpNumberOfCharsWritten, IntPtr lpReserved);
+	                                       out uint lpNumberOfCharsWritten, IntPtr lpReserved);
 
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 	public static extern bool GetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
-													  ref ConsoleFontInfo lpConsoleCurrentFont);
+	                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
 
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 	public static extern bool SetCurrentConsoleFontEx(IntPtr hConsoleOutput, bool bMaximumWindow,
-													  ref ConsoleFontInfo lpConsoleCurrentFont);
+	                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
 
 	#endregion
 
@@ -118,12 +118,12 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
-												nint size, out int numBytesRead);
+	                                            nint size, out int numBytesRead);
 
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
-												nint size, out int numBytesRead);
+	                                            nint size, out int numBytesRead);
 
 	/*[DllImport(KERNEL32_DLL)]
 	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
@@ -131,7 +131,7 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
-												 int size, out int numberBytesWritten);
+	                                             int size, out int numberBytesWritten);
 
 	[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = CharSet.Unicode)]
 	public static extern void CopyMemoryW(IntPtr pdst, string psrc, int cb);
@@ -142,11 +142,11 @@ public static unsafe partial class Native
 	[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory")]
 	public static extern void CopyMemory(IntPtr pdst, byte[] psrc, int cb);
 
-	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-	internal static extern nuint _msize(void* ptr);
+	[DllImport(KERNEL32_DLL)]
+	public static extern nint HeapSize(IntPtr p, uint f, IntPtr m);
+	[DllImport(KERNEL32_DLL)]
 
-	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-	internal static extern nuint strlen(void* ptr);
+	public static extern IntPtr GetProcessHeap();
 
 	#endregion
 
@@ -193,16 +193,16 @@ public static unsafe partial class Native
 	[DllImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
 	public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
-											int dwSize, AllocationType dwFreeType);
+	                                        int dwSize, AllocationType dwFreeType);
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress,
-											   uint dwSize, MemoryProtection flNewProtect,
-											   out MemoryProtection lpflOldProtect);
+	                                           uint dwSize, MemoryProtection flNewProtect,
+	                                           out MemoryProtection lpflOldProtect);
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
-											ref MemoryBasicInformation lpBuffer, uint dwLength);
+	                                        ref MemoryBasicInformation lpBuffer, uint dwLength);
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern int VirtualQuery(IntPtr lpAddress, ref MemoryBasicInformation lpBuffer, int dwLength);
@@ -242,15 +242,15 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
 	public static extern int MultiByteToWideChar(int codePage, CharConversionFlags dwFlags, byte[] lpMultiByteStr,
-												 int cchMultiByte,
-												 [Out, MA(UT.LPWStr)] StringBuilder lpWideCharStr,
-												 int cchWideChar);
+	                                             int cchMultiByte,
+	                                             [Out, MA(UT.LPWStr)] StringBuilder lpWideCharStr,
+	                                             int cchWideChar);
 
 	[DllImport(KERNEL32_DLL, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
 	public static extern int WideCharToMultiByte(int codePage, CharConversionFlags flags,
-												 [MA(UT.LPWStr)] string wideStr, int chars,
-												 [In, Out] byte[] pOutBytes, int bufferBytes, IntPtr defaultChar,
-												 IntPtr pDefaultUsed);
+	                                             [MA(UT.LPWStr)] string wideStr, int chars,
+	                                             [In, Out] byte[] pOutBytes, int bufferBytes, IntPtr defaultChar,
+	                                             IntPtr pDefaultUsed);
 
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
@@ -262,8 +262,8 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 	internal static extern uint GetShortPathName([MA(UT.LPTStr)] string lpszLongPath,
-												 [MA(UT.LPTStr)] StringBuilder lpszShortPath,
-												 uint cchBuffer);
+	                                             [MA(UT.LPTStr)] StringBuilder lpszShortPath,
+	                                             uint cchBuffer);
 
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 	internal static extern uint GetShortPathName(string lpszLongPath, char[] lpszShortPath, int cchBuffer);
@@ -273,24 +273,25 @@ public static unsafe partial class Native
 
 	[DllImport(SHELL32_DLL)]
 	internal static extern int SHGetKnownFolderPath([MA(UT.LPStruct)] Guid rfid, uint dwFlags,
-													IntPtr hToken, out IntPtr ppszPath);
+	                                                IntPtr hToken, out IntPtr ppszPath);
 
 	[DllImport(KERNEL32_DLL)]
 	internal static extern uint LocalSize(IntPtr p);
 
 	[DllImport(URLMON_DLL, CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
 	internal static extern int FindMimeFromData(IntPtr pBC,
-												[MA(UT.LPWStr)] string pwzUrl,
-												[MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
-												byte[] pBuffer,
-												int cbSize,
-												[MA(UT.LPWStr)] string pwzMimeProposed,
-												int dwMimeFlags,
-												out IntPtr ppwzMimeOut,
-												int dwReserved);
-	[DllImport(SHELL32_DLL)]
+	                                            [MA(UT.LPWStr)] string pwzUrl,
+	                                            [MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
+	                                            byte[] pBuffer,
+	                                            int cbSize,
+	                                            [MA(UT.LPWStr)] string pwzMimeProposed,
+	                                            int dwMimeFlags,
+	                                            out IntPtr ppwzMimeOut,
+	                                            int dwReserved);
 
-	public static extern IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters, string lpDirectory, int nShowCmd);
+	[DllImport(SHELL32_DLL)]
+	public static extern IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters,
+	                                         string lpDirectory, int nShowCmd);
 
 	[DllImport(SHELL32_DLL, CharSet = CharSet.Auto)]
 	public static extern bool ShellExecuteEx(ref ShellExecuteInfo lpExecInfo);

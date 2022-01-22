@@ -19,5 +19,5 @@ public sealed unsafe class NativeAllocator : IAllocator
 	[MustUseReturnValue]
 	public Pointer Alloc(nuint n) => NativeMemory.AllocZeroed(n);
 
-	public nuint GetSize(Pointer p) => Native._msize(p.ToPointer());
+	public nint GetSize(Pointer p) => (nint) Native._msize(p.ToPointer());
 }

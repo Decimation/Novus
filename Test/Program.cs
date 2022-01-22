@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Resources;
 using System.Runtime.Versioning;
-
 using Kantan.Cli;
 using Kantan.Text;
 using Novus.Memory;
@@ -137,18 +136,27 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading;
+using HRESULT = Int32;
 
 public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		float a = 3.14f;
-		int   b = 0;
-		Console.WriteLine(M.reinterpret_cast<float,int>(&a));
-
+		
+		UArray<int> r = new(4) { };
+		Console.WriteLine(r);
+		r.Pin(0);
+		Console.WriteLine(r.IsAllocated);
+		r.Unpin();
+		Console.WriteLine(HRESULT_FROM_WIN32(ulong.MaxValue));
+		Console.WriteLine();
 	}
 
-
+	static int HRESULT_FROM_WIN32(ulong x)
+	{
+		return (int) ((x) <= 0 ? (x) : (((x) & 0x0000FFFF) | (7 << 16) | 0x80000000));
+	}
+	
 	private static void Test1()
 	{
 		dynamic o = new ExpandoObject();

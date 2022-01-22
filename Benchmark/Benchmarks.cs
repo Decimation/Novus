@@ -31,7 +31,7 @@ public class Benchmarks17
 	[GlobalSetup]
 	public void GlobalSetup()
 	{
-		u1 = Mem.AllocUArray<int>(5);
+		u1 = new(5);
 		u2 = new int[5];
 
 		for (int i = 0; i < 5; i++) {
@@ -164,7 +164,7 @@ public class Benchmarks12
 	[Benchmark]
 	public UArray<int> alloc()
 	{
-		return Mem.AllocUArray<int>(10);
+		return new(10);
 	}
 }
 

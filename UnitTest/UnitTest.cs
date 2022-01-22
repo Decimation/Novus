@@ -111,11 +111,11 @@ public class Tests_UArray
 	[Test]
 	public void Test1()
 	{
-		var u  = Mem.AllocUArray<int>(6);
+		var u  = new UArray<int>(6);
 		var rg = new[] { 1, 2, 3, 4, 5, 6 };
 		u.CopyFrom(rg);
 		Assert.True(u.SequenceEqual(rg));
-		u.Free();
+		u.Dispose();
 		Assert.True(!u.IsAllocated);
 
 	}

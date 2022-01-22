@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -13,6 +14,8 @@ using Novus.Utilities;
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Memory.Allocation;
+
+
 
 
 /// <summary>
@@ -41,13 +44,17 @@ public static class AllocManager
 		}
 	}
 
-	public static bool IsAllocated(Pointer ptr) => Allocated.Contains(ptr);
-
-	public static nuint GetSize(Pointer ptr)
+	public static bool IsAllocated(Pointer<byte> ptr)
 	{
-		if (!IsAllocated(ptr)) {
+		return Allocated.Contains(ptr);
+		// return Allocator.IsAllocated(ptr);
+	}
+
+	public static nuint GetSize(Pointer<byte> ptr)
+	{
+		/*if (!IsAllocated(ptr)) {
 			return Native.INVALID2;
-		}
+		}*/
 
 		return (nuint) Allocator.GetSize(ptr);
 	}
@@ -73,14 +80,14 @@ public static class AllocManager
 		return ptr;
 	}
 
-	private static void FreeInternal(Pointer ptr)
+	private static void FreeInternal(Pointer<byte> ptr)
 	{
 		Allocator.Free(ptr.Address);
 		Allocated.Remove(ptr);
 	}
 
 
-	public static void Free(Pointer ptr)
+	public static void Free(Pointer<byte> ptr)
 	{
 		if (!IsAllocated(ptr)) {
 			return;
@@ -94,7 +101,7 @@ public static class AllocManager
 	/// </summary>
 	/// <param name="cb">Number of bytes</param>
 	[MustUseReturnValue]
-	public static Pointer Alloc(int cb) => Alloc<byte>(cb);
+	public static Pointer<byte> Alloc(int cb) => Alloc<byte>(cb);
 
 	/// <summary>
 	/// Allocates memory for <paramref name="elemCnt"></paramref> elements of type <typeparamref name="T"/>.

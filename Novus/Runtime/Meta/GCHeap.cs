@@ -42,7 +42,7 @@ public static unsafe class GCHeap
 
 	public static object AllocObject(MetaType type, params object[] args)
 	{
-		Guard.Assert(!type.RuntimeType.IsValueType);
+		Require.Assert(!type.RuntimeType.IsValueType);
 
 		var ptr = (void*) AllocObject(type.Value);
 		var obj = U.Read<object>(&ptr);

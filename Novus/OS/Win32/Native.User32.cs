@@ -6,6 +6,8 @@ using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.User32;
 using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
 
+// ReSharper disable IdentifierTypo
+
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable UnusedMember.Local
@@ -14,6 +16,12 @@ namespace Novus.OS.Win32;
 #pragma warning disable CA1401,CA2101
 public static unsafe partial class Native
 {
+	[DllImport(USER32_DLL)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
+	                                       WindowFlags uFlags);
+	
+
 	[DllImport(USER32_DLL, SetLastError = false)]
 	public static extern IntPtr GetDesktopWindow();
 
@@ -104,4 +112,33 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+}
+
+public enum HwndWindowPosition
+{
+	HWND_BOTTOM    = 1,
+	HWND_NOTOPMOST = -2,
+	HWND_TOP       = 0,
+	HWND_TOPMOST   = -1,
+}
+
+public enum WindowFlags
+{
+	TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE,
+
+	SWP_ASYNCWINDOWPOS = 0x4000,
+	SWP_DEFERERASE     = 0x2000,
+	SWP_DRAWFRAME      = 0x0020,
+	SWP_FRAMECHANGED   = 0x0020,
+	SWP_HIDEWINDOW     = 0x0080,
+	SWP_NOACTIVATE     = 0x0010,
+	SWP_NOCOPYBITS     = 0x0100,
+	SWP_NOMOVE         = 0x0002,
+	SWP_NOOWNERZORDER  = 0x0200,
+	SWP_NOREDRAW       = 0x0008,
+	SWP_NOREPOSITION   = 0x0200,
+	SWP_NOSENDCHANGING = 0x0400,
+	SWP_NOSIZE         = 0x0001,
+	SWP_NOZORDER       = 0x0004,
+	SWP_SHOWWINDOW     = 0x0040,
 }

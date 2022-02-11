@@ -32,7 +32,6 @@ namespace Novus.OS.Win32;
 /// </summary>
 public static unsafe partial class Native
 {
-	
 	public const int INVALID = -1;
 
 	public const nuint U_INVALID = 0xFFFFFFFF;
@@ -282,6 +281,17 @@ public static unsafe partial class Native
 		return modules;
 	}
 
+	public static void RemoveWindowOnTop(IntPtr p)
+	{
+		Native.SetWindowPos(p, new((int)HwndWindowPosition.HWND_NOTOPMOST), 0, 0, 0, 0,
+		                    WindowFlags.TOPMOST_FLAGS);
+	}
+
+	public static void KeepWindowOnTop(IntPtr p)
+	{
+		Native.SetWindowPos(p, new((int) HwndWindowPosition.HWND_TOPMOST), 0, 0, 0, 0,
+		                    WindowFlags.TOPMOST_FLAGS);
+	}
 
 	public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
 
@@ -326,8 +336,7 @@ public static unsafe partial class Native
 
 		FlashWindowEx(ref fInfo);
 	}
-
-	public static void FlashConsoleWindow() => FlashWindow(GetConsoleWindow());
+	
 
 	public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
 

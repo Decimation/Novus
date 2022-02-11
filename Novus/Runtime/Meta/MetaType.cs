@@ -111,7 +111,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	{
 		get
 		{
-			Guard.Assert(HasLayout);
+			Require.Assert(HasLayout);
 
 			return Value.Reference.NativeLayoutInfo;
 		}
@@ -126,7 +126,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	{
 		get
 		{
-			Guard.Assert(HasLayout);
+			Require.Assert(HasLayout);
 
 			return EEClass.Reference.LayoutInfo;
 		}

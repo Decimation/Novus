@@ -211,7 +211,7 @@ public static class FileSystem
 		//https://stackoverflow.com/questions/11547654/determine-the-file-type-using-c-sharp
 		//https://github.com/GetoXs/MimeDetect/blob/master/src/Winista.MimeDetect/URLMONMimeDetect/urlmonMimeDetect.cs
 
-		Guard.AssertArgumentNotNull(dataBytes, nameof(dataBytes));
+		Require.ArgumentNotNull(dataBytes, nameof(dataBytes));
 
 
 		string mimeRet = String.Empty;

@@ -166,7 +166,7 @@ public static class Global
 		if (!compatible) {
 			Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed! " +
 			                $"({Environment.Version}, {ClrVersion})", C_ERROR);
-			//Guard.Fail();
+			//Require.Fail();
 		}
 
 		IsSetup = true;

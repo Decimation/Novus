@@ -66,7 +66,7 @@ public static class AllocManager
 			return null;
 		}
 
-		Guard.AssertPositive(elemCnt);
+		Require.Positive(elemCnt);
 
 		Allocated.Remove(ptr);
 
@@ -111,7 +111,7 @@ public static class AllocManager
 	[MustUseReturnValue]
 	public static Pointer<T> Alloc<T>(int elemCnt)
 	{
-		Guard.AssertPositive(elemCnt);
+		Require.Positive(elemCnt);
 
 		int elemSize = Mem.SizeOf<T>();
 		var cb       = (nuint) Mem.GetByteCount(elemSize, elemCnt);

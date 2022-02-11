@@ -347,7 +347,7 @@ public static class ReflectionHelper
 		var rg = new List<Type>();
 
 		var assembly = Assembly.GetAssembly(t);
-		Guard.AssertNotNull(assembly);
+		Require.NotNull(assembly);
 
 		var asmTypes = assembly.GetTypes();
 

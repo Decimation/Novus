@@ -148,7 +148,6 @@ public static unsafe class Program
 		r.Pin(0);
 		Console.WriteLine(r.IsAllocated);
 		r.Unpin();
-		
 	}
 
 

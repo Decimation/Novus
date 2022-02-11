@@ -58,7 +58,7 @@ public class Resource : IDisposable
 
 		var module = p.FindModule(moduleName);
 
-		Guard.AssertNotNull(module);
+		Require.NotNull(module);
 
 		Module       = module;
 		Scanner      = new Lazy<SigScanner>(() => new SigScanner(Module));
@@ -232,7 +232,7 @@ public class Resource : IDisposable
 				 * Name is the name of the resource file key
 				 */
 
-				Guard.Assert(unmanagedAttr.ManageType == ImportManageType.Unmanaged);
+				Require.Assert(unmanagedAttr.ManageType == ImportManageType.Unmanaged);
 
 				/*
 				 * Get value
@@ -242,7 +242,7 @@ public class Resource : IDisposable
 
 				var resValue = (string) GetObject(attribute);
 
-				Guard.AssertNotNull(resValue);
+				Require.NotNull(resValue);
 
 				/*
 				 * Get resource
@@ -256,7 +256,7 @@ public class Resource : IDisposable
 
 				var addr = FindImport(resValue, unmanagedType);
 
-				//Guard.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
+				//Require.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
 				if (addr.IsNull) {
 					// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
@@ -286,7 +286,7 @@ public class Resource : IDisposable
 				 * Name is the name of the member
 				 */
 
-				Guard.Assert(managedAttr.ManageType == ImportManageType.Managed);
+				Require.Assert(managedAttr.ManageType == ImportManageType.Managed);
 
 				var fn = managedAttr.Type.GetAnyMethod(name);
 

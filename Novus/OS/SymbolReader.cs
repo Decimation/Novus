@@ -46,7 +46,7 @@ public sealed class SymbolReader : IDisposable
 
 	public SymbolReader(IntPtr process, string image)
 	{
-		Guard.AssertFileExists(image);
+		Require.FileExists(image);
 		Process    = process;
 		Image      = image;
 		m_modBase  = LoadModule();

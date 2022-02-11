@@ -585,9 +585,9 @@ public static unsafe class Mem
 	/// <returns>The size of <paramref name="value" />; <see cref="Native.INVALID" /> otherwise</returns>
 	public static int SizeOf<T>(T value, SizeOfOptions options)
 	{
-		Guard.AssertArgumentNotNull(value, nameof(value));
+		Require.ArgumentNotNull(value, nameof(value));
 
-		//Guard.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
+		//Require.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
 
 		// Value is given
 
@@ -658,7 +658,7 @@ public static unsafe class Mem
 	private static int HeapSizeOfInternal<T>(T value)
 	{
 		// Sanity check
-		Guard.Assert(!RuntimeProperties.IsStruct(value));
+		Require.Assert(!RuntimeProperties.IsStruct(value));
 
 		// By manually reading the MethodTable*, we can calculate the size correctly if the reference
 		// is boxed or cloaked
@@ -773,11 +773,11 @@ public static unsafe class Mem
 
 		switch (offset) {
 			case OffsetOptions.StringData:
-				Guard.Assert(RuntimeProperties.IsString(value));
+				Require.Assert(RuntimeProperties.IsString(value));
 				break;
 
 			case OffsetOptions.ArrayData:
-				Guard.Assert(RuntimeProperties.IsArray(value));
+				Require.Assert(RuntimeProperties.IsArray(value));
 				break;
 		}
 

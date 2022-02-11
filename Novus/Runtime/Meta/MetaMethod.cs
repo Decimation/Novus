@@ -108,7 +108,7 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 	{
 		get
 		{
-			Guard.Assert(HasILHeader);
+			Require.Assert(HasILHeader);
 			return new MetaIL(Value.Reference.ILHeader);
 		}
 	}

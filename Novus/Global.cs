@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -34,6 +35,7 @@ using Novus.Runtime;
 using Kantan.Diagnostics;
 using Kantan.Text;
 using Kantan.Utilities;
+using Novus.Imports;
 using Novus.Memory.Allocation;
 using Novus.OS;
 using Novus.OS.Win32;
@@ -148,6 +150,8 @@ public static class Global
 
 	internal static string ProgramData { get; } =
 		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);
+
+	
 
 	/// <summary>
 	///     Module initializer

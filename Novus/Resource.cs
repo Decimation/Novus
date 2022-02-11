@@ -132,6 +132,17 @@ public class Resource : IDisposable
 		m_loadedTypes.Remove(t);
 	}
 
+	public void LoadAll(Assembly assembly = null)
+	{
+		assembly ??= Assembly.GetCallingAssembly();
+
+		var types = assembly.GetTypes();
+
+		foreach (var t in types) {
+			LoadImports(t);
+		}
+	}
+
 	/// <summary>
 	/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
 	/// </summary>

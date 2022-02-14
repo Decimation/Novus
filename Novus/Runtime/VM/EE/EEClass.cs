@@ -80,7 +80,10 @@ public unsafe struct EEClass
 		get
 		{
 			fixed (EEClass* value = &this) {
-				return Mem.ReadSubStructure<EEClass, ArrayClass>(value);
+				Pointer<byte> p = value;
+				p+=Mem.SizeOf<EEClass>();
+
+				return p.Cast<ArrayClass>();
 			}
 		}
 	}

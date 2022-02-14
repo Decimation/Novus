@@ -807,6 +807,11 @@ public class Tests_Mem
 	[SetUp]
 	public void Setup() { }
 
+	[Test][TestCase("foo")]
+	public void ByteTest<T>(T t)
+	{
+		Assert.AreEqual(t, Mem.ReadFromBytes<T>(Mem.GetBytes(t)));
+	}
 	[Test]
 	public void CopyTest()
 	{
@@ -932,17 +937,7 @@ public class Tests_Mem
 		Assert.AreEqual(Mem.SizeOf<Point>(), sizeof(Point));
 		Assert.AreEqual(Mem.SizeOf<Point>(SizeOfOptions.Intrinsic), sizeof(Point));
 	}
-
-	[Test]
-	[TestCase("foo")]
-	[TestCase("bar")]
-	[TestCase("hello world")]
-	public void StringTest2(string s)
-	{
-		var bytes  = Mem.GetStringBytes(s);
-		var bytes1 = Encoding.Unicode.GetBytes(s);
-		Assert.True(bytes1.SequenceEqual(bytes));
-	}
+	
 
 	[Test]
 	[TestCase("foo")]

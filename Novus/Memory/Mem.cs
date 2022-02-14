@@ -247,23 +247,13 @@ public static unsafe class Mem
 
 	public static object as_cast(object t) => as_cast<object, object>(t);
 
-	public static ref TTo reinterpret_cast<TFrom, TTo>(ref TFrom t)
-		=> ref reinterpret_cast<TFrom, TTo>(new Pointer<TFrom>(ref t));
-
-	public static ref TTo reinterpret_cast<TFrom, TTo>(Pointer<TFrom> t)
-	{
-		var p = AddressOf(ref t);
-		return ref p.Cast<TTo>().Reference;
-	}
-
-
 	/// <summary>
 	/// Shortcut to <see cref="Unsafe.As{T,T}"/>
 	/// </summary>
 	/// <remarks>Can be used similar to <c>const_cast</c>, <c>static_cast</c>,
 	/// <c>dynamic_cast</c> from <em>C++</em></remarks>
 	public static TTo as_cast<TFrom, TTo>(TFrom t)
-		where TFrom : class 
+		where TFrom : class
 		where TTo : class
 	{
 		// var ptr  = Mem.AddressOfHeap(t);
@@ -272,6 +262,15 @@ public static unsafe class Mem
 
 		var t2 = U.As<TTo>(t);
 		return t2;
+	}
+
+	public static ref TTo reinterpret_cast<TFrom, TTo>(ref TFrom t)
+		=> ref reinterpret_cast<TFrom, TTo>(new Pointer<TFrom>(ref t));
+
+	public static ref TTo reinterpret_cast<TFrom, TTo>(Pointer<TFrom> t)
+	{
+		var p = AddressOf(ref t);
+		return ref p.Cast<TTo>().Reference;
 	}
 
 	#endregion
@@ -412,16 +411,44 @@ public static unsafe class Mem
 	}
 
 	/// <summary>
-	///     Reads inherited substructure <typeparamref name="TSub" /> from parent <typeparamref name="TSuper" />.
+	/// Converts a value of type <typeparamref name="T"/> to a <see cref="byte"/> array.
 	/// </summary>
-	/// <typeparam name="TSuper">Superstructure (parent) type</typeparam>
-	/// <typeparam name="TSub">Substructure (child) type</typeparam>
-	/// <param name="super">Superstructure pointer</param>
-	/// <returns>Substructure pointer</returns>
-	public static Pointer<TSub> ReadSubStructure<TSuper, TSub>(Pointer<TSuper> super)
+	public static byte[] GetBytes<T>(T value)
 	{
-		int size = SizeOf<TSuper>();
-		return super.Add(size).Cast<TSub>();
+		if (typeof(T).IsValueType) {
+			var ptr = AddressOf(ref value);
+			var cb  = SizeOf<T>();
+			var rg  = new byte[cb];
+
+			fixed (byte* p = rg) {
+				ptr.Copy(p, cb);
+			}
+
+			return rg;
+		}
+
+		TryGetAddressOfHeap(value, OffsetOptions.Header, out var ptr2);
+		var cb2 = SizeOf(value, SizeOfOptions.Heap);
+
+		return ptr2.ToArray(cb2);
+
+	}
+
+	/// <summary>
+	/// Reads a value fo type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}"/>.
+	/// </summary>
+	public static T ReadFromBytes<T>(byte[] rg)
+	{
+		fixed (byte* p = rg) {
+			var p2 = p;
+
+			if (!typeof(T).IsValueType) {
+				p2 += Size;
+				return U.Read<T>(&p2);
+			}
+
+			return U.Read<T>(p2);
+		}
 	}
 
 	/// <summary>
@@ -444,7 +471,7 @@ public static unsafe class Mem
 		return rg.ToArray();
 	}
 
-	public static byte[] GetStringBytes(string s)
+	/*public static byte[] GetStringBytes(string s)
 	{
 		byte[] rg = new byte[s.Length * sizeof(char)];
 
@@ -455,10 +482,10 @@ public static unsafe class Mem
 		}
 
 		return rg;
-	}
+	}*/
 
 
-	public static string ToBinaryString(object obj)
+	/*public static string ToBinaryString(object obj)
 	{
 		byte[] bytes = null;
 
@@ -475,7 +502,7 @@ public static unsafe class Mem
 		}
 
 		return null;
-	}
+	}*/
 
 	public static void Write<T>(this Span<T> s, params T[] v)
 	{
@@ -981,8 +1008,6 @@ public static unsafe class Mem
 	}
 
 	#endregion
-
-	
 }
 
 /// <summary>

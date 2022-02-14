@@ -15,13 +15,7 @@ public static unsafe class BinaryReaderHelper
 		var s  = Mem.SizeOf<T>();
 		var rg = br.ReadBytes(s);
 
-		T t;
-
-		fixed (byte* p = rg) {
-			t = Unsafe.Read<T>(p);
-		}
-
-		return t;
+		return Mem.ReadFromBytes<T>(rg);
 	}
 
 	public static string ReadCString(this BinaryReader br, int count)

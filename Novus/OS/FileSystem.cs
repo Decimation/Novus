@@ -79,8 +79,8 @@ public static class FileSystem
 	/// <returns>The default path of the known folder.</returns>
 	/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 	///     could not be retrieved.</exception>
-	public static string GetPath(KnownFolder knownFolder, bool defaultUser) =>
-		GetPath(knownFolder, KnownFolderFlags.DontVerify, defaultUser);
+	public static string GetPath(KnownFolder knownFolder, bool defaultUser)
+		=> GetPath(knownFolder, KnownFolderFlags.DontVerify, defaultUser);
 
 	private static string GetPath(KnownFolder knownFolder, KnownFolderFlags flags, bool defaultUser)
 	{
@@ -100,20 +100,51 @@ public static class FileSystem
 
 	#endregion
 
+	/// <summary>
+	/// Expands environment variables and, if unqualified, locates the exe in the working directory
+	/// or the environment's path.
+	/// </summary>
+	/// <param name="f">The name of the executable file</param>
+	/// <returns>The fully-qualified path to the file</returns>
+	/// <exception cref="System.IO.FileNotFoundException">Raised when the exe was not found</exception>
+	public static string FindInPath(string f)
+	{
+		f = Environment.ExpandEnvironmentVariables(f);
 
-	public static string GetRootDirectory() => Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
+		if (!File.Exists(f)) {
+			if (Path.GetDirectoryName(f) == String.Empty) {
+				var split = (Environment.GetEnvironmentVariable(PATH_ENV) ?? String.Empty)
+					.Split(PATH_DELIM);
+
+				foreach (string test in split) {
+					string path = test.Trim();
+
+					if (!String.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, f)))
+						return Path.GetFullPath(path);
+				}
+			}
+
+
+			return null;
+			// throw new FileNotFoundException(new FileNotFoundException().Message, f);
+		}
+
+		return Path.GetFullPath(f);
+	}
+
+	public static string GetRootDirectory()
+		=> Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
 
 
 	public static string GetShortPath(string dir)
 	{
 		unsafe {
-			const int i = 1024;
 
-			var buf = stackalloc char[i];
+			var buf = stackalloc char[Native.SIZE_1];
 
-			var l = Native.GetShortPathName(dir, buf, i);
+			var l = Native.GetShortPathName(dir, buf, Native.SIZE_1);
 
-			if (l!=Native.ERROR_SUCCESS) {
+			if (l != Native.ERROR_SUCCESS) {
 				throw new Win32Exception((int) l);
 			}
 
@@ -200,8 +231,8 @@ public static class FileSystem
 
 	#region File types
 
-	public static string ResolveMimeType(string file, string? mimeProposed = null) =>
-		ResolveMimeType(File.ReadAllBytes(file), mimeProposed);
+	public static string ResolveMimeType(string file, string? mimeProposed = null)
+		=> ResolveMimeType(File.ReadAllBytes(file), mimeProposed);
 
 
 	public static string ResolveMimeType(byte[] dataBytes, string? mimeProposed = null)
@@ -323,7 +354,7 @@ public static class FileSystem
 	{
 		var p = SearchInPath(s);
 
-		if (p is not {}) {
+		if (p is not { }) {
 			return s;
 		}
 
@@ -361,8 +392,8 @@ public static class FileSystem
 
 	public static string[] GetEnvironmentPathDirectories() => GetEnvironmentPathDirectories(Target);
 
-	public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t) =>
-		GetEnvironmentPath(t).Split(PATH_DELIM);
+	public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t)
+		=> GetEnvironmentPath(t).Split(PATH_DELIM);
 
 	public static string GetEnvironmentPath() => GetEnvironmentPath(Target);
 
@@ -401,8 +432,8 @@ public static class FileSystem
 
 	public static string AppendToFilename(string filename, string append)
 	{
-		var withoutExtension  = Path.GetFileNameWithoutExtension(filename);
-		var extension = Path.GetExtension(filename);
+		var withoutExtension = Path.GetFileNameWithoutExtension(filename);
+		var extension        = Path.GetExtension(filename);
 		return withoutExtension + append + extension;
 	}
 
@@ -411,8 +442,8 @@ public static class FileSystem
 	/// </summary>
 	public static EnvironmentVariableTarget Target { get; set; } = EnvironmentVariableTarget.User;
 
-	public static string? SymbolPath =>
-		Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
+	public static string? SymbolPath
+		=> Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
 
 
 	public static bool IsAdministrator()

@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Kantan.Cli.Controls;
-using Kantan.Model;
-using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.DbgHelp;
 using Novus.OS.Win32.Structures.Kernel32;
 using Novus.OS.Win32.Structures.Other;
@@ -89,8 +86,6 @@ public static unsafe partial class Native
 	public const string UNAME_DLL     = "getuname.dll";
 
 	#endregion
-
-	static Native() { }
 
 	public static IntPtr GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
@@ -283,14 +278,14 @@ public static unsafe partial class Native
 
 	public static void RemoveWindowOnTop(IntPtr p)
 	{
-		Native.SetWindowPos(p, new((int)HwndWindowPosition.HWND_NOTOPMOST), 0, 0, 0, 0,
-		                    WindowFlags.TOPMOST_FLAGS);
+		SetWindowPos(p, new((int)HwndWindowPosition.HWND_NOTOPMOST), 
+		                    0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 	}
 
 	public static void KeepWindowOnTop(IntPtr p)
 	{
-		Native.SetWindowPos(p, new((int) HwndWindowPosition.HWND_TOPMOST), 0, 0, 0, 0,
-		                    WindowFlags.TOPMOST_FLAGS);
+		SetWindowPos(p, new((int) HwndWindowPosition.HWND_TOPMOST), 
+		                    0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 	}
 
 	public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);

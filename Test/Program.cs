@@ -142,18 +142,26 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+		var s = "foo";
 
-		UArray<int> r = new(4) { };
-		Console.WriteLine(r);
-		r.Pin(0);
-		Console.WriteLine(r.IsAllocated);
-		r.Unpin();
+		Console.WriteLine(M.ReadFromBytes<string>(M.GetBytes(s)));
 
-		Global.Clr.LoadAll();
-		var v=GCHeap.IsHeapPointer("foo");
+		MyStruct x = new() { f = 3.14f, a = 123 };
+
+		Console.WriteLine(M.ReadFromBytes<MyStruct>(M.GetBytes(x)));
 
 	}
 
+	struct MyStruct
+	{
+		public int   a;
+		public float f;
+
+		public override string ToString()
+		{
+			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		}
+	}
 
 	private static void Test1()
 	{

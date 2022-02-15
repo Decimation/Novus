@@ -12,7 +12,7 @@ namespace Novus.Utilities;
 public static class AtomicHelper
 {
 	private static readonly Dictionary<Type, IntPtr> Cache = new();
-	
+
 	private static unsafe IntPtr GetExchangeFunction<T>()
 	{
 		var method = typeof(Interlocked).GetAnyMethod("Exchange", new[] { typeof(T).MakeByRefType(), typeof(T) });
@@ -41,7 +41,7 @@ public static class AtomicHelper
 		}
 
 		var function = (delegate*<ref T, T, T>) Cache[type];
-		
+
 		return function(ref location1, location2);
 
 	}

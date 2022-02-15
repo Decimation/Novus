@@ -8,9 +8,11 @@ using System.Text;
 using Kantan.Cli.Controls;
 using Novus.OS.Win32.Structures.DbgHelp;
 using Novus.OS.Win32.Structures.Kernel32;
+using Novus.OS.Win32.Structures.Ntdll;
 using Novus.OS.Win32.Structures.Other;
 using Novus.OS.Win32.Structures.User32;
 using Novus.OS.Win32.Wrappers;
+// ReSharper disable UnusedVariable
 
 #pragma warning disable CA1401, CA2101
 
@@ -396,7 +398,7 @@ public static unsafe partial class Native
 		var mbi = new MemoryBasicInformation();
 
 		int v = VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
-		                              (uint) Marshal.SizeOf<MemoryBasicInformation>());
+		                       (uint) Marshal.SizeOf<MemoryBasicInformation>());
 
 		return mbi;
 	}
@@ -465,7 +467,53 @@ public static unsafe partial class Native
 		MemoryBasicInformation mbi = default;
 
 		return VirtualQuery(p.Address, ref mbi, Marshal.SizeOf<MemoryBasicInformation>()) != 0
-			       ? mbi : throw new Win32Exception();
+			       ? mbi
+			       : throw new Win32Exception();
 
+	}
+
+	public enum OBJECT_INFORMATION_CLASS : int
+	{
+		ObjectBasicInformation    = 0,
+		ObjectNameInformation     = 1,
+		ObjectTypeInformation     = 2,
+		ObjectAllTypesInformation = 3,
+		ObjectHandleInformation   = 4
+	}
+
+	//helper method with "dynamic" buffer allocation
+	public static IntPtr NtQueryObject(IntPtr handle, OBJECT_INFORMATION_CLASS infoClass, uint infoLength = 0)
+	{
+		if (infoLength == 0)
+			infoLength = (uint) Marshal.SizeOf(typeof(uint));
+
+		IntPtr   infoPtr = Marshal.AllocHGlobal((int) infoLength);
+		int      tries   = 0;
+		NtStatus result;
+
+		while (true) {
+			result = NtQueryObject(handle, infoClass, infoPtr, infoLength, ref infoLength);
+
+			if (result == NtStatus.INFO_LENGTH_MISMATCH || result == NtStatus.BUFFER_OVERFLOW ||
+			    result == NtStatus.BUFFER_TOO_SMALL) {
+				Marshal.FreeHGlobal(infoPtr);
+				infoPtr = Marshal.AllocHGlobal((int) infoLength);
+				tries++;
+				continue;
+			}
+			else if (result == NtStatus.SUCCESS || tries > 5)
+				break;
+			else {
+				//throw new Exception("Unhandled NtStatus " + result);
+				break;
+			}
+		}
+
+		if (result == NtStatus.SUCCESS)
+			return infoPtr; //don't forget to free the pointer with Marshal.FreeHGlobal after you're done with it
+		else
+			Marshal.FreeHGlobal(infoPtr); //free pointer when not Successful
+
+		return IntPtr.Zero;
 	}
 }

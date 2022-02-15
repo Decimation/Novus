@@ -29,8 +29,6 @@ public static class AllocManager
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.cs
 	 */
 
-	
-
 	public static IAllocator Allocator { get; set; } = new NativeAllocator();
 
 	private static List<Pointer> Allocated { get; } = new();
@@ -59,7 +57,7 @@ public static class AllocManager
 		return (nuint) Allocator.GetSize(ptr);
 	}
 
-	[MustUseReturnValue]
+	[MURV]
 	public static Pointer<T> ReAlloc<T>(Pointer<T> ptr, int elemCnt)
 	{
 		if (!IsAllocated(ptr)) {
@@ -100,7 +98,7 @@ public static class AllocManager
 	/// Allocates memory for <paramref name="cb"/> elements of type <see cref="byte"/>.
 	/// </summary>
 	/// <param name="cb">Number of bytes</param>
-	[MustUseReturnValue]
+	[MURV]
 	public static Pointer<byte> Alloc(int cb) => Alloc<byte>(cb);
 
 	/// <summary>
@@ -108,7 +106,7 @@ public static class AllocManager
 	/// </summary>
 	/// <typeparam name="T">Element type</typeparam>
 	/// <param name="elemCnt">Number of elements</param>
-	[MustUseReturnValue]
+	[MURV]
 	public static Pointer<T> Alloc<T>(int elemCnt)
 	{
 		Require.Positive(elemCnt);

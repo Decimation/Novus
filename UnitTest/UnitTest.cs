@@ -26,6 +26,7 @@ using Novus.Memory.Allocation;
 using Novus.OS;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.Kernel32;
 using Novus.OS.Win32.Structures.User32;
 using NUnit.Framework.Internal;
 using UnitTest.TestTypes;
@@ -39,6 +40,32 @@ using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
 #pragma warning disable SYSLIB0014
 
 namespace UnitTest;
+
+[TestFixture]
+public unsafe class Tests_DynamicLibrary
+{
+	[Test]
+	public void Test1()
+	{
+		var dynamicLibrary = new DynamicLibrary(Native.KERNEL32_DLL);
+
+		var ff = dynamicLibrary.GetFunction<IntPtr>(nameof(Native.GetStdHandle),
+		                                            CallingConvention.Winapi, CharSet.Auto, typeof(StandardHandle));
+
+		Console.WriteLine(Native.GetStdHandle((StandardHandle) 1));
+
+		var actual = ff.Call(StandardHandle.STD_OUTPUT_HANDLE);
+
+		var expected = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+
+		var fn = (delegate* unmanaged<StandardHandle, IntPtr>) ff.Method.MethodHandle.GetFunctionPointer().ToPointer();
+
+		var actual2 = fn(StandardHandle.STD_OUTPUT_HANDLE);
+
+		Assert.AreEqual(expected, actual);
+		Assert.AreEqual(expected, actual2);
+	}
+}
 
 [TestFixture]
 public class Tests_Other
@@ -66,7 +93,7 @@ public class Tests_Other
 			}
 		});
 
-		if (a!=0) {
+		if (a != 0) {
 			Assert.Pass();
 		}
 	}
@@ -715,8 +742,6 @@ public class Tests_FileSystem
 		var d = new DirectoryInfo(a);
 		Assert.AreEqual(d.FullName, b);
 	}
-
-	
 }
 
 [TestFixture]
@@ -764,11 +789,13 @@ public class Tests_Mem
 	[SetUp]
 	public void Setup() { }
 
-	[Test][TestCase("foo")]
+	[Test]
+	[TestCase("foo")]
 	public void ByteTest<T>(T t)
 	{
 		Assert.AreEqual(t, Mem.ReadFromBytes<T>(Mem.GetBytes(t)));
 	}
+
 	[Test]
 	public void CopyTest()
 	{
@@ -894,7 +921,7 @@ public class Tests_Mem
 		Assert.AreEqual(Mem.SizeOf<Point>(), sizeof(Point));
 		Assert.AreEqual(Mem.SizeOf<Point>(SizeOfOptions.Intrinsic), sizeof(Point));
 	}
-	
+
 
 	[Test]
 	[TestCase("foo")]

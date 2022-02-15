@@ -8,7 +8,7 @@
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <EnablePreviewFeatures>True</EnablePreviewFeatures>
     <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute>
-    <NoWarn>CS1591,IDE0079,CA2255,IDE0005</NoWarn>
+    <NoWarn>CS1591,IDE0079,CA2255,IDE0005,CA1401,IDE0059</NoWarn>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Low-level utilities and tools for working with the CLR and memory.</Description>
@@ -17,6 +17,7 @@
     <PackageTags>clr low-level memory hack library</PackageTags>
     <PackageIcon>icon64.png</PackageIcon>
     <Version>1.0.3</Version>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

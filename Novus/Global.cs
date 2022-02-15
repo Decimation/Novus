@@ -13,33 +13,21 @@ global using PE = System.Linq.Expressions.ParameterExpression;
 global using BE = System.Linq.Expressions.BinaryExpression;
 global using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
-using System;
+using static Kantan.Diagnostics.LogCategories;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Resources;
 using System.Runtime;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using JetBrains.Annotations;
-using Kantan.Cli;
 using Kantan.Collections;
-using Novus.Memory;
-using Novus.Properties;
-using Novus.Runtime;
-using Kantan.Diagnostics;
 using Kantan.Text;
-using Kantan.Utilities;
-using Novus.Imports;
+using Novus.Memory;
 using Novus.Memory.Allocation;
 using Novus.OS;
-using Novus.OS.Win32;
+using Novus.Properties;
+using Novus.Runtime;
 using Novus.Utilities;
-using static Kantan.Diagnostics.LogCategories;
-using static Novus.Utilities.ReflectionHelper;
 
 // ReSharper disable LocalizableElement
 
@@ -146,9 +134,11 @@ public static class Global
 
 	public static bool IsSetup { get; private set; }
 
-	internal static string ProgramData { get; } =
+	public static string ProgramData { get; } =
 		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);
 
+
+	public static Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
 
 	/// <summary>
 	///     Module initializer
@@ -160,7 +150,10 @@ public static class Global
 		 * Setup
 		 */
 
+		var dt = File.GetLastWriteTime(Assembly.Location);
+
 		Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
+		Trace.WriteLine($"[{LIB_NAME}] {Assembly.GetName().Version} @ ~{dt}", C_INFO);
 
 		bool compatible = IsCompatible();
 
@@ -182,7 +175,7 @@ public static class Global
 		};
 
 
-		Trace.WriteLine($"[{LIB_NAME}] Loaded ({Environment.Version})", C_INFO);
+		Trace.WriteLine($"[{LIB_NAME}] CLR: ({Environment.Version})", C_INFO);
 
 	}
 

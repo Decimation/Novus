@@ -3,93 +3,50 @@
 // ReSharper disable RedundantUnsafeContext
 
 global using Native = Novus.OS.Win32.Native;
-global using U = System.Runtime.CompilerServices.Unsafe;
-global using M = Novus.Memory.Mem;
-using System.Diagnostics.CodeAnalysis;
+using System.Buffers;
+using System.Diagnostics;
 using System.Dynamic;
-using System.Resources;
-using System.Runtime.Versioning;
-using System.Threading.Tasks;
+using System.Runtime.Intrinsics.X86;
 using Kantan.Cli;
-using Kantan.Text;
-using Novus.Memory;
 using Novus.OS;
 using Novus.OS.Win32;
-using Novus.OS.Win32.Structures;
-using Novus.OS.Win32.Structures.DbgHelp;
 using Novus.OS.Win32.Structures.Kernel32;
-using static Novus.OS.Win32.Native;
-#pragma warning disable IDE0005, CS0436
+#pragma warning disable IDE0005, CS0436, CS0469
 using System;
-using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Diagnostics.Contracts;
-using System.Drawing;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Numerics;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
-using System.Runtime;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.Threading;
-using System.Xml;
-using Novus;
-using Novus.Imports;
+
 using Novus.Runtime;
-using Novus.Runtime.Meta;
-using Novus.Runtime.VM;
-using Novus.Utilities;
-using Kantan.Diagnostics;
-using Kantan.Utilities;
-using Novus.Memory.Allocation;
-using static Novus.Utilities.ReflectionOperatorHelpers;
-using Console = System.Console;
-using DWORD = System.UInt32;
-using UINT = System.UInt32;
-using HINSTANCE = System.IntPtr;
+// ReSharper disable ArrangeTypeModifiers
+// ReSharper disable UnusedType.Local
+// ReSharper disable InconsistentNaming
+#pragma warning disable CS0649
 
 // ReSharper disable UnusedParameter.Local
 #nullable disable
-#pragma warning disable IDE0060
-#pragma warning disable IDE0079
 
 namespace Test;
 
 /*
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.6
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.5
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.4
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.2
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\3.1.9
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
  * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
  *
  * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
  *
  * todo: integrate pdbex
  * todo: IL, ILSupport
- *
  */
+
 /*
- * Novus				https://github.com/Decimation/Novus
- * NeoCore				https://github.com/Decimation/NeoCore
- * RazorSharp			https://github.com/Decimation/RazorSharp
+ * ◆ Novus				https://github.com/Decimation/Novus
+ * ⨉ NeoCore			https://github.com/Decimation/NeoCore
+ * ⨉ RazorSharp			https://github.com/Decimation/RazorSharp
  * 
- * Kantan				https://github.com/Decimation/Kantan
- * SimpleSharp			https://github.com/Decimation/SimpleSharp
- *
- * Memkit				https://github.com/Decimation/Memkit
+ * ◆ Kantan				https://github.com/Decimation/Kantan
  * 
  */
+
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -129,30 +86,21 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
-using System.ComponentModel;
-using System.Runtime.InteropServices;
-using System.Threading;
-using HRESULT = Int32;
+
 
 public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		var dynamicLibrary = new DynamicLibrary(@"C:\windows\system32\kernel32.dll");
+		//
 
-		var ff = dynamicLibrary.GetFunction<IntPtr>(nameof(Native.GetStdHandle),
-		                                            CallingConvention.Winapi, CharSet.Auto, typeof(int));
-		Console.WriteLine(ff.Call(1));
-		Console.WriteLine(Native.GetStdHandle((StandardHandle) 1));
-		var x      =(delegate* unmanaged<int,IntPtr>) ff.Method.MethodHandle.GetFunctionPointer().ToPointer();
-		var o = x(1);
-		Console.WriteLine(o);
+		var p = Process.GetProcessById(14400);
+		Console.WriteLine(p.Id);
+		
+		
+
 	}
+
 
 	struct MyStruct
 	{

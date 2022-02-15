@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
+using Kantan.Utilities;
 using Novus;
 using Novus.Memory;
 using Novus.Memory.Allocation;
@@ -19,6 +20,36 @@ using Novus.Utilities;
 
 #pragma warning disable
 namespace TestBenchmark;
+
+public class MyStruct
+{
+	public int   a;
+	public float f;
+
+	public override string ToString()
+	{
+		return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+	}
+}
+
+[RyuJitX64Job]
+public class Benchmarks18
+{
+	public MyStruct ms;
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		ms = new MyStruct();
+	}
+
+	[Benchmark]
+	public MyStruct test1()
+	{
+
+		return ReflectionHelper.Clone(ms);
+	}
+}
 
 [RyuJitX64Job]
 public class Benchmarks17

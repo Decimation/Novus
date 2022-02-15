@@ -5,7 +5,6 @@ global using PI = System.Reflection.PropertyInfo;
 global using MMI = System.Reflection.MemberInfo;
 global using FI = System.Reflection.FieldInfo;
 global using static Novus.Utilities.ReflectionOperatorHelpers;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -342,7 +341,7 @@ public static class ReflectionHelper
 
 	#region Assemblies
 
-	private static Type[] GetAllWhere(Type t, Func<Type, bool> fn)
+	public static Type[] GetAllWhere(Type t, Func<Type, bool> fn)
 	{
 		var rg = new List<Type>();
 
@@ -399,11 +398,14 @@ public static class ReflectionHelper
 
 	public static T Clone<T>(T t) where T : class
 	{
-		var f  = t.GetType().GetAnyMethod("MemberwiseClone");
+		var type = t.GetType();
+
+		var f  = type.GetAnyMethod("MemberwiseClone");
 		var r  = f.Invoke(t, Array.Empty<object>());
 		var t2 = Unsafe.As<T>(r);
 		return t2;
 	}
+	
 
 	public static T Consolidate<T>(T current, IList<object> values)
 	{

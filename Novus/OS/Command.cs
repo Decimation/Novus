@@ -16,29 +16,32 @@ namespace Novus.OS;
 public static class Command
 {
 	/// <summary>
-	///     Creates a <see cref="Process" /> to execute <paramref name="cmd" /> with the command prompt.
+	///     Creates a <see cref="System.Diagnostics.Process" /> to execute <paramref name="args" /> with the command prompt.
 	/// </summary>
-	/// <param name="cmd">Command to run</param>
+	/// <param name="args">Command to run</param>
 	/// <returns>Created command prompt process</returns>
-	public static Process Shell(string cmd)
+	public static Process Shell(string? args = null)
 	{
 		// https://stackoverflow.com/questions/5519328/executing-batch-file-in-c-sharp
 
 		var process = Run(Native.CMD_EXE);
-		process.StartInfo.Arguments = $"/C {cmd}";
+
+		if (args is { }) {
+			process.StartInfo.Arguments = $"/C {args}";
+		}
+
 		return process;
 	}
 
-	public static Process Run(string fname, params string[] args)
+	public static Process Run(string fileName, params string[] args)
 	{
 		var startInfo = new ProcessStartInfo
 		{
-			FileName               = fname,
+			FileName               = fileName,
 			RedirectStandardOutput = true,
 			RedirectStandardError  = true,
 			UseShellExecute        = false,
 			CreateNoWindow         = true,
-
 		};
 
 		foreach (string s in args) {
@@ -54,9 +57,28 @@ public static class Command
 		return process;
 	}
 
+	public static Process Run(string fileName, DataReceivedEventHandler? outputHandler,
+	                          DataReceivedEventHandler? errorHandler, bool start = true)
+	{
+		var proc = Run(fileName);
+
+		proc.StartInfo.RedirectStandardInput = true;
+
+		proc.ErrorDataReceived  += errorHandler;
+		proc.OutputDataReceived += outputHandler;
+
+		if (start) {
+			proc.Start();
+			proc.BeginOutputReadLine();
+			proc.BeginErrorReadLine();
+
+		}
+
+		return proc;
+	}
+
 	public static Process Py(string[] commands)
 	{
-
 		string args = commands.QuickJoin(Environment.NewLine);
 
 		args = args.Replace('\"', '\'');
@@ -71,7 +93,7 @@ public static class Command
 
 		var proc = new Process
 		{
-			StartInfo = startInfo, 
+			StartInfo           = startInfo,
 			EnableRaisingEvents = true
 		};
 
@@ -87,23 +109,6 @@ public static class Command
 	public static Process Batch(string[] commands, string fname)
 	{
 		string fileName = FileSystem.CreateTempFile(fname, commands);
-
-		/*var startInfo = new ProcessStartInfo
-		{
-			WindowStyle     = ProcessWindowStyle.Hidden,
-			FileName        = Native.CMD_EXE,
-			Arguments       = "/C \"" + fileName + "\"",
-			Verb            = "runas",
-			UseShellExecute = true
-		};
-
-		var process = new Process
-		{
-			StartInfo           = startInfo,
-			EnableRaisingEvents = true
-		};
-
-		return process;*/
 
 		var startInfo = new ProcessStartInfo(fileName)
 		{

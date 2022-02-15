@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Novus.OS.Win32.Structures.Kernel32;
 
 // ReSharper disable StringLiteralTypo
 
@@ -19,4 +21,6 @@ public static unsafe partial class Native
 
 	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
 	internal static extern nuint strlen(void* ptr);
+
+	
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -130,6 +132,7 @@ public static unsafe partial class Native
 												nint size, out IntPtr numBytesRead);*/
 	[DllImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", SetLastError = false)]
 	private static extern void MoveMemory(void* dst, void* src, int size);
+
 	[DllImport(KERNEL32_DLL)]
 	public static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
 	                                             int size, out int numberBytesWritten);
@@ -145,8 +148,8 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern nint HeapSize(IntPtr p, uint f, IntPtr m);
-	[DllImport(KERNEL32_DLL)]
 
+	[DllImport(KERNEL32_DLL)]
 	public static extern IntPtr GetProcessHeap();
 
 	#endregion
@@ -313,4 +316,6 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+
+	
 }

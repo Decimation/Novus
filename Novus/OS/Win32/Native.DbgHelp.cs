@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.DbgHelp;
+using Novus.OS.Win32.Structures.Kernel32;
 
 // ReSharper disable InconsistentNaming
 
@@ -56,4 +58,6 @@ public static unsafe partial class Native
 	                                             uint flags);
 
 	#endregion
+
+	
 }

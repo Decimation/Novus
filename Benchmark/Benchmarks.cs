@@ -182,7 +182,7 @@ public class Benchmarks9
 	[Benchmark]
 	public LinkedList<MemoryBasicInformation> Test2()
 	{
-		return Mem.EnumeratePages(h);
+		return Native.EnumeratePages(h);
 	}
 }
 

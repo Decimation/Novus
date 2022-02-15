@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Resources;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 using Kantan.Cli;
 using Kantan.Text;
 using Novus.Memory;
@@ -142,14 +143,15 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		var s = "foo";
+		var dynamicLibrary = new DynamicLibrary(@"C:\windows\system32\kernel32.dll");
 
-		Console.WriteLine(M.ReadFromBytes<string>(M.GetBytes(s)));
-
-		MyStruct x = new() { f = 3.14f, a = 123 };
-
-		Console.WriteLine(M.ReadFromBytes<MyStruct>(M.GetBytes(x)));
-
+		var ff = dynamicLibrary.GetFunction<IntPtr>(nameof(Native.GetStdHandle),
+		                                            CallingConvention.Winapi, CharSet.Auto, typeof(int));
+		Console.WriteLine(ff.Call(1));
+		Console.WriteLine(Native.GetStdHandle((StandardHandle) 1));
+		var x      =(delegate* unmanaged<int,IntPtr>) ff.Method.MethodHandle.GetFunctionPointer().ToPointer();
+		var o = x(1);
+		Console.WriteLine(o);
 	}
 
 	struct MyStruct

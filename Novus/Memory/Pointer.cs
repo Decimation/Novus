@@ -491,7 +491,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	#endregion
 
-	public MemoryBasicInformation Query() => Mem.QueryMemoryPage(this);
+	public MemoryBasicInformation Query() => Native.QueryMemoryPage(this);
 
 	/// <summary>
 	///     Default offset for <see cref="Pointer{T}" />

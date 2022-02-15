@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
@@ -267,46 +269,22 @@ public static class FileSystem
 		return mimeRet;
 	}
 
-	/// <summary>
-	///     Attempts to determine the file format (type) given a file.
-	/// </summary>
-	/// <param name="file">File whose type to resolve</param>
-	/// <returns>
-	///     The best <see cref="FileFormatType" /> match; <see cref="FileFormatType.Unknown" /> if the type could not be
-	///     determined.
-	/// </returns>
-	public static FileFormatType ResolveFileType(string file) => ResolveFileType(File.ReadAllBytes(file));
-
-
-	public static FileFormatType ResolveFileType(Stream stream) => ResolveFileType(stream.ToByteArray());
-
-	/// <summary>
-	///     Attempts to determine the file format (type) given the raw bytes of a file
-	///     by comparing file format magic bytes.
-	/// </summary>
-	/// <param name="fileBytes">Raw file bytes</param>
-	/// <returns>
-	///     The best <see cref="FileFormatType" /> match; <see cref="FileFormatType.Unknown" /> if the type could not be
-	///     determined.
-	/// </returns>
-	public static FileFormatType ResolveFileType(byte[] fileBytes)
-	{
-
-		var rg = FileFormatType.GetAll().ToArray();
-
-		foreach (var fileType in rg) {
-			foreach (byte[] sig1 in fileType.Signature) {
-				if (fileBytes.StartsWith(sig1)) {
-					return fileType;
-				}
-			}
-		}
-
-
-		return FileFormatType.Unknown;
-	}
-
 	#endregion
+
+	public static Task<string> CreateRandomFileAsync(long cb, string? f = null)
+	{
+		return Task.Run(() =>
+		{
+			f ??= Path.GetTempFileName();
+			var s = File.OpenWrite(f);
+
+			for (long i = 0; i < cb; i++) {
+				s.WriteByte((byte) (i ^ cb));
+			}
+
+			return f;
+		});
+	}
 
 	#region Path
 

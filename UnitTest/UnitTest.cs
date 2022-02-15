@@ -716,50 +716,7 @@ public class Tests_FileSystem
 		Assert.AreEqual(d.FullName, b);
 	}
 
-	[Test]
-	[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.jpg", nameof(FileFormatType.JPEG))]
-	[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.gif", nameof(FileFormatType.GIF))]
-	[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.bmp", nameof(FileFormatType.BMP))]
-	[TestCase(@"C:\Users\Deci\Pictures\Sample\Penguins.png", nameof(FileFormatType.PNG))]
-	[TestCase(@"C:\Users\Deci\Pictures\Icons\terminal.ico", nameof(FileFormatType.ICO))]
-	public void FileTypeTest(string s, string n)
-	{
-		//C:\Users\Deci\Pictures\Camera Roll
-
-		var t = FileSystem.ResolveFileType(s);
-
-		Assert.AreEqual(t.Name, n);
-
-		var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s));
-
-		TestContext.WriteLine(m);
-
-		Assert.Throws<ArgumentNullException>(() =>
-		{
-			FileSystem.ResolveMimeType(dataBytes: null);
-		});
-	}
-
-	[TestCase("https://i.imgur.com/QtCausw.png", nameof(FileFormatType.JPEG))]
-	public void FileTypeTest2(string s, string n)
-	{
-
-		var sx = new WebClient();
-		var rg = sx.DownloadData(s);
-		var s2 = new MemoryStream(rg);
-		var t  = FileSystem.ResolveFileType(s2);
-
-		Assert.AreEqual(t.Name, n);
-
-		//var m = FileSystem.ResolveMimeType(File.ReadAllBytes(s));
-
-		//TestContext.WriteLine(m);
-
-		//Assert.Throws<ArgumentNullException>(() =>
-		//{
-		//	FileSystem.ResolveMimeType(dataBytes: null);
-		//});
-	}
+	
 }
 
 [TestFixture]

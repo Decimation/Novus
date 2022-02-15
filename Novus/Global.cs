@@ -13,7 +13,6 @@ global using PE = System.Linq.Expressions.ParameterExpression;
 global using BE = System.Linq.Expressions.BinaryExpression;
 global using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -150,7 +149,6 @@ public static class Global
 	internal static string ProgramData { get; } =
 		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);
 
-	
 
 	/// <summary>
 	///     Module initializer
@@ -207,19 +205,17 @@ public static class Global
 
 	#region QWrite
 
-	
-
 	private const string QWRITE_STR_FMT_ARG = "s";
 
 	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
 
-	
+
 	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
 	internal static void QWrite(string s, params object[] args) => QWrite(s, DefaultQWriteFunction, args: args);
 
 	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
 	internal static void QWrite(string s, Action<object> writeFunction = null, string category = null,
-								[CallerArgumentExpression("s")] string sz = null, params object[] args)
+	                            [CallerArgumentExpression("s")] string sz = null, params object[] args)
 	{
 		writeFunction ??= DefaultQWriteFunction;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -39,6 +40,27 @@ public static unsafe partial class Native
 
 	public const uint S_OK = 0x00000000;
 
+	#region DLL
+
+	/*
+	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Interop.Libraries.cs
+	 */
+
+	public const string KERNEL32_DLL  = "Kernel32.dll";
+	public const string USER32_DLL    = "User32.dll";
+	public const string SHELL32_DLL   = "Shell32.dll";
+	public const string DBGHELP_DLL   = "DbgHelp.dll";
+	public const string URLMON_DLL    = "urlmon.dll";
+	public const string GDI32_DLL     = "gdi32.dll";
+	public const string NTDLL_DLL     = "ntdll.dll";
+	public const string OLE32_DLL     = "ole32.dll";
+	public const string WEBSOCKET_DLL = "websocket.dll";
+	public const string WINHTTP_DLL   = "winhttp.dll";
+	public const string UCRTBASE_DLL  = "ucrtbase.dll";
+	public const string UNAME_DLL     = "getuname.dll";
+
+	#endregion
+
 	#region HRESULT
 
 	public const uint E_ABORT        = 0x80004004;
@@ -65,27 +87,6 @@ public static unsafe partial class Native
 
 	#endregion
 
-
-	#region DLL
-
-	/*
-	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Interop.Libraries.cs
-	 */
-
-	public const string KERNEL32_DLL  = "Kernel32.dll";
-	public const string USER32_DLL    = "User32.dll";
-	public const string SHELL32_DLL   = "Shell32.dll";
-	public const string DBGHELP_DLL   = "DbgHelp.dll";
-	public const string URLMON_DLL    = "urlmon.dll";
-	public const string GDI32_DLL     = "gdi32.dll";
-	public const string NTDLL_DLL     = "ntdll.dll";
-	public const string OLE32_DLL     = "ole32.dll";
-	public const string WEBSOCKET_DLL = "websocket.dll";
-	public const string WINHTTP_DLL   = "winhttp.dll";
-	public const string UCRTBASE_DLL  = "ucrtbase.dll";
-	public const string UNAME_DLL     = "getuname.dll";
-
-	#endregion
 
 	public static IntPtr GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
@@ -278,14 +279,14 @@ public static unsafe partial class Native
 
 	public static void RemoveWindowOnTop(IntPtr p)
 	{
-		SetWindowPos(p, new((int)HwndWindowPosition.HWND_NOTOPMOST), 
-		                    0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
+		SetWindowPos(p, new((int) HwndWindowPosition.HWND_NOTOPMOST),
+		             0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 	}
 
 	public static void KeepWindowOnTop(IntPtr p)
 	{
-		SetWindowPos(p, new((int) HwndWindowPosition.HWND_TOPMOST), 
-		                    0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
+		SetWindowPos(p, new((int) HwndWindowPosition.HWND_TOPMOST),
+		             0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 	}
 
 	public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
@@ -331,7 +332,7 @@ public static unsafe partial class Native
 
 		FlashWindowEx(ref fInfo);
 	}
-	
+
 
 	public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
 
@@ -381,5 +382,90 @@ public static unsafe partial class Native
 
 		// ReSharper disable once PossibleNullReferenceException
 		throw exception;
+	}
+
+	public static bool VirtualFree(Process hProcess, Pointer lpAddress, int dwSize, AllocationType dwFreeType)
+	{
+		bool p = VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
+
+		return p;
+	}
+
+	public static MemoryBasicInformation VirtualQuery(Process proc, Pointer lpAddr)
+	{
+		var mbi = new MemoryBasicInformation();
+
+		int v = VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
+		                              (uint) Marshal.SizeOf<MemoryBasicInformation>());
+
+		return mbi;
+	}
+
+	public static Pointer VirtualAlloc(Process proc, Pointer lpAddr, int dwSize,
+	                                   AllocationType type, MemoryProtection mp)
+	{
+		IntPtr ptr = VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
+
+		return ptr;
+	}
+
+	public static bool VirtualProtect(Process hProcess, Pointer lpAddress, int dwSize,
+	                                  MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
+	{
+		bool p = VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
+		                          out lpflOldProtect);
+
+		return p;
+	}
+
+	public static LinkedList<MemoryBasicInformation> EnumeratePages(IntPtr handle)
+	{
+		SystemInfo sysInfo = default;
+
+		GetSystemInfo(ref sysInfo);
+
+		MemoryBasicInformation mbi = default;
+
+		long lpMem = 0L;
+
+		uint sizeOf = (uint) Marshal.SizeOf(typeof(MemoryBasicInformation));
+
+		long maxAddr = sysInfo.MaximumApplicationAddress.ToInt64();
+
+		var ll = new LinkedList<MemoryBasicInformation>();
+
+		while (lpMem < maxAddr) {
+			int result = VirtualQueryEx(handle, (IntPtr) lpMem, ref mbi, sizeOf);
+
+			/*var b = m.State == AllocationType.Commit &&
+			        m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE;*/
+
+			ll.AddLast(mbi);
+
+			long address = (long) mbi.BaseAddress + (long) mbi.RegionSize;
+
+			if (lpMem == address)
+				break;
+
+			lpMem = address;
+
+		}
+
+		return ll;
+	}
+
+	public static MemoryBasicInformation QueryMemoryPage(Pointer p)
+	{
+
+		/*
+		 * https://stackoverflow.com/questions/496034/most-efficient-replacement-for-isbadreadptr
+		 * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-isbadreadptr
+		 */
+
+		MemoryBasicInformation mbi = default;
+
+		return VirtualQuery(p.Address, ref mbi, Marshal.SizeOf<MemoryBasicInformation>()) != 0
+			       ? mbi : throw new Win32Exception();
+
 	}
 }

@@ -511,10 +511,7 @@ public static unsafe class Mem
 		}
 	}
 
-	public static Pointer<T> ToPointer<T>(this Span<T> s)
-	{
-		return AddressOf(ref s.GetPinnableReference());
-	}
+	public static Pointer<T> ToPointer<T>(this Span<T> s) => AddressOf(ref s.GetPinnableReference());
 
 	#endregion
 
@@ -575,10 +572,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
 	/// </summary>
-	public static int SizeOf<T>()
-	{
-		return U.SizeOf<T>();
-	}
+	public static int SizeOf<T>() => U.SizeOf<T>();
 
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
@@ -863,151 +857,12 @@ public static unsafe class Mem
 
 	#endregion
 
-	#region Virtual
-
-	public static Pointer VirtualAlloc(Process proc, Pointer lpAddr, int dwSize,
-	                                   AllocationType type, MemoryProtection mp)
-	{
-		IntPtr ptr = Native.VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
-
-		return ptr;
-	}
-
-	public static bool VirtualFree(Process hProcess, Pointer lpAddress, int dwSize, AllocationType dwFreeType)
-	{
-		bool p = Native.VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
-
-		return p;
-	}
-
-	public static bool VirtualProtect(Process hProcess, Pointer lpAddress, int dwSize,
-	                                  MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
-	{
-		bool p = Native.VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
-		                                 out lpflOldProtect);
-
-		return p;
-	}
-
-	public static MemoryBasicInformation VirtualQuery(Process proc, Pointer lpAddr)
-	{
-		var mbi = new MemoryBasicInformation();
-
-		int v = Native.VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
-		                              (uint) Marshal.SizeOf<MemoryBasicInformation>());
-
-		return mbi;
-	}
-
-
-	public static MemoryBasicInformation QueryMemoryPage(Pointer p)
-	{
-
-		/*
-		 * https://stackoverflow.com/questions/496034/most-efficient-replacement-for-isbadreadptr
-		 * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-isbadreadptr
-		 */
-
-		MemoryBasicInformation mbi = default;
-
-		return Native.VirtualQuery(p.Address, ref mbi, Marshal.SizeOf<MemoryBasicInformation>()) != 0
-			       ? mbi
-			       : throw new Win32Exception();
-
-	}
-
-	public static LinkedList<MemoryBasicInformation> EnumeratePages(IntPtr handle)
-	{
-		SystemInfo sysInfo = default;
-
-		Native.GetSystemInfo(ref sysInfo);
-
-		MemoryBasicInformation mbi = default;
-
-		long lpMem = 0L;
-
-		uint sizeOf = (uint) Marshal.SizeOf(typeof(MemoryBasicInformation));
-
-		long maxAddr = sysInfo.MaximumApplicationAddress.ToInt64();
-
-		var ll = new LinkedList<MemoryBasicInformation>();
-
-		while (lpMem < maxAddr) {
-			int result = Native.VirtualQueryEx(handle, (IntPtr) lpMem, ref mbi, sizeOf);
-
-			/*var b = m.State == AllocationType.Commit &&
-			        m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE;*/
-
-			ll.AddLast(mbi);
-
-			long address = (long) mbi.BaseAddress + (long) mbi.RegionSize;
-
-			if (lpMem == address)
-				break;
-
-			lpMem = address;
-
-		}
-
-		return ll;
-	}
-
-	#endregion
-
-	#region Bits
-
 	/*
 	 * https://github.com/pkrumins/bithacks.h/blob/master/bithacks.h
 	 * https://catonmat.net/low-level-bit-hacks
 	 */
 
 	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool ReadBit(int value, int bitOfs)
-	{
-		return (value & (1 << bitOfs)) != 0;
-	}
-
-	public static int SetBit(int x, int n)
-	{
-		return x | (1 << n);
-	}
-
-	public static int UnsetBit(int x, int n)
-	{
-		return x & ~(1 << n);
-	}
-
-	public static int ToggleBit(int x, int n)
-	{
-		return x ^ (1 << n);
-	}
-
-	public static int GetBitMask(int index, int size)
-	{
-		return ((1 << size) - 1) << index;
-	}
-
-	/// <summary>
-	///     Reads <paramref name="bitCount" /> from <paramref name="value" /> at offset <paramref name="bitOfs" />
-	/// </summary>
-	/// <param name="value"><see cref="int" /> value to read from</param>
-	/// <param name="bitOfs">Beginning offset</param>
-	/// <param name="bitCount">Number of bits to read</param>
-	/// <seealso cref="BitArray" />
-	/// <seealso cref="BitVector32" />
-	public static int ReadBits(int value, int bitOfs, int bitCount)
-	{
-		return (value & GetBitMask(bitOfs, bitCount)) >> bitOfs;
-	}
-
-	public static int WriteBits(int data, int index, int size, int value)
-	{
-		return (data & ~GetBitMask(index, size)) | (value << index);
-	}
-
-	#endregion
 }
 
 /// <summary>

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -67,7 +65,7 @@ public static unsafe class RuntimeProperties
 	/// </summary>
 	[field: ImportManaged(typeof(RuntimeHelpers), "GetMethodTable")]
 	private static delegate* managed<object, MethodTable*> Func_GetMethodTable { get; }
-	
+
 	[field: ImportManaged(typeof(RuntimeHelpers), "GetRawObjectDataSize")]
 	private static delegate* managed<object, int> Func_GetRawObjDataSize { get; }
 

@@ -77,7 +77,7 @@ public unsafe struct EEClass
 
 	internal Pointer<ArrayClass> AsArrayClass
 	{
-		get
+		get	
 		{
 			fixed (EEClass* value = &this) {
 				Pointer<byte> p = value;

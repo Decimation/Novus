@@ -1,8 +1,10 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 using Kantan.Cli;
 using Novus.OS.Win32.Structures;
+using Novus.OS.Win32.Structures.Kernel32;
 using Novus.OS.Win32.Structures.User32;
 using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
 
@@ -112,6 +114,8 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+	
 }
 
 public enum HwndWindowPosition

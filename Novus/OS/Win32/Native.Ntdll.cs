@@ -1,10 +1,5 @@
 ﻿using HANDLE = System.IntPtr;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Novus.OS.Win32.Structures.Ntdll;
 
 namespace Novus.OS.Win32;
@@ -32,7 +27,16 @@ public static partial class Native
 	                                                       out uint returnLength);
 
 	[DllImport(NTDLL_DLL)]
-	public static extern NtStatus NtQueryObject(IntPtr objectHandle, OBJECT_INFORMATION_CLASS informationClass,
+	public static extern NtStatus NtQueryObject(IntPtr objectHandle, ObjectInformationClass informationClass,
 	                                            IntPtr informationPtr, uint informationLength,
-	                                            ref uint returnLength);
+	                                            out uint returnLength);
+}
+
+public enum ObjectInformationClass : int
+{
+	ObjectBasicInformation    = 0,
+	ObjectNameInformation     = 1,
+	ObjectTypeInformation     = 2,
+	ObjectAllTypesInformation = 3,
+	ObjectHandleInformation   = 4
 }

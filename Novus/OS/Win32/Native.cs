@@ -140,7 +140,7 @@ public static unsafe partial class Native
 
 		IntPtr remoteThread = CreateRemoteThread(processHandle, IntPtr.Zero, 0,
 		                                         loadLibraryAddr, remoteAddress,
-		                                         0, out var rId);
+		                                         0, out IntPtr rId);
 
 		if (remoteThread == IntPtr.Zero) {
 			return false;
@@ -472,17 +472,8 @@ public static unsafe partial class Native
 
 	}
 
-	public enum OBJECT_INFORMATION_CLASS : int
-	{
-		ObjectBasicInformation    = 0,
-		ObjectNameInformation     = 1,
-		ObjectTypeInformation     = 2,
-		ObjectAllTypesInformation = 3,
-		ObjectHandleInformation   = 4
-	}
-
 	//helper method with "dynamic" buffer allocation
-	public static IntPtr NtQueryObject(IntPtr handle, OBJECT_INFORMATION_CLASS infoClass, uint infoLength = 0)
+	public static IntPtr NtQueryObject(IntPtr handle, ObjectInformationClass infoClass, uint infoLength = 0)
 	{
 		if (infoLength == 0)
 			infoLength = (uint) Marshal.SizeOf(typeof(uint));
@@ -492,7 +483,7 @@ public static unsafe partial class Native
 		NtStatus result;
 
 		while (true) {
-			result = NtQueryObject(handle, infoClass, infoPtr, infoLength, ref infoLength);
+			result = NtQueryObject(handle, infoClass, infoPtr, infoLength, out infoLength);
 
 			if (result == NtStatus.INFO_LENGTH_MISMATCH || result == NtStatus.BUFFER_OVERFLOW ||
 			    result == NtStatus.BUFFER_TOO_SMALL) {
@@ -516,4 +507,7 @@ public static unsafe partial class Native
 
 		return IntPtr.Zero;
 	}
+
+
 }
+

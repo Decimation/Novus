@@ -18,6 +18,43 @@ namespace Novus.OS.Win32;
 #pragma warning disable CA1401,CA2101
 public static unsafe partial class Native
 {
+	// Thread proc, to be used with Create*Thread
+	public delegate int ThreadProc(IntPtr param);
+
+	// Friendly version, marshals thread-proc as friendly delegate
+	[DllImport(KERNEL32_DLL)]
+	public static extern IntPtr CreateThread(
+		IntPtr lpThreadAttributes,
+		uint dwStackSize,
+		ThreadProc lpStartAddress, // ThreadProc as friendly delegate
+		IntPtr lpParameter,
+		uint dwCreationFlags,
+		out uint dwThreadId);
+
+	// Marshal with ThreadProc's function pointer as a raw IntPtr.
+	[DllImport(KERNEL32_DLL, EntryPoint = "CreateThread")]
+	public static extern IntPtr CreateThreadRaw(
+		IntPtr lpThreadAttributes,
+		uint dwStackSize,
+		IntPtr lpStartAddress, // ThreadProc as raw IntPtr
+		IntPtr lpParameter,
+		uint dwCreationFlags,
+		out uint dwThreadId);
+
+	// CreateRemoteThread, since ThreadProc is in remote process, we must use a raw function-pointer.
+	[DllImport(KERNEL32_DLL)]
+	public static extern IntPtr CreateRemoteThread(
+		IntPtr hProcess,
+		IntPtr lpThreadAttributes,
+		uint dwStackSize,
+		IntPtr lpStartAddress, // raw Pointer into remote process
+		IntPtr lpParameter,
+		uint dwCreationFlags,
+		out uint lpThreadId
+	);
+	// uint output
+	[DllImport(KERNEL32_DLL, SetLastError = true)]
+	public static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
 	#region Console
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
@@ -316,6 +353,4 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
-
-	
 }

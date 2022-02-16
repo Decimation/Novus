@@ -11,13 +11,15 @@ using Kantan.Cli;
 using Novus.OS;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures.Kernel32;
+using Novus.OS.Win32.Structures.Ntdll;
+using static Novus.OS.Win32.Native;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
-
 using Novus.Runtime;
+
 // ReSharper disable ArrangeTypeModifiers
 // ReSharper disable UnusedType.Local
 // ReSharper disable InconsistentNaming
@@ -37,7 +39,6 @@ namespace Test;
  * todo: integrate pdbex
  * todo: IL, ILSupport
  */
-
 /*
  * ◆ Novus				https://github.com/Decimation/Novus
  * ⨉ NeoCore			https://github.com/Decimation/NeoCore
@@ -46,7 +47,6 @@ namespace Test;
  * ◆ Kantan				https://github.com/Decimation/Kantan
  * 
  */
-
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -87,18 +87,73 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
 
-
 public static unsafe class Program
 {
+	// stdcall        
+	static int MyThreadProc(IntPtr param)
+	{
+		int pid = Process.GetCurrentProcess().Id;
+		Console.WriteLine("Pid {0}: Inside my new thread!. Param={1}", pid, param.ToInt32());
+		return 1;
+	}
+
+	// Helper to wait for a thread to exit and print its exit code
+	static void WaitForThreadToExit(IntPtr hThread)
+	{
+		WaitForSingleObject(hThread, unchecked((uint) -1));
+
+		uint exitCode;
+		GetExitCodeThread(hThread, out exitCode);
+		int pid = Process.GetCurrentProcess().Id;
+		Console.WriteLine("Pid {0}: Thread exited with code: {1}", pid, exitCode);
+	}
+
 	private static void Main(string[] args)
 	{
-		//
+		int pid = Process.GetCurrentProcess().Id;
 
-		var p = Process.GetProcessById(14400);
-		Console.WriteLine(p.Id);
-		
-		
+		if (args.Length == 0) {
+			Console.WriteLine("Pid {0}:Started Parent process", pid);
 
+			// Spawn the child
+			string fileName = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", "");
+
+			// Get thread proc as an IntPtr, which we can then pass to the 2nd-process.
+			// We must keep the delegate alive so that fpProc remains valid
+			ThreadProc proc   = MyThreadProc;
+			IntPtr     fpProc = Marshal.GetFunctionPointerForDelegate(proc);
+
+			// Spin up the other process, and pass our pid and function pointer so that it can
+			// use that to call CreateRemoteThraed
+			string           arg  = String.Format("{0} {1}", pid, fpProc);
+			ProcessStartInfo info = new ProcessStartInfo(fileName, arg);
+			info.UseShellExecute = false; // share console, output is interlaces.
+			Process processChild = Process.Start(info);
+
+			processChild.WaitForExit();
+			GC.KeepAlive(proc); // keep the delegate from being collected
+			return;
+		}
+		else {
+			Console.WriteLine("Pid {0}:Started Child process", pid);
+			uint   pidParent = uint.Parse(args[0]);
+			IntPtr fpProc    = new IntPtr(uint.Parse(args[1]));
+
+			IntPtr hProcess = OpenProcess(ProcessAccess.All, false, (int) pidParent);
+
+			uint dwThreadId;
+
+			// Create a thread in the first process.
+			IntPtr hThread = CreateRemoteThread(
+				hProcess,
+				IntPtr.Zero,
+				0,
+				fpProc, new IntPtr(6789),
+				0,
+				out dwThreadId);
+			WaitForThreadToExit(hThread);
+			return;
+		}
 	}
 
 

@@ -2,3 +2,9 @@
 
 # IDE0008: Use explicit type
 csharp_style_var_when_type_is_apparent = true
+
+# IDE0001: Simplify Names
+dotnet_diagnostic.IDE0001.severity = none
+
+# Default severity for analyzer diagnostics with category 'Style'
+dotnet_analyzer_diagnostic.category-Style.severity = none

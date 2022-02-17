@@ -21,6 +21,7 @@ using Novus.Utilities;
 #pragma warning disable
 namespace TestBenchmark;
 
+
 public class MyStruct
 {
 	public int   a;

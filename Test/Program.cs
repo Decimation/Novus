@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Runtime.Intrinsics.X86;
 using Kantan.Cli;
+using Kantan.Text;
 using Novus.OS;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures.Kernel32;
@@ -90,7 +91,7 @@ namespace Test;
 public static unsafe class Program
 {
 	// stdcall        
-	static int MyThreadProc(IntPtr param)
+	private static int MyThreadProc(IntPtr param)
 	{
 		int pid = Process.GetCurrentProcess().Id;
 		Console.WriteLine("Pid {0}: Inside my new thread!. Param={1}", pid, param.ToInt32());
@@ -98,7 +99,7 @@ public static unsafe class Program
 	}
 
 	// Helper to wait for a thread to exit and print its exit code
-	static void WaitForThreadToExit(IntPtr hThread)
+	private static void WaitForThreadToExit(IntPtr hThread)
 	{
 		WaitForSingleObject(hThread, unchecked((uint) -1));
 
@@ -110,7 +111,17 @@ public static unsafe class Program
 
 	private static void Main(string[] args)
 	{
-		int pid = Process.GetCurrentProcess().Id;
+		Debug.WriteLine($"{args.QuickJoin()}");
+		Test2(args);
+
+		
+
+		return;
+	}
+
+	private static void Test2(string[] args)
+	{
+		uint pid = (uint) Process.GetCurrentProcess().Id;
 
 		if (args.Length == 0) {
 			Console.WriteLine("Pid {0}:Started Parent process", pid);
@@ -137,7 +148,7 @@ public static unsafe class Program
 		else {
 			Console.WriteLine("Pid {0}:Started Child process", pid);
 			uint   pidParent = uint.Parse(args[0]);
-			IntPtr fpProc    = new IntPtr(uint.Parse(args[1]));
+			var fpProc    = new UIntPtr(ulong.Parse(args[1]));
 
 			IntPtr hProcess = OpenProcess(ProcessAccess.All, false, (int) pidParent);
 
@@ -148,7 +159,7 @@ public static unsafe class Program
 				hProcess,
 				IntPtr.Zero,
 				0,
-				fpProc, new IntPtr(6789),
+				(IntPtr)fpProc.ToPointer(), new IntPtr(6789),
 				0,
 				out dwThreadId);
 			WaitForThreadToExit(hThread);
@@ -157,7 +168,7 @@ public static unsafe class Program
 	}
 
 
-	struct MyStruct
+	private struct MyStruct
 	{
 		public int   a;
 		public float f;

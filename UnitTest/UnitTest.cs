@@ -315,9 +315,14 @@ public unsafe class Tests_Resources
 public class Tests_Native
 {
 	[Test]
-	public void SymbolsTest()
+	[TestCase(@"C:\Symbols\coreclr.pdb")]
+	public void SymbolsTest(string sss)
 	{
-		var m = new SymbolReader(@"C:\Symbols\coreclr.pdb");
+		var m = new SymbolReader(sss);
+
+		if (!File.Exists(sss)) {
+			Assert.Inconclusive();
+		}
 
 		var s = m.GetSymbol("g_pGCHeap");
 

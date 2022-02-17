@@ -125,11 +125,11 @@
     <comment>g_pGCHeap</comment>
   </data>
   <data name="Ofs_IsHeapPointer" xml:space="preserve">
-    <value>318130</value>
+    <value>3181A0</value>
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>6.0.1</value>
+    <value>6.0.2</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05</value>

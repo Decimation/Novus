@@ -50,7 +50,8 @@ public static class ReflectionHelper
 
 	#region Members
 
-	public static IEnumerable<FI> GetAllFields(this Type t)  => t.GetFields(ALL_FLAGS);
+	public static IEnumerable<FI> GetAllFields(this Type t) => t.GetFields(ALL_FLAGS);
+
 	public static IEnumerable<MI> GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
 
 	public static IEnumerable<MMI> GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
@@ -72,7 +73,6 @@ public static class ReflectionHelper
 	public static FI GetAnyResolvedField(this Type t, string fname)
 	{
 		var member = t.GetAnyMember(fname).First();
-
 
 		var field = member.MemberType == MemberTypes.Property
 			            ? t.GetBackingField(fname)
@@ -148,9 +148,9 @@ public static class ReflectionHelper
 
 	public static IEnumerable<FI> GetAllBackingFields(this Type t)
 	{
-		var rg = t.GetRuntimeFields().Where(f => f.Name.Contains(SN_BACKING_FIELD)).ToArray();
-
-
+		var rg = t.GetRuntimeFields()
+		          .Where(f => f.Name.Contains(SN_BACKING_FIELD))
+		          .ToArray();
 		return rg;
 	}
 
@@ -302,12 +302,12 @@ public static class ReflectionHelper
 	/// <param name="value">Instance of type; <c>null</c> if the method is static</param>
 	/// <param name="fnArgs">Method arguments</param>
 	/// <returns>Return value of the method specified by <paramref name="method"/></returns>
-	public static object CallGeneric(MI method, Type[] args, object value, params object[] fnArgs)
+	public static object CallGeneric(this MI method, Type[] args, object value, params object[] fnArgs)
 	{
 		return method.MakeGenericMethod(args).Invoke(value, fnArgs);
 	}
 
-	public static object CallGeneric(MI method, Type arg, object value, params object[] fnArgs)
+	public static object CallGeneric(this MI method, Type arg, object value, params object[] fnArgs)
 	{
 		return CallGeneric(method, new[] { arg }, value, fnArgs);
 	}
@@ -341,7 +341,7 @@ public static class ReflectionHelper
 
 	#region Assemblies
 
-	public static Type[] GetAllWhere(Type t, Func<Type, bool> fn)
+	public static Type[] GetAllWhere(this Type t, Func<Type, bool> fn)
 	{
 		var rg = new List<Type>();
 
@@ -373,9 +373,7 @@ public static class ReflectionHelper
 		foreach (var assembly in rg) {
 
 			var dependencies = GetUserDependencies(assembly);
-
 			asm.UnionWith(dependencies);
-
 		}
 
 		return asm;
@@ -387,7 +385,7 @@ public static class ReflectionHelper
 		                .SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
 	}
 
-	public static IEnumerable<AssemblyName> GetUserDependencies(Assembly asm)
+	public static IEnumerable<AssemblyName> GetUserDependencies(this Assembly asm)
 	{
 		const string SYSTEM = "System";
 
@@ -396,7 +394,7 @@ public static class ReflectionHelper
 
 	#endregion
 
-	public static T Clone<T>(T t) where T : class
+	public static T Clone<T>(this T t) where T : class
 	{
 		var type = t.GetType();
 
@@ -405,7 +403,7 @@ public static class ReflectionHelper
 		var t2 = Unsafe.As<T>(r);
 		return t2;
 	}
-	
+
 
 	public static T Consolidate<T>(T current, IList<object> values)
 	{
@@ -459,15 +457,9 @@ public static class ReflectionOperatorHelpers
 		return body;
 	}
 
-	public static FI fieldof<T>(Expression<Func<T>> expression)
-	{
-		return (FI) memberof(expression);
-	}
+	public static FI fieldof<T>(Expression<Func<T>> expression) => (FI) memberof(expression);
 
-	public static PI propertyof<T>(Expression<Func<T>> expression)
-	{
-		return (PI) memberof(expression);
-	}
+	public static PI propertyof<T>(Expression<Func<T>> expression) => (PI) memberof(expression);
 
 	public static MI methodof<T>(Expression<Func<T>> expression)
 	{

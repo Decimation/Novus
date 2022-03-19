@@ -20,7 +20,9 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
   </ItemGroup>
-
+  <PropertyGroup>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Novus\Novus.csproj" />
   </ItemGroup>

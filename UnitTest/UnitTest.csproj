@@ -7,7 +7,9 @@
     <IsPackable>false</IsPackable>
     <NoWarn>IDE1006,IDE0079</NoWarn>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>

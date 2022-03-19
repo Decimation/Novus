@@ -6,9 +6,12 @@ global using Native = Novus.OS.Win32.Native;
 using System.Buffers;
 using System.Diagnostics;
 using System.Dynamic;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
+using System.Runtime.Versioning;
 using Kantan.Cli;
 using Kantan.Text;
+using Novus.Memory;
 using Novus.OS;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures.Kernel32;
@@ -20,6 +23,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Novus.Runtime;
+
+// ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable ArrangeTypeModifiers
 // ReSharper disable UnusedType.Local
@@ -87,59 +92,77 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
-
+[RequiresPreviewFeatures]
 public static unsafe class Program
 {
-	// stdcall        
+	private static void Main(string[] args)
+	{
+		int          i = 0;
+		Pointer<int> p = &i;
+
+	}
+
+	static T read<T>(int x) where T : IGetNext<T>
+	{
+		return T.read(x);
+	}
+
 	private static int MyThreadProc(IntPtr param)
 	{
-		int pid = Process.GetCurrentProcess().Id;
+		var process = Process.GetCurrentProcess();
+		int pid     = process.Id;
+
 		Console.WriteLine("Pid {0}: Inside my new thread!. Param={1}", pid, param.ToInt32());
+
 		return 1;
 	}
 
-	// Helper to wait for a thread to exit and print its exit code
 	private static void WaitForThreadToExit(IntPtr hThread)
 	{
 		WaitForSingleObject(hThread, unchecked((uint) -1));
 
-		uint exitCode;
-		GetExitCodeThread(hThread, out exitCode);
-		int pid = Process.GetCurrentProcess().Id;
+		GetExitCodeThread(hThread, out uint exitCode);
+
+		var process = Process.GetCurrentProcess();
+		int pid     = process.Id;
+
 		Console.WriteLine("Pid {0}: Thread exited with code: {1}", pid, exitCode);
 	}
-
-	private static void Main(string[] args)
+	
+	[RequiresPreviewFeatures]
+	public interface IGetNext<T>
 	{
-		Debug.WriteLine($"{args.QuickJoin()}");
-		Test2(args);
-
-		
-
-		return;
+		static abstract T read(int o);
 	}
 
-	private static void Test2(string[] args)
+	private static void Test2(string[] args, Process p)
 	{
-		uint pid = (uint) Process.GetCurrentProcess().Id;
+		var pid = (uint) p.Id;
 
 		if (args.Length == 0) {
 			Console.WriteLine("Pid {0}:Started Parent process", pid);
 
 			// Spawn the child
-			string fileName = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", "");
+			string fileName = p.MainModule.FileName.Replace(".vshost", "");
 
 			// Get thread proc as an IntPtr, which we can then pass to the 2nd-process.
 			// We must keep the delegate alive so that fpProc remains valid
+
 			ThreadProc proc   = MyThreadProc;
 			IntPtr     fpProc = Marshal.GetFunctionPointerForDelegate(proc);
 
 			// Spin up the other process, and pass our pid and function pointer so that it can
-			// use that to call CreateRemoteThraed
-			string           arg  = String.Format("{0} {1}", pid, fpProc);
-			ProcessStartInfo info = new ProcessStartInfo(fileName, arg);
-			info.UseShellExecute = false; // share console, output is interlaces.
-			Process processChild = Process.Start(info);
+			// use that to call CreateRemoteThread
+
+			string arg = $"{pid} {fpProc}";
+
+			var info = new ProcessStartInfo(fileName, arg)
+			{
+				// share console, output is interlaces.
+				UseShellExecute = false
+			};
+
+			var processChild = Process.Start(info);
 
 			processChild.WaitForExit();
 			GC.KeepAlive(proc); // keep the delegate from being collected
@@ -147,26 +170,20 @@ public static unsafe class Program
 		}
 		else {
 			Console.WriteLine("Pid {0}:Started Child process", pid);
-			uint   pidParent = uint.Parse(args[0]);
-			var fpProc    = new UIntPtr(ulong.Parse(args[1]));
+
+			uint pidParent = UInt32.Parse(args[0]);
+			var  fpProc    = new UIntPtr(UInt64.Parse(args[1]));
 
 			IntPtr hProcess = OpenProcess(ProcessAccess.All, false, (int) pidParent);
 
-			uint dwThreadId;
-
 			// Create a thread in the first process.
-			IntPtr hThread = CreateRemoteThread(
-				hProcess,
-				IntPtr.Zero,
-				0,
-				(IntPtr)fpProc.ToPointer(), new IntPtr(6789),
-				0,
-				out dwThreadId);
+			IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0,
+			                                    (IntPtr) fpProc.ToPointer(), new IntPtr(6789),
+			                                    0, out uint dwThreadId);
 			WaitForThreadToExit(hThread);
 			return;
 		}
 	}
-
 
 	private struct MyStruct
 	{

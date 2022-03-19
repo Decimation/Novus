@@ -10,6 +10,8 @@ namespace Novus.Memory;
 
 public readonly ref struct ByReference<T>
 {
+	public ByReference() : this(ref U.NullRef<T>()) { }
+
 	public ByReference(ref T value)
 	{
 		AsPointer = new(ref value);

@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
     <LangVersion>latest</LangVersion>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    <EnablePreviewFeatures>True</EnablePreviewFeatures>
+
     <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute>
     <NoWarn>
       HAA0601

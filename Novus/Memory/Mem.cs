@@ -1,35 +1,24 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
 #pragma warning disable IDE0005, CS1574
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Linq;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using System.Runtime.Versioning;
-using System.Text;
-using System.Threading;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Kantan.Text;
-using Kantan.Utilities;
 using Novus.Memory.Allocation;
-using Novus.OS.Win32;
-using Novus.OS.Win32.Structures;
-using Novus.OS.Win32.Structures.Kernel32;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
+
+// ReSharper disable SuggestVarOrType_BuiltInTypes
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
@@ -76,7 +65,6 @@ namespace Novus.Memory;
 /// <seealso cref="Native" />
 /// <seealso cref="PEReader" />
 /// <seealso cref="GCHandle" />
-/// <seealso cref="Hook" />
 /// <seealso cref="NativeMemory"/>
 /// <seealso cref="NativeLibrary"/>
 /// <seealso cref="System.Runtime.CompilerServices" />
@@ -92,9 +80,7 @@ public static unsafe class Mem
 	/// </summary>
 	public static readonly Pointer Nullptr = null;
 
-
 	public static bool Is64Bit => Environment.Is64BitProcess;
-
 
 	/// <summary>
 	///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
@@ -143,7 +129,7 @@ public static unsafe class Mem
 	/// <summary>
 	/// Size of native runtime (e.g., <see cref="NativeMemory"/>) allocations
 	/// </summary>
-	public static nuint _msize(Pointer p) => (nuint) Native._msize(p.ToPointer());
+	public static nuint _msize(Pointer p) => Native._msize(p.ToPointer());
 
 	#endregion
 
@@ -190,7 +176,6 @@ public static unsafe class Mem
 	/// </summary>
 	public static PinningHelper GetPinningHelper(object value) => U.As<PinningHelper>(value);
 
-
 	public static void Pin(object obj)
 	{
 		var value = new ManualResetEvent(false);
@@ -227,7 +212,6 @@ public static unsafe class Mem
 	///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
 	///     </remarks>
 	/// </summary>
-	[UsedImplicitly]
 	public sealed class PinningHelper
 	{
 		/// <summary>
@@ -532,14 +516,17 @@ public static unsafe class Mem
 		return t2;
 	}
 
-	public static void Copy(Pointer src, int cb, Pointer dest) => dest.WriteAll(src.ToArray(cb));
+	public static void Copy(Pointer src, int cb, Pointer dest) 
+		=> dest.WriteAll(src.ToArray(cb));
 
 	public static void Copy(Pointer src, int startIndex, int cb, Pointer dest)
 		=> dest.WriteAll(src.ToArray(startIndex, cb));
 
-	public static byte[] Copy(Pointer src, int startIndex, int cb) => src.ToArray(startIndex, cb);
+	public static byte[] Copy(Pointer src, int startIndex, int cb) 
+		=> src.ToArray(startIndex, cb);
 
-	public static byte[] Copy(Pointer src, int cb) => src.ToArray(cb);
+	public static byte[] Copy(Pointer src, int cb) 
+		=> src.ToArray(cb);
 
 	#endregion
 
@@ -565,8 +552,7 @@ public static unsafe class Mem
 
 		return (elemSize >= multiplyNoOverflow || elemCnt >= multiplyNoOverflow)
 		       && elemSize > 0 && nuint.MaxValue / elemSize < elemCnt
-			       ? nuint.MaxValue
-			       : elemCnt * elemSize;
+			       ? nuint.MaxValue : elemCnt * elemSize;
 	}
 
 	/// <summary>

@@ -6,7 +6,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    <EnablePreviewFeatures>True</EnablePreviewFeatures>
+    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+
     <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute>
     <NoWarn>CS1591,IDE0079,CA2255,IDE0005,CA1401,IDE0059</NoWarn>
 
@@ -32,7 +33,6 @@
 
     <!-- ??? -->
 
-
     <Compile Update="Properties\EmbeddedResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -54,9 +54,7 @@
       <HintPath>Native\Functions.dll</HintPath>
     </Reference>-->
 
-
   </ItemGroup>
-
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\EmbeddedResources.resx">
@@ -65,7 +63,6 @@
     </EmbeddedResource>
   </ItemGroup>
 
-
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
     <None Include="..\icon64.png">
@@ -73,7 +70,6 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-
 
   <ItemGroup>
     <Reference Include="Kantan">

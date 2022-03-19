@@ -150,16 +150,27 @@ public static class Global
 		 * Setup
 		 */
 
-		var dt = File.GetLastWriteTime(Assembly.Location);
 
 		Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
-		Trace.WriteLine($"[{LIB_NAME}] {Assembly.GetName().Version} @ ~{dt}", C_INFO);
+
+		Trace.WriteLine($"[{LIB_NAME}]", C_INFO);
+
+		/* try {
+			DateTime dt = default;
+
+			dt = File.GetLastWriteTime(Assembly.Location);
+			var version = Assembly.GetName().Version;
+			Trace.WriteLine($"{version} @ ~{dt}");
+		}
+		catch (TypeInitializationException e) {
+			Debug.WriteLine($"{e}");
+		} */
 
 		bool compatible = IsCompatible();
 
 		if (!compatible) {
 			Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed! " +
-			                $"({Environment.Version}, {ClrVersion})", C_ERROR);
+			                $"(Runtime: {Environment.Version} | Target: {ClrVersion})", C_ERROR);
 			//Require.Fail();
 		}
 

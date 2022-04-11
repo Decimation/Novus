@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Kantan.Text;
 using Novus.OS.Win32;
+using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
 #nullable enable
@@ -35,46 +36,9 @@ public static class Command
 
 	public static Process Run(string fileName, params string[] args)
 	{
-		var startInfo = new ProcessStartInfo
-		{
-			FileName               = fileName,
-			RedirectStandardOutput = true,
-			RedirectStandardError  = true,
-			UseShellExecute        = false,
-			CreateNoWindow         = true,
-		};
-
-		foreach (string s in args) {
-			startInfo.ArgumentList.Add(s);
-		}
-
-		var process = new Process
-		{
-			StartInfo           = startInfo,
-			EnableRaisingEvents = true
-		};
-
-		return process;
-	}
-
-	public static Process Run(string fileName, DataReceivedEventHandler? outputHandler,
-	                          DataReceivedEventHandler? errorHandler, bool start = true)
-	{
-		var proc = Run(fileName);
-
-		proc.StartInfo.RedirectStandardInput = true;
-
-		proc.ErrorDataReceived  += errorHandler;
-		proc.OutputDataReceived += outputHandler;
-
-		if (start) {
-			proc.Start();
-			proc.BeginOutputReadLine();
-			proc.BeginErrorReadLine();
-
-		}
-
-		return proc;
+		var qp = QProcess.Create(fileName, args);
+		qp.Start();
+		return qp;
 	}
 
 	public static Process Py(string[] commands)
@@ -123,7 +87,6 @@ public static class Command
 			StartInfo           = startInfo,
 			EnableRaisingEvents = true
 		};
-
 
 		return proc;
 	}

@@ -6,7 +6,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    <EnablePreviewFeatures>true</EnablePreviewFeatures>
+    <!-- <EnablePreviewFeatures>true</EnablePreviewFeatures> -->
 
     <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute>
     <NoWarn>CS1591,IDE0079,CA2255,IDE0005,CA1401,IDE0059</NoWarn>

@@ -14,6 +14,7 @@ using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.DbgHelp;
 using Novus.OS.Win32.Wrappers;
 using Novus.Properties;
+using Novus.Utilities;
 
 // ReSharper disable UnusedParameter.Local
 
@@ -41,7 +42,6 @@ public sealed class SymbolReader : IDisposable
 
 	public List<Symbol> Symbols { get; }
 
-
 	private const string MASK_ALL = "*!*";
 
 	public SymbolReader(IntPtr process, string image)
@@ -57,7 +57,6 @@ public sealed class SymbolReader : IDisposable
 	}
 
 	public SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
-
 
 	[CanBeNull]
 	public Symbol GetSymbol(string name)
@@ -81,7 +80,6 @@ public sealed class SymbolReader : IDisposable
 			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
-
 		var sym = Symbols.FirstOrDefault(s => s.Name.Contains(name));
 
 		//todo: SymFromName...
@@ -96,10 +94,8 @@ public sealed class SymbolReader : IDisposable
 		
 		var sym = new Symbol(&d);*/
 
-
 		return sym;
 	}
-
 
 	public void LoadAll(string mask = MASK_ALL)
 	{
@@ -111,14 +107,12 @@ public sealed class SymbolReader : IDisposable
 			return;
 		}
 
-
 		Native.SymEnumSymbols(Process, m_modBase, MASK_ALL, (ptr, u, context) =>
 		{
 			var b = EnumSymCallback(ptr, u, context, out var symbol);
 			Symbols.Add(symbol);
 			return b;
 		}, IntPtr.Zero);
-
 
 	}
 
@@ -227,7 +221,6 @@ public sealed class SymbolReader : IDisposable
 			throw new FileNotFoundException(null, outFile);
 		}
 
-
 		return outFile;
 
 		string Download()
@@ -270,13 +263,11 @@ public sealed class SymbolReader : IDisposable
 				goto ret;
 			}
 
-
 			var uriString = EmbeddedResources.MicrosoftSymbolServer +
 			                $"{fileName}/" +
 			                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
 
 			Debug.WriteLine($"Downloading {uriString}", nameof(GetSymbolFile));
-
 
 			//await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
 			wc.DownloadFile(new Uri(uriString), pdbFilePath);

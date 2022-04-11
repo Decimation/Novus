@@ -5,17 +5,21 @@
 global using Native = Novus.OS.Win32.Native;
 using System.Buffers;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Versioning;
+using System.Text;
 using Kantan.Cli;
 using Kantan.Text;
+using Novus;
 using Novus.Memory;
 using Novus.OS;
 using Novus.OS.Win32;
 using Novus.OS.Win32.Structures.Kernel32;
 using Novus.OS.Win32.Structures.Ntdll;
+using Novus.Utilities;
 using static Novus.OS.Win32.Native;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
@@ -23,6 +27,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Novus.Runtime;
+
+// ReSharper disable ClassNeverInstantiated.Local
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -92,19 +98,63 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
-[RequiresPreviewFeatures]
 public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		int          i = 0;
-		Pointer<int> p = &i;
+		/*DataReceivedEventHandler h1 = (sender, eventArgs) =>
+		{
+			Console.WriteLine(eventArgs.Data);
+		};
+
+		DataReceivedEventHandler h2 = (sender, eventArgs) =>
+		{
+			Console.Error.WriteLine(eventArgs.Data);
+		};
+
+		var p = Command.Run("adb", h1, h2,
+		                    true, "shell");
+
+		p.StandardInput.WriteLine("echo h");
+		p.StandardInput.Flush();
+
+		Console.ReadKey();*/
+
+		var qp = new QProcess("adb", args: new[] { "shell" });
+		qp.Start();
+		qp.Process.StandardInput.WriteLine("echo a");
+		qp.Process.StandardInput.Flush();
+
+		ThreadPool.QueueUserWorkItem((state =>
+			                             {
+				                             Thread.Sleep(TimeSpan.FromSeconds(3));
+				                             qp.Process.StandardInput.WriteLine("echo hello");
+				                             qp.Process.StandardInput.Flush();
+
+										 }));
+
+		// Thread.Sleep(TimeSpan.FromSeconds(3));
+		// Console.WriteLine(qp.OutputBuffer.ToArray().QuickJoin());
+		while (true) {
+			Console.WriteLine(qp.ReadOutput().QuickJoin(","));
+			Console.WriteLine(qp.ReadOutputBuffer());
+		}
+
+		// Console.WriteLine(qp.OutputBuffer.TryDequeue(out var s));
+		// Console.WriteLine(s);
+		Console.ReadKey();
 
 	}
 
-	static T read<T>(int x) where T : IGetNext<T>
+	private struct MyStruct
 	{
-		return T.read(x);
+		public int   a;
+		public float f { get; }
+
+		public override string ToString()
+		{
+			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		}
 	}
 
 	private static int MyThreadProc(IntPtr param)
@@ -127,12 +177,6 @@ public static unsafe class Program
 		int pid     = process.Id;
 
 		Console.WriteLine("Pid {0}: Thread exited with code: {1}", pid, exitCode);
-	}
-	
-	[RequiresPreviewFeatures]
-	public interface IGetNext<T>
-	{
-		static abstract T read(int o);
 	}
 
 	private static void Test2(string[] args, Process p)
@@ -182,17 +226,6 @@ public static unsafe class Program
 			                                    0, out uint dwThreadId);
 			WaitForThreadToExit(hThread);
 			return;
-		}
-	}
-
-	private struct MyStruct
-	{
-		public int   a;
-		public float f;
-
-		public override string ToString()
-		{
-			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
 		}
 	}
 

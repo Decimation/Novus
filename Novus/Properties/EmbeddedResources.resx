@@ -125,7 +125,7 @@
     <comment>g_pGCHeap</comment>
   </data>
   <data name="Ofs_IsHeapPointer" xml:space="preserve">
-    <value>3181A0</value>
+    <value>318260</value>
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="RequiredVersion" xml:space="preserve">

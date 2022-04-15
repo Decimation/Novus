@@ -13,7 +13,7 @@ public static class AtomicHelper
 {
 	private static readonly Dictionary<Type, IntPtr> Cache = new();
 
-	private static unsafe IntPtr GetExchangeFunction<T>()
+	private static IntPtr GetExchangeFunction<T>()
 	{
 		var method = typeof(Interlocked).GetAnyMethod("Exchange", new[] { typeof(T).MakeByRefType(), typeof(T) });
 

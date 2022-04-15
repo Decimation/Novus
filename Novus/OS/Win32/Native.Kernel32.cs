@@ -52,9 +52,11 @@ public static unsafe partial class Native
 		uint dwCreationFlags,
 		out uint lpThreadId
 	);
+
 	// uint output
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
+
 	#region Console
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
@@ -143,12 +145,12 @@ public static unsafe partial class Native
 	internal static uint GetFileSize(IntPtr hFile) => GetFileSize(hFile, IntPtr.Zero);
 
 	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
-	private static extern IntPtr CreateFile(string fileName, FileAccess fileAccess, FileShare fileShare,
+	public static extern IntPtr CreateFile(string fileName, FileAccess fileAccess, FileShare fileShare,
 	                                        IntPtr securityAttributes, FileMode creationDisposition,
 	                                        FileAttributes flagsAndAttributes, IntPtr template);
 
 	[DllImport(KERNEL32_DLL)]
-	private static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
+	public static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
 
 	#endregion
 

@@ -26,7 +26,6 @@ public class QProcess : IDisposable
 
 	private readonly ManualResetEvent m_errResetEvent = new(false);
 
-	private Dictionary<Stream, StringBuilder> buffers;
 
 	public QProcess(string fileName, DataReceivedEventHandler errorData = null,
 	                DataReceivedEventHandler outputData = null, params string[] args)
@@ -51,7 +50,7 @@ public class QProcess : IDisposable
 	}
 
 	private static void HandleStreamData(DataReceivedEventArgs eventArgs, ConcurrentQueue<string> q,
-	                                     ManualResetEvent a, StringBuilder b)
+	                                     EventWaitHandle a, StringBuilder b)
 	{
 		var data = eventArgs.Data;
 		q.Enqueue(data);

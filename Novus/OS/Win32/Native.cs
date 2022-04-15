@@ -182,7 +182,6 @@ public static unsafe partial class Native
 		return CreateFile(fileName, access, share, IntPtr.Zero,
 		                  mode, attributes, IntPtr.Zero);
 	}
-
 	public static void SetConsoleFont(string name, short y,
 	                                  FontFamily ff = FontFamily.FF_DONTCARE,
 	                                  FontWeight fw = FontWeight.FW_NORMAL)

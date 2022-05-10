@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
+using JetBrains.Annotations;
 using Kantan.Cli;
 using Novus.OS.Win32.Structures;
 using Novus.OS.Win32.Structures.Kernel32;
@@ -22,7 +23,7 @@ public static unsafe partial class Native
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
 	                                       WindowFlags uFlags);
-	
+
 
 	[DllImport(USER32_DLL, SetLastError = false)]
 	public static extern IntPtr GetDesktopWindow();
@@ -98,7 +99,7 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
 	private static extern int GetWindowTextLength(IntPtr hWnd);
 
-
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	private class SearchData
 	{
 		public string Wndclass;
@@ -114,8 +115,6 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
-
-	
 }
 
 public enum HwndWindowPosition

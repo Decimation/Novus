@@ -39,7 +39,7 @@ public static class ProcessHelper
 	{
 		Task.Run(p.WaitForExit).Wait(ms);
 		p.Dispose();
-
+		
 		try {
 			if (!p.HasExited) {
 				p.Kill();

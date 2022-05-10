@@ -1,34 +1,27 @@
-﻿using Novus.Memory;
+﻿using Kantan.Cli;
+using Novus;
+using Novus.Imports;
+using Novus.Memory;
+using Novus.Memory.Allocation;
+using Novus.OS;
+using Novus.OS.Win32;
+using Novus.OS.Win32.Structures.Kernel32;
+using Novus.OS.Win32.Structures.User32;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
+using Novus.Runtime.VM.IL;
 using Novus.Utilities;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using Kantan.Cli;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
-using Novus;
-using Novus.Imports;
-using Novus.Runtime.VM;
-using Novus.Runtime.VM.IL;
-using Kantan.Numeric;
-using Novus.Memory.Allocation;
-using Novus.OS;
-using Novus.OS.Win32;
-using Novus.OS.Win32.Structures;
-using Novus.OS.Win32.Structures.Kernel32;
-using Novus.OS.Win32.Structures.User32;
-using NUnit.Framework.Internal;
 using UnitTest.TestTypes;
 using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
 
@@ -85,7 +78,7 @@ public class Tests_Other
 						// dwFlags     = (KeyEventFlags.KeyDown | KeyEventFlags.SCANCODE),
 						// wScan       = ScanCodeShort.KEY_W,
 
-						wVk         = VirtualKey.KEY_G,
+						wVk         = VirtualKey.MEDIA_PLAY_PAUSE,
 						dwFlags     = 0,
 						dwExtraInfo = new UIntPtr((uint) Native.GetMessageExtraInfo().ToInt64())
 					},
@@ -130,6 +123,8 @@ public class Tests_GCHeap
 
 
 	}
+
+	
 }
 
 [TestFixture]

@@ -129,7 +129,7 @@
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>6.0.2</value>
+    <value>6.0.4</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05</value>

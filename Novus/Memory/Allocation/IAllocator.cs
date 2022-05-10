@@ -8,10 +8,10 @@ public interface IAllocator
 {
 	public void Free(Pointer<byte> p);
 
-	[MustUseReturnValue]
+	[MURV]
 	public Pointer ReAlloc(Pointer<byte> p, nuint n);
 
-	[MustUseReturnValue]
+	[MURV]
 	public Pointer Alloc(nuint n);
 
 	public bool IsAllocated(Pointer p)

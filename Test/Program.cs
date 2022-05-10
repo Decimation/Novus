@@ -135,6 +135,7 @@ public static unsafe class Program
 
 		// Thread.Sleep(TimeSpan.FromSeconds(3));
 		// Console.WriteLine(qp.OutputBuffer.ToArray().QuickJoin());
+
 		while (true) {
 			Console.WriteLine(qp.ReadOutput().QuickJoin(","));
 			Console.WriteLine(qp.ReadOutputBuffer());

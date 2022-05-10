@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using JetBrains.Annotations;
 using Kantan.Cli.Controls;
 using Novus.OS.Win32.Structures.DbgHelp;
 using Novus.OS.Win32.Structures.Kernel32;
@@ -12,6 +13,7 @@ using Novus.OS.Win32.Structures.Ntdll;
 using Novus.OS.Win32.Structures.Other;
 using Novus.OS.Win32.Structures.User32;
 using Novus.OS.Win32.Wrappers;
+
 // ReSharper disable UnusedVariable
 
 #pragma warning disable CA1401, CA2101
@@ -176,12 +178,13 @@ public static unsafe partial class Native
 		return sd.hWnd;
 	}
 
-	internal static IntPtr CreateFile(string fileName, FileAccess access, FileShare share,
-	                                  FileMode mode, FileAttributes attributes)
+	public static IntPtr CreateFile(string fileName, FileAccess access, FileShare share,
+	                                FileMode mode, FileAttributes attributes)
 	{
 		return CreateFile(fileName, access, share, IntPtr.Zero,
 		                  mode, attributes, IntPtr.Zero);
 	}
+
 	public static void SetConsoleFont(string name, short y,
 	                                  FontFamily ff = FontFamily.FF_DONTCARE,
 	                                  FontWeight fw = FontWeight.FW_NORMAL)
@@ -233,6 +236,7 @@ public static unsafe partial class Native
 
 		return true;
 	}
+
 
 	public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
 	{
@@ -506,7 +510,4 @@ public static unsafe partial class Native
 
 		return IntPtr.Zero;
 	}
-
-
 }
-

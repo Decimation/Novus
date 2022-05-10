@@ -383,7 +383,7 @@ public static unsafe class Mem
 
 	public static object ReadStructure(Type t, byte[] rg, int ofs = 0)
 	{
-		GCHandle handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
+		var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
 		//var stackAlloc = stackalloc byte[byteArray.Length];
 
 		IntPtr objAddr = handle.AddrOfPinnedObject() + ofs;
@@ -447,7 +447,7 @@ public static unsafe class Mem
 		string[] bytes = s.Split(Strings.Constants.SPACE);
 
 		foreach (string b in bytes) {
-			byte n = Byte.Parse(b, NumberStyles.HexNumber);
+			var n = Byte.Parse(b, NumberStyles.HexNumber);
 
 			rg.Add(n);
 		}
@@ -516,17 +516,14 @@ public static unsafe class Mem
 		return t2;
 	}
 
-	public static void Copy(Pointer src, int cb, Pointer dest) 
-		=> dest.WriteAll(src.ToArray(cb));
+	public static void Copy(Pointer src, int cb, Pointer dest) => dest.WriteAll(src.ToArray(cb));
 
 	public static void Copy(Pointer src, int startIndex, int cb, Pointer dest)
 		=> dest.WriteAll(src.ToArray(startIndex, cb));
 
-	public static byte[] Copy(Pointer src, int startIndex, int cb) 
-		=> src.ToArray(startIndex, cb);
+	public static byte[] Copy(Pointer src, int startIndex, int cb) => src.ToArray(startIndex, cb);
 
-	public static byte[] Copy(Pointer src, int cb) 
-		=> src.ToArray(cb);
+	public static byte[] Copy(Pointer src, int cb) => src.ToArray(cb);
 
 	#endregion
 
@@ -552,7 +549,8 @@ public static unsafe class Mem
 
 		return (elemSize >= multiplyNoOverflow || elemCnt >= multiplyNoOverflow)
 		       && elemSize > 0 && nuint.MaxValue / elemSize < elemCnt
-			       ? nuint.MaxValue : elemCnt * elemSize;
+			       ? nuint.MaxValue
+			       : elemCnt * elemSize;
 	}
 
 	/// <summary>

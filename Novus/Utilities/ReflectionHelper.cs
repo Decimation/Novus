@@ -47,7 +47,6 @@ public static class ReflectionHelper
 	public const BindingFlags ALL_INSTANCE_FLAGS =
 		BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
 
-
 	#region Members
 
 	public static IEnumerable<FI> GetAllFields(this Type t) => t.GetFields(ALL_FLAGS);
@@ -81,6 +80,37 @@ public static class ReflectionHelper
 		return field;
 	}
 
+	#region 
+
+	//todo
+	[AttributeUsage(
+		AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Class | AttributeTargets.Property)]
+	[MeansImplicitUse]
+	public class FieldIdAttribute : Attribute { }
+
+	public static FieldInfo[] GetFieldsById(Type t, Assembly[] asmName)
+	{
+		var f = t.GetRuntimeFields().Where(f =>
+		{
+			var asm  = f.FieldType.Assembly;
+			var name = asm.GetName().Name;
+
+			var contains = name != null && asmName.Any(a => a.GetName().Name.Contains(name));
+
+			var b = f.GetCustomAttribute<FieldIdAttribute>() is { } fa;
+
+			if (!contains) {
+				return false;
+			}
+
+			return contains && !b;
+		});
+
+		return f.ToArray();
+	}
+
+	#endregion
+
 	public static FI GetResolvedField(this MMI member)
 	{
 		var field = member.MemberType == MemberTypes.Property
@@ -113,7 +143,6 @@ public static class ReflectionHelper
 		foreach (var ctor in ctors) {
 			var paramz = ctor.GetParameters();
 
-
 			if (paramz.Length == args.Length) {
 				if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
 					return ctor;
@@ -137,12 +166,10 @@ public static class ReflectionHelper
 	public static Type[] GetAllSubclasses(this Type superType)
 		=> GetAllWhere(superType, myType => myType.ExtendsType(superType));
 
-
 	public static Type[] GetAllImplementations(this Type interfaceType)
 		=> GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
 
 	#endregion
-
 
 	#region Special
 
@@ -169,7 +196,6 @@ public static class ReflectionHelper
 		return fi;
 	}
 
-
 	private const string SN_BACKING_FIELD  = "k__BackingField";
 	private const string SN_ANONYMOUS_TYPE = "<>f__AnonymousType";
 	private const string SN_CLONE          = "<Clone>$";
@@ -190,7 +216,6 @@ public static class ReflectionHelper
 		   | IsAnonymous1 | 640.90 ns | 6.119 ns | 5.724 ns |
 		   | IsAnonymous2 |  20.36 ns | 0.125 ns | 0.117 ns |
 		 */
-
 
 		return type.Name.Contains(SN_ANONYMOUS_TYPE);
 
@@ -290,7 +315,6 @@ public static class ReflectionHelper
 	public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
 
 	#endregion
-
 
 	#region Invocation
 
@@ -404,7 +428,6 @@ public static class ReflectionHelper
 		return t2;
 	}
 
-
 	public static T Consolidate<T>(T current, IList<object> values)
 	{
 		var fields = typeof(T).GetRuntimeFields()
@@ -415,7 +438,6 @@ public static class ReflectionHelper
 			foreach (var value in values) {
 				object fieldVal        = field.GetValue(value);
 				object currentFieldVal = field.GetValue(current);
-
 
 				/*
 				 * (fieldVal != null || (fieldVal is string str && !string.IsNullOrWhiteSpace(str))) &&

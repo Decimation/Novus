@@ -52,7 +52,7 @@ namespace Novus;
 ///         </item>
 ///         <item>
 ///             <description>
-///                 <see cref="Resource" />
+///                 <see cref="RuntimeResource" />
 ///             </description>
 ///         </item>
 ///         <item>
@@ -130,13 +130,12 @@ public static class Global
 	/// <summary>
 	///     Runtime CLR resources
 	/// </summary>
-	public static Resource Clr { get; } = new(CLR_MODULE);
+	public static RuntimeResource Clr { get; } = new(CLR_MODULE);
 
 	public static bool IsSetup { get; private set; }
 
 	public static string ProgramData { get; } =
 		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);
-
 
 	public static Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
 
@@ -149,7 +148,6 @@ public static class Global
 		/*
 		 * Setup
 		 */
-
 
 		Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
 
@@ -185,7 +183,6 @@ public static class Global
 			//Close();
 		};
 
-
 		Trace.WriteLine($"[{LIB_NAME}] CLR: ({Environment.Version})", C_INFO);
 
 	}
@@ -212,7 +209,6 @@ public static class Global
 	private const string QWRITE_STR_FMT_ARG = "s";
 
 	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
-
 
 	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
 	internal static void QWrite(string s, params object[] args) => QWrite(s, DefaultQWriteFunction, args: args);

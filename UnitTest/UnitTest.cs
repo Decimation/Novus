@@ -1,5 +1,4 @@
 ﻿using Kantan.Cli;
-using Novus;
 using Novus.Imports;
 using Novus.Memory;
 using Novus.Memory.Allocation;
@@ -107,7 +106,6 @@ public class Tests_GCHeap
 
 		Assert.True(GCHeap.IsHeapPointer(s));
 
-
 	}
 
 	[Test]
@@ -121,10 +119,8 @@ public class Tests_GCHeap
 		Assert.True(o.Count == 1);
 		Assert.True(GCHeap.IsHeapPointer(o));
 
-
 	}
 
-	
 }
 
 [TestFixture]
@@ -203,7 +199,6 @@ public unsafe class Tests_Pointer
 			Assert.True(p2[i] == p1[i + 1]);
 		}
 
-
 	}
 
 	[Test]
@@ -278,7 +273,6 @@ public unsafe class Tests_Pointer
 			}
 		}
 
-
 	}
 }
 
@@ -295,13 +289,12 @@ public unsafe class Tests_Resources
 	public void Test()
 	{
 
-		using var r = Resource.LoadModule(s);
+		using var r = RuntimeResource.LoadModule(s);
 		r.LoadImports(typeof(Tests_Resources));
 
 		int c = doSomething(1, 1);
 
 		Assert.AreEqual(c, 2);
-
 
 	}
 }
@@ -332,7 +325,6 @@ public class Tests_Native
 		TestContext.WriteLine(d);
 
 	}
-
 
 	[Test]
 	[TestCase('\u200b', "Zero Width Space")]
@@ -422,7 +414,6 @@ public class Tests_Metadata
 		Assert.AreEqual(mf.Attributes, f.Attributes);
 		Assert.AreEqual(mf.IsStatic, f.IsStatic);
 
-
 	}
 
 	[Test]
@@ -437,9 +428,7 @@ public class Tests_Metadata
 
 		Assert.AreEqual(c.prop, p.Value);
 
-
 		//
-
 
 	}
 
@@ -455,7 +444,6 @@ public class Tests_Metadata
 		Assert.AreEqual(Clazz.sprop, p2.Value);
 
 	}
-
 
 	[Test]
 	public void TypeTest2()
@@ -571,7 +559,6 @@ public class Tests_Metadata
 		Assert.AreEqual(mt.InstanceFieldsSize, sizeof(char) + sizeof(int));
 	}
 
-
 	[Test]
 	public unsafe void StaticTest()
 	{
@@ -583,7 +570,6 @@ public class Tests_Metadata
 		p.Value = 25;
 		Assert.AreEqual(p.Value, 25);
 
-
 	}
 
 	[Test]
@@ -593,7 +579,6 @@ public class Tests_Metadata
 	public unsafe void ILTest(string name, bool? init)
 	{
 		var m = typeof(Tests_Metadata).GetAnyMethod(name);
-
 
 		var il = m.AsMetaMethod().ILHeader;
 		var mb = m.GetMethodBody();
@@ -634,11 +619,9 @@ public class Tests_Runtime
 		Assert.True(RuntimeProperties.IsPinnable("g"));
 		Assert.False(RuntimeProperties.IsBlittable("g"));
 
-
 		Assert.True(RuntimeProperties.IsPinnable(new int[] { 1, 2, 3 }));
 		Assert.False(RuntimeProperties.IsBlittable(new int[] { 1, 2, 3 }));
 	}
-
 
 	[Test]
 	public void BoxedTest()
@@ -691,7 +674,6 @@ public class Tests_Runtime
 
 		var p = Mem.AddressOfHeap(s);
 
-
 		Mem.Pin(s);
 		Assert.False(AddPressure(p, s));
 
@@ -703,7 +685,6 @@ public class Tests_Runtime
 			Assert.False(AddPressure(p, o));
 		});
 	}
-
 
 	private static bool AddPressure(Pointer<byte> p, object s)
 	{
@@ -805,7 +786,6 @@ public class Tests_Mem
 
 		Assert.AreEqual(a2, a);
 	}
-
 
 	[Test]
 	public void OffsetTest()
@@ -921,7 +901,6 @@ public class Tests_Mem
 		Assert.AreEqual(Mem.SizeOf<Point>(), sizeof(Point));
 		Assert.AreEqual(Mem.SizeOf<Point>(SizeOfOptions.Intrinsic), sizeof(Point));
 	}
-
 
 	[Test]
 	[TestCase("foo")]
@@ -1039,7 +1018,6 @@ public class Tests_Mem
 		pointer.Value = "g";
 
 		Assert.AreEqual(a.s, "g");
-
 
 	}
 

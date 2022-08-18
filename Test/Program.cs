@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Versioning;
@@ -102,49 +103,26 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		/*DataReceivedEventHandler h1 = (sender, eventArgs) =>
-		{
-			Console.WriteLine(eventArgs.Data);
-		};
+		var f = (delegate* managed<int>) &fn;
 
-		DataReceivedEventHandler h2 = (sender, eventArgs) =>
-		{
-			Console.Error.WriteLine(eventArgs.Data);
-		};
+		int i = f();
+		Console.WriteLine(i);
 
-		var p = Command.Run("adb", h1, h2,
-		                    true, "shell");
+		var f2 = (delegate* managed<void>) &err;
 
-		p.StandardInput.WriteLine("echo h");
-		p.StandardInput.Flush();
+		var x =(void**) &f;
+		*x =(void*) &f2;
 
-		Console.ReadKey();*/
+		Console.WriteLine(f());
+	}
 
-		var qp = new QProcess("adb", args: new[] { "shell" });
-		qp.Start();
-		qp.Process.StandardInput.WriteLine("echo a");
-		qp.Process.StandardInput.Flush();
-
-		ThreadPool.QueueUserWorkItem((state =>
-			                             {
-				                             Thread.Sleep(TimeSpan.FromSeconds(3));
-				                             qp.Process.StandardInput.WriteLine("echo hello");
-				                             qp.Process.StandardInput.Flush();
-
-										 }));
-
-		// Thread.Sleep(TimeSpan.FromSeconds(3));
-		// Console.WriteLine(qp.OutputBuffer.ToArray().QuickJoin());
-
-		while (true) {
-			Console.WriteLine(qp.ReadOutput().QuickJoin(","));
-			Console.WriteLine(qp.ReadOutputBuffer());
-		}
-
-		// Console.WriteLine(qp.OutputBuffer.TryDequeue(out var s));
-		// Console.WriteLine(s);
-		Console.ReadKey();
-
+	static void err()
+	{
+		throw new Exception();
+	}
+	static int fn()
+	{
+		return 1;
 	}
 
 	private struct MyStruct

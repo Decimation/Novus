@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
+using Novus.Runtime;
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Imports;
@@ -8,7 +9,7 @@ namespace Novus.Imports;
 /// <summary>
 ///     Describes an imported member.
 /// </summary>
-/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
+/// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
 [AttributeUsage(AttributeTargets.Field)]
 [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors)]
 public abstract class ImportAttribute : Attribute

@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Novus.Runtime;
 
 namespace Novus.Imports;
 
@@ -7,7 +8,7 @@ namespace Novus.Imports;
 ///     Describes an imported unmanaged CLR function. Shortcut for <see cref="ImportUnmanagedAttribute" /> for
 ///     <see cref="Global.CLR_MODULE" />
 /// </summary>
-/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
+/// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
 [MeansImplicitUse]
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class ImportClrAttribute : ImportUnmanagedAttribute

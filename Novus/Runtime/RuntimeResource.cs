@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Resources;
 using System.Runtime.InteropServices;
 using Novus.OS;
@@ -26,13 +27,13 @@ using static Novus.Imports.ImportType;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus;
+namespace Novus.Runtime;
 
 /// <summary>
 /// Represents a runtime component which contains data and resources.
 /// </summary>
 /// <seealso cref="EmbeddedResources"/>
-public class Resource : IDisposable
+public class RuntimeResource : IDisposable
 {
 	public Pointer<byte> Address { get; }
 
@@ -46,13 +47,13 @@ public class Resource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
-
 	/// <summary>
-	/// Creates a <see cref="Resource"/> from an already-loaded module.
+	/// Creates a <see cref="RuntimeResource"/> from an already-loaded module.
 	/// </summary>
-	public Resource(string moduleName, string pdb = null) : this(Process.GetCurrentProcess(), moduleName, pdb) { }
+	public RuntimeResource(string moduleName, string pdb = null) :
+		this(Process.GetCurrentProcess(), moduleName, pdb) { }
 
-	public Resource(Process p, string moduleName, string pdb = null)
+	public RuntimeResource(Process p, string moduleName, string pdb = null)
 	{
 		ModuleName = moduleName;
 
@@ -68,9 +69,9 @@ public class Resource : IDisposable
 	}
 
 	/// <summary>
-	/// Loads a module and creates a <see cref="Resource"/> from it.
+	/// Loads a module and creates a <see cref="RuntimeResource"/> from it.
 	/// </summary>
-	public static Resource LoadModule(string moduleFile)
+	public static RuntimeResource LoadModule(string moduleFile)
 	{
 		var f = new FileInfo(moduleFile);
 
@@ -79,7 +80,7 @@ public class Resource : IDisposable
 		//var l = Native.LoadLibrary(f.FullName);
 		var l = NativeLibrary.Load(f.FullName);
 
-		var r = new Resource(f.Name)
+		var r = new RuntimeResource(f.Name)
 		{
 			LoadedModule = true
 		};
@@ -123,7 +124,7 @@ public class Resource : IDisposable
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
 		foreach (var (_, member) in annotatedTuples) {
-			var field = (FieldInfo) member;
+			var field = (FI) member;
 
 			field.SetValue(null, null);
 		}
@@ -147,7 +148,7 @@ public class Resource : IDisposable
 	/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
 	/// </summary>
 	/// <param name="t">Enclosing type</param>
-	public void LoadImports(Type t)
+	public void LoadImports(Type t, bool throwOnErr = true)
 	{
 		if (m_loadedTypes.Contains(t)) {
 			return;
@@ -164,9 +165,9 @@ public class Resource : IDisposable
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
 		foreach (var (attribute, member) in annotatedTuples) {
-			var field = (FieldInfo) member;
+			var field = (FI) member;
 
-			var fieldValue = GetImportValue(attribute, field);
+			var fieldValue = GetImportValue(attribute, field, throwOnErr);
 
 			// Set value
 
@@ -188,14 +189,14 @@ public class Resource : IDisposable
 		EmbeddedResources.ResourceManager,
 	};
 
-	private static ResourceManager GetManager(Assembly assembly)
+	private static ResourceManager GetManager(Assembly assembly, string rsrcName = "EmbeddedResources")
 	{
 		string name = null;
 
 		foreach (string v in assembly.GetManifestResourceNames()) {
 			string value = assembly.GetName().Name;
 
-			if (v.Contains(value!) || v.Contains("EmbeddedResources")) {
+			if (v.Contains(value!) || v.Contains(rsrcName)) {
 				name = v;
 				break;
 			}
@@ -230,7 +231,7 @@ public class Resource : IDisposable
 		return null;
 	}
 
-	private object GetImportValue(ImportAttribute attribute, FieldInfo field)
+	private object GetImportValue(ImportAttribute attribute, FI field, bool throwOnErr)
 	{
 		object fieldValue = null;
 
@@ -264,7 +265,6 @@ public class Resource : IDisposable
 
 				// Find address
 
-
 				var addr = FindImport(resValue, unmanagedType);
 
 				//Require.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
@@ -274,11 +274,18 @@ public class Resource : IDisposable
 
 					Trace.WriteLine($"Could not find import value for {unmanagedAttr.Name}!", C_ERROR);
 
-					/*unsafe {
-						addr = (IntPtr) ((delegate* managed<void>) &ErrorFunction);
-					}*/
-				}
+					if (throwOnErr) {
+						unsafe {
+							//todo
+							addr = (IntPtr) ((delegate* managed<void>) &ErrorFunction);
 
+							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
+							var fnPtr=dyn.MethodHandle.GetFunctionPointer();
+							addr = fnPtr;*/
+						}
+					}
+
+				}
 
 				if (field.FieldType == typeof(Pointer<byte>)) {
 					fieldValue = addr;
@@ -286,7 +293,6 @@ public class Resource : IDisposable
 				else {
 					fieldValue = (IntPtr) addr;
 				}
-
 
 				break;
 			}
@@ -328,14 +334,13 @@ public class Resource : IDisposable
 
 	public static Pointer<byte> FindImport(Process p, string m, string s, ImportType x)
 	{
-		using var resource = new Resource(p, m, s);
+		using var resource = new RuntimeResource(p, m, s);
 
 		return resource.FindImport(s, x);
 	}
 
 	public static Pointer<byte> FindImport(string m, string s, ImportType x)
 		=> FindImport(Process.GetCurrentProcess(), m, s, x);
-
 
 	public Pointer<byte> FindImport(string s, ImportType x)
 	{
@@ -351,7 +356,7 @@ public class Resource : IDisposable
 
 	private Pointer GetOffset([NN] string s)
 	{
-		return Address + (Int64.TryParse(s, NumberStyles.HexNumber, null, out long l) ? l : Int64.Parse(s));
+		return Address + (long.TryParse(s, NumberStyles.HexNumber, null, out long l) ? l : long.Parse(s));
 	}
 
 	public Pointer<byte> GetExport(string name) => NativeLibrary.GetExport(Module.BaseAddress, name);

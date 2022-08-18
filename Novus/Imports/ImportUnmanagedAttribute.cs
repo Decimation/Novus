@@ -1,5 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
+using Novus.Runtime;
 
 // ReSharper disable UnusedMember.Global
 
@@ -7,10 +8,10 @@ namespace Novus.Imports;
 
 /// <summary>
 ///     Describes an imported unmanaged function.
-///     The <see cref="ImportAttribute.Name" /> is the name (key) with which to look up in <see cref="Resource" />
-///     for the signature to scan using <see cref="Resource.Scanner" />.
+///     The <see cref="ImportAttribute.Name" /> is the name (key) with which to look up in <see cref="RuntimeResource" />
+///     for the signature to scan using <see cref="RuntimeResource.Scanner" />.
 /// </summary>
-/// <remarks>For use with <seealso cref="Resource.LoadImports" /></remarks>
+/// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
 [MeansImplicitUse]
 [AttributeUsage(AttributeTargets.Field)]
 public class ImportUnmanagedAttribute : ImportAttribute

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Reflection.Emit;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Versioning;
@@ -110,16 +111,20 @@ public static unsafe class Program
 
 		var f2 = (delegate* managed<void>) &err;
 
-		var x =(void**) &f;
-		*x =(void*) &f2;
+		var x = (void**) &f;
+		*x = (void*) &f2;
 
 		Console.WriteLine(f());
+
+		var me = ReflectionOperatorHelpers.methodof(() => err());
+
 	}
 
 	static void err()
 	{
 		throw new Exception();
 	}
+
 	static int fn()
 	{
 		return 1;

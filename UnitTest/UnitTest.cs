@@ -120,7 +120,6 @@ public class Tests_GCHeap
 		Assert.True(GCHeap.IsHeapPointer(o));
 
 	}
-
 }
 
 [TestFixture]
@@ -279,7 +278,9 @@ public unsafe class Tests_Pointer
 [TestFixture]
 public unsafe class Tests_Resources
 {
-	private const string s  = "C:\\Users\\Deci\\VSProjects\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
+	private const string s =
+		"H:\\Archives & Backups\\Computer Science\\Code\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
+
 	private const string s2 = "SandboxLibrary.dll";
 
 	[ImportUnmanaged(s2, ImportType.Signature, "89 54 24 10 89 4C 24 08")]
@@ -347,8 +348,8 @@ public class Tests_ReflectionHelper
 	[Test]
 	public void Test2()
 	{
-		Assert.True(typeof(IInterface).GetAllImplementations().Contains(typeof(Implement1)));
-		Assert.True(typeof(Superclass1).GetAllSubclasses().Contains(typeof(Subclass1)));
+		Assert.True(typeof(IInterface).GetAllInAssembly(TypeProperties.Interface).Contains(typeof(Implement1)));
+		Assert.True(typeof(Superclass1).GetAllInAssembly(TypeProperties.Subclass).Contains(typeof(Subclass1)));
 	}
 
 	[Test]
@@ -395,6 +396,17 @@ public class Tests_ReflectionHelper
 		const string foo = "foo";
 		var          a   = new { s = foo, a = 321 };
 		Assert.True(a.GetType().IsAnonymous());
+
+	}
+
+	[Test]
+	public void Test7()
+	{
+		var a = new TestTypes.Clazz() { };
+		var b = new TestTypes.Struct() {  };
+		var f = ReflectionHelper.GetNilFields(a);
+		Assert.AreEqual(3, f.Length);
+		Assert.AreEqual(1, ReflectionHelper.GetNilFields(b).Length);
 
 	}
 }
@@ -662,6 +674,23 @@ public class Tests_Runtime
 		Assert.True(RuntimeProperties.IsDefault(s2));
 
 		Assert.True(RuntimeProperties.IsDefault(default(int)));
+	}
+
+	[Test]
+	[TestCase(default(int), true)]
+	[TestCase((string) null, true)]
+	[TestCase(1, false)]
+	public void NullMemTest(object o, bool b)
+	{
+		Assert.AreEqual(b, RuntimeProperties.IsNullMemory(o));
+	}
+
+	[Test]
+	public void NullMemTest2()
+	{
+		Assert.True(RuntimeProperties.IsNullMemory(new Struct() { }));
+		Assert.True(RuntimeProperties.IsNullMemory(new Clazz() { a=0, prop =0, s= null}));
+		Assert.False(RuntimeProperties.IsNullMemory(new Clazz() { a=1, prop =3, s= "butt"}));
 	}
 
 	[Test]

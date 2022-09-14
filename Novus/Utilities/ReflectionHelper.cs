@@ -80,7 +80,7 @@ public static class ReflectionHelper
 		return field;
 	}
 
-	#region 
+	#region
 
 	//todo
 	[AttributeUsage(
@@ -153,7 +153,7 @@ public static class ReflectionHelper
 		return null;
 	}
 
-	public static T GetStaticValue<T>(this PI p)
+	/*public static T GetStaticValue<T>(this PI p)
 	{
 		return (T) p.GetValue(null);
 	}
@@ -161,13 +161,7 @@ public static class ReflectionHelper
 	public static T GetStaticValue<T>(this FI p)
 	{
 		return (T) p.GetValue(null);
-	}
-
-	public static Type[] GetAllSubclasses(this Type superType)
-		=> GetAllWhere(superType, myType => myType.ExtendsType(superType));
-
-	public static Type[] GetAllImplementations(this Type interfaceType)
-		=> GetAllWhere(interfaceType, myType => myType.ImplementsInterface(interfaceType));
+	}*/
 
 	#endregion
 
@@ -365,20 +359,42 @@ public static class ReflectionHelper
 
 	#region Assemblies
 
-	public static Type[] GetAllWhere(this Type t, Func<Type, bool> fn)
+	public static Type[] GetAllInAssembly(this Type t1, TypeProperties p)
 	{
-		var rg = new List<Type>();
+		Func<Type, bool> fn = p switch
+		{
+			TypeProperties.Subclass  => t => t.ExtendsType(t1),
+			TypeProperties.Interface => t => t.ImplementsInterface(t1),
 
+			_ => throw new ArgumentOutOfRangeException(nameof(p), p, null)
+		};
+
+		return GetAllInAssembly(t1, fn);
+	}
+
+	public static Type[] GetAllInAssembly(this Type t, Func<Type, bool> fn)
+	{
 		var assembly = Assembly.GetAssembly(t);
+
 		Require.NotNull(assembly);
 
 		var asmTypes = assembly.GetTypes();
 
 		var types = asmTypes.Where(fn);
 
-		rg.AddRange(types);
+		return types.ToArray();
+	}
 
-		return rg.ToArray();
+	public static IEnumerable<T> CreateAllInAssembly<T>(TypeProperties p)
+	{
+		return typeof(T).CreateAllInAssembly(p).Cast<T>();
+	}
+
+	public static IEnumerable<object> CreateAllInAssembly(this Type type, TypeProperties p)
+	{
+		return type.GetAllInAssembly(p)
+		           .Select(Activator.CreateInstance)
+		           .Cast<object>();
 	}
 
 	public static HashSet<AssemblyName> DumpDependencies()
@@ -454,11 +470,60 @@ public static class ReflectionHelper
 		return current;
 	}
 
-	public static void Assign<T>(this Type t, string name, T val, object obj = null)
+	public static void Assign<T, T2>(this Type t, string name, T val, T2 inst = default)
 	{
 		var m = t.GetAnyResolvedField(name);
-		m.SetValue(obj, val);
+		m.SetValue(inst, val);
 	}
+
+	public static void Assign<T>(this Type t, string name, T val, object inst = null)
+	{
+		t.Assign<T, object>(name, val, inst);
+	}
+
+	public static (FI Field, bool Nil)[] GetNilFields(object t, Func<Type, object, Boolean> c = null,
+	                                                  BindingFlags f = ALL_INSTANCE_FLAGS)
+	{
+		var fields = t.GetType().GetFields(f);
+
+		c ??= (type, o) =>
+		{
+			bool b = o == null;
+
+			if (type == typeof(string)) {
+				b = string.IsNullOrWhiteSpace((string) o);
+			}
+
+			else {
+				// return RuntimeProperties.IsNullMemory(o);
+
+			}
+
+			return b;
+		};
+
+		var rg = new List<(FI Field, bool Nil)>();
+
+		foreach (var info in fields) {
+
+			(FI Field, bool Nil) x = new();
+
+			var v = info.GetValue(t);
+
+			x.Nil = c(info.FieldType, v);
+
+			rg.Add(x);
+		}
+
+		return rg.ToArray();
+	}
+}
+
+[Flags]
+public enum TypeProperties
+{
+	Subclass,
+	Interface
 }
 
 public static class ReflectionOperatorHelpers

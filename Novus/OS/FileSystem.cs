@@ -31,7 +31,6 @@ using Novus.OS.Win32.Structures.Kernel32;
 
 #nullable enable
 
-
 namespace Novus.OS;
 
 /// <summary>
@@ -111,7 +110,7 @@ public static class FileSystem
 	/// <param name="f">The name of the executable file</param>
 	/// <returns>The fully-qualified path to the file</returns>
 	/// <exception cref="System.IO.FileNotFoundException">Raised when the exe was not found</exception>
-	public static string FindInPath(string f)
+	public static string? FindInPath(string f)
 	{
 		f = Environment.ExpandEnvironmentVariables(f);
 
@@ -123,11 +122,11 @@ public static class FileSystem
 				foreach (string test in split) {
 					string path = test.Trim();
 
-					if (!String.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, f)))
+					if (!String.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, f))) {
 						return Path.GetFullPath(path);
+					}
 				}
 			}
-
 
 			return null;
 			// throw new FileNotFoundException(new FileNotFoundException().Message, f);
@@ -138,7 +137,6 @@ public static class FileSystem
 
 	public static string GetRootDirectory()
 		=> Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
-
 
 	public static string GetShortPath(string dir)
 	{
@@ -170,7 +168,6 @@ public static class FileSystem
 		return p;
 	}
 
-
 	public static string GetParent(string fi, int n)
 	{
 		if (n == 0) {
@@ -180,7 +177,7 @@ public static class FileSystem
 		return GetParent(Directory.GetParent(fi)!.FullName, --n);
 	}
 
-	public static string CreateRandomName() => Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+	public static string GetRandomName() => Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
 
 	public static string CreateTempFile(string fname, string[] data)
 	{
@@ -238,7 +235,6 @@ public static class FileSystem
 	public static string ResolveMimeType(string file, string? mimeProposed = null)
 		=> ResolveMimeType(File.ReadAllBytes(file), mimeProposed);
 
-
 	public static string ResolveMimeType(byte[] dataBytes, string? mimeProposed = null)
 	{
 		//https://stackoverflow.com/questions/2826808/how-to-identify-the-extension-type-of-the-file-using-c/2826884#2826884
@@ -247,7 +243,6 @@ public static class FileSystem
 		//https://github.com/GetoXs/MimeDetect/blob/master/src/Winista.MimeDetect/URLMONMimeDetect/urlmonMimeDetect.cs
 
 		Require.ArgumentNotNull(dataBytes, nameof(dataBytes));
-
 
 		string mimeRet = String.Empty;
 
@@ -326,7 +321,6 @@ public static class FileSystem
 			}
 		}
 
-
 		return null;
 	}
 
@@ -369,7 +363,6 @@ public static class FileSystem
 	/// </summary>
 	public const char PATH_DELIM = ';';
 
-
 	public static string[] GetEnvironmentPathDirectories() => GetEnvironmentPathDirectories(Target);
 
 	public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t)
@@ -388,7 +381,6 @@ public static class FileSystem
 	{
 		Environment.SetEnvironmentVariable(PATH_ENV, s, t);
 	}
-
 
 	/// <summary>
 	///     Removes <paramref name="location" /> from <see cref="GetEnvironmentPathDirectories()" />
@@ -424,7 +416,6 @@ public static class FileSystem
 
 	public static string? SymbolPath
 		=> Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
-
 
 	public static bool IsAdministrator()
 	{

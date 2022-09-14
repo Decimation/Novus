@@ -70,7 +70,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 49BCA0.
+        ///   Looks up a localized string similar to 49CCA0.
         /// </summary>
         internal static string Ofs_GCHeap {
             get {
@@ -79,7 +79,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 318660.
+        ///   Looks up a localized string similar to 3186A0.
         /// </summary>
         internal static string Ofs_IsHeapPointer {
             get {
@@ -88,7 +88,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 6.0.8.
+        ///   Looks up a localized string similar to 6.0.9.
         /// </summary>
         internal static string RequiredVersion {
             get {

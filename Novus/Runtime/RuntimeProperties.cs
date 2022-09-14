@@ -23,7 +23,6 @@ using Novus.Utilities;
 // ReSharper disable ClassCannotBeInstantiated
 // ReSharper disable UnusedMember.Global
 
-
 // ReSharper disable ArgumentsStyleLiteral
 
 #pragma warning disable CS0618, CS1574, IDE0059
@@ -190,6 +189,10 @@ public static unsafe class RuntimeProperties
 	/// </summary>
 	public static bool IsNullMemory<T>(T t)
 	{
+		if (t == null) {
+			return true;
+		}
+
 		var ptr = Mem.AddressOfData(ref t);
 		int s   = Mem.SizeOf(t, SizeOfOptions.BaseFields);
 

@@ -104,20 +104,7 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		var f = (delegate* managed<int>) &fn;
-
-		int i = f();
-		Console.WriteLine(i);
-
-		var f2 = (delegate* managed<void>) &err;
-
-		var x = (void**) &f;
-		*x = (void*) &f2;
-
-		Console.WriteLine(f());
-
-		var me = ReflectionOperatorHelpers.methodof(() => err());
-
+		Console.WriteLine("wb");
 	}
 
 	static void err()
@@ -133,6 +120,7 @@ public static unsafe class Program
 	private struct MyStruct
 	{
 		public int   a;
+
 		public float f { get; }
 
 		public override string ToString()

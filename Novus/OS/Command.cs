@@ -67,7 +67,7 @@ public static class Command
 	public static Process Batch(string[] commands)
 	{
 		const string BAT_EXT = ".bat";
-		return Batch(commands, FileSystem.CreateRandomName() + BAT_EXT);
+		return Batch(commands, FileSystem.GetRandomName() + BAT_EXT);
 	}
 
 	public static Process Batch(string[] commands, string fname)

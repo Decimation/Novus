@@ -36,7 +36,6 @@ using Novus.Utilities;
 #pragma warning disable IDE0059
 #pragma warning disable IDE1006
 
-
 namespace Novus.Memory;
 
 /// <summary>
@@ -164,7 +163,6 @@ public static unsafe class Mem
 		return (Action<object, Action<object>>) method.CreateDelegate(typeof(Action<object, Action<object>>));
 	}
 
-
 	/// <summary>
 	///     <paramref name="obj" /> will be *temporarily* pinned while action is being invoked
 	/// </summary>
@@ -259,7 +257,6 @@ public static unsafe class Mem
 
 	#endregion
 
-
 	#region Read/write
 
 	#region Write
@@ -317,7 +314,6 @@ public static unsafe class Mem
 
 		Native.CloseHandle(h);
 	}
-
 
 	/// <summary>
 	///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
@@ -467,7 +463,6 @@ public static unsafe class Mem
 
 		return rg;
 	}*/
-
 
 	/*public static string ToBinaryString(object obj)
 	{
@@ -799,7 +794,11 @@ public static unsafe class Mem
 	{
 		Pointer<T> addr = AddressOf(ref value);
 
-		if (RuntimeProperties.IsStruct(value)) {
+		/*if (RuntimeProperties.IsStruct(value)) {
+			return addr.Cast();
+		}*/
+		
+		if (typeof(T).IsValueType) {
 			return addr.Cast();
 		}
 

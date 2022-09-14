@@ -16,7 +16,6 @@ using Kantan.Utilities;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StaticMemberInGenericType
 
-
 namespace Novus.Memory;
 
 /// <summary>
@@ -72,7 +71,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T Reference => ref AsRef();
 
-
 	/// <summary>
 	///     Dereferences the pointer as the specified type.
 	/// </summary>
@@ -91,7 +89,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		set => m_value = (void*) value;
 	}
 
-
 	/// <summary>
 	///     Whether <see cref="Address" /> is <c>null</c> (<see cref="IntPtr.Zero" />).
 	/// </summary>
@@ -107,7 +104,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public Pointer(IntPtr value) : this(value.ToPointer()) { }
 
 	public Pointer(ref T value) : this(Unsafe.AsPointer(ref value)) { }
-
 
 	#region Conversion
 
@@ -132,7 +128,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 
 	public static implicit operator Pointer<T>(Span<T> s) => s.ToPointer();
-
 
 	/// <summary>
 	///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to
@@ -164,7 +159,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	[Pure]
 	public void* ToPointer() => m_value;
 
-
 	[Pure]
 	public nint ToNativeInt() => (nint) m_value;
 
@@ -179,8 +173,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	[Pure]
 	public uint ToUInt32() => (uint) m_value;
-	
-
 
 	#endregion
 
@@ -200,7 +192,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	{
 		return obj is Pointer<T> pointer && Equals(pointer);
 	}
-
 
 	public override int GetHashCode()
 	{
@@ -241,7 +232,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		long val = ToInt64() + byteCnt;
 		return (void*) val;
 	}
-
 
 	/// <summary>
 	///     Decrement <see cref="Address" /> by the specified number of bytes
@@ -315,7 +305,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	[Pure]
 	public Pointer<T> Increment(int elemCnt = ELEM_CNT) => Offset(elemCnt);
 
-
 	/// <summary>
 	///     Decrement <see cref="Address" /> by the specified number of elements
 	/// </summary>
@@ -348,7 +337,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	public void Write(T value, int elemOffset = OFFSET) => Unsafe.Write(Offset(elemOffset), value);
 
-
 	/// <summary>
 	///     Reads a value of type <typeparamref name="T" /> from <see cref="Address" />.
 	/// </summary>
@@ -356,7 +344,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <returns>The value read from the offset <see cref="Address" />.</returns>
 	[Pure]
 	public T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
-
 
 	/// <summary>
 	///     Reinterprets <see cref="Address" /> as a reference to a value of type <typeparamref name="T" />.
@@ -387,7 +374,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 			this[j] = rg[j];
 		}
 	}
-
 
 	[Pure]
 	public Pointer<byte> ReadPointer(int elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
@@ -449,7 +435,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		return rg;
 	}
 
-
 	/// <summary>
 	///     Copies <paramref name="elemCnt" /> elements into an array of type <typeparamref name="T" />,
 	///     starting from index 0.
@@ -467,7 +452,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	#region Format
 
 	public override string ToString() => ToString(Strings.HexFormatter.FMT_P);
-
 
 	public string ToString(string format) => ToString(format, null);
 

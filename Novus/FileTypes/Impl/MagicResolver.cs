@@ -27,12 +27,7 @@ public sealed class MagicResolver : IFileTypeResolver
 
 	public IntPtr Magic { get; }
 
-	public static readonly MagicResolver Instance;
-
-	static MagicResolver()
-	{
-		Instance = new MagicResolver();
-	}
+	public static readonly IFileTypeResolver Instance = new MagicResolver();
 
 	public MagicResolver(string mgc = null)
 	{

@@ -232,40 +232,6 @@ public static class FileSystem
 
 	#region File types
 
-	public static string ResolveMimeType(string file, string? mimeProposed = null)
-		=> ResolveMimeType(File.ReadAllBytes(file), mimeProposed);
-
-	public static string ResolveMimeType(byte[] dataBytes, string? mimeProposed = null)
-	{
-		//https://stackoverflow.com/questions/2826808/how-to-identify-the-extension-type-of-the-file-using-c/2826884#2826884
-		//https://stackoverflow.com/questions/18358548/urlmon-dll-findmimefromdata-works-perfectly-on-64bit-desktop-console-but-gener
-		//https://stackoverflow.com/questions/11547654/determine-the-file-type-using-c-sharp
-		//https://github.com/GetoXs/MimeDetect/blob/master/src/Winista.MimeDetect/URLMONMimeDetect/urlmonMimeDetect.cs
-
-		Require.ArgumentNotNull(dataBytes, nameof(dataBytes));
-
-		string mimeRet = String.Empty;
-
-		if (!String.IsNullOrEmpty(mimeProposed)) {
-			//suggestPtr = Marshal.StringToCoTaskMemUni(mimeProposed); // for your experiments ;-)
-			mimeRet = mimeProposed;
-		}
-
-		int ret = Native.FindMimeFromData(IntPtr.Zero,
-		                                  null, dataBytes, dataBytes.Length, mimeProposed, 0, out var outPtr, 0);
-
-		if (ret == 0 && outPtr != IntPtr.Zero) {
-
-			string str = Marshal.PtrToStringUni(outPtr)!;
-
-			Marshal.FreeHGlobal(outPtr);
-
-			return str;
-		}
-
-		return mimeRet;
-	}
-
 	#endregion
 
 	public static Task<string> CreateRandomFileAsync(long cb, string? f = null)

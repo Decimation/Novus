@@ -13,7 +13,7 @@ public sealed class UrlmonResolver : IFileTypeResolver
 
 	private UrlmonResolver() { }
 
-	public static readonly UrlmonResolver Instance = new();
+	public static readonly IFileTypeResolver Instance = new UrlmonResolver();
 
 	public void Dispose() { }
 

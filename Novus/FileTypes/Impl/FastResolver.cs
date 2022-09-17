@@ -10,7 +10,7 @@ public sealed class FastResolver : IFileTypeResolver
 
     private FastResolver() { }
 
-    public static readonly FastResolver Instance = new();
+    public static readonly IFileTypeResolver Instance = new FastResolver();
 
     #region Implementation of IFileTypeResolver
 

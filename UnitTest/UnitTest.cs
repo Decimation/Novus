@@ -1,4 +1,17 @@
-﻿using Kantan.Cli;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Kantan.Cli;
+using Novus.FileTypes;
+using Novus.FileTypes.Impl;
 using Novus.Imports;
 using Novus.Memory;
 using Novus.Memory.Allocation;
@@ -11,22 +24,8 @@ using Novus.Runtime.Meta;
 using Novus.Runtime.VM.IL;
 using Novus.Utilities;
 using NUnit.Framework;
-using NUnit.Framework.Internal;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using Novus.FileTypes;
 using UnitTest.TestTypes;
 using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
-using Novus.FileTypes.Impl;
 
 // ReSharper disable StringLiteralTypo
 
@@ -40,39 +39,42 @@ namespace UnitTest;
 [TestFixture]
 public class Tests4
 {
+	static object[] _rg =
+	{
+		// new[] { @"http://www.zerochan.net/2750747", null },
+		new[] { @"https://i.imgur.com/QtCausw.png", FileType.jpg.MediaType },
+		// new[] { @"https://kemono.party/patreon/user/3332300/post/65227512", null },
+		// @"https://i.pximg.net/img-master/img/2022/05/01/19/44/39/98022741_p0_master1200.jpg",
+		new[] { "C:\\Users\\Deci\\Pictures\\Test Images\\Test1.jpg", FileType.jpg.MediaType },
+		new[] { "http://static.zerochan.net/atago.(azur.lane).full.2750747.png", FileType.png.MediaType }
+	};
+
 	[Test]
-	[TestCase("https://i.imgur.com/QtCausw.png", "image/jpeg")]
-	[TestCase("http://static.zerochan.net/atago.(azur.lane).full.2750747.png", "image/png")]
+	[TestCaseSource(nameof(_rg))]
 	public async Task Test1(string s, string type)
 	{
-		var h=new HttpClient();
-
-		var t = await h.GetStreamAsync(s);
-		var tt = await (IFileTypeResolver.Default.ResolveAsync(t));
-		Assert.Contains(new FileType() { MediaType = type }, tt.ToList());
+		var t  = await s.get();
+		var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
+		Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
 
 	[Test]
-	[TestCase("https://i.imgur.com/QtCausw.png", "image/jpeg")]
-	[TestCase("http://static.zerochan.net/atago.(azur.lane).full.2750747.png", "image/png")]
+	[TestCaseSource(nameof(_rg))]
 	public async Task Test2(string s, string type)
 	{
-		var h  =new HttpClient();
-		var t  = h.GetStreamAsync(s);
-		var tt = await (MagicResolver.Instance as IFileTypeResolver).ResolveAsync(await t);
-		Assert.Contains(new FileType() { MediaType = type }, tt.ToList());
+		var t  = await s.get();
+		var tt = await MagicResolver.Instance.ResolveAsync(t.Stream);
+		Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 
 	}
 
 	[Test]
-	[TestCase("https://i.imgur.com/QtCausw.png", "image/jpeg")]
-	[TestCase("http://static.zerochan.net/atago.(azur.lane).full.2750747.png", "image/png")]
+	[TestCaseSource(nameof(_rg))]
 	public async Task Test3(string s, string type)
 	{
-		var h  = new HttpClient();
-		var t  = await h.GetStreamAsync(s);
-		var tt = await (FastResolver.Instance as IFileTypeResolver).ResolveAsync(t);
-		Assert.Contains(new FileType() { MediaType = type }, tt.ToList());
+		var t  = await s.get();
+		var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
+		Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
 }
 
@@ -84,7 +86,7 @@ public class Tests3
 	public async Task Test1(string s)
 	{
 		var stream = File.OpenRead(s);
-		var task = await IFileTypeResolver.Default.ResolveAsync(stream);
+		var task   = await IFileTypeResolver.Default.ResolveAsync(stream);
 		Assert.True(task.Any(x => x.IsType(FileType.MT_IMAGE)));
 	}
 
@@ -117,9 +119,9 @@ public class MimeTypeTests
 	{
 		// var binaryUris = MediaSniffer.Scan(u, new HttpMediaResourceFilter());
 		// Assert.True(binaryUris.Select(x => x.Value.ToString()).ToList().Contains(s));
-		var h      = new HttpClient();
-		var t      = await h.GetStreamAsync(s);
-		var ft     = await IFileTypeResolver.Default.ResolveAsync(t);
+		var h  = new HttpClient();
+		var t  = await h.GetStreamAsync(s);
+		var ft = await IFileTypeResolver.Default.ResolveAsync(t);
 		Assert.True(ft.Any(f => f.IsType(FileType.MT_IMAGE)));
 	}
 }
@@ -158,12 +160,12 @@ public class Tests_Other
 	{
 		var a = Native.SendInput(new[]
 		{
-			new InputRecord()
+			new InputRecord
 			{
 				type = InputType.Keyboard,
-				U = new InputUnion()
+				U = new InputUnion
 				{
-					ki = new KeyboardInput()
+					ki = new KeyboardInput
 					{
 						// dwFlags     = (KeyEventFlags.KeyDown | KeyEventFlags.SCANCODE),
 						// wScan       = ScanCodeShort.KEY_W,
@@ -254,7 +256,7 @@ public unsafe class Tests_Pointer
 		p++;
 		Assert.AreEqual(s[1], p.Value);
 
-		var rg2 = new string[] { "foo", "bar" };
+		var rg2 = new[] { "foo", "bar" };
 		var rg  = new[] { 1, 2, 3, 4 };
 
 		var p2       = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
@@ -318,7 +320,7 @@ public unsafe class Tests_Pointer
 	}
 
 	[Test]
-	[TestCase(new int[] { 1, 2, 3 })]
+	[TestCase(new[] { 1, 2, 3 })]
 	public void Test6(int[] r)
 	{
 		Span<int> s = stackalloc int[r.Length];
@@ -351,7 +353,7 @@ public unsafe class Tests_Pointer
 		Assert.AreEqual(ptr1.Value, i);
 		Assert.AreEqual(ptr1.Reference, i);
 
-		var          rg   = new int[] { 1, 2, 3 };
+		var          rg   = new[] { 1, 2, 3 };
 		Pointer<int> ptr2 = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
 
 		fixed (int* p1 = rg) {
@@ -493,8 +495,8 @@ public class Tests_ReflectionHelper
 	[Test]
 	public void Test7()
 	{
-		var a = new TestTypes.Clazz() { };
-		var b = new TestTypes.Struct() {  };
+		var a = new Clazz();
+		var b = new Struct();
 		var f = ReflectionHelper.GetNilFields(a);
 		Assert.AreEqual(3, f.Length);
 		Assert.AreEqual(1, ReflectionHelper.GetNilFields(b).Length);
@@ -538,7 +540,7 @@ public class Tests_Metadata
 	[Test]
 	public void FieldTest3()
 	{
-		var p2 = Mem.AddressOfField<int>(typeof(Clazz), nameof(Clazz.sprop), null);
+		var p2 = Mem.AddressOfField<int>(typeof(Clazz), nameof(Clazz.sprop));
 
 		Assert.True(!p2.IsNull);
 
@@ -615,8 +617,7 @@ public class Tests_Metadata
 		Assert.AreEqual(mt.Token, t.MetadataToken);
 		Assert.AreEqual(mt.Attributes, t.Attributes);
 
-		var b1 = ReflectionHelper.CallGeneric(
-			typeof(RuntimeHelpers).GetMethod("IsReferenceOrContainsReferences"), t, null);
+		var b1 = typeof(RuntimeHelpers).GetMethod("IsReferenceOrContainsReferences").CallGeneric(t, null);
 
 		Assert.AreEqual(mt.IsReferenceOrContainsReferences, b1);
 	}
@@ -663,7 +664,7 @@ public class Tests_Metadata
 	}
 
 	[Test]
-	public unsafe void StaticTest()
+	public void StaticTest()
 	{
 		c.i = 1;
 		var p = (Pointer<int>) typeof(c).GetAnyField(nameof(c.i)).AsMetaField().StaticAddress;
@@ -679,7 +680,7 @@ public class Tests_Metadata
 	[TestCase(nameof(SayHi2), true)]
 	[TestCase(nameof(SayHi), false)]
 	[TestCase(nameof(Tiny), null)]
-	public unsafe void ILTest(string name, bool? init)
+	public void ILTest(string name, bool? init)
 	{
 		var m = typeof(Tests_Metadata).GetAnyMethod(name);
 
@@ -722,8 +723,8 @@ public class Tests_Runtime
 		Assert.True(RuntimeProperties.IsPinnable("g"));
 		Assert.False(RuntimeProperties.IsBlittable("g"));
 
-		Assert.True(RuntimeProperties.IsPinnable(new int[] { 1, 2, 3 }));
-		Assert.False(RuntimeProperties.IsBlittable(new int[] { 1, 2, 3 }));
+		Assert.True(RuntimeProperties.IsPinnable(new[] { 1, 2, 3 }));
+		Assert.False(RuntimeProperties.IsBlittable(new[] { 1, 2, 3 }));
 	}
 
 	[Test]
@@ -769,7 +770,7 @@ public class Tests_Runtime
 
 	[Test]
 	[TestCase(default(int), true)]
-	[TestCase((string) null, true)]
+	[TestCase(null, true)]
 	[TestCase(1, false)]
 	public void NullMemTest(object o, bool b)
 	{
@@ -779,14 +780,14 @@ public class Tests_Runtime
 	[Test]
 	public void NullMemTest2()
 	{
-		Assert.True(RuntimeProperties.IsNullMemory(new Struct() { }));
-		Assert.True(RuntimeProperties.IsNullMemory(new Clazz() { a=0, prop =0, s= null}));
-		Assert.False(RuntimeProperties.IsNullMemory(new Clazz() { a=1, prop =3, s= "butt"}));
+		Assert.True(RuntimeProperties.IsNullMemory(new Struct()));
+		Assert.True(RuntimeProperties.IsNullMemory(new Clazz { a  = 0, prop = 0, s = null }));
+		Assert.False(RuntimeProperties.IsNullMemory(new Clazz { a = 1, prop = 3, s = "butt" }));
 	}
 
 	[Test]
 	[TestCase("foo")]
-	[TestCase(new int[] { 1, 2, 3 })]
+	[TestCase(new[] { 1, 2, 3 })]
 	public void PinTest(object s)
 	{
 
@@ -800,7 +801,7 @@ public class Tests_Runtime
 		Mem.Unpin(s);
 		// Assert.True(AddPressure(p, s));
 
-		Mem.InvokeWhilePinned(s, (o) =>
+		Mem.InvokeWhilePinned(s, o =>
 		{
 			Assert.False(AddPressure(p, o));
 		});
@@ -901,7 +902,7 @@ public class Tests_Mem
 	public void CopyTest()
 	{
 		const string foo = "foo";
-		var          a   = new MyClass() { s = foo, a = 321 };
+		var          a   = new MyClass { s = foo, a = 321 };
 		var          a2  = Mem.CopyInstance(a);
 
 		Assert.AreEqual(a2, a);
@@ -1024,7 +1025,7 @@ public class Tests_Mem
 
 	[Test]
 	[TestCase("foo")]
-	[TestCase(new int[] { 1, 2, 3, 4, 5 })]
+	[TestCase(new[] { 1, 2, 3, 4, 5 })]
 	public void SizeTest2(object value)
 	{
 		Assert.AreEqual(RuntimeProperties.GetRawObjDataSize(value), Mem.SizeOf(value, SizeOfOptions.Data));
@@ -1129,7 +1130,7 @@ public class Tests_Mem
 	[Test]
 	public void FieldTest()
 	{
-		var a = new Clazz() { s = "a" };
+		var a = new Clazz { s = "a" };
 
 		var pointer = Mem.AddressOfField<Object, string>(a, "s");
 
@@ -1159,5 +1160,5 @@ public class Tests_Mem
 
 static class c
 {
-	public static int i = 0;
+	public static int i;
 }

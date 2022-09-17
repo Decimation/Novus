@@ -28,6 +28,7 @@ using Novus.OS;
 using Novus.Properties;
 using Novus.Runtime;
 using Novus.Utilities;
+using System.Xml.Linq;
 
 // ReSharper disable LocalizableElement
 
@@ -134,10 +135,20 @@ public static class Global
 
 	public static bool IsSetup { get; private set; }
 
-	public static string ProgramData { get; } =
-		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);
+	static Global()
+	{
+		if (!Directory.Exists(DataFolder)) {
+			Directory.CreateDirectory(DataFolder);
+		}
+	}
 
-	public static Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
+	/*public static string ProgramData { get; } =
+		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);*/
+
+	public static readonly string DataFolder =
+		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
+
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
 
 	/// <summary>
 	///     Module initializer

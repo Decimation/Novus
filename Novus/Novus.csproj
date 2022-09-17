@@ -17,7 +17,7 @@
     <RepositoryUrl>https://github.com/Decimation/Novus</RepositoryUrl>
     <PackageTags>clr low-level memory hack library</PackageTags>
     <PackageIcon>icon64.png</PackageIcon>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 

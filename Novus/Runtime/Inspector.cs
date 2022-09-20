@@ -11,14 +11,12 @@ using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Kantan.Model;
 using Kantan.Utilities;
-using Novus.OS.Win32;
 
 // ReSharper disable ConvertIfStatementToConditionalTernaryExpression
 
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable CognitiveComplexity
-
 
 namespace Novus.Runtime;
 
@@ -42,7 +40,6 @@ public static class Inspector
 		Name    = 1 << 3,
 		Address = 1 << 4,
 		Value   = 1 << 5,
-
 
 		All = Offset | Size | Type | Name | Address | Value
 	}
@@ -91,7 +88,6 @@ public static class Inspector
 				propTable.AddRow("Nil", RuntimeProperties.IsDefault(value));
 				propTable.AddRow("Uninitialized", RuntimeProperties.IsNullMemory(value));
 
-
 				propTable.AddRow("In GC heap", GCHeap.IsHeapPointer(Mem.AddressOfData(ref value)));
 
 				return propTable.ToMinimalString();
@@ -101,7 +97,6 @@ public static class Inspector
 				var options1 = Enum.GetValues<SizeOfOptions>().ToList();
 
 				options1.Remove(SizeOfOptions.Heap);
-
 
 				foreach (var option in options1) {
 					var sizeOf = Mem.SizeOf(value, option);
@@ -132,7 +127,6 @@ public static class Inspector
 
 				layoutTable1.AddColumn(flags.Select(Enum.GetName));
 
-
 				// Rewrite options
 
 				options2 = default;
@@ -147,11 +141,9 @@ public static class Inspector
 				int s = Mem.SizeOf(value, SizeOfOptions.Auto);
 				var p = Mem.AddressOf(ref value);
 
-
 				foreach (var metaField in fields) {
 
 					var rowValues = new List<object>();
-
 
 					if (options2.HasFlag(InspectorOptions.Offset)) {
 						rowValues.Add($"{metaField.Offset:X}");
@@ -191,7 +183,6 @@ public static class Inspector
 					layoutTable1.AddRow(rowValues.ToArray());
 				}
 
-
 				if (value is string str) {
 					for (int i = 1; i < str.Length; i++) {
 						char c          = str[i];
@@ -222,7 +213,6 @@ public static class Inspector
 
 							}
 
-
 						}
 
 						if (options2.HasFlag(InspectorOptions.Value)) {
@@ -232,7 +222,6 @@ public static class Inspector
 						layoutTable1.AddRow(rowValues.ToArray());
 					}
 				}
-
 
 				return layoutTable1.ToString();
 			default:

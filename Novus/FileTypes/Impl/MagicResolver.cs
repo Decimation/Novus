@@ -1,10 +1,8 @@
 ﻿#region
 
 global using ER = Novus.Properties.EmbeddedResources;
-
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-
 using Kantan.Utilities;
 using Novus.Properties;
 
@@ -51,8 +49,6 @@ public sealed class MagicResolver : IFileTypeResolver
 		return mgc;
 	}
 
-	#region Implementation of IFileTypeResolver
-
 	public IEnumerable<FileType> Resolve(byte[] rg)
 	{
 		// var buf1 = stream.ReadHeaderAsync(FileType.RSRC_HEADER_LEN);
@@ -63,8 +59,6 @@ public sealed class MagicResolver : IFileTypeResolver
 		var s  = Marshal.PtrToStringAnsi(sz);
 		return new[] { new FileType() { MediaType = s } };
 	}
-
-	#endregion
 
 	public IEnumerable<FileType> Resolve(Stream stream)
 	{

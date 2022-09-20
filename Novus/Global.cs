@@ -3,7 +3,7 @@
 #pragma warning disable IDE0060, IDE0079, IDE0005
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using NN = JetBrains.Annotations.NotNullAttribute;
-global using Native = Novus.OS.Win32.Native;
+global using Native = Novus.Win32.Native;
 global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 global using U = System.Runtime.CompilerServices.Unsafe;
 global using M = Novus.Memory.Mem;

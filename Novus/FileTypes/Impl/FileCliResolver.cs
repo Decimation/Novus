@@ -25,7 +25,6 @@ public sealed class FileCliResolver : IFileTypeResolver
 
 		try
 		{
-
 			var hdr = new byte[0xFF];
 			var i2 = await m.ReadAsync(hdr, 0, hdr.Length);
 

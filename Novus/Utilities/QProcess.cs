@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
-using Novus.OS.Win32.Structures.Kernel32;
 
 namespace Novus.Utilities;
 
@@ -25,7 +24,6 @@ public class QProcess : IDisposable
 	private readonly ManualResetEvent m_outputResetEvent = new(false);
 
 	private readonly ManualResetEvent m_errResetEvent = new(false);
-
 
 	public QProcess(string fileName, DataReceivedEventHandler errorData = null,
 	                DataReceivedEventHandler outputData = null, params string[] args)

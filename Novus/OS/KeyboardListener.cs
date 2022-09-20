@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Kantan.Cli;
-using Novus.OS.Win32;
 
 // ReSharper disable UnusedMember.Global
 
@@ -122,7 +121,6 @@ public sealed class KeyboardListener : IDisposable
 			KeyDown?.Invoke(null, args);
 		}
 
-
 		m_keyHistory[args.Key] = args;
 	}
 
@@ -179,7 +177,6 @@ public sealed class KeyboardListener : IDisposable
 	public event EventHandler<KeyEventArgs> KeyStroke;
 
 	#endregion
-
 
 	#region Flags
 

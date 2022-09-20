@@ -2,7 +2,6 @@
 using System;
 using System.Reflection;
 using Novus.Memory;
-using Novus.OS.Win32;
 
 // ReSharper disable UnusedMember.Global
 
@@ -34,7 +33,6 @@ public abstract unsafe class BaseClrStructure<TClr> where TClr : unmanaged
 	}
 
 	protected BaseClrStructure(MemberInfo member) : this(RuntimeProperties.ResolveHandle(member)) { }
-
 
 	public override string ToString()
 	{

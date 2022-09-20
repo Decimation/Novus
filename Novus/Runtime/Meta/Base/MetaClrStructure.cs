@@ -2,7 +2,6 @@
 using System;
 using System.Reflection;
 using Novus.Memory;
-using Novus.OS.Win32;
 
 // ReSharper disable UnusedMemberInSuper.Global
 
@@ -26,7 +25,6 @@ public abstract unsafe class MetaClrStructure<TClr> : BaseClrStructure<TClr>
 	internal MetaClrStructure(Pointer<TClr> ptr) : base(ptr) { }
 
 	protected MetaClrStructure(MemberInfo member) : base(member) { }
-
 
 	public override string ToString()
 	{

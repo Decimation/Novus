@@ -3,8 +3,8 @@ global using Pointer = Novus.Memory.Pointer<byte>;
 
 using System.Buffers;
 using System.Runtime.InteropServices;
-using Novus.OS.Win32.Structures;
-using Novus.OS.Win32.Structures.Kernel32;
+using Novus.Win32.Structures;
+using Novus.Win32.Structures.Kernel32;
 #nullable enable
 using System;
 using System.Globalization;

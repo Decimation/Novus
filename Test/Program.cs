@@ -2,7 +2,7 @@
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable RedundantUnsafeContext
 
-global using Native = Novus.OS.Win32.Native;
+global using Native = Novus.Win32.Native;
 using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -18,11 +18,9 @@ using Kantan.Text;
 using Novus;
 using Novus.Memory;
 using Novus.OS;
-using Novus.OS.Win32;
-using Novus.OS.Win32.Structures.Kernel32;
-using Novus.OS.Win32.Structures.Ntdll;
 using Novus.Utilities;
-using static Novus.OS.Win32.Native;
+using Novus.Win32.Structures.Kernel32;
+using static Novus.Win32.Native;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
 using System.Collections.Generic;
@@ -105,6 +103,7 @@ public static unsafe class Program
 	private static void Main(string[] args)
 	{
 		Console.WriteLine("wb");
+		
 	}
 
 	static void err()

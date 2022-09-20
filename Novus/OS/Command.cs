@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Kantan.Text;
-using Novus.OS.Win32;
 using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global

@@ -9,12 +9,11 @@ using System.Runtime.InteropServices;
 using System.Web;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
-using Novus.OS.Win32;
-using Novus.OS.Win32.Structures;
-using Novus.OS.Win32.Structures.DbgHelp;
-using Novus.OS.Win32.Wrappers;
+using Novus.Win32.Structures;
 using Novus.Properties;
 using Novus.Utilities;
+using Novus.Win32.Structures.DbgHelp;
+using Novus.Win32.Wrappers;
 
 // ReSharper disable UnusedParameter.Local
 

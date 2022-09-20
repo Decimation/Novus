@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
-using Novus.OS.Win32;
 
 // ReSharper disable UnusedMember.Global
 
@@ -17,7 +16,6 @@ public sealed class UnmanagedAllocator : IAllocator
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Ucrtbase/Interop.MemAlloc.cs
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.cs
 	 */
-
 
 	public nint GetSize(Pointer ptr) => (nint) Native.LocalSize(ptr.Address);
 

@@ -9,18 +9,17 @@ using Novus;
 using Novus.Memory;
 using Novus.Memory.Allocation;
 using Novus.OS;
-using Novus.OS.Win32;
-using Novus.OS.Win32.Structures;
-using Novus.OS.Win32.Structures.Kernel32;
-using Novus.OS.Win32.Wrappers;
+using Novus.Win32.Structures;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
+using Novus.Win32;
+using Novus.Win32.Structures.Kernel32;
+using Novus.Win32.Wrappers;
 
 // ReSharper disable InconsistentNaming
 
 #pragma warning disable
 namespace TestBenchmark;
-
 
 public class MyStruct
 {
@@ -58,7 +57,6 @@ public class Benchmarks17
 	private UArray<int> u1;
 
 	private int[] u2;
-
 
 	[GlobalSetup]
 	public void GlobalSetup()
@@ -117,7 +115,6 @@ public unsafe class Benchmarks15
 		src1  = NativeMemory.AllocZeroed((nuint) len);
 		dest1 = new int[len];
 	}
-
 
 	[Benchmark]
 	public void Copy3()
@@ -209,7 +206,6 @@ public class Benchmarks9
 	{
 		h = Process.GetCurrentProcess().Handle;
 	}
-
 
 	[Benchmark]
 	public LinkedList<MemoryBasicInformation> Test2()
@@ -387,14 +383,12 @@ public unsafe class Benchmarks4
 	{
 		return _x(1, 1);
 
-
 	}
 
 	[Benchmark]
 	public int Bench2()
 	{
 		return add(1, 1);
-
 
 	}
 }
@@ -430,7 +424,6 @@ public unsafe class Benchmarks2
 	{
 		return *p2;
 	}
-
 
 	[Benchmark]
 	public int Bench1()

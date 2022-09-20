@@ -10,6 +10,22 @@ namespace Novus.Utilities;
 
 public static class StreamExtensions
 {
+	public static MemoryStream Copy(this Stream inputStream, int bufferSize = 256)
+	{
+		var ret = new MemoryStream();
+
+		var buf = new byte[bufferSize];
+
+		int cb = 0;
+
+		while ((cb = inputStream.Read(buf, 0, bufferSize)) > 0)
+			ret.Write(buf, 0, cb);
+
+		ret.Position = 0;
+
+		return ret;
+	}
+
 	public static void ReadFully(this Stream stream, byte[] buffer)
 	{
 		int offset = 0;
@@ -20,22 +36,22 @@ public static class StreamExtensions
 			//readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
 			//                           SocketFlags.None);
 
-			readBytes =  stream.Read(buffer, offset, buffer.Length - offset);
-			
-			offset    += readBytes;
+			readBytes = stream.Read(buffer, offset, buffer.Length - offset);
+
+			offset += readBytes;
 		} while (readBytes > 0 && offset < buffer.Length);
 
 		if (offset < buffer.Length) {
 			throw new EndOfStreamException();
 		}
 	}
+
 	public static async Task ReadFullyAsync(this Stream stream, byte[] buffer)
 	{
 		int offset = 0;
 		int readBytes;
 
-		do
-		{
+		do {
 			// If you are using Socket directly instead of a Stream:
 			//readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
 			//                           SocketFlags.None);
@@ -45,11 +61,11 @@ public static class StreamExtensions
 			offset += readBytes;
 		} while (readBytes > 0 && offset < buffer.Length);
 
-		if (offset < buffer.Length)
-		{
+		if (offset < buffer.Length) {
 			throw new EndOfStreamException();
 		}
 	}
+
 	public static T ReadAny<T>(this Stream br)
 	{
 		var s   = Mem.SizeOf<T>();

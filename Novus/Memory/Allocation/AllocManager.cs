@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
-using Novus.OS.Win32;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 
@@ -14,9 +13,6 @@ using Novus.Utilities;
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Memory.Allocation;
-
-
-
 
 /// <summary>
 /// Wraps an <see cref="IAllocator"/>
@@ -84,7 +80,6 @@ public static class AllocManager
 		Allocated.Remove(ptr);
 	}
 
-
 	public static void Free(Pointer<byte> ptr)
 	{
 		if (!IsAllocated(ptr)) {
@@ -139,12 +134,10 @@ public static class AllocManager
 
 		alloc2.WritePointer(alloc);
 
-
 		var val = alloc2.Value;
 
 		//RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
 		ReflectionHelper.CallConstructor(val, args);
-
 
 		/*var def = Activator.CreateInstance<T>();
 

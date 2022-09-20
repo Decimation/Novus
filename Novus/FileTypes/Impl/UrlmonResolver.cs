@@ -8,7 +8,7 @@ public sealed class UrlmonResolver : IFileTypeResolver
 	public IEnumerable<FileType> Resolve(byte[] buf)
 	{
 		var data = ResolveFromData(buf);
-		return new []{new FileType() { MediaType = data}};
+		return new[] { new FileType() { MediaType = data } };
 	}
 
 	private UrlmonResolver() { }

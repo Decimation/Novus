@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using Novus.OS.Win32;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.EE;
+using Novus.Win32;
 
 namespace Novus.Memory;
 
@@ -23,7 +23,7 @@ public enum SizeOfOptions
 	///     <para> Equals <see cref="Marshal.SizeOf(System.Type)" /></para>
 	///     <para> Equals <see cref="StructLayoutAttribute.Size" /> when type isn't zero-sized.</para>
 	/// </remarks>
-	/// <returns>The native size if the type has a native representation; <see cref="OS.Win32.Native.INVALID" /> otherwise</returns>
+	/// <returns>The native size if the type has a native representation; <see cref="Win32.Native.INVALID" /> otherwise</returns>
 	Native,
 
 	/// <summary>
@@ -34,11 +34,10 @@ public enum SizeOfOptions
 	///     <para>Returned from <see cref="EEClassLayoutInfo.ManagedSize" /></para>
 	/// </remarks>
 	/// <returns>
-	///     Managed size if the type has an <see cref="EEClassLayoutInfo" />; <see cref="OS.Win32.Native.INVALID" />
+	///     Managed size if the type has an <see cref="EEClassLayoutInfo" />; <see cref="Win32.Native.INVALID" />
 	///     otherwise
 	/// </returns>
 	Managed,
-
 
 	/// <summary>
 	///     <para>Returns the normal size of a type in memory.</para>
@@ -119,8 +118,6 @@ public enum SizeOfOptions
 	/// </remarks>
 	/// <returns>The size of the type in heap memory, in bytes</returns>
 	Heap,
-
-		
 
 	/// <summary>
 	/// Requires a value.

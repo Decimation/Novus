@@ -16,16 +16,16 @@ using Novus.Imports;
 using Novus.Memory;
 using Novus.Memory.Allocation;
 using Novus.OS;
-using Novus.OS.Win32;
-using Novus.OS.Win32.Structures.Kernel32;
-using Novus.OS.Win32.Structures.User32;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM.IL;
 using Novus.Utilities;
+using Novus.Win32;
+using Novus.Win32.Structures.Kernel32;
+using Novus.Win32.Structures.User32;
 using NUnit.Framework;
 using UnitTest.TestTypes;
-using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
+using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
 // ReSharper disable StringLiteralTypo
 
@@ -37,7 +37,7 @@ using InputRecord = Novus.OS.Win32.Structures.User32.InputRecord;
 namespace UnitTest;
 
 [TestFixture]
-public class Tests4
+public class Tests_FileTypes
 {
 	static object[] _rg =
 	{
@@ -51,20 +51,35 @@ public class Tests4
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]
+	public async Task Test4(string s, string type)
+	{
+		var t  = await QFileHandle.GetHandleAsync(s, IFileTypeResolver.Default);
+		var tt = t.FileTypes;
+		// var tt = await IFileTypeResolver.Default.ResolveAsync(t.Stream);
+		Assert.True(tt.Any(x => x.MediaType == type));
+		// Assert.Contains(new FileType { MediaType = type }, types.ToArray());
+	}
+
+	[Test]
+	[TestCaseSource(nameof(_rg))]
 	public async Task Test1(string s, string type)
 	{
-		var t  = await s.get();
-		var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
-		Assert.Contains(new FileType { MediaType = type }, tt.ToList());
+		var t = await QFileHandle.GetHandleAsync(s, UrlmonResolver.Instance);
+		// var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
+		var tt = t.FileTypes;
+		Assert.True(tt.Any(x => x.MediaType == type));
+
 	}
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test2(string s, string type)
 	{
-		var t  = await s.get();
-		var tt = await MagicResolver.Instance.ResolveAsync(t.Stream);
-		Assert.Contains(new FileType { MediaType = type }, tt.ToList());
+		var t = await QFileHandle.GetHandleAsync(s, FastResolver.Instance);
+		// var tt = await MagicResolver.Instance.ResolveAsync(t.Stream);
+		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
+		var tt = t.FileTypes;
+		Assert.True(tt.Any(x => x.MediaType == type));
 
 	}
 
@@ -72,14 +87,17 @@ public class Tests4
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test3(string s, string type)
 	{
-		var t  = await s.get();
-		var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
-		Assert.Contains(new FileType { MediaType = type }, tt.ToList());
+		var t = await QFileHandle.GetHandleAsync(s, MagicResolver.Instance);
+		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
+		var tt = t.FileTypes;
+		Assert.True(tt.Any(x => x.MediaType == type));
+
+		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
 }
 
 [TestFixture]
-public class Tests3
+public class Tests_FileResolvers
 {
 	[Test]
 	[TestCase(@"C:\Users\Deci\Pictures\NSFW\17EA29A6-8966-4801-A508-AC89FABE714D.png")]
@@ -105,7 +123,7 @@ public class Tests3
 }
 
 [TestFixture]
-public class MimeTypeTests
+public class Tests_MediaTypes
 {
 	[Test]
 	[TestCase("http://s1.zerochan.net/atago.(azur.lane).600.2750747.jpg")]

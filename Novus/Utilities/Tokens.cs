@@ -1,6 +1,5 @@
 ﻿using System;
 using Novus.Memory;
-using Novus.OS.Win32;
 
 // ReSharper disable IdentifierTypo
 
@@ -42,7 +41,6 @@ public static class Tokens
 		PT_PRIMITIVE | 0x3000, // ELEMENT_TYPE_R4   (W = R4, R8)
 		PT_PRIMITIVE | 0x2000, // ELEMENT_TYPE_R8   (W = R8) 
 	};
-
 
 	public static bool IsPrimitiveType(CorElementType type)
 	{
@@ -154,7 +152,6 @@ public static class Tokens
 			case CorElementType.End:
 				return IntPtr.Size;
 
-
 			case CorElementType.ValueType:
 			case CorElementType.Var:
 			case CorElementType.GenericInst:
@@ -179,7 +176,6 @@ public static class Tokens
 		throw new InvalidOperationException();
 	}
 }
-
 
 //	[Flags]
 public enum CorInterfaceType
@@ -209,7 +205,6 @@ public enum CorInterfaceType
 	/// </summary>
 	Last = 4
 }
-
 
 public enum CorElementType : byte
 {
@@ -314,7 +309,6 @@ public enum CorElementType : byte
 
 	Unknown =0
 }
-
 
 public enum CorTokenType : uint
 {
@@ -551,7 +545,6 @@ public enum CorInfoHelpFunc
 
 	CORINFO_HELP_ASSIGN_BYREF,
 	CORINFO_HELP_ASSIGN_STRUCT,
-
 
 	/* Accessing fields */
 
@@ -851,7 +844,6 @@ public enum CorJitFlag : UInt32
 		CORJIT_FLAG_UNUSED31 = 62,
 		CORJIT_FLAG_UNUSED32 = 63
 
-
 #else // !defined(_TARGET_ARM64_) &&!defined(_TARGET_X86_) && !defined(_TARGET_AMD64_)
 
 	CORJIT_FLAG_UNUSED12 = 43,
@@ -1054,7 +1046,6 @@ public enum CorCallingConvention
 	///     First invalid calling convention
 	/// </summary>
 	Max = 0xc,
-
 
 	// The high bits of the calling convention convey additional info
 

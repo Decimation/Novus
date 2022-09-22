@@ -49,6 +49,8 @@ public class QFileHandle : IDisposable
 
 		resolver ??= IFileTypeResolver.Default;
 
+		//TODO
+
 		var types = await resolver.ResolveAsync(copy);
 
 		if (stream.CanSeek) {

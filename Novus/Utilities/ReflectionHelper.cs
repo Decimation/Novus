@@ -71,45 +71,17 @@ public static class ReflectionHelper
 	/// <remarks>Returns the backing field if <paramref name="fname"/> is a property; otherwise returns the normal field</remarks>
 	public static FI GetAnyResolvedField(this Type t, string fname)
 	{
-		var member = t.GetAnyMember(fname).First();
+		var member = t.GetAnyMember(fname).FirstOrDefault();
 
-		var field = member.MemberType == MemberTypes.Property
-			            ? t.GetBackingField(fname)
-			            : member as FI;
+		if (member is {MemberType: MemberTypes.Property}) {
+			return t.GetBackingField();
+		}
+		else {
+			return member as FI;
+		}
 
-		return field;
+		return null;
 	}
-
-	#region
-
-	//todo
-	[AttributeUsage(
-		AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Class | AttributeTargets.Property)]
-	[MeansImplicitUse]
-	public class FieldIdAttribute : Attribute { }
-
-	public static FieldInfo[] GetFieldsById(Type t, Assembly[] asmName)
-	{
-		var f = t.GetRuntimeFields().Where(f =>
-		{
-			var asm  = f.FieldType.Assembly;
-			var name = asm.GetName().Name;
-
-			var contains = name != null && asmName.Any(a => a.GetName().Name.Contains(name));
-
-			var b = f.GetCustomAttribute<FieldIdAttribute>() is { } fa;
-
-			if (!contains) {
-				return false;
-			}
-
-			return contains && !b;
-		});
-
-		return f.ToArray();
-	}
-
-	#endregion
 
 	public static FI GetResolvedField(this MMI member)
 	{
@@ -434,6 +406,39 @@ public static class ReflectionHelper
 
 	#endregion
 
+	#region Field ID
+
+	//todo
+	[AttributeUsage(
+		AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Class | AttributeTargets.Property)]
+	[MeansImplicitUse]
+	public class FieldIdAttribute : Attribute { }
+
+	public static FieldInfo[] GetFieldsById(Type t, Assembly[] asmName)
+	{
+		//TODO
+
+		var f = t.GetRuntimeFields().Where(f =>
+		{
+			var asm  = f.FieldType.Assembly;
+			var name = asm.GetName().Name;
+
+			var contains = name != null && asmName.Any(a => a.GetName().Name.Contains(name));
+
+			var b = f.GetCustomAttribute<FieldIdAttribute>() is { } fa;
+
+			if (!contains) {
+				return false;
+			}
+
+			return contains && !b;
+		});
+
+		return f.ToArray();
+	}
+
+	#endregion
+
 	public static T Clone<T>(this T t) where T : class
 	{
 		var type = t.GetType();
@@ -470,47 +475,36 @@ public static class ReflectionHelper
 		return current;
 	}
 
-	public static void Assign<T, T2>(this Type t, string name, T val, T2 inst = default)
+	public static void Assign<T, T2>(Type t, string name, T val, T2 inst = default)
 	{
 		var m = t.GetAnyResolvedField(name);
 		m.SetValue(inst, val);
 	}
 
-	public static void Assign<T>(this Type t, string name, T val, object inst = null)
+	public static void Assign<T>(Type t, string name, T val, object inst = null)
 	{
-		t.Assign<T, object>(name, val, inst);
+		Assign<T, object>(t, name, val, inst);
 	}
 
-	public static (FI Field, bool Nil)[] GetNilFields(object t, Func<Type, object, Boolean> c = null,
-	                                                  BindingFlags f = ALL_INSTANCE_FLAGS)
+	public delegate bool IsNullObject(Type t, object o);
+
+	public static (FieldInfo Field, bool IsNull)[] GetNullMembers(this object value, IsNullObject fn = null,
+	                                                              BindingFlags flags = ALL_INSTANCE_FLAGS)
 	{
-		var fields = t.GetType().GetFields(f);
+		var fields = value.GetType().GetFields(flags);
 
-		c ??= (type, o) =>
-		{
-			bool b = o == null;
+		fn ??= (_, o) => RuntimeProperties.IsNull(o);
 
-			if (type == typeof(string)) {
-				b = string.IsNullOrWhiteSpace((string) o);
-			}
-
-			else {
-				// return RuntimeProperties.IsNullMemory(o);
-
-			}
-
-			return b;
-		};
-
-		var rg = new List<(FI Field, bool Nil)>();
+		var rg = new List<(FI Field, bool IsNull)>();
 
 		foreach (var info in fields) {
 
-			(FI Field, bool Nil) x = new();
+			(FI Field, bool IsNull) x = new();
 
-			var v = info.GetValue(t);
+			var v = info.GetValue(value);
 
-			x.Nil = c(info.FieldType, v);
+			x.IsNull = fn(info.FieldType, v);
+			x.Field  = info;
 
 			rg.Add(x);
 		}
@@ -542,6 +536,19 @@ public static class ReflectionOperatorHelpers
 	{
 		var body = (ConstantExpression) expression.Body;
 		return body;
+	}
+
+	public static MemberInfo memberof2<T>(Expression<Func<T>> expression)
+	{
+		var mi = memberof(expression);
+
+		return mi switch
+		{
+			FieldInfo f    => f,
+			PropertyInfo p => p,
+
+			_ => mi
+		};
 	}
 
 	public static FI fieldof<T>(Expression<Func<T>> expression) => (FI) memberof(expression);

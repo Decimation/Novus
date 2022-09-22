@@ -16,7 +16,6 @@ using Kantan.Numeric;
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
 
-
 #nullable enable
 namespace Novus.Runtime.Meta;
 
@@ -60,13 +59,11 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	/// </summary>
 	public int BaseSizePadding => EEClass.Reference.BaseSizePadding;
 
-
 	public bool FieldsArePacked => EEClass.Reference.FieldsArePacked;
 
 	public int FieldsCount => EEClass.Reference.FieldListLength;
 
 	public int FixedEEClassFields => EEClass.Reference.FixedEEClassFields;
-
 
 	public int InstanceFieldsCount => EEClass.Reference.NumInstanceFields;
 
@@ -88,14 +85,11 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public CorElementType NormType => EEClass.Reference.NormType;
 
-
 	public IEnumerable<MetaField> Fields => RuntimeType.GetRuntimeFields()
 	                                                   .Select(f => new MetaField(f));
 
-
 	public IEnumerable<MetaMethod> Methods => RuntimeType.GetRuntimeMethods()
 	                                                     .Select(m => new MetaMethod(m));
-
 
 	public MetaField GetField(string name)
 	{
@@ -120,7 +114,6 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	public bool IsMarshalable => NativeLayoutInfo.Reference.IsMarshalable;
 
 	public int NativeFieldsCount => (int) NativeLayoutInfo.Reference.NumFields;
-
 
 	private Pointer<EEClassLayoutInfo> LayoutInfo
 	{
@@ -179,8 +172,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	/// </summary>
 	public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
-	public CorElementType CorElementType => RuntimeProperties.GetCorElementType(RuntimeType);
-
+	public CorElementType CorElementType => RuntimeType.GetCorElementType();
 
 	// returns random combination of flags if this doesn't have a component size
 	private ushort RawGetComponentSize()
@@ -204,7 +196,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 					       && infos[1].ParameterType == typeof(SizeOfOptions);
 				});
 
-				return (int)ReflectionHelper.CallGeneric(m, RuntimeType, null, null, SizeOfOptions.Intrinsic);
+				return (int)m.CallGeneric(RuntimeType, null, null, SizeOfOptions.Intrinsic);
 			}
 
 			// Subtract the size of the ObjHeader and MethodTable*
@@ -251,7 +243,6 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public int BaseSize => Value.Reference.BaseSize;
 
-
 	public int ComponentSize => Value.Reference.ComponentSize;
 
 	private Pointer<EEClass> EEClass => Value.Reference.EEClass;
@@ -260,25 +251,21 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public GenericsFlags GenericFlags => Value.Reference.GenericsFlags;
 
-
 	public int InterfacesCount => Value.Reference.NumInterfaces;
 
 	public Pointer<byte> Module => Value.Reference.Module;
 
 	public MetaType ParentType => (Pointer<MethodTable>) Value.Reference.Parent;
 
-
 	public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
 
 	public Type RuntimeType => RuntimeProperties.ResolveType(Value.Cast());
-
 
 	public OptionalSlotsFlags SlotsFlags => Value.Reference.SlotsFlags;
 
 	public TypeFlags TypeFlags => Value.Reference.TypeFlags;
 
 	public int VirtualsCount => Value.Reference.NumVirtuals;
-
 
 	public bool IsInteger => RuntimeType.IsInteger();
 
@@ -289,7 +276,6 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	public bool IsUnmanaged => RuntimeType.IsUnmanaged();
 
 	public bool IsAnyPointer => RuntimeType.IsAnyPointer();
-
 
 	public override string ToString()
 	{

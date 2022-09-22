@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using Kantan.Utilities;
 using Novus;
+using Novus.FileTypes;
+using Novus.FileTypes.Impl;
 using Novus.Memory;
 using Novus.Memory.Allocation;
 using Novus.OS;
@@ -33,6 +37,40 @@ public class MyStruct
 }
 
 [RyuJitX64Job]
+[InProcess()]
+public class Benchmarks19
+{
+	private FileStream m_stream;
+
+	private readonly Consumer m_consumer = new Consumer();
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		m_stream = File.OpenRead(@"C:\Users\Deci\Pictures\Art\0c4c80957134d4304538c27499d84dbe.jpeg");
+
+	}
+
+	[Benchmark]
+	public async void Fast()
+	{
+		(await FastResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+	}
+
+	[Benchmark]
+	public async void Urlmon()
+	{
+		(await UrlmonResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+	}
+
+	[Benchmark]
+	public async void Magic()
+	{
+		(await MagicResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+	}
+}
+
+[RyuJitX64Job]
 public class Benchmarks18
 {
 	public MyStruct ms;
@@ -47,7 +85,7 @@ public class Benchmarks18
 	public MyStruct test1()
 	{
 
-		return ReflectionHelper.Clone(ms);
+		return ms.Clone();
 	}
 }
 

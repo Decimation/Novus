@@ -103,7 +103,17 @@ public static unsafe class Program
 	private static void Main(string[] args)
 	{
 		Console.WriteLine("wb");
-		
+		var c=Native.OpenClipboard(IntPtr.Zero);
+		var p=Native.GetClipboardData(13);
+		var sz=new string((char*)p);
+		Console.WriteLine(sz);
+
+		var type = new MyStruct();
+
+		foreach (var nullMember in type.GetNullMembers()) {
+			Console.WriteLine($"{nullMember.Field.Name} {nullMember.IsNull}");
+		}
+
 	}
 
 	static void err()
@@ -193,8 +203,8 @@ public static unsafe class Program
 
 			// Create a thread in the first process.
 			IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0,
-			                                    (IntPtr) fpProc.ToPointer(), new IntPtr(6789),
-			                                    0, out uint dwThreadId);
+												(IntPtr) fpProc.ToPointer(), new IntPtr(6789),
+												0, out uint dwThreadId);
 			WaitForThreadToExit(hThread);
 			return;
 		}

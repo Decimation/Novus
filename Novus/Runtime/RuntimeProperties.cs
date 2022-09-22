@@ -187,7 +187,7 @@ public static unsafe class RuntimeProperties
 	///     Determines whether the memory of <paramref name="t" /> is null; that is,
 	///     all of its fields are <c>null</c>.
 	/// </summary>
-	public static bool IsNullMemory<T>(T t)
+	public static bool IsNull<T>(T t)
 	{
 		if (t == null) {
 			return true;

@@ -25,6 +25,7 @@ using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using NUnit.Framework;
 using UnitTest.TestTypes;
+using static Novus.Utilities.ReflectionOperatorHelpers;
 using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
 // ReSharper disable StringLiteralTypo
@@ -112,13 +113,13 @@ public class Tests_FileResolvers
 	[TestCase(@"https://kemono.party/patreon/user/587897/post/64451923","image/png")]
 	public async Task Test2(string s,string s2)
 	{
-		var result = await HttpResourceSniffer.Default.ScanAsync(s);
+	    var result = await HttpResourceSniffer.Default.ScanAsync(s);
 
-		foreach (HttpResourceHandle httpResource in result) {
-			httpResource.Resolve();
-		}
+	    foreach (HttpResourceHandle httpResource in result) {
+	        httpResource.Resolve();
+	    }
 
-		Assert.True(result.Any(x=>x.ResolvedTypes.Select(x=>x.Type).Contains(s2)));
+	    Assert.True(result.Any(x=>x.ResolvedTypes.Select(x=>x.Type).Contains(s2)));
 	}*/
 }
 
@@ -497,7 +498,7 @@ public class Tests_ReflectionHelper
 	[Test]
 	public void Test4()
 	{
-		Assert.AreEqual(ReflectionOperatorHelpers.fieldof(() => new Subclass1().i),
+		Assert.AreEqual(fieldof(() => new Subclass1().i),
 		                typeof(Subclass1).GetRuntimeField(nameof(Subclass1.i)));
 	}
 
@@ -515,10 +516,10 @@ public class Tests_ReflectionHelper
 	{
 		var a = new Clazz();
 		var b = new Struct();
-		var f = ReflectionHelper.GetNilFields(a);
-		Assert.AreEqual(3, f.Length);
-		Assert.AreEqual(1, ReflectionHelper.GetNilFields(b).Length);
 
+		var f = a.GetNullMembers();
+		Assert.AreEqual(3, f.Length);
+		Assert.AreEqual(1, b.GetNullMembers().Length);
 	}
 }
 
@@ -775,7 +776,7 @@ public class Tests_Runtime
 	}
 
 	[Test]
-	public void NilTest()
+	public void DefaultTest()
 	{
 		string s = "foo";
 		Assert.False(RuntimeProperties.IsDefault(s));
@@ -787,20 +788,43 @@ public class Tests_Runtime
 	}
 
 	[Test]
-	[TestCase(default(int), true)]
-	[TestCase(null, true)]
-	[TestCase(1, false)]
+	[TestCaseSource(nameof(_rg0))]
 	public void NullMemTest(object o, bool b)
 	{
-		Assert.AreEqual(b, RuntimeProperties.IsNullMemory(o));
+		Assert.AreEqual(b, RuntimeProperties.IsNull(o));
+	}
+
+	private static readonly object[] _rg0 =
+	{
+		new object[] { default(int), true },
+		new object[] { null, true },
+		new object[] { 1, false },
+
+	};
+
+	private static readonly object[] _rg1 =
+	{
+		new Struct(),
+		new Clazz { a = 0, prop = 0, s = null }
+	};
+
+	private static readonly object[] _rg2 =
+	{
+		new Clazz { a = 1, prop = 3, s = "butt" }
+	};
+
+	[Test]
+	[TestCaseSource(nameof(_rg2))]
+	public void NullMemTest2(object o)
+	{
+		Assert.False(RuntimeProperties.IsNull(o));
 	}
 
 	[Test]
-	public void NullMemTest2()
+	[TestCaseSource(nameof(_rg1))]
+	public void NullMemTest3(object o)
 	{
-		Assert.True(RuntimeProperties.IsNullMemory(new Struct()));
-		Assert.True(RuntimeProperties.IsNullMemory(new Clazz { a  = 0, prop = 0, s = null }));
-		Assert.False(RuntimeProperties.IsNullMemory(new Clazz { a = 1, prop = 3, s = "butt" }));
+		Assert.True(RuntimeProperties.IsNull(o));
 	}
 
 	[Test]
@@ -895,11 +919,11 @@ public class Tests_Allocator
 	/*[Test]
 	public void AllocUTest()
 	{
-		var s = SmartAllocator.AllocU<Clazz>();
+	    var s = SmartAllocator.AllocU<Clazz>();
 
-		//var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
+	    //var obj = Mem.AllocRefOnStack<Clazz>(ref stack);
 
-		Assert.AreEqual(s.a, Clazz.i);
+	    Assert.AreEqual(s.a, Clazz.i);
 	}*/
 }
 

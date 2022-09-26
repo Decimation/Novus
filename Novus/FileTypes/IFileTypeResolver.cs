@@ -9,12 +9,12 @@ public interface IFileTypeResolver : IDisposable
 
 	public async Task<IEnumerable<FileType>> ResolveAsync(Stream m)
 	{
-		return Resolve(await m.ReadHeaderAsync());
+		return Resolve(await m.ReadBlockAsync());
 	}
 
 	public IEnumerable<FileType> Resolve(Stream m)
 	{
-		return Resolve(m.ReadHeader());
+		return Resolve(m.ReadBlock());
 	}
 
 	public static IFileTypeResolver Default { get; set; } = UrlmonResolver.Instance; //todo

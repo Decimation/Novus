@@ -17,7 +17,7 @@ namespace Novus.Memory;
 /// <p/>
 /// Uses IDA signature format
 /// </remarks>
-public class SigScanner
+public sealed class SigScanner
 {
 	/*
 	 * Signature scanning
@@ -35,7 +35,6 @@ public class SigScanner
 	 * https://github.com/Zer0Mem0ry/SignatureScanner
 	 */
 
-
 	/// <summary>
 	/// Memory of the module
 	/// </summary>
@@ -45,7 +44,6 @@ public class SigScanner
 	/// Module pointer
 	/// </summary>
 	public Pointer<byte> Address { get; }
-
 
 	/// <summary>
 	/// Module size
@@ -86,7 +84,6 @@ public class SigScanner
 			return new Lazy<SigScanner>(() => new SigScanner(p, s));
 		}).ToArray();
 
-
 		/*var pointers = scanners.Select(s => s.Value.FindSignature(sig));
 		return pointers.FirstOrDefault(p => !p.IsNull);*/
 
@@ -94,7 +91,6 @@ public class SigScanner
 	}
 
 	#endregion
-
 
 	private bool PatternCheck(int nOffset, IReadOnlyList<byte> arrPattern)
 	{
@@ -127,13 +123,10 @@ public class SigScanner
 				                  : Byte.Parse(strByteArr[i], NumberStyles.HexNumber);
 		}
 
-
 		return patternBytes;
 	}
 
-
 	public Pointer<byte> FindSignature(string pattern) => FindSignature(ReadSignature(pattern));
-
 
 	/// <summary>
 	/// Searches for the location of a signature within the module

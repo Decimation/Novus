@@ -51,7 +51,7 @@ public sealed class MagicResolver : IFileTypeResolver
 
 	public IEnumerable<FileType> Resolve(byte[] rg)
 	{
-		// var buf1 = stream.ReadHeaderAsync(FileType.RSRC_HEADER_LEN);
+		// var buf1 = stream.ReadBlockAsync(FileType.RSRC_HEADER_LEN);
 		// buf1.Wait();
 		// var buf  = buf1.Result;
 
@@ -62,7 +62,7 @@ public sealed class MagicResolver : IFileTypeResolver
 
 	public IEnumerable<FileType> Resolve(Stream stream)
 	{
-		var buf = stream.ReadHeader();
+		var buf = stream.ReadBlock();
 		return Resolve(buf);
 	}
 

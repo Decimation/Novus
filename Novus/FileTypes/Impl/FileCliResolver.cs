@@ -51,6 +51,7 @@ public sealed class FileCliResolver : IFileTypeResolver
 					RedirectStandardError  = true,
 
 					UseShellExecute = false,
+
 					// WindowStyle     = ProcessWindowStyle.Hidden,
 				},
 

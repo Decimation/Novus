@@ -164,12 +164,12 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public static IEnumerable<FileType> Resolve(Stream s)
 	{
-		return Resolve(s.ReadHeader());
+		return Resolve(s.ReadBlock());
 	}
 
 	public static async Task<IEnumerable<FileType>> ResolveAsync(Stream s)
 	{
-		return Resolve(await s.ReadHeaderAsync());
+		return Resolve(await s.ReadBlockAsync());
 	}
 
 	public static IEnumerable<FileType> Resolve(byte[] h)

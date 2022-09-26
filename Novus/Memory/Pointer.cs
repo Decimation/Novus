@@ -1,6 +1,4 @@
-﻿
-global using Pointer = Novus.Memory.Pointer<byte>;
-
+﻿global using Pointer = Novus.Memory.Pointer<byte>;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using Novus.Win32.Structures;
@@ -47,9 +45,9 @@ namespace Novus.Memory;
 /// <seealso cref="Unsafe" />
 public unsafe struct Pointer<T> : IFormattable, IPinnable
 {
-	private static readonly nuint s_elementSize;
+	private static readonly nuint s_ElementSize;
 
-	static Pointer() => s_elementSize = (nuint) M.SizeOf<T>();
+	static Pointer() => s_ElementSize = (nuint) M.SizeOf<T>();
 
 	/// <summary>
 	///     Internal pointer value.
@@ -59,17 +57,25 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Size of element type <typeparamref name="T" />.
 	/// </summary>
-	public int ElementSize => (int) s_elementSize;
+	public int ElementSize => (int) s_ElementSize;
 
 	/// <summary>
 	///     Indexes <see cref="Address" /> as a reference.
 	/// </summary>
-	public ref T this[int index] => ref AsRef(index);
+	public ref T this[int index]
+	{
+		[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+		get { return ref AsRef(index); }
+	}
 
 	/// <summary>
 	///     Returns the current value as a reference.
 	/// </summary>
-	public ref T Reference => ref AsRef();
+	public ref T Reference
+	{
+		[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+		get { return ref AsRef(); }
+	}
 
 	/// <summary>
 	///     Dereferences the pointer as the specified type.
@@ -335,6 +341,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	/// <param name="value">Value to write.</param>
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
+	[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 	public void Write(T value, int elemOffset = OFFSET) => Unsafe.Write(Offset(elemOffset), value);
 
 	/// <summary>
@@ -343,6 +350,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	/// <returns>The value read from the offset <see cref="Address" />.</returns>
 	[Pure]
+	[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 	public T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
 
 	/// <summary>
@@ -351,6 +359,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 	[Pure]
+	[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 	public ref T AsRef(int elemOffset = OFFSET) => ref Unsafe.AsRef<T>(Offset(elemOffset));
 
 	/// <summary>

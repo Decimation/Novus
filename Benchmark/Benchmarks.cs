@@ -19,6 +19,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Wrappers;
+using Dia2Lib;
 
 // ReSharper disable InconsistentNaming
 
@@ -33,6 +34,47 @@ public class MyStruct
 	public override string ToString()
 	{
 		return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+	}
+}
+
+[RyuJitX64Job]
+public class Benchmarks20
+{
+	private int                  i;
+	private Pointer<int>         a;
+	private ReadonlyPointer<int> b;
+
+	/*
+	 
+		| Method |      Mean |     Error |    StdDev | Median |
+		|------- |----------:|----------:|----------:|-------:|
+		|  Test1 | 0.0082 ns | 0.0130 ns | 0.0122 ns | 0.0 ns |
+		|  Test2 | 0.0002 ns | 0.0008 ns | 0.0006 ns | 0.0 ns |
+
+		// * Warnings *
+		ZeroMeasurement
+		  Benchmarks20.Test1: RyuJitX64 -> The method duration is indistinguishable from the empty method duration
+		  Benchmarks20.Test2: RyuJitX64 -> The method duration is indistinguishable from the empty method duration
+	 */
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		i = 123;
+		a = Mem.AddressOf(ref i);
+		b = a;
+	}
+
+	[Benchmark]
+	public int Test1()
+	{
+		return a.Value;
+	}
+
+	[Benchmark]
+	public int Test2()
+	{
+		return b.Value;
 	}
 }
 
@@ -355,6 +397,30 @@ public unsafe class BenchmarksPointer
 		ZeroMeasurement
 		  BenchmarksPointer.Pointer_Value: Default -> The method duration is indistinguishable from the empty method duration
 		  BenchmarksPointer.Native_Index: Default  -> The method duration is indistinguishable from the empty method duration
+	 */
+
+	/*
+|             Method |      Mean |     Error |    StdDev |    Median |
+|------------------- |----------:|----------:|----------:|----------:|
+|      Pointer_Value | 0.0009 ns | 0.0018 ns | 0.0015 ns | 0.0000 ns |
+|        Pointer_Ref | 0.0000 ns | 0.0001 ns | 0.0001 ns | 0.0000 ns |
+| Native_Dereference | 0.2863 ns | 0.0092 ns | 0.0082 ns | 0.2833 ns |
+|       Native_Index | 0.0013 ns | 0.0018 ns | 0.0014 ns | 0.0009 ns |
+|       Marshal_Read | 1.4553 ns | 0.0023 ns | 0.0020 ns | 1.4554 ns |
+
+// * Warnings *
+ZeroMeasurement
+  BenchmarksPointer.Pointer_Value: Default -> The method duration is indistinguishable from the empty method duration
+  BenchmarksPointer.Pointer_Ref: Default   -> The method duration is indistinguishable from the empty method duration
+  BenchmarksPointer.Native_Index: Default  -> The method duration is indistinguishable from the empty method duration
+
+// * Hints *
+Outliers
+  BenchmarksPointer.Pointer_Value: Default      -> 2 outliers were removed (1.58 ns, 1.59 ns)
+  BenchmarksPointer.Pointer_Ref: Default        -> 2 outliers were removed (1.55 ns, 1.58 ns)
+  BenchmarksPointer.Native_Dereference: Default -> 1 outlier  was  removed (1.87 ns)
+  BenchmarksPointer.Native_Index: Default       -> 3 outliers were removed (1.54 ns..1.55 ns)
+  BenchmarksPointer.Marshal_Read: Default       -> 1 outlier  was  removed (3.00 ns)
 	 */
 
 	[GlobalSetup]

@@ -13,13 +13,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Versioning;
 using System.Text;
-using Kantan.Cli;
 using Kantan.Text;
 using Novus;
 using Novus.Memory;
 using Novus.OS;
 using Novus.Utilities;
 using Novus.Win32.Structures.Kernel32;
+using Novus.Win32.Structures.User32;
 using static Novus.Win32.Native;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
@@ -108,12 +108,17 @@ public static unsafe class Program
 		var sz=new string((char*)p);
 		Console.WriteLine(sz);
 
+		Console.WriteLine(Native.EnumClipboardFormats().QuickJoin());
+
+	}
+
+	private static void Test3()
+	{
 		var type = new MyStruct();
 
 		foreach (var nullMember in type.GetNullMembers()) {
 			Console.WriteLine($"{nullMember.Field.Name} {nullMember.IsNull}");
 		}
-
 	}
 
 	static void err()

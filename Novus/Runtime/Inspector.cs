@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using JetBrains.Annotations;
-using Kantan.Cli.Controls;
 using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
@@ -51,7 +50,7 @@ public static class Inspector
 		Sizes,
 	}
 
-	public static string Dump<T>(ref T value, DumpOptions options, InspectorOptions options2)
+	/*public static string Dump<T>(ref T value, DumpOptions options, InspectorOptions options2)
 	{
 		switch (options) {
 
@@ -228,5 +227,5 @@ public static class Inspector
 				throw new ArgumentOutOfRangeException(nameof(options));
 		}
 
-	}
+	}*/
 }

@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
-using Kantan.Cli;
 using Novus.Win32.Structures.User32;
 using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
@@ -18,7 +17,7 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
-										   WindowFlags uFlags);
+	                                       WindowFlags uFlags);
 
 	[DllImport(USER32_DLL, SetLastError = false)]
 	public static extern IntPtr GetDesktopWindow();
@@ -28,7 +27,7 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string className,
-											 string windowTitle);
+	                                         string windowTitle);
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
 	private static extern IntPtr FindWindow(IntPtr zeroOnly, string lpWindowName);
@@ -45,20 +44,20 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL)]
 	public static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
-													 MessageBoxOptions options);
+	                                                 MessageBoxOptions options);
 
 	[DllImport(USER32_DLL)]
 	internal static extern uint SendInput(uint nInputs,
-										  [MA(UT.LPArray), In] InputRecord[] pInputs,
-										  int cbSize);
+	                                      [MA(UT.LPArray), In] InputRecord[] pInputs,
+	                                      int cbSize);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
 	public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam,
-											[MA(UT.LPWStr)] string lParam);
+	                                        [MA(UT.LPWStr)] string lParam);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
 	public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam,
-											[MA(UT.LPWStr)] string lParam);
+	                                        [MA(UT.LPWStr)] string lParam);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
 	public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
@@ -147,7 +146,6 @@ public static unsafe partial class Native
 	public static extern bool IsClipboardFormatAvailable(uint uFormat);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern uint EnumClipboardFormats(uint uFormat);
 
 	#endregion
@@ -167,6 +165,21 @@ public enum HandleWindowPosition
 	HWND_NOTOPMOST = -2,
 	HWND_TOP       = 0,
 	HWND_TOPMOST   = -1,
+}
+
+/// <summary>
+///     Blittable version of Windows BOOL type. It is convenient in situations where
+///     manual marshalling is required, or to avoid overhead of regular bool marshalling.
+/// </summary>
+/// <remarks>
+///     Some Windows APIs return arbitrary integer values although the return type is defined
+///     as BOOL. It is best to never compare BOOL to TRUE. Always use bResult != BOOL.FALSE
+///     or bResult == BOOL.FALSE .
+/// </remarks>
+public enum BOOL
+{
+	FALSE = 0,
+	TRUE  = 1
 }
 
 public enum WindowFlags

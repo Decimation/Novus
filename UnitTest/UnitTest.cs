@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Kantan.Cli;
 using Novus.FileTypes;
 using Novus.FileTypes.Impl;
 using Novus.Imports;

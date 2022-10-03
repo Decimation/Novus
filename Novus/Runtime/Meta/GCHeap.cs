@@ -3,12 +3,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
-using Kantan.Cli;
 using Kantan.Diagnostics;
 using Novus.Imports;
 using Novus.Memory;
 using Novus.Runtime.VM;
 using Novus.Utilities;
+using Novus.Win32;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable InconsistentNaming
@@ -37,7 +37,7 @@ public static unsafe class GCHeap
 	public static bool IsHeapPointer(Pointer<byte> ptr, bool smallHeapOnly = false)
 		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
-	private static Pointer AllocObject(Pointer<MethodTable> t, ConsoleManager.BOOL b = ConsoleManager.BOOL.FALSE)
+	private static Pointer AllocObject(Pointer<MethodTable> t, BOOL b = BOOL.FALSE)
 		=> Func_AllocObject((MethodTable*) t, b);
 
 	public static object AllocObject(MetaType type, params object[] args)
@@ -72,10 +72,9 @@ public static unsafe class GCHeap
 	[field: ImportClr("Ofs_IsHeapPointer", ImportType.Offset)]
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
 
-
 	/// <summary>
 	/// <see cref="IsHeapPointer"/>
 	/// </summary>
 	[field: ImportClr("Sig_AllocObject")]
-	private static delegate* unmanaged<MethodTable*, ConsoleManager.BOOL, void*> Func_AllocObject { get; }
+	private static delegate* unmanaged<MethodTable*, BOOL, void*> Func_AllocObject { get; }
 }

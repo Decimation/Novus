@@ -18,6 +18,7 @@ using Novus;
 using Novus.Memory;
 using Novus.OS;
 using Novus.Utilities;
+using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using static Novus.Win32.Native;
@@ -104,16 +105,10 @@ public static unsafe class Program
 	{
 		Console.WriteLine("wb");
 		var c=Native.OpenClipboard(IntPtr.Zero);
-		var p=Native.GetClipboardData(13);
-		var sz=new string((char*)p);
-		Console.WriteLine(sz);
 
-		var uints = Native.EnumClipboardFormats();
-		foreach (uint u in uints) {
-			Console.WriteLine(u);
-			Console.WriteLine(Native.GetClipboardFormatName(u));
-
-		}
+		Native.SetClipboard("hello", (uint)ClipboardFormat.CF_UNICODETEXT);
+		Console.WriteLine(Native.GetClipboard((uint)ClipboardFormat.CF_UNICODETEXT));
+		Native.CloseClipboard();
 	}
 
 	private static void Test3()

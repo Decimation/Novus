@@ -508,13 +508,14 @@ public static unsafe partial class Native
 
 	public static bool OpenClipboard() => Native.OpenClipboard(IntPtr.Zero);
 
-	public static bool SetClipboard(object s)
+	public static bool SetClipboard(object s, uint? fmt = null)
 	{
+		fmt ??= (uint) DefaultClipboardFormat; //todo
+
 		switch (s) {
 			case string str:
-				var ptr = ClipboardFormatFromString(null)(str);
-
-				return ptr != IntPtr.Zero;
+				var ptr = ClipboardFormatFromString(fmt)(str);
+				return SetClipboardData(fmt.Value, ptr.ToPointer()) != IntPtr.Zero;
 
 			default:
 				return false;
@@ -527,7 +528,8 @@ public static unsafe partial class Native
 	{
 		var fn = ClipboardFormatToString(f);
 
-		f ??= EnumClipboardFormats().FirstOrDefault();
+		f ??= ((EnumClipboardFormats().FirstOrDefault()));
+		f ??= DefaultClipboardFormat;
 
 		var d = GetClipboardData(f.Value);
 
@@ -583,6 +585,8 @@ public static unsafe partial class Native
 			return c.ToString();
 		}
 	}*/
+
+	public static uint DefaultClipboardFormat { get; set; } = (uint) ClipboardFormat.CF_TEXT;
 
 	#endregion
 }

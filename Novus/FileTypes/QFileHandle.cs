@@ -14,17 +14,13 @@ public class QFileHandle : IDisposable
 
 	public string Value { get; private set; }
 
-	public Stream Stream { get; private set; }
-
-	public bool IsFile { get; private set; }
-
-	public bool IsUri { get; private set; }
+	public QFileInfo Info { get; private set; }
 
 	public FileType[] FileTypes { get; private set; }
 
 	public static async Task<QFileHandle> GetHandleAsync(string s, IFileTypeResolver resolver = null)
 	{
-		var m = await IsValid(s, true);
+		var m = await GetInfoAsync(s, true);
 
 		using var copy = m.Stream.Copy();
 
@@ -40,19 +36,17 @@ public class QFileHandle : IDisposable
 
 		return new QFileHandle()
 		{
-			Stream    = m.Stream,
 			Value     = s,
-			IsFile    = m.IsFile,
-			IsUri     = m.IsUri,
+			Info      = m,
 			FileTypes = types.ToArray()
 		};
 	}
 
-	private static async Task<QInputInfo> IsValid(string s, bool auto = false)
+	public static async Task<QFileInfo> GetInfoAsync(string s, bool auto = false)
 	{
 		var b = Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out var u);
 
-		QInputInfo m = default;
+		QFileInfo m = default;
 
 		if (b) {
 			bool isFile = (u.IsFile && File.Exists(s));
@@ -64,25 +58,29 @@ public class QFileHandle : IDisposable
 
 			};
 
-			if (isFile) {
-				if (auto) {
-					m.Stream = File.OpenRead(s);
+			try {
+				if (isFile) {
+					if (auto) {
 
+						m.Stream = File.OpenRead(s);
+
+					}
 				}
-			}
-			else if (m.IsUri) {
-				if (auto) {
-					var handler = new HttpClientHandler()
-						{ };
+				else if (m.IsUri) {
+					if (auto) {
+						var handler = new HttpClientHandler()
+							{ };
 
-					using var client = new HttpClient(handler)
-						{ };
+						using var client = new HttpClient(handler)
+							{ };
 
-					m.Stream = await client.GetStreamAsync(s);
+						m.Stream = await client.GetStreamAsync(s);
 
+					}
 				}
+				else { }
 			}
-			else { }
+			catch (Exception e) { }
 
 		}
 
@@ -93,13 +91,13 @@ public class QFileHandle : IDisposable
 
 	public void Dispose()
 	{
-		Stream?.Dispose();
+		Info.Dispose();
 	}
 
 	#endregion
 }
 
-public struct QInputInfo
+public struct QFileInfo : IEquatable<QFileInfo>, IDisposable
 {
 	public bool IsFile { get; internal set; }
 
@@ -107,11 +105,58 @@ public struct QInputInfo
 
 	public Stream Stream { get; internal set; }
 
-	public QInputInfo()
+	public bool Valid => IsFile || IsUri;
+
+	public QFileInfo()
 	{
 		IsFile = false;
 		IsUri  = false;
 
 		Stream = Stream.Null;
 	}
+
+	#region Equality members
+
+	public bool Equals(QFileInfo other)
+	{
+		return IsFile == other.IsFile && 
+		       IsUri == other.IsUri && 
+		       Equals(Stream, other.Stream);
+	}
+
+	public override bool Equals(object obj)
+	{
+		return obj is QFileInfo other && Equals(other);
+	}
+
+	public override int GetHashCode()
+	{
+		unchecked {
+			int hashCode = IsFile.GetHashCode();
+			hashCode = (hashCode * 397) ^ IsUri.GetHashCode();
+			hashCode = (hashCode * 397) ^ (Stream != null ? Stream.GetHashCode() : 0);
+			return hashCode;
+		}
+	}
+
+	public static bool operator ==(QFileInfo left, QFileInfo right)
+	{
+		return left.Equals(right);
+	}
+
+	public static bool operator !=(QFileInfo left, QFileInfo right)
+	{
+		return !left.Equals(right);
+	}
+
+	#endregion
+
+	#region IDisposable
+
+	public void Dispose()
+	{
+		Stream?.Dispose();
+	}
+
+	#endregion
 }

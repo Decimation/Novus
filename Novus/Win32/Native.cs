@@ -524,6 +524,23 @@ public static unsafe partial class Native
 		return false;
 	}
 
+	public static string[] GetClipboardFileList()
+	{
+		var h = Native.GetClipboardData((uint)ClipboardFormat.CF_HDROP);
+
+		var cn = Native.DragQueryFile(h, UInt32.MaxValue, null, 0);
+		var rg = new List<string>();
+
+		for (int i = 0; i < cn; i++) {
+			var l    = Native.DragQueryFile(h, (uint) i, null, 0) + 1;
+			var file = new StringBuilder(l);
+			l = Native.DragQueryFile(h, (uint) i, file, l);
+			rg.Add(file.ToString());
+		}
+
+		return rg.ToArray();
+	}
+
 	public static object GetClipboard(uint? f = null)
 	{
 		var fn = ClipboardFormatToString(f);

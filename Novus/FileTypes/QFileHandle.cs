@@ -12,11 +12,9 @@ public class QFileHandle : IDisposable
 {
 	private QFileHandle() { }
 
-	public string Value { get; private set; }
+	public QFileInfo Info { get; private init; }
 
-	public QFileInfo Info { get; private set; }
-
-	public FileType[] FileTypes { get; private set; }
+	public FileType[] FileTypes { get; private init; }
 
 	public static async Task<QFileHandle> GetHandleAsync(string s, IFileTypeResolver resolver = null)
 	{
@@ -36,7 +34,6 @@ public class QFileHandle : IDisposable
 
 		return new QFileHandle()
 		{
-			Value     = s,
 			Info      = m,
 			FileTypes = types.ToArray()
 		};
@@ -99,6 +96,8 @@ public class QFileHandle : IDisposable
 
 public struct QFileInfo : IEquatable<QFileInfo>, IDisposable
 {
+	public string Value { get; internal set; }
+
 	public bool IsFile { get; internal set; }
 
 	public bool IsUri { get; internal set; }
@@ -111,32 +110,31 @@ public struct QFileInfo : IEquatable<QFileInfo>, IDisposable
 	{
 		IsFile = false;
 		IsUri  = false;
-
+		Value  = null;
 		Stream = Stream.Null;
 	}
 
 	#region Equality members
 
+	public override int GetHashCode()
+	{
+		unchecked {
+			int hashCode = (Value != null ? Value.GetHashCode() : 0);
+			hashCode = (hashCode * 397) ^ IsFile.GetHashCode();
+			hashCode = (hashCode * 397) ^ IsUri.GetHashCode();
+			hashCode = (hashCode * 397) ^ (Stream != null ? Stream.GetHashCode() : 0);
+			return hashCode;
+		}
+	}
+
 	public bool Equals(QFileInfo other)
 	{
-		return IsFile == other.IsFile && 
-		       IsUri == other.IsUri && 
-		       Equals(Stream, other.Stream);
+		return Value == other.Value && IsFile == other.IsFile && IsUri == other.IsUri && Equals(Stream, other.Stream);
 	}
 
 	public override bool Equals(object obj)
 	{
 		return obj is QFileInfo other && Equals(other);
-	}
-
-	public override int GetHashCode()
-	{
-		unchecked {
-			int hashCode = IsFile.GetHashCode();
-			hashCode = (hashCode * 397) ^ IsUri.GetHashCode();
-			hashCode = (hashCode * 397) ^ (Stream != null ? Stream.GetHashCode() : 0);
-			return hashCode;
-		}
 	}
 
 	public static bool operator ==(QFileInfo left, QFileInfo right)

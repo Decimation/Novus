@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.Linq;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
@@ -104,10 +105,18 @@ public static unsafe class Program
 	private static void Main(string[] args)
 	{
 		Console.WriteLine("wb");
-		var c=Native.OpenClipboard(IntPtr.Zero);
+		var c = Native.OpenClipboard(IntPtr.Zero);
 
-		Native.SetClipboard("hello", (uint)ClipboardFormat.CF_UNICODETEXT);
-		Console.WriteLine(Native.GetClipboard((uint)ClipboardFormat.CF_UNICODETEXT));
+		var fmt = Native.EnumClipboardFormats();
+		Console.WriteLine(fmt.QuickJoin());
+		// Native.SetClipboard("hello", (uint) ClipboardFormat.CF_UNICODETEXT);
+		// Console.WriteLine(Native.GetClipboard((uint) ClipboardFormat.CF_UNICODETEXT));
+
+		// Native.DragAcceptFiles(Native.GetConsoleWindow(), true);
+
+		// Thread.Sleep(TimeSpan.FromSeconds(5));
+		Console.WriteLine(Native.GetClipboardFileList().QuickJoin());
+
 		Native.CloseClipboard();
 	}
 
@@ -132,7 +141,7 @@ public static unsafe class Program
 
 	private struct MyStruct
 	{
-		public int   a;
+		public int a;
 
 		public float f { get; }
 
@@ -207,8 +216,8 @@ public static unsafe class Program
 
 			// Create a thread in the first process.
 			IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0,
-												(IntPtr) fpProc.ToPointer(), new IntPtr(6789),
-												0, out uint dwThreadId);
+			                                    (IntPtr) fpProc.ToPointer(), new IntPtr(6789),
+			                                    0, out uint dwThreadId);
 			WaitForThreadToExit(hThread);
 			return;
 		}

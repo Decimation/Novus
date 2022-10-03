@@ -156,7 +156,11 @@ public enum ClipboardFormat : uint
 {
 	CF_TEXT        = 1,
 	CF_UNICODETEXT = 13,
-	CF_OEMTEXT     = 7
+	CF_OEMTEXT     = 7,
+	CF_HDROP       = 15,
+
+	FileName       = 0xC006,
+	FileNameW      = 0xC007
 }
 
 public enum HandleWindowPosition

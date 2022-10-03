@@ -108,8 +108,12 @@ public static unsafe class Program
 		var sz=new string((char*)p);
 		Console.WriteLine(sz);
 
-		Console.WriteLine(Native.EnumClipboardFormats().QuickJoin());
+		var uints = Native.EnumClipboardFormats();
+		foreach (uint u in uints) {
+			Console.WriteLine(u);
+			Console.WriteLine(Native.GetClipboardFormatName(u));
 
+		}
 	}
 
 	private static void Test3()

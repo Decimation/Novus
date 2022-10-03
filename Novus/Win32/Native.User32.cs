@@ -121,7 +121,7 @@ public static unsafe partial class Native
 	/// If the function fails, the return value is zero. To get extended error information, call <see cref="Marshal.GetLastWin32Error"/>.
 	/// </returns>
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
-	public static extern int GetClipboardFormatName(uint format, char* lpszFormatName, int cchMaxCount);
+	public static extern int GetClipboardFormatName(uint format, [Out] StringBuilder lpszFormatName, int cchMaxCount);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public static extern IntPtr GetClipboardData(uint uFormat);

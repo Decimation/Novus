@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
+using Novus.Memory;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.Ntdll;
@@ -503,20 +504,15 @@ public static unsafe partial class Native
 		return IntPtr.Zero;
 	}
 
+	#region Clipboard
+
 	public static bool OpenClipboard() => Native.OpenClipboard(IntPtr.Zero);
 
 	public static bool SetClipboard(object s)
 	{
 		switch (s) {
 			case string str:
-				var ptr = Native.SetClipboardData((uint) ClipboardFormat.CF_UNICODETEXT,
-				                                  Marshal.StringToHGlobalUni(str).ToPointer());
-
-				if (ptr == IntPtr.Zero) {
-					ptr = Native.SetClipboardData((uint) ClipboardFormat.CF_OEMTEXT,
-					                              Marshal.StringToHGlobalAnsi(str).ToPointer());
-
-				}
+				var ptr = ClipboardFormatFromString(null)(str);
 
 				return ptr != IntPtr.Zero;
 
@@ -527,18 +523,45 @@ public static unsafe partial class Native
 		return false;
 	}
 
-	public static object GetClipboard(object s, uint f = 0u)
+	public static object GetClipboard(uint? f = null)
 	{
+		var fn = ClipboardFormatToString(f);
 
-		switch (f) {
-			case (uint) ClipboardFormat.CF_OEMTEXT:
-				return Marshal.PtrToStringUni(GetClipboardData(f));
-		}
+		f ??= EnumClipboardFormats().FirstOrDefault();
+
+		var d = GetClipboardData(f.Value);
+
+		var v = fn(d);
+
 		//todo
-		return null;
+
+		return v;
 	}
 
-	public static List<uint> EnumClipboardFormats()
+	public static Func<IntPtr, string> ClipboardFormatToString(uint? f)
+	{
+		Func<IntPtr, string> fn = f switch
+		{
+			(uint) ClipboardFormat.CF_OEMTEXT => Marshal.PtrToStringUni,
+			(uint) ClipboardFormat.CF_TEXT    => Marshal.PtrToStringAnsi,
+			_                                 => Marshal.PtrToStringAuto
+		};
+		return fn;
+	}
+
+	public static Func<string, IntPtr> ClipboardFormatFromString(uint? f)
+	{
+		Func<string, IntPtr> fn = f switch
+		{
+			(uint) ClipboardFormat.CF_OEMTEXT => Marshal.StringToHGlobalUni,
+			(uint) ClipboardFormat.CF_TEXT    => Marshal.StringToHGlobalAnsi,
+			_                                 => Marshal.StringToHGlobalAuto
+		};
+
+		return fn;
+	}
+
+	public static uint[] EnumClipboardFormats()
 	{
 		var rg = new List<uint>();
 
@@ -548,6 +571,18 @@ public static unsafe partial class Native
 			rg.Add(u);
 		}
 
-		return rg;
+		return rg.ToArray();
 	}
+
+	/*public static string GetClipboardFormatName(uint u)
+	{
+		var c = new StringBuilder(SIZE_1);
+
+		unsafe {
+			var l = GetClipboardFormatName(u, c, c.Capacity);
+			return c.ToString();
+		}
+	}*/
+
+	#endregion
 }

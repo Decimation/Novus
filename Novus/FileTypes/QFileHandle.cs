@@ -24,28 +24,9 @@ public class QFileHandle : IDisposable
 
 	public static async Task<QFileHandle> GetHandleAsync(string s, IFileTypeResolver resolver = null)
 	{
-		var b = Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out var u);
+		var m = await IsValid(s, true);
 
-		var stream = Stream.Null;
-
-		bool isFile = false, isUri = false;
-
-		if (b) {
-			isFile = (u.IsFile && File.Exists(s));
-			isUri  = !isFile; //todo
-
-			if (isFile) {
-				stream = File.OpenRead(s);
-			}
-			else if (isUri) {
-				using var client = new HttpClient();
-				stream = await client.GetStreamAsync(s);
-			}
-			else { }
-
-		}
-
-		using var copy = stream.Copy();
+		using var copy = m.Stream.Copy();
 
 		resolver ??= IFileTypeResolver.Default;
 
@@ -53,18 +34,59 @@ public class QFileHandle : IDisposable
 
 		var types = await resolver.ResolveAsync(copy);
 
-		if (stream.CanSeek) {
-			stream.Position = 0;
+		if (m.Stream.CanSeek) {
+			m.Stream.Position = 0;
 		}
 
 		return new QFileHandle()
 		{
-			Stream    = stream,
+			Stream    = m.Stream,
 			Value     = s,
-			IsFile    = isFile,
-			IsUri     = isUri,
+			IsFile    = m.IsFile,
+			IsUri     = m.IsUri,
 			FileTypes = types.ToArray()
 		};
+	}
+
+	private static async Task<QInputInfo> IsValid(string s, bool auto = false)
+	{
+		var b = Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out var u);
+
+		QInputInfo m = default;
+
+		if (b) {
+			bool isFile = (u.IsFile && File.Exists(s));
+
+			m = new()
+			{
+				IsFile = isFile,
+				IsUri  = !isFile //todo
+
+			};
+
+			if (isFile) {
+				if (auto) {
+					m.Stream = File.OpenRead(s);
+
+				}
+			}
+			else if (m.IsUri) {
+				if (auto) {
+					var handler = new HttpClientHandler()
+						{ };
+
+					using var client = new HttpClient(handler)
+						{ };
+
+					m.Stream = await client.GetStreamAsync(s);
+
+				}
+			}
+			else { }
+
+		}
+
+		return m;
 	}
 
 	#region IDisposable
@@ -75,4 +97,21 @@ public class QFileHandle : IDisposable
 	}
 
 	#endregion
+}
+
+public struct QInputInfo
+{
+	public bool IsFile { get; internal set; }
+
+	public bool IsUri { get; internal set; }
+
+	public Stream Stream { get; internal set; }
+
+	public QInputInfo()
+	{
+		IsFile = false;
+		IsUri  = false;
+
+		Stream = Stream.Null;
+	}
 }

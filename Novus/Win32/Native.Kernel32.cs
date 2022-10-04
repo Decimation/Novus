@@ -13,6 +13,9 @@ public static unsafe partial class Native
 	// Thread proc, to be used with Create*Thread
 	public delegate int ThreadProc(IntPtr param);
 
+	[DllImport(KERNEL32_DLL)]
+	public static extern uint GetCurrentThreadId();
+
 	// Friendly version, marshals thread-proc as friendly delegate
 	[DllImport(KERNEL32_DLL)]
 	public static extern IntPtr CreateThread(
@@ -133,8 +136,8 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	public static extern IntPtr CreateFile(string fileName, FileAccess fileAccess, FileShare fileShare,
-	                                        IntPtr securityAttributes, FileMode creationDisposition,
-	                                        FileAttributes flagsAndAttributes, IntPtr template);
+	                                       IntPtr securityAttributes, FileMode creationDisposition,
+	                                       FileAttributes flagsAndAttributes, IntPtr template);
 
 	[DllImport(KERNEL32_DLL)]
 	public static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);

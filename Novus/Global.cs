@@ -16,6 +16,7 @@ global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 using static Kantan.Diagnostics.LogCategories;
 using System.Collections;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
@@ -111,6 +112,7 @@ namespace Novus;
 ///         </item>
 ///     </list>
 /// </remarks>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public static class Global
 {
 	/// <summary>
@@ -131,16 +133,9 @@ public static class Global
 	/// <summary>
 	///     Runtime CLR resources
 	/// </summary>
-	public static RuntimeResource Clr { get; } = new(CLR_MODULE);
+	public static RuntimeResource Clr { get; private set; }
 
 	public static bool IsSetup { get; private set; }
-
-	static Global()
-	{
-		if (!Directory.Exists(DataFolder)) {
-			Directory.CreateDirectory(DataFolder);
-		}
-	}
 
 	/*public static string ProgramData { get; } =
 		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);*/
@@ -149,6 +144,14 @@ public static class Global
 		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
 
 	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+
+	static Global()
+	{
+		
+		if (!Directory.Exists(DataFolder)) {
+			Directory.CreateDirectory(DataFolder);
+		}
+	}
 
 	/// <summary>
 	///     Module initializer
@@ -161,8 +164,9 @@ public static class Global
 		 */
 
 		Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
-
 		Trace.WriteLine($"[{LIB_NAME}]", C_INFO);
+
+		Clr = new RuntimeResource(CLR_MODULE);
 
 		/* try {
 			DateTime dt = default;
@@ -202,7 +206,7 @@ public static class Global
 	{
 		AllocManager.Close();
 		Clr.Dispose();
-
+		Clr     = null;
 		IsSetup = false;
 	}
 

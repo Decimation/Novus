@@ -19,6 +19,7 @@
     <PackageIcon>icon64.png</PackageIcon>
     <Version>1.0.4</Version>
     <ImplicitUsings>enable</ImplicitUsings>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -28,7 +29,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
+  <ItemGroup>
+    <TrimmerRootAssembly Include="System.Diagnostics" />
+    <TrimmerRootAssembly Include="Kantan" />
+  </ItemGroup>
   <ItemGroup>
 
     <!-- ??? -->

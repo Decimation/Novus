@@ -117,7 +117,6 @@ public static unsafe class Program
 		// Thread.Sleep(TimeSpan.FromSeconds(5));
 		Console.WriteLine(Native.GetClipboardFileList().QuickJoin());
 
-		Native.CloseClipboard();
 	}
 
 	private static void Test3()

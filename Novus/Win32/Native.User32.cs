@@ -11,7 +11,7 @@ using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 // ReSharper disable UnusedMember.Local
 
 namespace Novus.Win32;
-#pragma warning disable CA1401,CA2101
+#pragma warning disable CA1401, CA2101
 public static unsafe partial class Native
 {
 	[DllImport(USER32_DLL)]
@@ -65,6 +65,8 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, SetLastError = false)]
 	public static extern IntPtr GetMessageExtraInfo();
 
+	#region Key
+
 	[DllImport(USER32_DLL)]
 	public static extern short GetKeyState(VirtualKey k);
 
@@ -74,6 +76,19 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL)]
 	[return: MA(UT.Bool)]
 	public static extern bool GetKeyboardState([MA(UT.LPArray), In] byte[] r);
+
+	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
+	public static extern void keybd_event(byte bVk, byte bScan, KEYEVENTF dwFlags, IntPtr dwExtraInfo = default);
+
+	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool RegisterHotKey(IntPtr hWnd, int id, HotKeyModifiers fsModifiers, uint vk);
+
+	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+	#endregion
 
 	[DllImport(USER32_DLL)]
 	public static extern IntPtr GetFocus();
@@ -149,6 +164,87 @@ public static unsafe partial class Native
 	public static extern uint EnumClipboardFormats(uint uFormat);
 
 	#endregion
+
+	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool GetMessage(out MSG lpMsg, [Optional] IntPtr hWnd, [Optional] uint wMsgFilterMin,
+	                                     [Optional] uint wMsgFilterMax);
+
+	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
+	public static extern uint RegisterWindowMessage(string lpString);
+
+	[DllImport(USER32_DLL)]
+	public static extern IntPtr DispatchMessage(in MSG lpMsg);
+
+	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool TranslateMessage(in MSG lpMsg);
+
+	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
+	public static extern void PostQuitMessage([Optional] int nExitCode);
+
+	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool PostThreadMessage(uint idThread, uint Msg, [Optional] IntPtr wParam,
+	                                            [Optional] IntPtr lParam);
+
+	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool KillTimer([Optional] IntPtr hWnd, IntPtr uIDEvent);
+
+	[UnmanagedFunctionPointer(CallingConvention.Winapi)]
+	public delegate void Timerproc(IntPtr hwnd, uint uMsg, IntPtr idEvent, uint dwTime);
+
+	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
+	public static extern IntPtr SetTimer([Optional] IntPtr hWnd, [Optional] IntPtr nIDEvent, [Optional] uint uElapse,
+	                                     [Optional] Timerproc lpTimerFunc);
+}
+
+[Flags]
+public enum KEYEVENTF
+{
+	/// <summary>If specified, the scan code was preceded by a prefix byte having the value 0xE0 (224).</summary>
+	KEYEVENTF_EXTENDEDKEY = 0x0001,
+
+	/// <summary>If specified, the key is being released. If not specified, the key is being depressed.</summary>
+	KEYEVENTF_KEYUP = 0x0002,
+
+	/// <summary>
+	/// If specified, the system synthesizes a VK_PACKET keystroke. The wVk parameter must be zero. This flag can only be combined
+	/// with the KEYEVENTF_KEYUP flag. For more information, see the Remarks section.
+	/// </summary>
+	KEYEVENTF_UNICODE = 0x0004,
+
+	/// <summary>If specified, wScan identifies the key and wVk is ignored.</summary>
+	KEYEVENTF_SCANCODE = 0x0008,
+}
+
+[Flags]
+public enum HotKeyModifiers
+{
+	/// <summary>Nothing held down.</summary>
+	MOD_NONE = 0,
+
+	/// <summary>Either ALT key must be held down.</summary>
+	MOD_ALT = 0x0001,
+
+	/// <summary>Either CTRL key must be held down.</summary>
+	MOD_CONTROL = 0x0002,
+
+	/// <summary>Either SHIFT key must be held down.</summary>
+	MOD_SHIFT = 0x0004,
+
+	/// <summary>
+	/// Either WINDOWS key was held down. These keys are labeled with the Windows logo. Keyboard shortcuts that involve the WINDOWS
+	/// key are reserved for use by the operating system.
+	/// </summary>
+	MOD_WIN = 0x0008,
+
+	/// <summary>
+	/// Changes the hotkey behavior so that the keyboard auto-repeat does not yield multiple hotkey notifications.
+	/// <para>Windows Vista: This flag is not supported.</para>
+	/// </summary>
+	MOD_NOREPEAT = 0x4000,
 }
 
 //todo
@@ -159,8 +255,8 @@ public enum ClipboardFormat : uint
 	CF_OEMTEXT     = 7,
 	CF_HDROP       = 15,
 
-	FileName       = 0xC006,
-	FileNameW      = 0xC007
+	FileName  = 0xC006,
+	FileNameW = 0xC007
 }
 
 public enum HandleWindowPosition

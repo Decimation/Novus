@@ -7,6 +7,7 @@ using Kantan.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -33,11 +34,12 @@ namespace Novus.Runtime;
 /// Represents a runtime component which contains data and resources.
 /// </summary>
 /// <seealso cref="EmbeddedResources"/>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public class RuntimeResource : IDisposable
 {
-	public Pointer<byte> Address { get; }
+	public Pointer<byte> Address => Module.Value.BaseAddress;
 
-	public ProcessModule Module { get; }
+	public Lazy<ProcessModule> Module { get; }
 
 	public string ModuleName { get; }
 
@@ -57,13 +59,9 @@ public class RuntimeResource : IDisposable
 	{
 		ModuleName = moduleName;
 
-		var module = p.FindModule(moduleName);
-
-		Require.NotNull(module);
-
-		Module       = module;
-		Scanner      = new Lazy<SigScanner>(() => new SigScanner(Module));
-		Address      = Module.BaseAddress;
+		Module       = new(() => p.FindModule(moduleName));
+		Scanner      = new Lazy<SigScanner>(() => new SigScanner(Module.Value));
+		
 		Symbols      = new Lazy<SymbolReader>(() => pdb is not null ? new SymbolReader(pdb) : null);
 		LoadedModule = false;
 	}
@@ -320,7 +318,7 @@ public class RuntimeResource : IDisposable
 
 	public Pointer GetSymbol(string name)
 	{
-		return (Pointer<byte>) Module.BaseAddress +
+		return (Pointer<byte>) Module.Value.BaseAddress +
 		       (Symbols.Value?.GetSymbol(name)?.Offset
 		        ?? throw new InvalidOperationException());
 	}
@@ -359,7 +357,7 @@ public class RuntimeResource : IDisposable
 		return Address + (long.TryParse(s, NumberStyles.HexNumber, null, out long l) ? l : long.Parse(s));
 	}
 
-	public Pointer<byte> GetExport(string name) => NativeLibrary.GetExport(Module.BaseAddress, name);
+	public Pointer<byte> GetExport(string name) => NativeLibrary.GetExport(Module.Value.BaseAddress, name);
 
 	public Pointer<byte> GetSignature(string signature) => Scanner.Value.FindSignature(signature);
 
@@ -370,7 +368,7 @@ public class RuntimeResource : IDisposable
 
 		if (LoadedModule) {
 			//Native.FreeLibrary(Module.BaseAddress);
-			NativeLibrary.Free(Module.BaseAddress);
+			NativeLibrary.Free(Module.Value.BaseAddress);
 		}
 
 		GC.SuppressFinalize(this);
@@ -378,6 +376,6 @@ public class RuntimeResource : IDisposable
 
 	public override string ToString()
 	{
-		return $"{Module.ModuleName} ({Scanner.Value.Address})";
+		return $"{Module.Value.ModuleName} ({Scanner.Value.Address})";
 	}
 }

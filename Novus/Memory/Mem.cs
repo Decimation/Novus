@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -797,7 +798,7 @@ public static unsafe class Mem
 		/*if (RuntimeProperties.IsStruct(value)) {
 			return addr.Cast();
 		}*/
-		
+
 		if (typeof(T).IsValueType) {
 			return addr.Cast();
 		}
@@ -827,6 +828,14 @@ public static unsafe class Mem
 		return p + offsetOf;
 	}
 
+	public static Pointer<TField> AddressOfField<T, TField>(in T obj, Expression<Func<TField>> mem)
+	{
+		int offsetOf = OffsetOf(obj.GetType(), ReflectionOperatorHelpers.memberof2(mem).Name);
+
+		Pointer p = AddressOfData(ref U.AsRef(in obj));
+
+		return p + offsetOf;
+	}
 	/*public static ref TField ReferenceOfField<TField>(object obj, string name) =>
 		ref AddressOfField<object, TField>(obj, name).Reference;
 

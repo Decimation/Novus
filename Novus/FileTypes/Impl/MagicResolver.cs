@@ -37,7 +37,7 @@ public sealed class MagicResolver : IFileTypeResolver
 
 	private static string GetMagicFile()
 	{
-		var mgc = Path.Combine(Global.DataFolder, EmbeddedResources.F_MAGIC);
+		var mgc = Path.Combine(Global.DataFolder, EmbeddedResources.F_Magic);
 
 		if (!File.Exists(mgc)) {
 			File.WriteAllBytes(mgc, EmbeddedResources.magic);

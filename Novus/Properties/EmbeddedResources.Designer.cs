@@ -61,20 +61,47 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to cmd.exe.
+        /// </summary>
+        internal static string E_Cmd {
+            get {
+                return ResourceManager.GetString("E_Cmd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to explorer.exe.
+        /// </summary>
+        internal static string E_Explorer {
+            get {
+                return ResourceManager.GetString("E_Explorer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to file.exe.
         /// </summary>
-        internal static string EXE_FILE {
+        internal static string E_File {
             get {
-                return ResourceManager.GetString("EXE_FILE", resourceCulture);
+                return ResourceManager.GetString("E_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to python.exe.
+        /// </summary>
+        internal static string E_Py {
+            get {
+                return ResourceManager.GetString("E_Py", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to magic.mgc.
         /// </summary>
-        internal static string F_MAGIC {
+        internal static string F_Magic {
             get {
-                return ResourceManager.GetString("F_MAGIC", resourceCulture);
+                return ResourceManager.GetString("F_Magic", resourceCulture);
             }
         }
         

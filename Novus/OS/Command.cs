@@ -24,7 +24,7 @@ public static class Command
 	{
 		// https://stackoverflow.com/questions/5519328/executing-batch-file-in-c-sharp
 
-		var process = Run(Native.CMD_EXE);
+		var process = Run(ER.E_Cmd);
 
 		if (args is { }) {
 			process.StartInfo.Arguments = $"/C {args}";
@@ -46,7 +46,7 @@ public static class Command
 
 		args = args.Replace('\"', '\'');
 
-		var startInfo = new ProcessStartInfo(Native.PYTHON_EXE)
+		var startInfo = new ProcessStartInfo(ER.E_Py)
 		{
 			Arguments              = $"-c \"{args}\"",
 			UseShellExecute        = false,

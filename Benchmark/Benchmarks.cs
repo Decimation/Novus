@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using Kantan.Utilities;
@@ -34,6 +35,44 @@ public class MyStruct
 	public override string ToString()
 	{
 		return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+	}
+}
+
+[RyuJitX64Job]
+public class Benchmarks21
+{
+	private int    a, b;
+	private IntPtr fn;
+
+	[GlobalSetup]
+	public void GlobalSetup() { }
+
+	[IterationSetup]
+	public void IterationSetup()
+	{
+		a = 123;
+		b = 321;
+
+		fn = AtomicHelper.GetCacheExchangeFunction<int>();
+	}
+
+	[IterationCleanup]
+	public void IterationCleanup()
+	{
+		a = 123;
+		b = 321;
+	}
+
+	[Benchmark]
+	public int Test1()
+	{
+		return Interlocked.Exchange(ref a, b);
+	}
+
+	[Benchmark]
+	public unsafe int Test2()
+	{
+		return ((delegate*<ref int, int, int>) fn)(ref a, b);
 	}
 }
 

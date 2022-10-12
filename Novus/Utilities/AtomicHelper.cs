@@ -15,7 +15,8 @@ public static class AtomicHelper
 
 	private static IntPtr GetExchangeFunction<T>()
 	{
-		var method = typeof(Interlocked).GetAnyMethod("Exchange", new[] { typeof(T).MakeByRefType(), typeof(T) });
+		var method =
+			typeof(Interlocked).GetAnyMethod(nameof(Interlocked.Exchange), new[] { typeof(T).MakeByRefType(), typeof(T) });
 
 		if (method == null) {
 			return IntPtr.Zero;
@@ -25,24 +26,40 @@ public static class AtomicHelper
 		return pointer;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 	public static unsafe T Exchange<T>(ref T location1, T location2) /*where T : unmanaged*/
 	{
-/*fixed (T* p = &location1) {
+		/*fixed (T* p = &location1) {
 			T   value;
 			var v = Interlocked.Exchange(ref *(int*)p, Unsafe.Read<int>(&location2));
 			value = *(T*)(&v);
 			return Unsafe.Read<T>(&value);
 		}*/
 
-		var type = typeof(T);
+		var fn = GetCacheExchangeFunction<T>();
 
-		if (!Cache.ContainsKey(type)) {
-			Cache[type] = GetExchangeFunction<T>();
-		}
-
-		var function = (delegate*<ref T, T, T>) Cache[type];
+		var function = (delegate*<ref T, T, T>) fn;
 
 		return function(ref location1, location2);
 
+	}
+
+	/// <returns><c>(delegate*&lt;ref T, T, T&gt;)</c></returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+	public static IntPtr GetCacheExchangeFunction<T>()
+	{
+		var type = typeof(T);
+
+		IntPtr ptr;
+
+		if (!Cache.ContainsKey(type)) {
+			ptr         = GetExchangeFunction<T>();
+			Cache[type] = ptr;
+		}
+		else {
+			ptr = Cache[type];
+		}
+
+		return ptr;
 	}
 }

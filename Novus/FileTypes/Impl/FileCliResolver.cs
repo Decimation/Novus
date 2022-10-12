@@ -43,7 +43,7 @@ public sealed class FileCliResolver : IFileTypeResolver
 			{
 				StartInfo =
 				{
-					FileName  = ER.EXE_FILE,
+					FileName  = ER.E_File,
 					Arguments = args,
 
 					RedirectStandardInput  = false,

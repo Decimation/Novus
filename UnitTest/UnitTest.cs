@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Novus.FileTypes;
 using Novus.FileTypes.Impl;
@@ -229,6 +230,23 @@ public class Tests_GCHeap
 
 		Assert.True(o.Count == 1);
 		Assert.True(GCHeap.IsHeapPointer(o));
+
+	}
+}
+
+[TestFixture]
+public class Tests_Atomic
+{
+	[Test]
+	public void Test1()
+	{
+		const int i  = 1;
+		const int i1 = 0;
+
+		int a = i, b = i1;
+
+		Assert.AreEqual(Interlocked.Exchange(ref a, b), i);
+		Assert.AreEqual(AtomicHelper.Exchange(ref a, b), b);
 
 	}
 }
@@ -1184,6 +1202,23 @@ public class Tests_Mem
 	}
 
 	[Test]
+	public void FieldTest2()
+	{
+		var a = new MyStruct() { a = 123, b = 321 };
+
+		var ofs  = Mem.OffsetOf<MyStruct>(nameof(MyStruct.a));
+		var ptr  = Mem.AddressOf(ref a);
+		var ptr2 = (ptr + ofs).Cast<int>();
+		Assert.AreEqual(ptr2.Value, a.a);
+
+		var ptr3 = Mem.AddressOfField<MyStruct, int>(in a, nameof(MyStruct.a)).Cast<int>();
+		Assert.AreEqual(ptr2, ptr3);
+
+		var ptr4 = Mem.AddressOfField(in a, () => a.a);
+		Assert.AreEqual(ptr2, ptr4);
+	}
+
+	[Test]
 	public void SpecialReadTest()
 	{
 		var a = new Clazz { a  = 321 };
@@ -1196,6 +1231,17 @@ public class Tests_Mem
 		Assert.AreEqual(((Clazz) Mem.ReadProcessMemory(proc, a1, typeof(Clazz))).a, a.a);
 
 		Assert.AreEqual(((Struct) Mem.ReadProcessMemory(proc, b1, typeof(Struct))).a, b.a);
+	}
+
+	[Test]
+	public void RefTest()
+	{
+		object     a = 123;
+		ref object b = ref Mem.ref_cast(a);
+		Assert.AreEqual(a, b);
+		b = 321;
+		Assert.AreEqual(a, b);
+
 	}
 }
 

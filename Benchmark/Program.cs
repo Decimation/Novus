@@ -8,7 +8,7 @@ public static class Program
 	{
 		// cd .\Benchmark\ ; dotnet build -c Release ; dotnet run -c Release
 			
-		BenchmarkRunner.Run<BenchmarksPointer>();
+		BenchmarkRunner.Run<Benchmarks21>();
 
 	}
 }

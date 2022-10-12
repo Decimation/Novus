@@ -205,7 +205,8 @@ public static class FileSystem
 
 		//Clean up file path so it can be navigated OK
 		filePath = Path.GetFullPath(filePath);
-		using var p = Process.Start(Native.EXPLORER_EXE, $"/select,\"{filePath}\"");
+
+		using var p = Process.Start(ER.E_Explorer, $"/select,\"{filePath}\"");
 
 		p.WaitForExit();
 

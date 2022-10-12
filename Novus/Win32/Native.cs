@@ -77,11 +77,6 @@ public static unsafe partial class Native
 
 	#region EXE
 
-	public const string CMD_EXE = "cmd.exe";
-
-	public const string EXPLORER_EXE = "explorer.exe";
-
-	public const  string PYTHON_EXE = "python.exe";
 	private const uint   ZERO_U     = 0u;
 
 	#endregion

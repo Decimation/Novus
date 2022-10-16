@@ -108,6 +108,16 @@ namespace Novus.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] File_types {
+            get {
+                object obj = ResourceManager.GetObject("File_types", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] magic {
             get {
                 object obj = ResourceManager.GetObject("magic", resourceCulture);

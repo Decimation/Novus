@@ -33,7 +33,6 @@ using static SigParser.CEEToken;
  * https://github.com/microsoft/clrmd/blob/master/src/Microsoft.Diagnostics.Runtime/src/Common/ClrElementTypeExtensions.cs
  */
 
-
 public unsafe struct SigParser
 {
 	private byte* _sig;
@@ -238,25 +237,25 @@ public unsafe struct SigParser
 			case ELEMENT_TYPE_I8:
 			case ELEMENT_TYPE_U8:
 			case ELEMENT_TYPE_R8:
-				pSize = 8;
+				pSize = sizeof(long);
 				break;
 
 			case ELEMENT_TYPE_I4:
 			case ELEMENT_TYPE_U4:
 			case ELEMENT_TYPE_R4:
-				pSize = 4;
+				pSize = sizeof(int);
 				break;
 
 			case ELEMENT_TYPE_I2:
 			case ELEMENT_TYPE_U2:
 			case ELEMENT_TYPE_CHAR:
-				pSize = 2;
+				pSize = sizeof(short);
 				break;
 
 			case ELEMENT_TYPE_I1:
 			case ELEMENT_TYPE_U1:
 			case ELEMENT_TYPE_BOOLEAN:
-				pSize = 1;
+				pSize = sizeof(byte);
 				break;
 
 			case ELEMENT_TYPE_I:
@@ -662,7 +661,6 @@ public unsafe struct SigParser
 		IMAGE_CEE_CS_CALLCONV_EXPLICITTHIS = 0x40,
 		IMAGE_CEE_CS_CALLCONV_GENERIC      = 0x10,
 	}
-
 
 	public enum CorElementType2
 	{

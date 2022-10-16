@@ -7,15 +7,21 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Versioning;
 using System.Text;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 using Kantan.Text;
+using Microsoft.VisualBasic.FileIO;
 using Novus;
+using Novus.FileTypes;
 using Novus.Memory;
 using Novus.OS;
 using Novus.Utilities;
@@ -100,23 +106,14 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
-public static unsafe class Program
+public static /*unsafe*/ class Program
 {
-	private static void Main(string[] args)
+	private static async Task Main(string[] args)
 	{
-		Console.WriteLine("wb");
-		var c = Native.OpenClipboard(IntPtr.Zero);
+		const string s = @"https://i.imgur.com/QtCausw.png";
+		const string s2 = @"C:\Users\Deci\Downloads\170_-_Chainsaw_Man_-_c043_v05_-_p174-p175_VIZ_Media_Digital_1r0n.png";
 
-		var fmt = Native.EnumClipboardFormats();
-		Console.WriteLine(fmt.QuickJoin());
-		// Native.SetClipboard("hello", (uint) ClipboardFormat.CF_UNICODETEXT);
-		// Console.WriteLine(Native.GetClipboard((uint) ClipboardFormat.CF_UNICODETEXT));
-
-		// Native.DragAcceptFiles(Native.GetConsoleWindow(), true);
-
-		// Thread.Sleep(TimeSpan.FromSeconds(5));
-		Console.WriteLine(Native.GetClipboardFileList().QuickJoin());
-
+		Console.WriteLine(FileType.ResolveAsync(File.OpenRead(s2)));
 	}
 
 	private static void Test3()
@@ -172,7 +169,7 @@ public static unsafe class Program
 		Console.WriteLine("Pid {0}: Thread exited with code: {1}", pid, exitCode);
 	}
 
-	private static void Test2(string[] args, Process p)
+	private static unsafe void Test2(string[] args, Process p)
 	{
 		var pid = (uint) p.Id;
 

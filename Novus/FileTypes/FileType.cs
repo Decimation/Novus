@@ -1,5 +1,8 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics;
+using System.Globalization;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.Json.Nodes;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
 
@@ -27,65 +30,61 @@ public readonly struct FileType : IEquatable<FileType>
 
 	// todo: move to Embedded Resources
 
-	#region
-
-	public static readonly FileType gif = new()
+	public static FileType? Find(string name)
 	{
-		Pattern   = new byte[] { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61, },
-		Mask      = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, },
-		MediaType = "image/gif"
-	};
+		for (var i = 0; i < All.Length; i++) {
+			var ft = All[i];
+			var s  = ft.MediaType;
 
-	public static readonly FileType gif2 = new()
-	{
-		Pattern   = new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61, },
-		Mask      = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, },
-		MediaType = "image/gif",
-	};
+			if (s == name || s.Split('/')[^1] == name || ft.IsType(name)) {
+				return ft;
+			}
+		}
 
-	public static readonly FileType webp = new()
-	{
-		Pattern   = new byte[] { 0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, },
-		Mask      = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, },
-		MediaType = "image/webp"
-	};
-
-	public static readonly FileType png = new()
-	{
-		Pattern   = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, },
-		Mask      = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, },
-		MediaType = "image/png"
-	};
-
-	public static readonly FileType jpg = new()
-	{
-		Pattern   = new byte[] { 0xFF, 0xD8, 0xFF },
-		Mask      = new byte[] { 0xFF, 0xFF, 0xFF },
-		MediaType = "image/jpeg"
-	};
-
-	public static readonly FileType bmp = new()
-	{
-		Pattern   = new byte[] { 0x42, 0x4D },
-		Mask      = new byte[] { 0xFF, 0xFF },
-		MediaType = "image/bmp",
-
-	};
-
-	#endregion
+		return null;
+	}
 
 	public bool IsType(string p) => IsType(p, MediaType);
 
 	static FileType()
 	{
-		All = typeof(FileType)
+		/*All = typeof(FileType)
 		      .GetFields(BindingFlags.Static | BindingFlags.Public)
 		      .Where(f => f.FieldType == typeof(FileType))
 		      .Select(x => (FileType) x.GetValue(null)!)
 		      .ToArray();
+		      */
+
+		All = ReadDatabase();
 	}
 
 	public static readonly FileType[] All;
+
+	public static FileType[] ReadDatabase()
+	{
+		var node = JsonNode.Parse(ER.File_types);
+		var rg   = node.AsArray();
+		var rg2  = new List<FileType>();
+
+		foreach (var r in rg) {
+			var o = r.AsObject();
+
+			var mask      = o["mask"].ToString();
+			var patt      = o["sig"].ToString();
+			var mediaType = o["name"].ToString();
+
+			var ft = new FileType()
+			{
+				Mask      = M.ReadByteArrayString(mask),
+				Pattern   = M.ReadByteArrayString(patt),
+				MediaType = mediaType
+			};
+
+			rg2.Add(ft);
+		}
+
+		return rg2.ToArray();
+	}
 
 	public const int RSRC_HEADER_LEN = 1445;
 

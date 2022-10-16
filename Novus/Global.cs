@@ -159,6 +159,10 @@ public static class Global
 	[ModuleInitializer]
 	public static void Setup()
 	{
+		if (IsSetup) {
+			return;
+		}
+
 		/*
 		 * Setup
 		 */

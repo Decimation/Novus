@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Novus.Utilities;
 
-internal class BitCalculator
+public static class BitCalculator
 {
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool ReadBit(int value, int bitOfs)
@@ -17,21 +18,25 @@ internal class BitCalculator
 		return (value & (1 << bitOfs)) != 0;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static int SetBit(int x, int n)
 	{
 		return x | (1 << n);
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static int UnsetBit(int x, int n)
 	{
 		return x & ~(1 << n);
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static int ToggleBit(int x, int n)
 	{
 		return x ^ (1 << n);
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static int GetBitMask(int index, int size)
 	{
 		return ((1 << size) - 1) << index;
@@ -45,11 +50,13 @@ internal class BitCalculator
 	/// <param name="bitCount">Number of bits to read</param>
 	/// <seealso cref="BitArray" />
 	/// <seealso cref="BitVector32" />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static int ReadBits(int value, int bitOfs, int bitCount)
 	{
 		return (value & GetBitMask(bitOfs, bitCount)) >> bitOfs;
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static int WriteBits(int data, int index, int size, int value)
 	{
 		return (data & ~GetBitMask(index, size)) | (value << index);

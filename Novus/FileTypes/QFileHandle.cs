@@ -8,6 +8,8 @@ using Novus.Utilities;
 
 namespace Novus.FileTypes;
 
+//TODO: WIP
+
 public class QFileHandle : IDisposable
 {
 	private QFileHandle() { }
@@ -43,7 +45,7 @@ public class QFileHandle : IDisposable
 	{
 		var b = Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out var u);
 
-		QFileInfo m = default;
+		QFileInfo m;
 
 		if (b) {
 			bool isFile = (u.IsFile && File.Exists(s));
@@ -56,7 +58,7 @@ public class QFileHandle : IDisposable
 			};
 
 			try {
-				if (isFile) {
+				if (m.IsFile) {
 					if (auto) {
 
 						m.Stream = File.OpenRead(s);
@@ -70,15 +72,22 @@ public class QFileHandle : IDisposable
 
 						using var client = new HttpClient(handler)
 							{ };
+						var req = new HttpRequestMessage(HttpMethod.Get, s);
 
-						m.Stream = await client.GetStreamAsync(s);
+						var res = await client.SendAsync(req);
 
+						m.Stream = await res.Content.ReadAsStreamAsync();
 					}
 				}
 				else { }
 			}
-			catch (Exception e) { }
+			catch (Exception e) {
+				
+			}
 
+		}
+		else {
+			m = default;
 		}
 
 		return m;

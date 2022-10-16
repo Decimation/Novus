@@ -198,6 +198,22 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	public static extern IntPtr SetTimer([Optional] IntPtr hWnd, [Optional] IntPtr nIDEvent, [Optional] uint uElapse,
 	                                     [Optional] Timerproc lpTimerFunc);
+
+	public const int MF_BYCOMMAND = 0x00000000;
+
+	[DllImport(USER32_DLL)]
+	public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
+
+	[DllImport(USER32_DLL)]
+	public static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+}
+
+public enum SysCommand : uint
+{
+	SC_CLOSE    = 0xF060,
+	SC_MINIMIZE = 0xF020,
+	SC_MAXIMIZE = 0xF030,
+	SC_SIZE     = 0xF000,
 }
 
 [Flags]

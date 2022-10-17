@@ -60,8 +60,6 @@ namespace Novus.Win32.Wrappers
             Native.PostThreadMessage(curThreadId, callbackMsg);
         }
 
-        /// <summary>Quits the running message loop by calling <see cref="PostQuitMessage"/>.</summary>
-        /// <param name="exitCode">An optional exit code.</param>
         public virtual void Quit(int exitCode = 0)
         {
             CancelTimeout();

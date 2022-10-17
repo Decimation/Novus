@@ -114,6 +114,7 @@ public static /*unsafe*/ class Program
 		const string s2 = @"C:\Users\Deci\Downloads\170_-_Chainsaw_Man_-_c043_v05_-_p174-p175_VIZ_Media_Digital_1r0n.png";
 
 		Console.WriteLine(FileType.ResolveAsync(File.OpenRead(s2)));
+
 	}
 
 	private static void Test3()

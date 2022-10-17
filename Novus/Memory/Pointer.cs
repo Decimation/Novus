@@ -1,6 +1,7 @@
 ﻿global using Pointer = Novus.Memory.Pointer<byte>;
 using System.Buffers;
 using System.Runtime.InteropServices;
+using Novus.Runtime.Meta;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 #nullable enable
@@ -100,7 +101,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public bool IsNull => this == Mem.Nullptr;
 
-	public Pointer() : this(null) { }
+	public Pointer() : this(value: null) { }
 
 	public Pointer(void* value)
 	{

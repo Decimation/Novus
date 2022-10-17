@@ -73,8 +73,8 @@ public static class ReflectionHelper
 	{
 		var member = t.GetAnyMember(fname).FirstOrDefault();
 
-		if (member is {MemberType: MemberTypes.Property}) {
-			return t.GetBackingField();
+		if (member is PropertyInfo { MemberType: MemberTypes.Property } prop) {
+			return prop.GetBackingField();
 		}
 		else {
 			return member as FI;
@@ -147,11 +147,24 @@ public static class ReflectionHelper
 		return rg;
 	}
 
-	public static FI GetBackingField(this MMI m)
+	[CBN]
+	public static FI GetBackingField(this PI pi)
 	{
-		var fv = m.DeclaringType.GetAnyResolvedField(m.Name);
+		/*
+		 * https://stackoverflow.com/questions/8817070/is-it-possible-to-access-backing-fields-behind-auto-implemented-properties
+		 */
 
-		return fv;
+		if (!pi.CanRead || !pi.GetGetMethod(nonPublic: true).IsDefined(typeof(CompilerGeneratedAttribute), inherit: true)) {
+			return null;
+		}
+
+		var backingField = pi.DeclaringType.GetField($"<{pi.Name}>{SN_BACKING_FIELD}", ALL_FLAGS);
+
+		if (backingField == null || !backingField.IsDefined(typeof(CompilerGeneratedAttribute), inherit: true)) {
+			return null;
+		}
+
+		return backingField;
 	}
 
 	public static FI GetBackingField(this Type t, string name)
@@ -449,7 +462,7 @@ public static class ReflectionHelper
 		return t2;
 	}
 
-	public static T Consolidate<T>(T current, IList<object> values)
+	/*public static T Consolidate<T>(T current, IList<object> values)
 	{
 		var fields = typeof(T).GetRuntimeFields()
 		                      .Where(f => !f.IsStatic);
@@ -463,7 +476,7 @@ public static class ReflectionHelper
 				/*
 				 * (fieldVal != null || (fieldVal is string str && !string.IsNullOrWhiteSpace(str))) &&
 				    (currentFieldVal == null || currentFieldVal is string str2 && string.IsNullOrWhiteSpace(str2))
-				 */
+				 #1#
 
 				if (fieldVal != null && currentFieldVal == null) {
 					field.SetValue(current, fieldVal);
@@ -484,7 +497,7 @@ public static class ReflectionHelper
 	public static void Assign<T>(Type t, string name, T val, object inst = null)
 	{
 		Assign<T, object>(t, name, val, inst);
-	}
+	}*/
 
 	public delegate bool IsNullObject(Type t, object o);
 

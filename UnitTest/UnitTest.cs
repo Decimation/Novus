@@ -561,7 +561,8 @@ public class Tests_Metadata
 	public void FieldTest2()
 	{
 		Clazz c = new();
-		var   p = Mem.AddressOfField(c, nameof(Clazz.prop));
+
+		var p = Mem.AddressOfField(c, nameof(Clazz.prop));
 
 		Assert.True(!p.IsNull);
 
@@ -569,7 +570,13 @@ public class Tests_Metadata
 
 		Assert.AreEqual(c.prop, p.Value);
 
-		//
+	}
+	[Test]
+	public void FieldTest4()
+	{
+		Clazz c = new();
+		var m=c.GetType().GetAnyResolvedField(nameof(Clazz.prop));
+		Assert.NotNull(m);
 
 	}
 

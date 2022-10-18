@@ -485,6 +485,18 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	#endregion
 
+	public MemoryHandle Pin(int elementIndex = OFFSET)
+	{
+		var handle = new MemoryHandle(Offset(elementIndex));
+
+		return handle;
+	}
+
+	public void Unpin()
+	{
+		// ...
+	}
+
 	public MemoryBasicInformation Query() => Native.QueryMemoryPage(this);
 
 	/// <summary>
@@ -496,14 +508,4 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     Default increment/decrement/element count for <see cref="Pointer{T}" />
 	/// </summary>
 	private const int ELEM_CNT = 1;
-
-	public MemoryHandle Pin(int elementIndex)
-	{
-		return new(Offset(elementIndex));
-	}
-
-	public void Unpin()
-	{
-		//todo
-	}
 }

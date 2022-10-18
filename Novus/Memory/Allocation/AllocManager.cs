@@ -1,5 +1,5 @@
-﻿
-using System;
+﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -30,13 +30,6 @@ public static class AllocManager
 	private static List<Pointer> Allocated { get; } = new();
 
 	public static int AllocCount => Allocated.Count;
-
-	public static void Close()
-	{
-		foreach (var pointer in Allocated) {
-			FreeInternal(pointer);
-		}
-	}
 
 	public static bool IsAllocated(Pointer<byte> ptr)
 	{
@@ -115,6 +108,13 @@ public static class AllocManager
 		Allocated.Add(h);
 
 		return h;
+	}
+
+	public static void Close()
+	{
+		foreach (var pointer in Allocated) {
+			FreeInternal(pointer);
+		}
 	}
 
 	/*[MustUseReturnValue]

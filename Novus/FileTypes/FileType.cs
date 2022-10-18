@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿global using MN=System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -13,8 +15,10 @@ namespace Novus.FileTypes;
 /// <remarks><a href="https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern">6.1</a></remarks>
 public readonly struct FileType : IEquatable<FileType>
 {
+	[MN]
 	public byte[] Mask { get; init; }
 
+	[MN]
 	public byte[] Pattern { get; init; }
 
 	public string MediaType { get; init; }
@@ -32,11 +36,10 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public static FileType? Find(string name)
 	{
-		for (var i = 0; i < All.Length; i++) {
-			var ft = All[i];
-			var s  = ft.MediaType;
+		foreach (FileType ft in All) {
+			var mt = ft.MediaType;
 
-			if (s == name || s.Split('/')[^1] == name || ft.IsType(name)) {
+			if (mt == name || mt.Split(MIME_TYPE_DELIM).LastOrDefault() == name || ft.IsType(name)) {
 				return ft;
 			}
 		}
@@ -60,30 +63,33 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public static readonly FileType[] All;
 
+	/// <summary>
+	/// Reads <see cref="FileType"/> from <see cref="ER.File_types"/>
+	/// </summary>
 	public static FileType[] ReadDatabase()
 	{
-		var node = JsonNode.Parse(ER.File_types);
-		var rg   = node.AsArray();
-		var rg2  = new List<FileType>();
+		var jNode = JsonNode.Parse(ER.File_types);
+		var jArray   = jNode.AsArray();
+		var rg  = new List<FileType>();
 
-		foreach (var r in rg) {
+		foreach (var r in jArray) {
 			var o = r.AsObject();
 
-			var mask      = o["mask"].ToString();
-			var patt      = o["sig"].ToString();
-			var mediaType = o["name"].ToString();
+			var mask      = o[ER.K_Mask].ToString();
+			var sig      = o[ER.K_Pattern].ToString();
+			var mediaType = o[ER.K_Name].ToString();
 
 			var ft = new FileType()
 			{
 				Mask      = M.ReadByteArrayString(mask),
-				Pattern   = M.ReadByteArrayString(patt),
+				Pattern   = M.ReadByteArrayString(sig),
 				MediaType = mediaType
 			};
 
-			rg2.Add(ft);
+			rg.Add(ft);
 		}
 
-		return rg2.ToArray();
+		return rg.ToArray();
 	}
 
 	public const int RSRC_HEADER_LEN = 1445;
@@ -179,7 +185,7 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public static bool IsType(string p, string mt)
 	{
-		return mt?.Split('/').FirstOrDefault()?.ToLower() == p.ToLower();
+		return mt.Split(MIME_TYPE_DELIM).FirstOrDefault()?.ToLower() == p.ToLower();
 	}
 
 	#region Overrides of ValueType
@@ -221,12 +227,13 @@ public readonly struct FileType : IEquatable<FileType>
 	public const string MT_TEXT_PLAIN               = $"{MT_TEXT}/plain";
 	public const string MT_APPLICATION_OCTET_STREAM = $"{MT_APPLICATION}/octet-stream";
 
-	public const string MT_IMAGE       = "image";
-	public const string MT_TEXT        = "text";
-	public const string MT_APPLICATION = "application";
-	public const string MT_VIDEO       = "video";
-	public const string MT_AUDIO       = "audio";
-	public const string MT_MODEL       = "model";
+	public const  string MT_IMAGE        = "image";
+	public const  string MT_TEXT         = "text";
+	public const  string MT_APPLICATION  = "application";
+	public const  string MT_VIDEO        = "video";
+	public const  string MT_AUDIO        = "audio";
+	public const  string MT_MODEL        = "model";
+	private const char   MIME_TYPE_DELIM = '/';
 
 	#endregion
 

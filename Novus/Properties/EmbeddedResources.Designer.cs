@@ -116,6 +116,33 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to mask.
+        /// </summary>
+        internal static string K_Mask {
+            get {
+                return ResourceManager.GetString("K_Mask", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name.
+        /// </summary>
+        internal static string K_Name {
+            get {
+                return ResourceManager.GetString("K_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pattern.
+        /// </summary>
+        internal static string K_Pattern {
+            get {
+                return ResourceManager.GetString("K_Pattern", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] magic {

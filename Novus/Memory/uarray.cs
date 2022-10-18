@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using Novus.Memory.Allocation;
+
 // ReSharper disable StaticMemberInGenericType
 
 namespace Novus.Memory;
@@ -56,10 +57,12 @@ public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 
 	public Pointer<T> AddressOfIndex(int i) => Address.AddressOfIndex(i);
 
-
 	public MemoryHandle Pin(int elementIndex) => Address.Pin(elementIndex);
 
-	public void Unpin() => Address.Unpin();
+	public void Unpin()
+	{
+		//
+	}
 
 	public Span<T> AsSpan() => new(Address.ToPointer(), Length);
 
@@ -76,31 +79,27 @@ public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 		using var pin = memory.Pin();
 
 		Buffer.MemoryCopy(pin.Pointer, (void*) Address, Size, Size);
-
-		/*for (int i = 0; i < t.Length; i++) {
-				this[i] = t[i];
-			}*/
-
 	}
-
 
 	private void Free()
 	{
 		AllocManager.Free(Address);
 
-		fixed (UArray<T>* p = &this) {
+		var ptr = M.AddressOfField<UArray<T>, Pointer<T>>(in this, nameof(Address));
+
+		ptr.Write(Mem.Nullptr);
+
+		/*fixed (UArray<T>* p = &this) {
 			//hack
 			U.Write<Pointer<Pointer<T>>>(p, Mem.Nullptr);
-		}
+		}*/
 
 	}
-
 
 	public void Dispose()
 	{
 		Free();
 	}
-
 
 	/// <summary>Get enumerator instance.</summary>
 	/// <returns></returns>
@@ -122,7 +121,6 @@ public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 	{
 		return $"{Address} [{Length}]";
 	}
-
 
 	/// <summary>Enumerator of <see cref="UArray{T}"/></summary>
 	public struct UArrayEnumerator : IEnumerator<T>

@@ -129,7 +129,11 @@ public class Benchmarks19
 	public void GlobalSetup()
 	{
 		m_stream = File.OpenRead(@"C:\Users\Deci\Pictures\Art\0c4c80957134d4304538c27499d84dbe.jpeg");
-
+		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(MagicNative).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(MagicResolver).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(UrlmonResolver).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(FastResolver).TypeHandle);
 	}
 
 	[Benchmark]

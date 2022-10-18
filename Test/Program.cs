@@ -50,6 +50,8 @@ using Novus.Runtime;
 
 namespace Test;
 
+// # .NET 7
+
 /*
  * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
  * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
@@ -59,6 +61,7 @@ namespace Test;
  * todo: integrate pdbex
  * todo: IL, ILSupport
  */
+
 /*
  * ◆ Novus				https://github.com/Decimation/Novus
  * ⨉ NeoCore			https://github.com/Decimation/NeoCore
@@ -67,6 +70,7 @@ namespace Test;
  * ◆ Kantan				https://github.com/Decimation/Kantan
  * 
  */
+
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -106,6 +110,7 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
+
 public static /*unsafe*/ class Program
 {
 	private static async Task Main(string[] args)

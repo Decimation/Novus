@@ -5,12 +5,6 @@ namespace Novus.FileTypes.Impl;
 
 public sealed class UrlmonResolver : IFileTypeResolver
 {
-	public IEnumerable<FileType> Resolve(byte[] buf)
-	{
-		var data = ResolveFromData(buf);
-		return new[] { new FileType() { MediaType = data } };
-	}
-
 	private UrlmonResolver() { }
 
 	public static readonly IFileTypeResolver Instance = new UrlmonResolver();
@@ -51,6 +45,20 @@ public sealed class UrlmonResolver : IFileTypeResolver
 		return mimeRet;
 	}
 
+	public IEnumerable<FileType> Resolve(byte[] buf)
+	{
+		var data = ResolveFromData(buf);
+		return new[] { new FileType() { MediaType = data } };
+	}
+
+	[DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
+	private static extern int FindMimeFromData(IntPtr pBC, [MA(UT.LPWStr)] string pwzUrl,
+	                                           [MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
+	                                           byte[] pBuffer, int cbSize,
+	                                           [MA(UT.LPWStr)] string pwzMimeProposed,
+	                                           MimeFromDataFlags dwMimeFlags, out IntPtr ppwzMimeOut,
+	                                           int dwReserved);
+
 	/// <see cref="FindMimeFromData"/>
 	[Flags]
 	private enum MimeFromDataFlags
@@ -63,12 +71,4 @@ public sealed class UrlmonResolver : IFileTypeResolver
 		RESPECT_TEXT_PLAIN       = 0x00000010,
 		RETURN_UPDATED_IMG_MIMES = 0x00000020,
 	}
-
-	[DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-	private static extern int FindMimeFromData(IntPtr pBC, [MA(UT.LPWStr)] string pwzUrl,
-	                                           [MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
-	                                           byte[] pBuffer, int cbSize,
-	                                           [MA(UT.LPWStr)] string pwzMimeProposed,
-	                                           MimeFromDataFlags dwMimeFlags, out IntPtr ppwzMimeOut,
-	                                           int dwReserved);
 }

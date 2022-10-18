@@ -571,11 +571,12 @@ public class Tests_Metadata
 		Assert.AreEqual(c.prop, p.Value);
 
 	}
+
 	[Test]
 	public void FieldTest4()
 	{
 		Clazz c = new();
-		var m=c.GetType().GetAnyResolvedField(nameof(Clazz.prop));
+		var   m = c.GetType().GetAnyResolvedField(nameof(Clazz.prop));
 		Assert.NotNull(m);
 
 	}

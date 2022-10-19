@@ -10,6 +10,15 @@ namespace Novus.Utilities;
 
 public static class StreamExtensions
 {
+	public static void Write<T>(this Span<T> s, params T[] v)
+	{
+		for (int i = 0; i < v.Length; i++) {
+			s[i] = v[i];
+		}
+	}
+
+	public static Pointer<T> ToPointer<T>(this Span<T> s) => Mem.AddressOf(ref s.GetPinnableReference());
+
 	public static MemoryStream Copy(this Stream inputStream, int bufferSize = 256)
 	{
 		var ret = new MemoryStream();

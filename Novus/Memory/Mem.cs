@@ -484,15 +484,6 @@ public static unsafe class Mem
 		return null;
 	}*/
 
-	public static void Write<T>(this Span<T> s, params T[] v)
-	{
-		for (int i = 0; i < v.Length; i++) {
-			s[i] = v[i];
-		}
-	}
-
-	public static Pointer<T> ToPointer<T>(this Span<T> s) => AddressOf(ref s.GetPinnableReference());
-
 	#endregion
 
 	#region Copy
@@ -806,6 +797,8 @@ public static unsafe class Mem
 		return AddressOfHeapInternal(value, OffsetOptions.Fields);
 	}
 
+	public static Pointer AddressOfData2<T>(in T value) => AddressOfData(ref ref_cast(in value));
+
 	#region Field
 
 	public static Pointer AddressOfField(object obj, string name) => AddressOfField<object, byte>(obj, name);
@@ -823,16 +816,16 @@ public static unsafe class Mem
 	{
 		int offsetOf = OffsetOf(obj.GetType(), name);
 
-		Pointer p = AddressOfData(ref U.AsRef(in obj));
+		Pointer p = AddressOfData2(in obj);
 
 		return p + offsetOf;
 	}
 
 	public static Pointer<TField> AddressOfField<T, TField>(in T obj, Expression<Func<TField>> mem)
 	{
-		int offsetOf = OffsetOf(obj.GetType(), ReflectionOperatorHelpers.memberof2(mem).Name);
+		int offsetOf = OffsetOf(obj.GetType(), memberof2(mem).Name);
 
-		Pointer p = AddressOfData(ref U.AsRef(in obj));
+		Pointer p = AddressOfData2(in obj);
 
 		return p + offsetOf;
 	}

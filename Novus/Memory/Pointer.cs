@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Runtime.InteropServices;
 using Novus.Runtime.Meta;
+using Novus.Utilities;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 #nullable enable

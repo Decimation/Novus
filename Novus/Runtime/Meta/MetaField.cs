@@ -27,14 +27,12 @@ public unsafe class MetaField : EmbeddedClrStructure<FieldDesc>
 
 	public MetaField(FieldInfo ptr) : base(ptr) { }
 
-
 	public CorElementType Element => Value.Reference.Element;
 
 	public AccessModifiers Access => Value.Reference.Access;
 
 	public int Offset => Value.Reference.Offset;
 
-		
 	public override FieldInfo Info => EnclosingType.RuntimeType.Module.ResolveField(Token);
 
 	public MetaType FieldType => Info.FieldType;

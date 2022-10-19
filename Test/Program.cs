@@ -24,6 +24,7 @@ using Novus;
 using Novus.FileTypes;
 using Novus.Memory;
 using Novus.OS;
+using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
@@ -111,15 +112,19 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
 
-public static /*unsafe*/ class Program
+public static unsafe class Program
 {
-	private static async Task Main(string[] args)
+	private static void Main(string[] args)
 	{
-		const string s = @"https://i.imgur.com/QtCausw.png";
+		// string s = @"https://i.imgur.com/QtCausw.png";
 		const string s2 = @"C:\Users\Deci\Downloads\170_-_Chainsaw_Man_-_c043_v05_-_p174-p175_VIZ_Media_Digital_1r0n.png";
+		string s = "foo";
 
-		Console.WriteLine(FileType.ResolveAsync(File.OpenRead(s2)));
-
+		int i = 123;
+		var ptr = Mem.AddressOfField<string,char>(in s, "_firstChar");
+		ref var c = ref ptr.Reference;
+		c = 'g';
+		Console.WriteLine(s);
 	}
 
 	private static void Test3()

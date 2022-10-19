@@ -85,21 +85,17 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public CorElementType NormType => EEClass.Reference.NormType;
 
-	public IEnumerable<MetaField> Fields => RuntimeType.GetRuntimeFields()
-	                                                   .Select(f => new MetaField(f));
+	public IEnumerable<MetaField> Fields
+		=> RuntimeType.GetRuntimeFields()
+		              .Select(f => new MetaField(f));
 
-	public IEnumerable<MetaMethod> Methods => RuntimeType.GetRuntimeMethods()
-	                                                     .Select(m => new MetaMethod(m));
+	public IEnumerable<MetaMethod> Methods
+		=> RuntimeType.GetRuntimeMethods()
+		              .Select(m => new MetaMethod(m));
 
-	public MetaField GetField(string name)
-	{
-		return RuntimeType.GetAnyField(name);
-	}
+	public MetaField GetField(string name) => RuntimeType.GetAnyField(name);
 
-	public MetaMethod GetMethod(string name)
-	{
-		return RuntimeType.GetAnyMethod(name);
-	}
+	public MetaMethod GetMethod(string name) => RuntimeType.GetAnyMethod(name);
 
 	private Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 	{
@@ -184,19 +180,18 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	{
 		get
 		{
-			if (RuntimeType.IsValueType)
-			{
+			if (RuntimeType.IsValueType) {
 
-				var m = typeof(Mem).GetRuntimeMethods().First(delegate (MethodInfo n)
+				var m = typeof(Mem).GetRuntimeMethods().First(delegate(MethodInfo n)
 				{
 					var infos = n.GetParameters();
 
-					return n.Name                    == nameof(Mem.SizeOf)
-					       && infos.Length           == 2
+					return n.Name == nameof(Mem.SizeOf)
+					       && infos.Length == 2
 					       && infos[1].ParameterType == typeof(SizeOfOptions);
 				});
 
-				return (int)m.CallGeneric(RuntimeType, null, null, SizeOfOptions.Intrinsic);
+				return (int) m.CallGeneric(RuntimeType, null, null, SizeOfOptions.Intrinsic);
 			}
 
 			// Subtract the size of the ObjHeader and MethodTable*

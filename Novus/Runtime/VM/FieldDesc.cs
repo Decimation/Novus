@@ -24,7 +24,6 @@ public unsafe struct FieldDesc
 
 	private Pointer<MethodTable> EnclosingMethodTableStub { get; }
 
-
 	/// <summary>
 	/// <c>DWORD</c> #1
 	///     <para>unsigned m_mb : 24;</para>
@@ -83,7 +82,6 @@ public unsafe struct FieldDesc
 		}
 	}
 
-
 	internal CorElementType Element => (CorElementType) (int) ((UInt2 >> 27) & 0x7FFFFFF);
 
 	internal AccessModifiers Access => (AccessModifiers) (int) ((UInt1 >> 26) & 0x3FFFFFF);
@@ -113,6 +111,7 @@ public unsafe struct FieldDesc
 	/// </summary>
 	[field: ImportClr("Sig_GetStaticAddr")]
 	private static delegate* unmanaged[Thiscall]<FieldDesc*, void*> Func_StaticAddress { get; }
+
 }
 
 /// <summary>

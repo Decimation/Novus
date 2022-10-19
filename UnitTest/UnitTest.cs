@@ -1251,6 +1251,16 @@ public class Tests_Mem
 		Assert.AreEqual(a, b);
 
 	}
+
+	[Test]
+	public void AddrOfDataTest()
+	{
+		int i = 123;
+		Assert.AreEqual(Mem.AddressOfData(ref i), Mem.AddressOfData2(in i));
+
+		string s = "butt";
+		Assert.AreEqual(Mem.AddressOfData(ref s), Mem.AddressOfData2(s));
+	}
 }
 
 static class c

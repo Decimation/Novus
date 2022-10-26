@@ -538,6 +538,20 @@ public class Tests_ReflectionHelper
 		Assert.AreEqual(3, f.Length);
 		Assert.AreEqual(1, b.GetNullMembers().Length);
 	}
+
+	[Test]
+	public void Test8()
+	{
+		var a = new Clazz();
+		var b = new Struct();
+		var (s, g) = ReflectionHelper.GetAccessor(() => a.a);
+		s(123);
+		Assert.AreEqual(123, a.a);
+		(s, g) = ReflectionHelper.GetAccessor(() => b.a);
+		s(321);
+		Assert.AreEqual(321, b.a);
+
+	}
 }
 
 [TestFixture]

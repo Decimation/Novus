@@ -5,6 +5,7 @@ global using PI = System.Reflection.PropertyInfo;
 global using MMI = System.Reflection.MemberInfo;
 global using FI = System.Reflection.FieldInfo;
 global using static Novus.Utilities.ReflectionOperatorHelpers;
+global using RH = Novus.Utilities.ReflectionHelper;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -154,7 +155,8 @@ public static class ReflectionHelper
 		 * https://stackoverflow.com/questions/8817070/is-it-possible-to-access-backing-fields-behind-auto-implemented-properties
 		 */
 
-		if (!pi.CanRead || !pi.GetGetMethod(nonPublic: true).IsDefined(typeof(CompilerGeneratedAttribute), inherit: true)) {
+		if (!pi.CanRead || !pi.GetGetMethod(nonPublic: true)
+		                      .IsDefined(typeof(CompilerGeneratedAttribute), inherit: true)) {
 			return null;
 		}
 
@@ -498,6 +500,46 @@ public static class ReflectionHelper
 	{
 		Assign<T, object>(t, name, val, inst);
 	}*/
+
+	/*public static void SetValue<T>(object target, T input, Expression<Func<T>> outExpr)
+	{
+		var x = GetAccessor<T>(outExpr);
+		x.Set(input);
+	}*/
+
+	/// <summary>
+	/// <a href="https://stackoverflow.com/questions/1402803/passing-properties-by-reference-in-c-sharp">See</a>
+	/// </summary>
+	public static (Action<T> Set, Func<T> Get) GetAccessor<T>(Expression<Func<T>> expr)
+	{
+		var memberExpression   = (MemberExpression) expr.Body;
+		var instanceExpression = memberExpression.Expression;
+		var parameter          = Expression.Parameter(typeof(T));
+
+		Action<T> setter = null;
+		Func<T>   getter = null;
+
+		switch (memberExpression.Member) {
+			case PI pi:
+				setter = Expression.Lambda<Action<T>>(
+					Expression.Call(instanceExpression, pi.GetSetMethod(), parameter),
+					parameter).Compile();
+
+				getter = Expression.Lambda<Func<T>>(Expression.Call(instanceExpression, pi.GetGetMethod()))
+				                   .Compile();
+				break;
+			case FI fi:
+				setter = Expression.Lambda<Action<T>>(Expression.Assign(memberExpression, parameter), parameter)
+				                   .Compile();
+
+				getter = Expression.Lambda<Func<T>>(
+					                   Expression.Field(instanceExpression, fi))
+				                   .Compile();
+				break;
+		}
+
+		return (setter, getter);
+	}
 
 	public delegate bool IsNullObject(Type t, object o);
 

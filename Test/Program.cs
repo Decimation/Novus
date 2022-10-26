@@ -9,7 +9,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
@@ -52,7 +54,6 @@ using Novus.Runtime;
 namespace Test;
 
 // # .NET 7
-
 /*
  * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
  * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
@@ -62,7 +63,6 @@ namespace Test;
  * todo: integrate pdbex
  * todo: IL, ILSupport
  */
-
 /*
  * ◆ Novus				https://github.com/Decimation/Novus
  * ⨉ NeoCore			https://github.com/Decimation/NeoCore
@@ -71,7 +71,6 @@ namespace Test;
  * ◆ Kantan				https://github.com/Decimation/Kantan
  * 
  */
-
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -116,15 +115,7 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		// string s = @"https://i.imgur.com/QtCausw.png";
-		const string s2 = @"C:\Users\Deci\Downloads\170_-_Chainsaw_Man_-_c043_v05_-_p174-p175_VIZ_Media_Digital_1r0n.png";
-		string s = "foo";
-
-		int i = 123;
-		var ptr = Mem.AddressOfField<string,char>(in s, "_firstChar");
-		ref var c = ref ptr.Reference;
-		c = 'g';
-		Console.WriteLine(s);
+		
 	}
 
 	private static void Test3()
@@ -150,7 +141,19 @@ public static unsafe class Program
 	{
 		public int a;
 
-		public float f { get; }
+		public float f { get; set; }
+
+		public override string ToString()
+		{
+			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		}
+	}
+
+	private class MyClass
+	{
+		public int a;
+
+		public float f { get; set; }
 
 		public override string ToString()
 		{

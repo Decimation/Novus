@@ -270,6 +270,9 @@ public enum ClipboardFormat : uint
 	CF_UNICODETEXT = 13,
 	CF_OEMTEXT     = 7,
 	CF_HDROP       = 15,
+	CF_DIB = 8,
+	CF_DIBV5=17,
+	CF_BITMAP=2,
 
 	FileName  = 0xC006,
 	FileNameW = 0xC007

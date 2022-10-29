@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using Novus.Memory;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.Ntdll;
@@ -77,7 +76,7 @@ public static unsafe partial class Native
 
 	#region EXE
 
-	private const uint   ZERO_U     = 0u;
+	private const uint ZERO_U = 0u;
 
 	#endregion
 
@@ -483,29 +482,27 @@ public static unsafe partial class Native
 				tries++;
 				continue;
 			}
-			else if (result == NtStatus.SUCCESS || tries > 5)
+
+			if (result == NtStatus.SUCCESS || tries > 5)
 				break;
-			else {
-				//throw new Exception("Unhandled NtStatus " + result);
-				break;
-			}
+			//throw new Exception("Unhandled NtStatus " + result);
+			break;
 		}
 
 		if (result == NtStatus.SUCCESS)
 			return infoPtr; //don't forget to free the pointer with Marshal.FreeHGlobal after you're done with it
-		else
-			Marshal.FreeHGlobal(infoPtr); //free pointer when not Successful
+		Marshal.FreeHGlobal(infoPtr); //free pointer when not Successful
 
 		return IntPtr.Zero;
 	}
 
 	#region Clipboard
 
-	public static bool OpenClipboard() => Native.OpenClipboard(IntPtr.Zero);
+	public static bool OpenClipboard() => OpenClipboard(IntPtr.Zero);
 
 	public static bool SetClipboard(object s, uint? fmt = null)
 	{
-		fmt ??= (uint) DefaultClipboardFormat; //todo
+		fmt ??= DefaultClipboardFormat; //todo
 
 		switch (s) {
 			case string str:
@@ -519,17 +516,22 @@ public static unsafe partial class Native
 		return false;
 	}
 
-	public static string[] GetClipboardFileList()
+	public static string GetClipboardFileName()
 	{
-		var h = Native.GetClipboardData((uint)ClipboardFormat.CF_HDROP);
+		return (string) GetClipboard((uint) ClipboardFormat.FileNameW);
+	}
 
-		var cn = Native.DragQueryFile(h, UInt32.MaxValue, null, 0);
+	public static string[] GetClipboardDragQueryList()
+	{
+		var h = GetClipboardData((uint) ClipboardFormat.CF_HDROP);
+
+		var cn = DragQueryFile(h, UInt32.MaxValue, null, 0);
 		var rg = new List<string>();
 
 		for (int i = 0; i < cn; i++) {
-			var l    = Native.DragQueryFile(h, (uint) i, null, 0) + 1;
+			var l    = DragQueryFile(h, (uint) i, null, 0) + 1;
 			var file = new StringBuilder(l);
-			l = Native.DragQueryFile(h, (uint) i, file, l);
+			l = DragQueryFile(h, (uint) i, file, l);
 			rg.Add(file.ToString());
 		}
 
@@ -540,7 +542,7 @@ public static unsafe partial class Native
 	{
 		var fn = ClipboardFormatToString(f);
 
-		f ??= ((EnumClipboardFormats().FirstOrDefault()));
+		f ??= ((EnumClipboardFormats().FirstOrDefault(IsClipboardFormatAvailable)));
 		f ??= DefaultClipboardFormat;
 
 		var d = GetClipboardData(f.Value);
@@ -556,9 +558,13 @@ public static unsafe partial class Native
 	{
 		Func<IntPtr, string> fn = f switch
 		{
-			(uint) ClipboardFormat.CF_OEMTEXT => Marshal.PtrToStringUni,
-			(uint) ClipboardFormat.CF_TEXT    => Marshal.PtrToStringAnsi,
-			_                                 => Marshal.PtrToStringAuto
+			(uint) ClipboardFormat.FileNameW or
+				(uint) ClipboardFormat.CF_OEMTEXT => Marshal.PtrToStringUni,
+
+			(uint) ClipboardFormat.FileName or
+				(uint) ClipboardFormat.CF_TEXT => Marshal.PtrToStringAnsi,
+
+			_ => Marshal.PtrToStringAuto
 		};
 		return fn;
 	}
@@ -567,9 +573,13 @@ public static unsafe partial class Native
 	{
 		Func<string, IntPtr> fn = f switch
 		{
-			(uint) ClipboardFormat.CF_OEMTEXT => Marshal.StringToHGlobalUni,
-			(uint) ClipboardFormat.CF_TEXT    => Marshal.StringToHGlobalAnsi,
-			_                                 => Marshal.StringToHGlobalAuto
+			(uint) ClipboardFormat.FileNameW or
+				(uint) ClipboardFormat.CF_OEMTEXT => Marshal.StringToHGlobalUni,
+
+			(uint) ClipboardFormat.FileName or
+				(uint) ClipboardFormat.CF_TEXT => Marshal.StringToHGlobalAnsi,
+
+			_ => Marshal.StringToHGlobalAuto
 		};
 
 		return fn;

@@ -31,7 +31,6 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
-using static Novus.Win32.Native;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
 using System.Collections.Generic;
@@ -115,7 +114,15 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+		var c=Native.OpenClipboard();
 		
+		var f=Native.EnumClipboardFormats();
+
+		var    p  =Native.GetClipboardData(49159);
+		var s=Marshal.PtrToStringUni(p);
+		Console.WriteLine(s);
+		Console.WriteLine(Native.GetClipboard());
+		Console.WriteLine(Native.GetClipboardFileName());
 	}
 
 	private static void Test3()
@@ -173,9 +180,9 @@ public static unsafe class Program
 
 	private static void WaitForThreadToExit(IntPtr hThread)
 	{
-		WaitForSingleObject(hThread, unchecked((uint) -1));
+		Native.WaitForSingleObject(hThread, unchecked((uint) -1));
 
-		GetExitCodeThread(hThread, out uint exitCode);
+		Native.GetExitCodeThread(hThread, out uint exitCode);
 
 		var process = Process.GetCurrentProcess();
 		int pid     = process.Id;
@@ -196,7 +203,7 @@ public static unsafe class Program
 			// Get thread proc as an IntPtr, which we can then pass to the 2nd-process.
 			// We must keep the delegate alive so that fpProc remains valid
 
-			ThreadProc proc   = MyThreadProc;
+			Native.ThreadProc proc   = MyThreadProc;
 			IntPtr     fpProc = Marshal.GetFunctionPointerForDelegate(proc);
 
 			// Spin up the other process, and pass our pid and function pointer so that it can
@@ -222,10 +229,10 @@ public static unsafe class Program
 			uint pidParent = UInt32.Parse(args[0]);
 			var  fpProc    = new UIntPtr(UInt64.Parse(args[1]));
 
-			IntPtr hProcess = OpenProcess(ProcessAccess.All, false, (int) pidParent);
+			IntPtr hProcess = Native.OpenProcess(ProcessAccess.All, false, (int) pidParent);
 
 			// Create a thread in the first process.
-			IntPtr hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0,
+			IntPtr hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
 			                                    (IntPtr) fpProc.ToPointer(), new IntPtr(6789),
 			                                    0, out uint dwThreadId);
 			WaitForThreadToExit(hThread);

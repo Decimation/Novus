@@ -339,4 +339,9 @@ public static unsafe partial class Native
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+
+	[DllImport(KERNEL32_DLL)]
+	public static extern IntPtr GlobalLock(IntPtr hMem);
+	[DllImport(KERNEL32_DLL)]
+	public static extern IntPtr GlobalUnlock(IntPtr hMem);
 }

@@ -114,12 +114,12 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		var c=Native.OpenClipboard();
-		
-		var f=Native.EnumClipboardFormats();
+		var c = Native.OpenClipboard();
 
-		var    p  =Native.GetClipboardData(49159);
-		var s=Marshal.PtrToStringUni(p);
+		var f = Native.EnumClipboardFormats();
+
+		var p = Native.GetClipboardData(49159);
+		var s = Marshal.PtrToStringUni(p);
 		Console.WriteLine(s);
 		Console.WriteLine(Native.GetClipboard());
 		Console.WriteLine(Native.GetClipboardFileName());
@@ -180,7 +180,8 @@ public static unsafe class Program
 
 	private static void WaitForThreadToExit(IntPtr hThread)
 	{
-		Native.WaitForSingleObject(hThread, unchecked((uint) -1));
+		var c  = Native.WaitForSingleObject(hThread, unchecked((uint) -1));
+		var ex = Marshal.GetExceptionForHR((int) c);
 
 		Native.GetExitCodeThread(hThread, out uint exitCode);
 
@@ -204,7 +205,7 @@ public static unsafe class Program
 			// We must keep the delegate alive so that fpProc remains valid
 
 			Native.ThreadProc proc   = MyThreadProc;
-			IntPtr     fpProc = Marshal.GetFunctionPointerForDelegate(proc);
+			IntPtr            fpProc = Marshal.GetFunctionPointerForDelegate(proc);
 
 			// Spin up the other process, and pass our pid and function pointer so that it can
 			// use that to call CreateRemoteThread
@@ -233,8 +234,8 @@ public static unsafe class Program
 
 			// Create a thread in the first process.
 			IntPtr hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
-			                                    (IntPtr) fpProc.ToPointer(), new IntPtr(6789),
-			                                    0, out uint dwThreadId);
+			                                           (IntPtr) fpProc.ToPointer(), new IntPtr(6789),
+			                                           0, out uint dwThreadId);
 			WaitForThreadToExit(hThread);
 			return;
 		}

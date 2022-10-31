@@ -503,17 +503,16 @@ public static unsafe partial class Native
 	public static bool SetClipboard(object s, uint? fmt = null)
 	{
 		fmt ??= DefaultClipboardFormat; //todo
+		bool b = false;
 
 		switch (s) {
 			case string str:
 				var ptr = ClipboardFormatFromString(fmt)(str);
-				return SetClipboardData(fmt.Value, ptr.ToPointer()) != IntPtr.Zero;
-
-			default:
-				return false;
+				b = SetClipboardData(fmt.Value, ptr.ToPointer()) != IntPtr.Zero;
+				break;
 		}
 
-		return false;
+		return b;
 	}
 
 	public static string GetClipboardFileName()

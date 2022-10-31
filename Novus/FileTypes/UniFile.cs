@@ -4,21 +4,23 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Flurl;
+using Flurl.Http;
 using Novus.Utilities;
 
 namespace Novus.FileTypes;
 
 //TODO: WIP
 
-public class QFileHandle : IDisposable
+public class UniFile : IDisposable
 {
-	private QFileHandle() { }
+	private UniFile() { }
 
 	public QFileInfo Info { get; private init; }
 
 	public FileType[] FileTypes { get; private init; }
 
-	public static async Task<QFileHandle> GetHandleAsync(string s, IFileTypeResolver resolver = null)
+	public static async Task<UniFile> GetHandleAsync(string s, IFileTypeResolver resolver = null)
 	{
 		var m = await GetInfoAsync(s, true);
 
@@ -34,26 +36,27 @@ public class QFileHandle : IDisposable
 			m.Stream.Position = 0;
 		}
 
-		return new QFileHandle()
+		return new UniFile()
 		{
 			Info      = m,
 			FileTypes = types.ToArray()
 		};
 	}
 
-	public static async Task<QFileInfo> GetInfoAsync(string s, bool auto = false)
+	public static async Task<QFileInfo> GetInfoAsync([NN] string s, bool auto = false)
 	{
-		var b = Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out var u);
+		// var b = Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out var u);
+		var isFile = File.Exists(s);
+		var isUrl  = Url.IsValid(s);
 
 		QFileInfo m;
 
-		if (b) {
-			bool isFile = (u.IsFile && File.Exists(s));
+		if (isFile || isUrl) {
 
 			m = new()
 			{
 				IsFile = isFile,
-				IsUri  = !isFile //todo
+				IsUri  = isUrl
 
 			};
 
@@ -67,7 +70,7 @@ public class QFileHandle : IDisposable
 				}
 				else if (m.IsUri) {
 					if (auto) {
-						var handler = new HttpClientHandler()
+						/*var handler = new HttpClientHandler()
 							{ };
 
 						using var client = new HttpClient(handler)
@@ -76,14 +79,13 @@ public class QFileHandle : IDisposable
 
 						var res = await client.SendAsync(req);
 
-						m.Stream = await res.Content.ReadAsStreamAsync();
+						m.Stream = await res.Content.ReadAsStreamAsync();*/
+						m.Stream = await s.GetStreamAsync();
 					}
 				}
 				else { }
 			}
-			catch (Exception e) {
-				
-			}
+			catch (Exception e) { }
 
 		}
 		else {

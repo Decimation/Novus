@@ -146,6 +146,7 @@ public class RuntimeResource : IDisposable
 	/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
 	/// </summary>
 	/// <param name="t">Enclosing type</param>
+	/// <param name="throwOnErr">Passed to <see cref="GetImportValue"/></param>
 	public void LoadImports(Type t, bool throwOnErr = true)
 	{
 		if (m_loadedTypes.Contains(t)) {

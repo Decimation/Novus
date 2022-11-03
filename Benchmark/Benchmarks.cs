@@ -39,6 +39,32 @@ public class MyStruct
 }
 
 [RyuJitX64Job]
+public class Benchmarks22
+{
+	private Pointer<int> m_ptr;
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		m_ptr = AllocManager.Alloc<int>(1);
+
+	}
+
+	[GlobalCleanup]
+	public void GlobalCleanup()
+	{
+		AllocManager.Free(m_ptr);
+	}
+
+	[Benchmark]
+	public int a()
+	{
+		return m_ptr.ElementSize;
+	}
+
+}
+
+[RyuJitX64Job]
 public class Benchmarks21
 {
 	private int    a, b;

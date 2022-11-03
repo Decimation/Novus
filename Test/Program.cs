@@ -6,6 +6,7 @@ global using Native = Novus.Win32.Native;
 using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.SymbolStore;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
@@ -123,6 +124,7 @@ public static unsafe class Program
 		Console.WriteLine(s);
 		Console.WriteLine(Native.GetClipboard());
 		Console.WriteLine(Native.GetClipboardFileName());
+		
 	}
 
 	private static void Test3()

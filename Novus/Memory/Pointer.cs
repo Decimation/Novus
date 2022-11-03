@@ -1,4 +1,5 @@
-﻿global using Pointer = Novus.Memory.Pointer<byte>;
+﻿global using MImpl=System.Runtime.CompilerServices.MethodImplAttribute;
+global using Pointer = Novus.Memory.Pointer<byte>;
 using System.Buffers;
 using System.Runtime.InteropServices;
 using Novus.Runtime.Meta;
@@ -59,14 +60,14 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Size of element type <typeparamref name="T" />.
 	/// </summary>
-	public int ElementSize => (int) s_ElementSize;
+	public readonly int ElementSize => (int) s_ElementSize;
 
 	/// <summary>
 	///     Indexes <see cref="Address" /> as a reference.
 	/// </summary>
 	public ref T this[int index]
 	{
-		[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+		[method: MImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 		get { return ref AsRef(index); }
 	}
 
@@ -75,7 +76,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T Reference
 	{
-		[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+		[method: MImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 		get { return ref AsRef(); }
 	}
 
@@ -100,7 +101,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Whether <see cref="Address" /> is <c>null</c> (<see cref="IntPtr.Zero" />).
 	/// </summary>
-	public bool IsNull => this == Mem.Nullptr;
+	public readonly bool IsNull => this == Mem.Nullptr;
 
 	public Pointer() : this(value: null) { }
 
@@ -143,14 +144,14 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	/// <typeparam name="TNew">Type to point to</typeparam>
 	/// <returns>A new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" /></returns>
-	public Pointer<TNew> Cast<TNew>() => m_value;
+	public readonly Pointer<TNew> Cast<TNew>() => m_value;
 
 	/// <summary>
 	///     Creates a new <see cref="Pointer{T}" /> of type <see cref="Byte" />, pointing to
 	///     <see cref="Address" />
 	/// </summary>
 	/// <returns>A new <see cref="Pointer{T}" /> of type <see cref="Byte" /></returns>
-	public Pointer<byte> Cast() => Cast<byte>();
+	public readonly Pointer<byte> Cast() => Cast<byte>();
 
 	/// <summary>
 	///     Creates a native pointer of type <typeparamref name="TUnmanaged" />, pointing to
@@ -158,29 +159,29 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	/// <returns>A native pointer of type <typeparamref name="TUnmanaged" /></returns>
 	[Pure]
-	public TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged => (TUnmanaged*) m_value;
+	public readonly TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged => (TUnmanaged*) m_value;
 
 	/// <summary>
 	///     Creates a native <c>void*</c> pointer, pointing to <see cref="Address" />
 	/// </summary>
 	/// <returns>A native <c>void*</c> pointer</returns>
 	[Pure]
-	public void* ToPointer() => m_value;
+	public readonly void* ToPointer() => m_value;
 
 	[Pure]
-	public nint ToNativeInt() => (nint) m_value;
+	public readonly nint ToNativeInt() => (nint) m_value;
 
 	[Pure]
-	public ulong ToUInt64() => (ulong) m_value;
+	public readonly ulong ToUInt64() => (ulong) m_value;
 
 	[Pure]
-	public long ToInt64() => (long) m_value;
+	public readonly long ToInt64() => (long) m_value;
 
 	[Pure]
-	public int ToInt32() => (int) m_value;
+	public readonly int ToInt32() => (int) m_value;
 
 	[Pure]
-	public uint ToUInt32() => (uint) m_value;
+	public readonly uint ToUInt32() => (uint) m_value;
 
 	#endregion
 

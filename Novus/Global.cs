@@ -280,4 +280,7 @@ public static class Global
 	}
 
 	#endregion
+
+	internal const MethodImplOptions IMPL_OPTIONS =
+		MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization;
 }

@@ -117,6 +117,8 @@ public class RuntimeResource : IDisposable
 		}
 	}
 
+	public bool IsLoaded(Type t) => m_loadedTypes.Contains(t);
+
 	public void Unload(Type t)
 	{
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();

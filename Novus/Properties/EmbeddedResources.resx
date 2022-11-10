@@ -152,22 +152,22 @@
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
   <data name="Ofs_GCHeap" xml:space="preserve">
-    <value>49CCA0</value>
+    <value>497820</value>
     <comment>g_pGCHeap</comment>
   </data>
   <data name="Ofs_IsHeapPointer" xml:space="preserve">
-    <value>318790</value>
+    <value>31D880</value>
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>6.0.10</value>
+    <value>7.0.0</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
-    <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05</value>
+    <value>48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 56 41 57 48 83 EC 50 48 8B D9</value>
     <comment>AllocateObject</comment>
   </data>
   <data name="Sig_GetEEClass" xml:space="preserve">
-    <value>48 8B 41 28 A8 02 74 04 48 8B 40 26 C3</value>
+    <value>48 8B 41 28 A8 01 74 08 48 83 E0 FE 48 8B 40 28 C3</value>
     <comment>MethodTable::GetClass</comment>
   </data>
   <data name="Sig_GetIL" xml:space="preserve">
@@ -183,7 +183,7 @@
     <comment>TypeHandle::GetMethodTable</comment>
   </data>
   <data name="Sig_GetNativeCode" xml:space="preserve">
-    <value>0F B7 41 06 A8 20 74 17</value>
+    <value>0F B7 41 06 A8 20 74 13</value>
     <comment>MethodDesc::GetNativeCode</comment>
   </data>
   <data name="Sig_GetNativeLayoutInfo" xml:space="preserve">
@@ -191,7 +191,7 @@
     <comment>MethodTable::GetNativeLayoutInfo</comment>
   </data>
   <data name="Sig_GetRVA" xml:space="preserve">
-    <value>48 83 EC 38 0F B7 41 06</value>
+    <value>48 89 5C 24 ? 57 48 83 EC 30 0F B7 41 06 BB</value>
     <comment>MethodDesc::GetRVA</comment>
   </data>
   <data name="Sig_GetSize" xml:space="preserve">
@@ -207,7 +207,7 @@
     <comment>MethodDesc::IsPointingToNativeCode</comment>
   </data>
   <data name="Sig_Reset" xml:space="preserve">
-    <value>40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 75 1C</value>
+    <value>40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 74 0D</value>
     <comment>MethodDesc::ResetCodeEntryPoint</comment>
   </data>
   <data name="Sig_SetEntryPoint" xml:space="preserve">

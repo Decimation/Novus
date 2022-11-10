@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -16,7 +17,8 @@ public static class AtomicHelper
 	private static IntPtr GetExchangeFunction<T>()
 	{
 		var method =
-			typeof(Interlocked).GetAnyMethod(nameof(Interlocked.Exchange), new[] { typeof(T).MakeByRefType(), typeof(T) });
+			typeof(Interlocked).GetAnyMethod(nameof(Interlocked.Exchange),
+			                                 new[] { typeof(T).MakeByRefType(), typeof(T) });
 
 		if (method == null) {
 			return IntPtr.Zero;
@@ -26,7 +28,7 @@ public static class AtomicHelper
 		return pointer;
 	}
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+	[MethodImpl(Global.IMPL_OPTIONS)]
 	public static unsafe T Exchange<T>(ref T location1, T location2) /*where T : unmanaged*/
 	{
 		/*fixed (T* p = &location1) {
@@ -45,7 +47,7 @@ public static class AtomicHelper
 	}
 
 	/// <returns><c>(delegate*&lt;ref T, T, T&gt;)</c></returns>
-	[MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+	[MethodImpl(Global.IMPL_OPTIONS)]
 	public static IntPtr GetCacheExchangeFunction<T>()
 	{
 		var type = typeof(T);

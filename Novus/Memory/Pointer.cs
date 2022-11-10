@@ -67,7 +67,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T this[int index]
 	{
-		[method: MImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+		[method: MImpl(Global.IMPL_OPTIONS)]
 		get { return ref AsRef(index); }
 	}
 
@@ -76,7 +76,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T Reference
 	{
-		[method: MImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+		[method: MImpl(Global.IMPL_OPTIONS)]
 		get { return ref AsRef(); }
 	}
 
@@ -344,7 +344,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	/// <param name="value">Value to write.</param>
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
-	[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+	[method: MImpl(Global.IMPL_OPTIONS)]
 	public void Write(T value, int elemOffset = OFFSET) => Unsafe.Write(Offset(elemOffset), value);
 
 	/// <summary>
@@ -353,7 +353,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	/// <returns>The value read from the offset <see cref="Address" />.</returns>
 	[Pure]
-	[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+	[method: MImpl(Global.IMPL_OPTIONS)]
 	public T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
 
 	/// <summary>
@@ -362,7 +362,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 	[Pure]
-	[method: MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+	[method: MImpl(Global.IMPL_OPTIONS)]
 	public ref T AsRef(int elemOffset = OFFSET) => ref Unsafe.AsRef<T>(Offset(elemOffset));
 
 	/// <summary>
@@ -499,7 +499,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		// ...
 	}
 
-	public MemoryBasicInformation Query() => Native.QueryMemoryPage(this);
+	public readonly MemoryBasicInformation Query() => Native.QueryMemoryPage(this);
 
 	/// <summary>
 	///     Default offset for <see cref="Pointer{T}" />

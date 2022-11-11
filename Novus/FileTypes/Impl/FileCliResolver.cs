@@ -2,6 +2,7 @@
 
 namespace Novus.FileTypes.Impl;
 
+[Obsolete]
 public sealed class FileCliResolver : IFileTypeResolver
 {
 	public void Dispose() { }

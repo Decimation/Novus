@@ -16,7 +16,7 @@ public class UniFile : IDisposable
 {
 	private UniFile() { }
 
-	public QFileInfo Info { get; private init; }
+	public UniFileInfo Info { get; private init; }
 
 	public FileType[] FileTypes { get; private init; }
 
@@ -43,13 +43,13 @@ public class UniFile : IDisposable
 		};
 	}
 
-	public static async Task<QFileInfo> GetInfoAsync([NN] string s, bool auto = false)
+	public static async Task<UniFileInfo> GetInfoAsync([NN] string s, bool auto = false)
 	{
 		// var b = Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out var u);
 		var isFile = File.Exists(s);
 		var isUrl  = Url.IsValid(s);
 
-		QFileInfo m;
+		UniFileInfo m;
 
 		if (isFile || isUrl) {
 
@@ -105,7 +105,7 @@ public class UniFile : IDisposable
 	#endregion
 }
 
-public struct QFileInfo : IEquatable<QFileInfo>, IDisposable
+public struct UniFileInfo : IEquatable<UniFileInfo>, IDisposable
 {
 	public string Value { get; internal set; }
 
@@ -115,9 +115,9 @@ public struct QFileInfo : IEquatable<QFileInfo>, IDisposable
 
 	public Stream Stream { get; internal set; }
 
-	public bool Valid => IsFile || IsUri;
+	public bool IsValid => IsFile || IsUri;
 
-	public QFileInfo()
+	public UniFileInfo()
 	{
 		IsFile = false;
 		IsUri  = false;
@@ -138,22 +138,22 @@ public struct QFileInfo : IEquatable<QFileInfo>, IDisposable
 		}
 	}
 
-	public bool Equals(QFileInfo other)
+	public bool Equals(UniFileInfo other)
 	{
 		return Value == other.Value && IsFile == other.IsFile && IsUri == other.IsUri && Equals(Stream, other.Stream);
 	}
 
 	public override bool Equals(object obj)
 	{
-		return obj is QFileInfo other && Equals(other);
+		return obj is UniFileInfo other && Equals(other);
 	}
 
-	public static bool operator ==(QFileInfo left, QFileInfo right)
+	public static bool operator ==(UniFileInfo left, UniFileInfo right)
 	{
 		return left.Equals(right);
 	}
 
-	public static bool operator !=(QFileInfo left, QFileInfo right)
+	public static bool operator !=(UniFileInfo left, UniFileInfo right)
 	{
 		return !left.Equals(right);
 	}

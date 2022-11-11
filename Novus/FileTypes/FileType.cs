@@ -1,4 +1,4 @@
-﻿global using MN=System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
+﻿global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -68,15 +68,15 @@ public readonly struct FileType : IEquatable<FileType>
 	/// </summary>
 	public static FileType[] ReadDatabase()
 	{
-		var jNode = JsonNode.Parse(ER.File_types);
-		var jArray   = jNode.AsArray();
-		var rg  = new List<FileType>();
+		var jNode  = JsonNode.Parse(ER.File_types);
+		var jArray = jNode.AsArray();
+		var rg     = new List<FileType>();
 
 		foreach (var r in jArray) {
 			var o = r.AsObject();
 
 			var mask      = o[ER.K_Mask].ToString();
-			var sig      = o[ER.K_Pattern].ToString();
+			var sig       = o[ER.K_Pattern].ToString();
 			var mediaType = o[ER.K_Name].ToString();
 
 			var ft = new FileType()
@@ -227,13 +227,14 @@ public readonly struct FileType : IEquatable<FileType>
 	public const string MT_TEXT_PLAIN               = $"{MT_TEXT}/plain";
 	public const string MT_APPLICATION_OCTET_STREAM = $"{MT_APPLICATION}/octet-stream";
 
-	public const  string MT_IMAGE        = "image";
-	public const  string MT_TEXT         = "text";
-	public const  string MT_APPLICATION  = "application";
-	public const  string MT_VIDEO        = "video";
-	public const  string MT_AUDIO        = "audio";
-	public const  string MT_MODEL        = "model";
-	private const char   MIME_TYPE_DELIM = '/';
+	public const string MT_IMAGE       = "image";
+	public const string MT_TEXT        = "text";
+	public const string MT_APPLICATION = "application";
+	public const string MT_VIDEO       = "video";
+	public const string MT_AUDIO       = "audio";
+	public const string MT_MODEL       = "model";
+
+	private const char MIME_TYPE_DELIM = '/';
 
 	#endregion
 

@@ -116,7 +116,7 @@ public static class Program
 {
 	private static async Task Main(string[] args)
 	{
-		var fileType = FileType.Find("image/png").Value;
+		var fileType = FileType.Find("image").ToArray();
 
 		var t = await UniFile.TryGetAsync("https://i.imgur.com/QtCausw.png", whitelist: fileType);
 		Console.WriteLine(t);

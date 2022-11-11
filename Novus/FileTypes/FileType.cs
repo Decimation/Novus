@@ -24,27 +24,15 @@ public readonly struct FileType : IEquatable<FileType>
 	public string MediaType { get; init; }
 
 	public bool IsPartial => Mask is null && Pattern is null && MediaType is not null;
-
-	/*public HttpTypeSignature()
+	
+	public static IEnumerable<FileType> Find(string name)
 	{
-		Mask    = null;
-		Pattern = null;
-		Type    = null;
-	}*/
+		return from ft in All
+		       let mt = ft.MediaType
+		       where mt == name || mt.Split(MIME_TYPE_DELIM).LastOrDefault() == name || ft.IsType(name)
+		       select ft;
 
-	// todo: move to Embedded Resources
-
-	public static FileType? Find(string name)
-	{
-		foreach (FileType ft in All) {
-			var mt = ft.MediaType;
-
-			if (mt == name || mt.Split(MIME_TYPE_DELIM).LastOrDefault() == name || ft.IsType(name)) {
-				return ft;
-			}
-		}
-
-		return null;
+		// return Enumerable.Empty<FileType>();
 	}
 
 	public bool IsType(string p) => IsType(p, MediaType);

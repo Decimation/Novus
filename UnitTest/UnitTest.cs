@@ -60,11 +60,11 @@ public class Tests_FileTypes
 	static object[] _rg =
 	{
 		// new[] { @"http://www.zerochan.net/2750747", null },
-		new[] { @"https://i.imgur.com/QtCausw.png", FileType.Find("jpeg").Value.MediaType },
+		new[] { @"https://i.imgur.com/QtCausw.png", FileType.Find("jpeg").First().MediaType },
 		// new[] { @"https://kemono.party/patreon/user/3332300/post/65227512", null },
 		// @"https://i.pximg.net/img-master/img/2022/05/01/19/44/39/98022741_p0_master1200.jpg",
-		new[] { "C:\\Users\\Deci\\Pictures\\Test Images\\Test1.jpg", FileType.Find("jpeg").Value.MediaType },
-		new[] { "http://static.zerochan.net/atago.(azur.lane).full.2750747.png", FileType.Find("png").Value.MediaType }
+		new[] { "C:\\Users\\Deci\\Pictures\\Test Images\\Test1.jpg", FileType.Find("jpeg").First().MediaType },
+		new[] { "http://static.zerochan.net/atago.(azur.lane).full.2750747.png", FileType.Find("png").First().MediaType }
 	};
 
 	[Test]

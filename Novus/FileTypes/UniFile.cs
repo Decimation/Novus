@@ -83,6 +83,8 @@ public sealed class UniFile : IDisposable
 
 		var sq = new UniFile()
 		{
+			Value = value,
+			Stream = stream,
 			IsFile    = isFile,
 			IsUri     = isUrl,
 			FileTypes = types
@@ -109,6 +111,15 @@ public sealed class UniFile : IDisposable
 
 		return null;
 	}
+
+	#region Overrides of Object
+
+	public override string ToString()
+	{
+		return $"{Value} :: {(IsFile ? "File" : "Uri")} [{FileTypes.QuickJoin()}]";
+	}
+
+	#endregion
 
 	#region IDisposable
 

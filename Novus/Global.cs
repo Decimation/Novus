@@ -283,4 +283,8 @@ public static class Global
 
 	internal const MethodImplOptions IMPL_OPTIONS =
 		MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization;
+
+	public const string OS_WIN = "windows";
+	public const string OS_LINUX = "linux";
+
 }

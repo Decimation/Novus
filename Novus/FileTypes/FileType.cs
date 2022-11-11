@@ -3,11 +3,13 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.Caching;
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
 
+#nullable disable
 // ReSharper disable InconsistentNaming
 
 namespace Novus.FileTypes;
@@ -24,16 +26,26 @@ public readonly struct FileType : IEquatable<FileType>
 	public string MediaType { get; init; }
 
 	public bool IsPartial => Mask is null && Pattern is null && MediaType is not null;
-	
+
 	public static IEnumerable<FileType> Find(string name)
 	{
-		return from ft in All
-		       let mt = ft.MediaType
-		       where mt == name || mt.Split(MIME_TYPE_DELIM).LastOrDefault() == name || ft.IsType(name)
-		       select ft;
+		var query = Cache.AddOrGetExisting(name, FindInternal(name), new CacheItemPolicy() { })
+		            // ReSharper disable once ConstantNullCoalescingCondition
+		            ?? Cache[name];
+		
+		return (IEnumerable<FileType>) query;
 
-		// return Enumerable.Empty<FileType>();
+		static IEnumerable<FileType> FindInternal(string s)
+		{
+			return from ft in All
+			       let mt = ft.MediaType
+			       where mt == s || mt.Split(MIME_TYPE_DELIM).LastOrDefault() == s
+			                     || ft.IsType(s)
+			       select ft;
+		}
 	}
+
+	private static readonly ObjectCache Cache = MemoryCache.Default;
 
 	public bool IsType(string p) => IsType(p, MediaType);
 

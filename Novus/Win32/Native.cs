@@ -610,4 +610,5 @@ public static unsafe partial class Native
 	public static uint DefaultClipboardFormat { get; set; } = (uint) ClipboardFormat.CF_TEXT;
 
 	#endregion
+
 }

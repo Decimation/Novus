@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.SymbolStore;
 using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -39,6 +38,10 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Novus.Runtime;
+using System;
+using System.IO;
+using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 
 // ReSharper disable ClassNeverInstantiated.Local
 
@@ -120,6 +123,8 @@ public static class Program
 
 		var t = await UniFile.TryGetAsync("https://i.imgur.com/QtCausw.png", whitelist: fileType);
 		Console.WriteLine(t);
+		var f=await t.DownloadAsync();
+		Console.WriteLine(f);
 	}
 
 	private static void Test4()
@@ -133,6 +138,7 @@ public static class Program
 		Console.WriteLine(s);
 		Console.WriteLine(Native.GetClipboard());
 		Console.WriteLine(Native.GetClipboardFileName());
+		
 	}
 
 	private static void Test3()

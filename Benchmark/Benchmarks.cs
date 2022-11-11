@@ -39,6 +39,29 @@ public class MyStruct
 }
 
 [RyuJitX64Job]
+public class Benchmarks23
+{
+	private readonly Consumer m_consumer = new Consumer();
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
+	}
+
+	[GlobalCleanup]
+	public void GlobalCleanup()
+	{
+
+	}	
+	[Benchmark]
+	public void Test1()
+	{
+		FileType.Find("image").Consume(m_consumer);
+	}
+}
+
+[RyuJitX64Job]
 public class Benchmarks22
 {
 	private Pointer<int> m_ptr;
@@ -61,7 +84,6 @@ public class Benchmarks22
 	{
 		return m_ptr.ElementSize;
 	}
-
 }
 
 [RyuJitX64Job]

@@ -510,7 +510,7 @@ public class Tests_ReflectionHelper
 	}
 
 	[StructLayout(LayoutKind.Explicit, Size = 8)]
-	struct substrate { }
+	struct substrate1 { }
 
 	[Test]
 	[TestCase(typeof(int), true)]
@@ -521,7 +521,7 @@ public class Tests_ReflectionHelper
 	}
 
 	[Test]
-	[TestCase(typeof(substrate), true)]
+	[TestCase(typeof(substrate1), true)]
 	[TestCase(typeof(Pointer<>), true)]
 	[TestCase(typeof(Clazz), false)]
 	public void Test5(Type t, bool b)

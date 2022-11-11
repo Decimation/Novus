@@ -18,17 +18,21 @@ public sealed class UniFile : IDisposable
 {
 	private UniFile() { }
 
-	public string Value { get; internal set; }
+	public string Value { get; internal init; }
 
-	public bool IsFile { get; internal set; }
+	public bool IsFile { get; internal init; }
 
-	public bool IsUri { get; internal set; }
+	public bool IsUri { get; internal init; }
 
-	public Stream Stream { get; internal set; }
+	public Stream Stream { get; internal init; }
 
 	public bool IsValid => IsFile || IsUri;
 
 	public FileType[] FileTypes { get; private init; }
+
+	public static readonly UniFile Null = new();
+
+	public static (bool IsFile, bool IsUri) IsUriOrFile(string value) => (File.Exists(value), Url.IsValid(value));
 
 	public static async Task<UniFile> GetAsync(string value, IFileTypeResolver resolver = null,
 	                                           params FileType[] whitelist)
@@ -37,17 +41,16 @@ public sealed class UniFile : IDisposable
 
 		value = value.CleanString();
 
-		bool isFile, isUrl;
-		var  stream = Stream.Null;
-
-		isFile = File.Exists(value);
+		var (isFile, isUrl) = IsUriOrFile(value);
+		var stream = Stream.Null;
 
 		if (isFile) {
 			stream = File.OpenRead(value);
 			isUrl  = false;
 		}
 		else {
-			var res = await value.AllowAnyHttpStatus().WithHeaders(new
+			var res = await value.AllowAnyHttpStatus()
+			                     .WithHeaders(new
 			                     {
 				                     User_Agent = ER.UserAgent,
 
@@ -81,16 +84,20 @@ public sealed class UniFile : IDisposable
 
 		}
 
-		var sq = new UniFile()
+		var uf = new UniFile()
 		{
-			Value = value,
-			Stream = stream,
+			Value     = value,
+			Stream    = stream,
 			IsFile    = isFile,
 			IsUri     = isUrl,
 			FileTypes = types
 		};
 
-		return sq;
+		if (uf.Stream.CanSeek) {
+			uf.Stream.Position = 0;
+		}
+
+		return uf;
 	}
 
 	public static async Task<UniFile> TryGetAsync(string value, IFileTypeResolver resolver = null,
@@ -112,21 +119,28 @@ public sealed class UniFile : IDisposable
 		return null;
 	}
 
-	#region Overrides of Object
-
 	public override string ToString()
 	{
 		return $"{Value} :: {(IsFile ? "File" : "Uri")} [{FileTypes.QuickJoin()}]";
 	}
-
-	#endregion
-
-	#region IDisposable
 
 	public void Dispose()
 	{
 		Stream?.Dispose();
 	}
 
-	#endregion
+	public async Task<Memory<byte>> ToMemoryAsync()
+	{
+		var m = new byte[Stream.Length];
+		var i = await Stream.ReadAsync(m);
+		return m;
+	}
+
+	public async Task<string> DownloadAsync()
+	{
+		var async    = await ToMemoryAsync();
+		var fileName = Path.GetTempFileName();
+		await File.WriteAllBytesAsync(fileName, async.ToArray());
+		return fileName;
+	}
 }

@@ -214,4 +214,7 @@
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B FA 48 8B F1 E8 ? ? ? ? 48 8B CE</value>
     <comment>MethodDesc::SetStableEntryPointInterlocked</comment>
   </data>
+  <data name="UserAgent" xml:space="preserve">
+    <value>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36</value>
+  </data>
 </root>

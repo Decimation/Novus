@@ -112,9 +112,17 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
 
-public static unsafe class Program
+public static class Program
 {
-	private static void Main(string[] args)
+	private static async Task Main(string[] args)
+	{
+		var fileType = FileType.Find("image/png").Value;
+
+		var t = await UniFile.TryGetAsync("https://i.imgur.com/QtCausw.png", whitelist: fileType);
+		Console.WriteLine(t);
+	}
+
+	private static void Test4()
 	{
 		var c = Native.OpenClipboard();
 
@@ -125,7 +133,6 @@ public static unsafe class Program
 		Console.WriteLine(s);
 		Console.WriteLine(Native.GetClipboard());
 		Console.WriteLine(Native.GetClipboardFileName());
-		
 	}
 
 	private static void Test3()

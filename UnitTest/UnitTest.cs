@@ -38,6 +38,22 @@ using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
 namespace UnitTest;
 
+[SetUpFixture]
+public class SetupTrace
+{
+	[OneTimeSetUp]
+	public void StartTest()
+	{
+		Trace.Listeners.Add(new ConsoleTraceListener());
+	}
+
+	[OneTimeTearDown]
+	public void EndTest()
+	{
+		Trace.Flush();
+	}
+}
+
 [TestFixture]
 public class Tests_FileTypes
 {
@@ -55,7 +71,7 @@ public class Tests_FileTypes
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test4(string s, string type)
 	{
-		var t  = await UniFile.GetHandleAsync(s, IFileTypeResolver.Default);
+		var t  = await UniFile.TryGetAsync(s, IFileTypeResolver.Default);
 		var tt = t.FileTypes;
 		// var tt = await IFileTypeResolver.Default.ResolveAsync(t.Stream);
 		Assert.True(tt.Any(x => x.MediaType == type));
@@ -66,7 +82,7 @@ public class Tests_FileTypes
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test1(string s, string type)
 	{
-		var t = await UniFile.GetHandleAsync(s, UrlmonResolver.Instance);
+		var t = await UniFile.TryGetAsync(s, UrlmonResolver.Instance);
 		// var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
 		var tt = t.FileTypes;
 		Assert.True(tt.Any(x => x.MediaType == type));
@@ -77,7 +93,7 @@ public class Tests_FileTypes
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test2(string s, string type)
 	{
-		var t = await UniFile.GetHandleAsync(s, FastResolver.Instance);
+		var t = await UniFile.TryGetAsync(s, FastResolver.Instance);
 		// var tt = await MagicResolver.Instance.ResolveAsync(t.Stream);
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 		var tt = t.FileTypes;
@@ -89,7 +105,7 @@ public class Tests_FileTypes
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test3(string s, string type)
 	{
-		var t = await UniFile.GetHandleAsync(s, MagicResolver.Instance);
+		var t = await UniFile.TryGetAsync(s, MagicResolver.Instance);
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileTypes;
 		Assert.True(tt.Any(x => x.MediaType == type));

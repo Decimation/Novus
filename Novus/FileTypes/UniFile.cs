@@ -1,112 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
+using Kantan.Text;
 using Novus.Utilities;
 
 namespace Novus.FileTypes;
 
 //TODO: WIP
 
-public class UniFile : IDisposable
+public sealed class UniFile : IDisposable
 {
 	private UniFile() { }
 
-	public UniFileInfo Info { get; private init; }
-
-	public FileType[] FileTypes { get; private init; }
-
-	public static async Task<UniFile> GetHandleAsync(string s, IFileTypeResolver resolver = null)
-	{
-		var m = await GetInfoAsync(s, true);
-
-		using var copy = m.Stream.Copy();
-
-		resolver ??= IFileTypeResolver.Default;
-
-		//TODO
-
-		var types = await resolver.ResolveAsync(copy);
-
-		if (m.Stream.CanSeek) {
-			m.Stream.Position = 0;
-		}
-
-		return new UniFile()
-		{
-			Info      = m,
-			FileTypes = types.ToArray()
-		};
-	}
-
-	public static async Task<UniFileInfo> GetInfoAsync([NN] string s, bool auto = false)
-	{
-		// var b = Uri.TryCreate(s, UriKind.RelativeOrAbsolute, out var u);
-		var isFile = File.Exists(s);
-		var isUrl  = Url.IsValid(s);
-
-		UniFileInfo m;
-
-		if (isFile || isUrl) {
-
-			m = new()
-			{
-				IsFile = isFile,
-				IsUri  = isUrl
-
-			};
-
-			try {
-				if (m.IsFile) {
-					if (auto) {
-
-						m.Stream = File.OpenRead(s);
-
-					}
-				}
-				else if (m.IsUri) {
-					if (auto) {
-						/*var handler = new HttpClientHandler()
-							{ };
-
-						using var client = new HttpClient(handler)
-							{ };
-						var req = new HttpRequestMessage(HttpMethod.Get, s);
-
-						var res = await client.SendAsync(req);
-
-						m.Stream = await res.Content.ReadAsStreamAsync();*/
-						m.Stream = await s.GetStreamAsync();
-					}
-				}
-				else { }
-			}
-			catch (Exception e) { }
-
-		}
-		else {
-			m = default;
-		}
-
-		return m;
-	}
-
-	#region IDisposable
-
-	public void Dispose()
-	{
-		Info.Dispose();
-	}
-
-	#endregion
-}
-
-public struct UniFileInfo : IEquatable<UniFileInfo>, IDisposable
-{
 	public string Value { get; internal set; }
 
 	public bool IsFile { get; internal set; }
@@ -117,48 +28,87 @@ public struct UniFileInfo : IEquatable<UniFileInfo>, IDisposable
 
 	public bool IsValid => IsFile || IsUri;
 
-	public UniFileInfo()
-	{
-		IsFile = false;
-		IsUri  = false;
-		Value  = null;
-		Stream = Stream.Null;
-	}
+	public FileType[] FileTypes { get; private init; }
 
-	#region Equality members
-
-	public override int GetHashCode()
+	public static async Task<UniFile> GetAsync(string value, IFileTypeResolver resolver = null,
+	                                           params FileType[] whitelist)
 	{
-		unchecked {
-			int hashCode = (Value != null ? Value.GetHashCode() : 0);
-			hashCode = (hashCode * 397) ^ IsFile.GetHashCode();
-			hashCode = (hashCode * 397) ^ IsUri.GetHashCode();
-			hashCode = (hashCode * 397) ^ (Stream != null ? Stream.GetHashCode() : 0);
-			return hashCode;
+		// TODO: null or throw exception?
+
+		value = value.CleanString();
+
+		bool isFile, isUrl;
+		var  stream = Stream.Null;
+
+		isFile = File.Exists(value);
+
+		if (isFile) {
+			stream = File.OpenRead(value);
+			isUrl  = false;
 		}
+		else {
+			var res = await value.AllowAnyHttpStatus().WithHeaders(new
+			                     {
+				                     User_Agent = ER.UserAgent,
+
+			                     })
+			                     .GetAsync();
+
+			/*if (!res.ResponseMessage.IsSuccessStatusCode) {
+					Debug.WriteLine($"invalid status code {res.ResponseMessage.StatusCode} {value}");
+					return null;
+				}*/
+
+			stream = await res.GetStreamAsync();
+			isUrl  = true;
+
+		}
+
+		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
+
+		var types = (await IFileTypeResolver.Default.ResolveAsync(stream)).ToArray();
+
+		if (whitelist.Any()) {
+			var inter = types.Intersect(whitelist);
+
+			if (!inter.Any()) {
+				// var e = new ArgumentException("Invalid file types", nameof(value));
+				// return await Task.FromException<SearchQuery>(e);
+				// Debug.WriteLine($"Invalid file types: {value} {types.QuickJoin()}", nameof(TryGetAsync));
+				// return null;
+				throw new ArgumentException($"Invalid file types: {types.QuickJoin()}", nameof(value));
+			}
+
+		}
+
+		var sq = new UniFile()
+		{
+			IsFile    = isFile,
+			IsUri     = isUrl,
+			FileTypes = types
+		};
+
+		return sq;
 	}
 
-	public bool Equals(UniFileInfo other)
+	public static async Task<UniFile> TryGetAsync(string value, IFileTypeResolver resolver = null,
+	                                              params FileType[] whitelist)
 	{
-		return Value == other.Value && IsFile == other.IsFile && IsUri == other.IsUri && Equals(Stream, other.Stream);
-	}
+		try {
+			return await GetAsync(value, resolver, whitelist);
+		}
+		catch (FlurlHttpException e) {
+			Debug.WriteLine($"HTTP: {e.Message}", nameof(TryGetAsync));
+		}
+		catch (ArgumentException e) {
+			Debug.WriteLine($"Argument: {e.Message}", nameof(TryGetAsync));
 
-	public override bool Equals(object obj)
-	{
-		return obj is UniFileInfo other && Equals(other);
-	}
+		}
+		catch (Exception e) { }
+		finally { }
 
-	public static bool operator ==(UniFileInfo left, UniFileInfo right)
-	{
-		return left.Equals(right);
+		return null;
 	}
-
-	public static bool operator !=(UniFileInfo left, UniFileInfo right)
-	{
-		return !left.Equals(right);
-	}
-
-	#endregion
 
 	#region IDisposable
 

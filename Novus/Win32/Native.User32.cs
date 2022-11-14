@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
+using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
 using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
@@ -14,6 +15,29 @@ namespace Novus.Win32;
 #pragma warning disable CA1401, CA2101
 public static unsafe partial class Native
 {
+	[DllImport(COMDLG32_DLL)]
+	public static extern int CommDlgExtendedError();
+
+	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
+	public static extern int CreateWindowEx(int dwExStyle, string lpClassName, string lpWindowName, uint dwStyle,
+	                                        int x, int y, int nWidth, int nHeight, int hWndParent, int hMenu,
+	                                        int hInstance, int lpParam);
+
+	[DllImport(USER32_DLL)]
+	public static extern bool DestroyWindow(int hwnd);
+
+	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
+	public static extern int GetDlgItem(int hDlg, int nIDDlgItem);
+
+	[DllImport(COMDLG32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
+	public static extern bool GetOpenFileName(ref OPENFILENAME lpofn);
+
+	[DllImport(USER32_DLL)]
+	public static extern int GetParent(int hWnd);
+
+	[DllImport(USER32_DLL)]
+	public static extern bool GetWindowRect(int hWnd, ref RECT lpRect);
+
 	[DllImport(USER32_DLL)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
@@ -23,14 +47,14 @@ public static unsafe partial class Native
 	public static extern IntPtr GetDesktopWindow();
 
 	[DllImport(USER32_DLL)]
-	private static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
+	public static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string className,
 	                                         string windowTitle);
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
-	private static extern IntPtr FindWindow(IntPtr zeroOnly, string lpWindowName);
+	public static extern IntPtr FindWindow(IntPtr zeroOnly, string lpWindowName);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
 	public static extern IntPtr GetForegroundWindow();
@@ -40,7 +64,7 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL)]
 	[return: MA(UT.Bool)]
-	private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
+	public static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
 
 	[DllImport(USER32_DLL)]
 	public static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
@@ -179,7 +203,7 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool TranslateMessage(in MSG lpMsg);
-
+	
 	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
 	public static extern void PostQuitMessage([Optional] int nExitCode);
 
@@ -200,6 +224,8 @@ public static unsafe partial class Native
 	                                     [Optional] Timerproc lpTimerFunc);
 
 	public const int MF_BYCOMMAND = 0x00000000;
+
+	private const string COMDLG32_DLL = "Comdlg32.dll";
 
 	[DllImport(USER32_DLL)]
 	public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
@@ -270,9 +296,9 @@ public enum ClipboardFormat : uint
 	CF_UNICODETEXT = 13,
 	CF_OEMTEXT     = 7,
 	CF_HDROP       = 15,
-	CF_DIB = 8,
-	CF_DIBV5=17,
-	CF_BITMAP=2,
+	CF_DIB         = 8,
+	CF_DIBV5       = 17,
+	CF_BITMAP      = 2,
 
 	FileName  = 0xC006,
 	FileNameW = 0xC007

@@ -32,6 +32,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
+using FileType = Novus.FileTypes.FileType;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
 using System.Collections.Generic;
@@ -119,12 +120,25 @@ public static class Program
 {
 	private static async Task Main(string[] args)
 	{
+
+	}
+
+	private static async Task Test5()
+	{
 		var fileType = FileType.Find("image").ToArray();
 
 		var t = await UniFile.TryGetAsync("https://i.imgur.com/QtCausw.png", whitelist: fileType);
 		Console.WriteLine(t);
-		var f=await t.DownloadAsync();
+		var f = await t.DownloadAsync();
 		Console.WriteLine(f);
+
+		var ft = Activator.CreateInstance<FileType>();
+		Console.WriteLine(ft);
+	}
+
+	public interface IPtr<T>
+	{
+		static abstract ref T Ref { get; }
 	}
 
 	private static void Test4()
@@ -138,7 +152,7 @@ public static class Program
 		Console.WriteLine(s);
 		Console.WriteLine(Native.GetClipboard());
 		Console.WriteLine(Native.GetClipboardFileName());
-		
+
 	}
 
 	private static void Test3()

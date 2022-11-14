@@ -1,4 +1,6 @@
-﻿global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
+﻿global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
+global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
+global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -15,6 +17,7 @@ using Kantan.Utilities;
 namespace Novus.FileTypes;
 
 /// <remarks><a href="https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern">6.1</a></remarks>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public readonly struct FileType : IEquatable<FileType>
 {
 	[MN]
@@ -32,7 +35,7 @@ public readonly struct FileType : IEquatable<FileType>
 		var query = Cache.AddOrGetExisting(name, FindInternal(name), new CacheItemPolicy() { })
 		            // ReSharper disable once ConstantNullCoalescingCondition
 		            ?? Cache[name];
-		
+
 		return (IEnumerable<FileType>) query;
 
 		static IEnumerable<FileType> FindInternal(string s)
@@ -43,6 +46,13 @@ public readonly struct FileType : IEquatable<FileType>
 			                     || ft.IsType(s)
 			       select ft;
 		}
+	}
+
+	public FileType()
+	{
+		Mask      = null;
+		Pattern   = null;
+		MediaType = null;
 	}
 
 	private static readonly ObjectCache Cache = MemoryCache.Default;
@@ -58,10 +68,14 @@ public readonly struct FileType : IEquatable<FileType>
 		      .ToArray();
 		      */
 
-		All = ReadDatabase();
+		All   = ReadDatabase();
+		Image = All.Where(a => a.IsType(MT_IMAGE)).ToArray();
+		Video = All.Where(a => a.IsType(MT_VIDEO)).ToArray();
 	}
 
 	public static readonly FileType[] All;
+	public static readonly FileType[] Image;
+	public static readonly FileType[] Video;
 
 	/// <summary>
 	/// Reads <see cref="FileType"/> from <see cref="ER.File_types"/>
@@ -188,10 +202,6 @@ public readonly struct FileType : IEquatable<FileType>
 		return mt.Split(MIME_TYPE_DELIM).FirstOrDefault()?.ToLower() == p.ToLower();
 	}
 
-	#region Overrides of ValueType
-
-	#region Equality members
-
 	public bool Equals(FileType other)
 	{
 		return MediaType == other.MediaType;
@@ -210,10 +220,6 @@ public readonly struct FileType : IEquatable<FileType>
 	public static bool operator ==(FileType left, FileType right) => left.Equals(right);
 
 	public static bool operator !=(FileType left, FileType right) => !left.Equals(right);
-
-	#endregion
-
-	#endregion
 
 	public override string ToString()
 	{

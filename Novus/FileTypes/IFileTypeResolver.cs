@@ -17,5 +17,5 @@ public interface IFileTypeResolver : IDisposable
 		return Resolve(m.ReadBlock());
 	}
 
-	public static IFileTypeResolver Default { get; set; } = UrlmonResolver.Instance; //todo
+	public static IFileTypeResolver Default { get; set; } = FastResolver.Instance; //todo
 }

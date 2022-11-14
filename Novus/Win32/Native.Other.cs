@@ -1,5 +1,8 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Text;
+using Novus.Win32.Structures.Other;
+using Novus.Win32.Structures.User32;
 
 // ReSharper disable StringLiteralTypo
 

@@ -121,7 +121,16 @@ public sealed class UniFile : IDisposable
 
 	public override string ToString()
 	{
-		return $"{Value} :: {(IsFile ? "File" : "Uri")} [{FileTypes.QuickJoin()}]";
+		string vs = null;
+		if (IsFile) {
+			vs=new FileInfo(Value).Name;
+			
+		}
+		else if (IsUri) {
+			vs = new Url(Value).Host;
+		}
+
+		return $"{vs} :: {(IsFile ? "File" : "Uri")} [{FileTypes.QuickJoin()}]";
 	}
 
 	public void Dispose()

@@ -34,6 +34,9 @@
   <ItemGroup>
     <TrimmerRootAssembly Include="System.Diagnostics" />
     <TrimmerRootAssembly Include="Kantan" />
+    <TrimmerRootAssembly Include="System.Runtime.Caching" />
+    <TrimmerRootAssembly Include="System.Configuration" />
+    <!-- <TrimmerRootAssembly Include="System.Management" /> -->
   </ItemGroup>
   <ItemGroup>
 
@@ -53,7 +56,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="6.0.0-preview.5.21301.5" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
-    <PackageReference Include="System.Management" Version="7.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Reflection" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />

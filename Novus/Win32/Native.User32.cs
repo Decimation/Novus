@@ -18,7 +18,7 @@ public static unsafe partial class Native
 	[DllImport(COMDLG32_DLL)]
 	public static extern int CommDlgExtendedError();
 
-	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
+	[DllImport(USER32_DLL)]
 	public static extern int CreateWindowEx(int dwExStyle, string lpClassName, string lpWindowName, uint dwStyle,
 	                                        int x, int y, int nWidth, int nHeight, int hWndParent, int hMenu,
 	                                        int hInstance, int lpParam);

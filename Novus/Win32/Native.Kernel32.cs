@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.Other;
@@ -13,12 +15,12 @@ public static unsafe partial class Native
 	// Thread proc, to be used with Create*Thread
 	public delegate int ThreadProc(IntPtr param);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern uint GetCurrentThreadId();
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial uint GetCurrentThreadId();
 
 	// Friendly version, marshals thread-proc as friendly delegate
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr CreateThread(
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial IntPtr CreateThread(
 		IntPtr lpThreadAttributes,
 		uint dwStackSize,
 		ThreadProc lpStartAddress, // ThreadProc as friendly delegate
@@ -27,8 +29,8 @@ public static unsafe partial class Native
 		out uint dwThreadId);
 
 	// Marshal with ThreadProc's function pointer as a raw IntPtr.
-	[DllImport(KERNEL32_DLL, EntryPoint = "CreateThread")]
-	public static extern IntPtr CreateThreadRaw(
+	[LibraryImport(KERNEL32_DLL, EntryPoint = "CreateThread")]
+	public static partial IntPtr CreateThreadRaw(
 		IntPtr lpThreadAttributes,
 		uint dwStackSize,
 		IntPtr lpStartAddress, // ThreadProc as raw IntPtr
@@ -37,8 +39,8 @@ public static unsafe partial class Native
 		out uint dwThreadId);
 
 	// CreateRemoteThread, since ThreadProc is in remote process, we must use a raw function-pointer.
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr CreateRemoteThread(
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial IntPtr CreateRemoteThread(
 		IntPtr hProcess,
 		IntPtr lpThreadAttributes,
 		uint dwStackSize,
@@ -49,37 +51,43 @@ public static unsafe partial class Native
 	);
 
 	// uint output
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	[return: MA(UT.Bool)]
+	public static partial bool GetExitCodeThread(IntPtr hThread, out uint lpExitCode);
 
 	#region Console
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern IntPtr GetStdHandle(StandardHandle nStdHandle);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	public static partial IntPtr GetStdHandle(StandardHandle nStdHandle);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern bool GetConsoleMode(IntPtr hConsoleHandle, out ConsoleModes lpMode);
+	[LibraryImport(KERNEL32_DLL)]
+	[return: MA(UT.Bool)]
+	public static partial bool GetConsoleMode(IntPtr hConsoleHandle, out ConsoleModes lpMode);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern bool SetConsoleMode(IntPtr hConsoleHandle, ConsoleModes dwMode);
+	[LibraryImport(KERNEL32_DLL)]
+	[return: MA(UT.Bool)]
+	public static partial bool SetConsoleMode(IntPtr hConsoleHandle, ConsoleModes dwMode);
 
-	[DllImport(KERNEL32_DLL, ExactSpelling = true)]
-	public static extern IntPtr GetConsoleWindow();
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial IntPtr GetConsoleWindow();
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern bool SetConsoleOutputCP(uint wCodePageId);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	[return: MA(UT.Bool)]
+	public static partial bool SetConsoleOutputCP(uint wCodePageId);
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern bool SetConsoleCP(uint wCodePageId);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	[return: MA(UT.Bool)]
+	public static partial bool SetConsoleCP(uint wCodePageId);
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern uint GetConsoleOutputCP();
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	public static partial uint GetConsoleOutputCP();
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern uint GetConsoleCP();
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	public static partial uint GetConsoleCP();
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern bool GetConsoleScreenBufferInfo(IntPtr hConsoleOutput,
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	[return: MA(UT.Bool)]
+	public static partial bool GetConsoleScreenBufferInfo(IntPtr hConsoleOutput,
 	                                                     ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
@@ -87,6 +95,7 @@ public static unsafe partial class Native
 	                                                      uint nLength, Coord dwWriteCoord,
 	                                                      out uint lpNumberOfCharsWritten);
 
+#pragma warning disable SYSLIB1054
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern bool WriteConsoleOutput(IntPtr hConsoleOutput, CharInfo[] lpBuffer, Coord dwBufferSize,
 	                                             Coord dwBufferCoord, ref SmallRect lpWriteRegion
@@ -125,8 +134,8 @@ public static unsafe partial class Native
 	[DllImport(KERNEL32_DLL)]
 	internal static extern bool Module32Next(IntPtr hSnapshot, ref ModuleEntry32 lpme);
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	public static partial IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
 
 	#endregion
 
@@ -134,109 +143,114 @@ public static unsafe partial class Native
 
 	internal static uint GetFileSize(IntPtr hFile) => GetFileSize(hFile, IntPtr.Zero);
 
-	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
-	public static extern IntPtr CreateFile(string fileName, FileAccess fileAccess, FileShare fileShare,
+	[LibraryImport(KERNEL32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+	public static partial IntPtr CreateFile(string fileName, FileAccess fileAccess, FileShare fileShare,
 	                                       IntPtr securityAttributes, FileMode creationDisposition,
 	                                       FileAttributes flagsAndAttributes, IntPtr template);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial uint GetFileSize(IntPtr hFile, IntPtr lpFileSizeHigh);
 
 	#endregion
 
 	#region Memory
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
+	[LibraryImport(KERNEL32_DLL)]
+	[return: MA(UT.Bool)]
+	public static partial bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
 	                                            nint size, out int numBytesRead);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
+	[LibraryImport(KERNEL32_DLL)]
+	[return: MA(UT.Bool)]
+	public static partial bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
 	                                            nint size, out int numBytesRead);
 
 	/*[DllImport(KERNEL32_DLL)]
 	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
 												nint size, out IntPtr numBytesRead);*/
-	[DllImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", SetLastError = false)]
-	private static extern void MoveMemory(void* dst, void* src, int size);
+	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", SetLastError = false)]
+	private static partial void MoveMemory(void* dst, void* src, int size);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
+	[LibraryImport(KERNEL32_DLL)]
+	[return: MA(UT.Bool)]
+	public static partial bool WriteProcessMemory(IntPtr proc, IntPtr baseAddr, IntPtr buffer,
 	                                             int size, out int numberBytesWritten);
 
-	[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = CharSet.Unicode)]
-	public static extern void CopyMemoryW(IntPtr pdst, string psrc, int cb);
+	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", StringMarshalling = StringMarshalling.Utf16)]
+	public static partial void CopyMemoryW(IntPtr pdst, string psrc, int cb);
 
-	[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory", CharSet = CharSet.Unicode)]
-	public static extern void CopyMemoryW(IntPtr pdst, char[] psrc, int cb);
+	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", StringMarshalling = StringMarshalling.Utf16)]
+	public static partial void CopyMemoryW(IntPtr pdst,char[] psrc, int cb);
 
-	[DllImport(KERNEL32_DLL, ExactSpelling = true, EntryPoint = "RtlMoveMemory")]
-	public static extern void CopyMemory(IntPtr pdst, byte[] psrc, int cb);
+	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory")]
+	public static partial void CopyMemory(IntPtr pdst, byte[] psrc, int cb);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern nint HeapSize(IntPtr p, uint f, IntPtr m);
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial nint HeapSize(IntPtr p, uint f, IntPtr m);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr GetProcessHeap();
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial IntPtr GetProcessHeap();
 
 	#endregion
 
 	#region Library
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr LoadLibrary(string dllToLoad);
+	[LibraryImport(KERNEL32_DLL, StringMarshalling = StringMarshalling.Utf16)]
+	public static partial IntPtr LoadLibrary(string dllToLoad);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
+	[LibraryImport(KERNEL32_DLL, StringMarshalling = StringMarshalling.Utf16)]
+	public static partial IntPtr GetProcAddress(IntPtr hModule, string procedureName);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern bool FreeLibrary(IntPtr hModule);
+	[LibraryImport(KERNEL32_DLL)]
+	[return: MA(UT.Bool)]
+	public static partial bool FreeLibrary(IntPtr hModule);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 	public static extern int LoadString(IntPtr hInstance, uint uID, StringBuilder lpBuffer, int nBufferMax);
 
-	[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, LoadLibraryFlags dwFlags);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+	public static partial IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, LoadLibraryFlags dwFlags);
 
 	#endregion
 
 	#region Handle
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern IntPtr GetCurrentProcess();
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	public static partial IntPtr GetCurrentProcess();
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr OpenProcess(ProcessAccess dwDesiredAccess, bool bInheritHandle, int dwProcessId);
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial IntPtr OpenProcess(ProcessAccess dwDesiredAccess, [MA(UT.Bool)] bool bInheritHandle, int dwProcessId);
 
-	[DllImport(KERNEL32_DLL, SetLastError = true, PreserveSig = true)]
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	[return: MarshalAs(UT.Bool)]
-	public static extern bool CloseHandle(IntPtr obj);
+	public static partial bool CloseHandle(IntPtr obj);
 
 	#endregion
 
 	#region Virtual
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress,
 	                                           uint dwSize, AllocationType flAllocationType,
 	                                           MemoryProtection flProtect);
 
-	[DllImport(KERNEL32_DLL)]
+	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
-	public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
+	public static partial bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
 	                                        int dwSize, AllocationType dwFreeType);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress,
+	[LibraryImport(KERNEL32_DLL)]
+	[return: MA(UT.Bool)]
+	public static partial bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress,
 	                                           uint dwSize, MemoryProtection flNewProtect,
 	                                           out MemoryProtection lpflOldProtect);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
 	                                        ref MemoryBasicInformation lpBuffer, uint dwLength);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern int VirtualQuery(IntPtr lpAddress, ref MemoryBasicInformation lpBuffer, int dwLength);
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial int VirtualQuery(IntPtr lpAddress, ref MemoryBasicInformation lpBuffer, int dwLength);
 
 	#endregion
 
@@ -276,35 +290,35 @@ public static unsafe partial class Native
 	                                             [Out, MA(UT.LPWStr)] StringBuilder lpWideCharStr,
 	                                             int cchWideChar);
 
-	[DllImport(KERNEL32_DLL, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
+	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
 	public static extern int WideCharToMultiByte(int codePage, CharConversionFlags flags,
 	                                             [MA(UT.LPWStr)] string wideStr, int chars,
 	                                             [In, Out] byte[] pOutBytes, int bufferBytes, IntPtr defaultChar,
 	                                             IntPtr pDefaultUsed);
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern void GetSystemInfo(ref SystemInfo info);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	public static partial void GetSystemInfo(ref SystemInfo info);
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern void GetNativeSystemInfo(ref SystemInfo info);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	public static partial void GetNativeSystemInfo(ref SystemInfo info);
 
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
 	internal static extern uint GetShortPathName([MA(UT.LPTStr)] string lpszLongPath,
 	                                             [MA(UT.LPTStr)] StringBuilder lpszShortPath,
 	                                             uint cchBuffer);
 
-	[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	internal static extern uint GetShortPathName(string lpszLongPath, char[] lpszShortPath, int cchBuffer);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+	internal static partial uint GetShortPathName(string lpszLongPath, char[] lpszShortPath, int cchBuffer);
 
-	[DllImport(KERNEL32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	internal static extern uint GetShortPathName(string lpszLongPath, char* lpszShortPath, int cchBuffer);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+	internal static partial uint GetShortPathName(string lpszLongPath, char* lpszShortPath, int cchBuffer);
 
 	[DllImport(SHELL32_DLL)]
 	internal static extern int SHGetKnownFolderPath([MA(UT.LPStruct)] Guid rfid, uint dwFlags,
 	                                                IntPtr hToken, out IntPtr ppszPath);
 
-	[DllImport(KERNEL32_DLL)]
-	internal static extern uint LocalSize(IntPtr p);
+	[LibraryImport(KERNEL32_DLL)]
+	internal static partial uint LocalSize(IntPtr p);
 
 	[DllImport(URLMON_DLL, CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
 	internal static extern int FindMimeFromData(IntPtr pBC,
@@ -317,18 +331,19 @@ public static unsafe partial class Native
 	                                            out IntPtr ppwzMimeOut,
 	                                            int dwReserved);
 
-	[DllImport(SHELL32_DLL)]
-	public static extern IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters,
+	[LibraryImport(SHELL32_DLL, StringMarshalling = StringMarshalling.Utf16)]
+	public static partial IntPtr ShellExecute(IntPtr hwnd, string lpOperation, string lpFile, string lpParameters,
 	                                         string lpDirectory, int nShowCmd);
 
-	[DllImport(SHELL32_DLL, CharSet = CharSet.Auto)]
+	[DllImport(SHELL32_DLL)]
+	[return: MA(UT.Bool)]
 	public static extern bool ShellExecuteEx(ref ShellExecuteInfo lpExecInfo);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern void GetCurrentThreadStackLimits(out IntPtr low, out IntPtr hi);
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial void GetCurrentThreadStackLimits(out IntPtr low, out IntPtr hi);
 
-	[DllImport(KERNEL32_DLL)]
-	internal static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize,
+	[LibraryImport(KERNEL32_DLL)]
+	internal static partial IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, uint dwStackSize,
 	                                                 IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags,
 	                                                 out IntPtr lpThreadId);
 
@@ -337,11 +352,11 @@ public static unsafe partial class Native
 	public const uint WAIT_OBJECT_0  = 0x00000000;
 	public const uint WAIT_TIMEOUT   = 0x00000102;
 
-	[DllImport(KERNEL32_DLL, SetLastError = true)]
-	public static extern uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	public static partial uint WaitForSingleObject(IntPtr hHandle, uint dwMilliseconds);
 
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr GlobalLock(IntPtr hMem);
-	[DllImport(KERNEL32_DLL)]
-	public static extern IntPtr GlobalUnlock(IntPtr hMem);
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial IntPtr GlobalLock(IntPtr hMem);
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial IntPtr GlobalUnlock(IntPtr hMem);
 }

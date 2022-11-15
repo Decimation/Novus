@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿// global using LI = System.Runtime.InteropServices.LibraryImportAttribute;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;

@@ -7,6 +7,7 @@ namespace Novus.Win32;
 
 public static unsafe partial class Native
 {
+#pragma warning disable SYSLIB1054
 
 	[DllImport(DBGHELP_DLL)]
 	private static extern ImageNtHeaders* ImageNtHeader(IntPtr hModule);

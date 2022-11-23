@@ -242,7 +242,7 @@ public static class ReflectionHelper
 
 		var b  = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
 		var b2 = t == typeof(BigInteger);
-		var b3 = t == typeof(IntPtr) || t == typeof(UIntPtr);
+		var b3 = t == typeof(nint) || t == typeof(nuint);
 
 		return b || b2 || b3;
 	}
@@ -288,7 +288,7 @@ public static class ReflectionHelper
 	{
 		bool isPointer = t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Pointer<>);
 
-		bool isIntPtr = t == typeof(IntPtr) || t == typeof(UIntPtr);
+		bool isIntPtr = t == typeof(nint) || t == typeof(nuint);
 
 		return t.IsPointer || isPointer || isIntPtr;
 	}

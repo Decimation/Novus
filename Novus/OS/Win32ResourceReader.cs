@@ -12,7 +12,7 @@ namespace Novus.OS;
 
 public sealed class Win32ResourceReader : IDisposable
 {
-	private IntPtr m_hModule;
+	private nint m_hModule;
 
 	public Win32ResourceReader(string filename)
 	{

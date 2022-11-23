@@ -42,7 +42,7 @@ public struct MouseInput
 	public int             mouseData;
 	public MouseEventFlags dwFlags;
 	public uint            time;
-	public UIntPtr         dwExtraInfo;
+	public nuint         dwExtraInfo;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -52,7 +52,7 @@ public struct KeyboardInput
 	public ScanCodeShort wScan;
 	public KeyEventFlags dwFlags;
 	public int           time;
-	public UIntPtr       dwExtraInfo;
+	public nuint       dwExtraInfo;
 }
 
 [Flags]

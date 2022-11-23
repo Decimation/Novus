@@ -15,7 +15,7 @@ public struct ShellExecuteInfo
 {
 	public int    cbSize;
 	public uint   fMask;
-	public IntPtr hwnd;
+	public nint hwnd;
 
 	/// <summary>
 	/// <see cref="ShellExecuteVerbs"/>; <see cref="ProcessStartInfo.Verb"/>
@@ -33,16 +33,16 @@ public struct ShellExecuteInfo
 	public string lpDirectory;
 
 	public int    nShow;
-	public IntPtr hInstApp;
-	public IntPtr lpIDList;
+	public nint hInstApp;
+	public nint lpIDList;
 
 	[MarshalAs(UnmanagedType.LPTStr)]
 	public string lpClass;
 
-	public IntPtr hkeyClass;
+	public nint hkeyClass;
 	public uint   dwHotKey;
-	public IntPtr hIcon;
-	public IntPtr hProcess;
+	public nint hIcon;
+	public nint hProcess;
 }
 
 /// <summary>

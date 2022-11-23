@@ -22,7 +22,7 @@ public sealed class UnmanagedAllocator : IAllocator
 	[MURV]
 	public Pointer ReAlloc(Pointer ptr, nuint cb)
 	{
-		ptr = Marshal.ReAllocHGlobal(ptr.Address, (IntPtr) (uint) cb);
+		ptr = Marshal.ReAllocHGlobal(ptr.Address, (nint) (uint) cb);
 		return ptr;
 	}
 

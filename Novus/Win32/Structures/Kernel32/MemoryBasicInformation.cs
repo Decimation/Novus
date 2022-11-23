@@ -7,10 +7,10 @@ namespace Novus.Win32.Structures.Kernel32;
 [StructLayout(LayoutKind.Sequential)]
 public struct MemoryBasicInformation
 {
-	public IntPtr           BaseAddress;
-	public IntPtr           AllocationBase;
+	public nint           BaseAddress;
+	public nint           AllocationBase;
 	public MemoryProtection AllocationProtect;
-	public IntPtr           RegionSize;
+	public nint           RegionSize;
 	public AllocationType   State;
 	public MemoryProtection Protect;
 	public MemType          Type;

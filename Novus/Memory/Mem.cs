@@ -279,7 +279,7 @@ public static unsafe class Mem
 	/// </summary>
 	public static void WriteProcessMemory(Process proc, Pointer addr, Pointer ptrBuffer, int dwSize)
 	{
-		IntPtr hProc = Native.OpenProcess(proc);
+		nint hProc = Native.OpenProcess(proc);
 
 		Native.WriteProcessMemory(hProc, addr.Address, ptrBuffer.Address, dwSize, out _);
 
@@ -309,7 +309,7 @@ public static unsafe class Mem
 	/// <param name="cb">Number of bytes to read</param>
 	public static void ReadProcessMemory(Process proc, Pointer addr, Pointer buffer, nint cb)
 	{
-		IntPtr h = Native.OpenProcess(proc);
+		nint h = Native.OpenProcess(proc);
 
 		Native.ReadProcessMemory(h, addr.Address, buffer.Address, cb, out _);
 
@@ -361,7 +361,7 @@ public static unsafe class Mem
 
 		//var i = Activator.CreateInstance(t);
 
-		byte[] rg  = ReadProcessMemory(proc, addr, (IntPtr) size);
+		byte[] rg  = ReadProcessMemory(proc, addr, (nint) size);
 		object val = null;
 
 		if (valueType) {
@@ -383,7 +383,7 @@ public static unsafe class Mem
 		var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
 		//var stackAlloc = stackalloc byte[byteArray.Length];
 
-		IntPtr objAddr = handle.AddrOfPinnedObject() + ofs;
+		nint objAddr = handle.AddrOfPinnedObject() + ofs;
 		object value   = Marshal.PtrToStructure(objAddr, t);
 
 		handle.Free();
@@ -854,7 +854,7 @@ public static unsafe class Mem
 	/// </summary>
 	public static byte[] ReadByteArrayString(string s)
 	{
-		Func<string, byte> func = s1 => byte.Parse(s1.Replace("0x", null), NumberStyles.HexNumber);
+		Func<string, byte> func = s1 => Byte.Parse(s1.Replace("0x", null), NumberStyles.HexNumber);
 
 		return s.Split(", ").Select(func).ToArray();
 	}

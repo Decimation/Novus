@@ -46,7 +46,7 @@ public unsafe struct SigParser
 		_offs = rhs._offs;
 	}
 
-	public SigParser(IntPtr sig, int len)
+	public SigParser(nint sig, int len)
 	{
 		if (len != 0) {
 			_sig = (byte*) sig.ToPointer();

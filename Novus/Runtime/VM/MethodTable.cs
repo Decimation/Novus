@@ -113,7 +113,6 @@ public unsafe struct MethodTable
 
 	internal Pointer<byte> InterfaceMap => (void**) Union3;
 
-
 	/// <summary>
 	/// <see cref="EEClass"/>
 	/// </summary>

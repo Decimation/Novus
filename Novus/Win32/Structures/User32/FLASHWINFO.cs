@@ -9,7 +9,7 @@ namespace Novus.Win32.Structures.User32;
 public struct FLASHWINFO
 {
 	public uint            cbSize;
-	public IntPtr          hwnd;
+	public nint          hwnd;
 	public FlashWindowType dwFlags;
 	public uint            uCount;
 	public int             dwTimeout;

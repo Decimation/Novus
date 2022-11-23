@@ -37,13 +37,13 @@ public sealed class SymbolReader : IDisposable
 
 	public string Image { get; }
 
-	public IntPtr Process { get; }
+	public nint Process { get; }
 
 	public List<Symbol> Symbols { get; }
 
 	private const string MASK_ALL = "*!*";
 
-	public SymbolReader(IntPtr process, string image)
+	public SymbolReader(nint process, string image)
 	{
 		Require.FileExists(image);
 		Process    = process;
@@ -124,7 +124,7 @@ public sealed class SymbolReader : IDisposable
 		m_disposed = true;
 	}
 
-	private static unsafe bool EnumSymCallback(IntPtr info, uint symbolSize, IntPtr pUserContext, out Symbol item)
+	private static unsafe bool EnumSymCallback(nint info, uint symbolSize, nint pUserContext, out Symbol item)
 	{
 		var symbol = (SymbolInfo*) info;
 

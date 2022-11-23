@@ -10,40 +10,40 @@ public static unsafe partial class Native
 #pragma warning disable SYSLIB1054
 
 	[DllImport(DBGHELP_DLL)]
-	private static extern ImageNtHeaders* ImageNtHeader(IntPtr hModule);
+	private static extern ImageNtHeaders* ImageNtHeader(nint hModule);
 	#region Symbols
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern bool SymInitialize(IntPtr hProcess, IntPtr userSearchPath, bool fInvadeProcess);
+	internal static extern bool SymInitialize(nint hProcess, nint userSearchPath, bool fInvadeProcess);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern bool SymCleanup(IntPtr hProcess);
+	internal static extern bool SymCleanup(nint hProcess);
 
 	[UnmanagedFunctionPointer(CallingConvention.Winapi)]
-	internal delegate bool EnumSymbolsCallback(IntPtr symInfo, uint symbolSize, IntPtr pUserContext);
+	internal delegate bool EnumSymbolsCallback(nint symInfo, uint symbolSize, nint pUserContext);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern bool SymEnumSymbols(IntPtr hProcess, ulong modBase, string mask,
-	                                           EnumSymbolsCallback callback, IntPtr pUserContext);
+	internal static extern bool SymEnumSymbols(nint hProcess, ulong modBase, string mask,
+	                                           EnumSymbolsCallback callback, nint pUserContext);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 	internal static extern SymbolOptions SymGetOptions();
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern bool SymGetSearchPath(IntPtr hProcess, sbyte* p, uint sz);
+	internal static extern bool SymGetSearchPath(nint hProcess, sbyte* p, uint sz);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 	internal static extern SymbolOptions SymSetOptions(SymbolOptions options);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern bool SymFromName(IntPtr hProcess, string name, IntPtr pSymbol);
+	internal static extern bool SymFromName(nint hProcess, string name, nint pSymbol);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern bool SymUnloadModule64(IntPtr hProc, ulong baseAddr);
+	internal static extern bool SymUnloadModule64(nint hProc, ulong baseAddr);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern ulong SymLoadModuleEx(IntPtr hProcess, IntPtr hFile, string imageName,
-	                                             string moduleName, ulong baseOfDll, uint dllSize, IntPtr data,
+	internal static extern ulong SymLoadModuleEx(nint hProcess, nint hFile, string imageName,
+	                                             string moduleName, ulong baseOfDll, uint dllSize, nint data,
 	                                             uint flags);
 
 	#endregion

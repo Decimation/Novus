@@ -90,7 +90,7 @@ public class Benchmarks22
 public class Benchmarks21
 {
 	private int    a, b;
-	private IntPtr fn;
+	private nint fn;
 
 	[GlobalSetup]
 	public void GlobalSetup() { }
@@ -370,7 +370,7 @@ public class Benchmarks12
 
 public class Benchmarks9
 {
-	private IntPtr h;
+	private nint h;
 
 	[GlobalSetup]
 	public void Setup()
@@ -553,14 +553,14 @@ Outliers
 	[Benchmark]
 	public int Marshal_Read()
 	{
-		return System.Runtime.InteropServices.Marshal.ReadInt32((IntPtr) ptr2);
+		return System.Runtime.InteropServices.Marshal.ReadInt32((nint) ptr2);
 	}
 }
 
 public unsafe class Benchmarks4
 {
 	private const string DLL = @"C:\Users\Deci\VSProjects\SandboxLibrary\x64\Release\SandboxLibrary.dll";
-	private       IntPtr _p;
+	private       nint _p;
 	private       delegate* unmanaged<int, int, int> _x;
 
 	[DllImport(DLL)]

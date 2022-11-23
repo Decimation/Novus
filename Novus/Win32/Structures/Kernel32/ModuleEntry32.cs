@@ -12,9 +12,9 @@ public struct ModuleEntry32
 	public uint   th32ProcessID;
 	public uint   GlblcntUsage;
 	public uint   ProccntUsage;
-	public IntPtr modBaseAddr;
+	public nint modBaseAddr;
 	public uint   modBaseSize;
-	public IntPtr hModule;
+	public nint hModule;
 
 	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
 	public string szModule;

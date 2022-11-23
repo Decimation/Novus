@@ -10,8 +10,8 @@ public static partial class Native
 	/// <c>ZwDuplicateObject</c>
 	/// </summary>
 	[DllImport(NTDLL_DLL)]
-	public static extern unsafe NtStatus NtDuplicateObject(HANDLE sourceProcessHandle, HANDLE sourceHandle,
-	                                                       HANDLE targetProcessHandle, HANDLE* targetHandle,
+	public static extern unsafe NtStatus NtDuplicateObject(nint sourceProcessHandle, nint sourceHandle,
+	                                                       nint targetProcessHandle, nint* targetHandle,
 	                                                       ulong desiredAccess, ulong handleAttributes,
 	                                                       ulong options);
 
@@ -23,12 +23,12 @@ public static partial class Native
 	/// <returns>Status Information</returns>
 	[DllImport(NTDLL_DLL)]
 	public static extern NtStatus NtQuerySystemInformation(SystemInformationClass systemInformationClass,
-	                                                       IntPtr systemInformation, uint systemInformationLength,
+	                                                       nint systemInformation, uint systemInformationLength,
 	                                                       out uint returnLength);
 
 	[DllImport(NTDLL_DLL)]
-	public static extern NtStatus NtQueryObject(IntPtr objectHandle, ObjectInformationClass informationClass,
-	                                            IntPtr informationPtr, uint informationLength,
+	public static extern NtStatus NtQueryObject(nint objectHandle, ObjectInformationClass informationClass,
+	                                            nint informationPtr, uint informationLength,
 	                                            out uint returnLength);
 }
 

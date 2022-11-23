@@ -14,7 +14,7 @@ namespace Novus.FileTypes;
 
 //TODO: WIP
 
-public sealed class UniFile : IDisposable
+public sealed class UniFile : IDisposable, IEquatable<UniFile>
 {
 	private UniFile() { }
 
@@ -113,7 +113,9 @@ public sealed class UniFile : IDisposable
 			Debug.WriteLine($"Argument: {e.Message}", nameof(TryGetAsync));
 
 		}
-		catch (Exception e) { }
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(TryGetAsync));
+		}
 		finally { }
 
 		return null;
@@ -122,9 +124,10 @@ public sealed class UniFile : IDisposable
 	public override string ToString()
 	{
 		string vs = null;
+
 		if (IsFile) {
-			vs=new FileInfo(Value).Name;
-			
+			vs = new FileInfo(Value).Name;
+
 		}
 		else if (IsUri) {
 			vs = new Url(Value).Host;
@@ -152,4 +155,49 @@ public sealed class UniFile : IDisposable
 		await File.WriteAllBytesAsync(fileName, async.ToArray());
 		return fileName;
 	}
+
+	#region Equality members
+
+	public bool Equals(UniFile other)
+	{
+		if (ReferenceEquals(null, other)) {
+			return false;
+		}
+
+		if (ReferenceEquals(this, other)) {
+			return true;
+		}
+
+		return Value == other.Value && IsFile == other.IsFile && IsUri == other.IsUri && Equals(Stream, other.Stream) &&
+		       Equals(FileTypes, other.FileTypes);
+	}
+
+	public override bool Equals(object obj)
+	{
+		return ReferenceEquals(this, obj) || obj is UniFile other && Equals(other);
+	}
+
+	public override int GetHashCode()
+	{
+		unchecked {
+			int hashCode = (Value != null ? Value.GetHashCode() : 0);
+			hashCode = (hashCode * 397) ^ IsFile.GetHashCode();
+			hashCode = (hashCode * 397) ^ IsUri.GetHashCode();
+			hashCode = (hashCode * 397) ^ (Stream != null ? Stream.GetHashCode() : 0);
+			hashCode = (hashCode * 397) ^ (FileTypes != null ? FileTypes.GetHashCode() : 0);
+			return hashCode;
+		}
+	}
+
+	public static bool operator ==(UniFile left, UniFile right)
+	{
+		return Equals(left, right);
+	}
+
+	public static bool operator !=(UniFile left, UniFile right)
+	{
+		return !Equals(left, right);
+	}
+
+	#endregion
 }

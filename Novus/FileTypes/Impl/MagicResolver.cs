@@ -23,7 +23,7 @@ public sealed class MagicResolver : IFileTypeResolver
 		MagicOpenFlags.MAGIC_NO_CHECK_ELF |
 		MagicOpenFlags.MAGIC_NO_CHECK_APPTYPE;
 
-	public IntPtr Magic { get; }
+	public nint Magic { get; }
 
 	public static readonly IFileTypeResolver Instance = new MagicResolver();
 

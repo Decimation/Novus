@@ -93,9 +93,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Address being pointed to.
 	/// </summary>
-	public IntPtr Address
+	public nint Address
 	{
-		get => (IntPtr) m_value;
+		get => (nint) m_value;
 		set => m_value = (void*) value;
 	}
 
@@ -111,7 +111,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		m_value = value;
 	}
 
-	public Pointer(IntPtr value) : this(value.ToPointer()) { }
+	public Pointer(nint value) : this(value.ToPointer()) { }
 
 	public Pointer(ref T value) : this(Unsafe.AsPointer(ref value)) { }
 
@@ -119,7 +119,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	public static explicit operator Pointer<T>(ulong ul) => new((void*) ul);
 
-	public static explicit operator IntPtr(Pointer<T> ptr) => ptr.Address;
+	public static explicit operator nint(Pointer<T> ptr) => ptr.Address;
 
 	public static explicit operator void*(Pointer<T> ptr) => ptr.ToPointer();
 
@@ -133,7 +133,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	public static implicit operator Pointer<T>(void* value) => new(value);
 
-	public static implicit operator Pointer<T>(IntPtr value) => new(value);
+	public static implicit operator Pointer<T>(nint value) => new(value);
 
 	public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 

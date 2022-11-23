@@ -57,7 +57,7 @@ public static unsafe class RuntimeProperties
 	///     <see cref="ResolveType" />
 	/// </summary>
 	[field: ImportManaged(typeof(Type), "GetTypeFromHandleUnsafe")]
-	private static delegate* managed<IntPtr, Type> Func_GetTypeFromHandle { get; }
+	private static delegate* managed<nint, Type> Func_GetTypeFromHandle { get; }
 
 	/// <summary>
 	///     <see cref="ReadTypeHandle{T}" />

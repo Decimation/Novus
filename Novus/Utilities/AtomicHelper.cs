@@ -12,9 +12,9 @@ namespace Novus.Utilities;
 
 public static class AtomicHelper
 {
-	private static readonly Dictionary<Type, IntPtr> Cache = new();
+	private static readonly Dictionary<Type, nint> Cache = new();
 
-	private static IntPtr GetExchangeFunction<T>()
+	private static nint GetExchangeFunction<T>()
 	{
 		var method =
 			typeof(Interlocked).GetAnyMethod(nameof(Interlocked.Exchange),
@@ -48,11 +48,11 @@ public static class AtomicHelper
 
 	/// <returns><c>(delegate*&lt;ref T, T, T&gt;)</c></returns>
 	[MethodImpl(Global.IMPL_OPTIONS)]
-	public static IntPtr GetCacheExchangeFunction<T>()
+	public static nint GetCacheExchangeFunction<T>()
 	{
 		var type = typeof(T);
 
-		IntPtr ptr;
+		nint ptr;
 
 		if (!Cache.ContainsKey(type)) {
 			ptr         = GetExchangeFunction<T>();

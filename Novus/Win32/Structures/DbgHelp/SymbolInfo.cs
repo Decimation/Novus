@@ -135,7 +135,7 @@ internal unsafe struct SymbolInfo
 
 		fixed (SymbolInfo* pSym = &this) {
 			sbyte* namePtr = pSym->Name;
-			return Marshal.PtrToStringUni((IntPtr) namePtr, (int) NameLen);
+			return Marshal.PtrToStringUni((nint) namePtr, (int) NameLen);
 		}
 	}
 }

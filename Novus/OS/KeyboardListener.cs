@@ -17,7 +17,7 @@ public sealed class KeyboardListener : IDisposable
 	public KeyboardListener(string windowName, ISet<VirtualKey> whitelist = null) : this(
 		Native.FindWindow(windowName), whitelist) { }
 
-	public KeyboardListener(IntPtr handle, ISet<VirtualKey> whitelist = null)
+	public KeyboardListener(nint handle, ISet<VirtualKey> whitelist = null)
 	{
 		m_thread = new Thread(Listen)
 		{
@@ -157,7 +157,7 @@ public sealed class KeyboardListener : IDisposable
 	/// <summary>
 	/// When set, restricts listening to this handle
 	/// </summary>
-	public IntPtr ScopeHandle { get; init; }
+	public nint ScopeHandle { get; init; }
 
 	public ISet<VirtualKey> KeyWhitelist { get; init; }
 

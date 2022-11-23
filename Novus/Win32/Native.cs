@@ -81,9 +81,9 @@ public static unsafe partial class Native
 
 	#endregion
 
-	public static IntPtr GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+	public static nint GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
-	public static IntPtr OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
+	public static nint OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
 
 	public static bool Inject(string dllPath, int pid)
 	{
@@ -93,7 +93,7 @@ public static unsafe partial class Native
 
 		//todo: WIP
 
-		IntPtr processHandle = OpenProcess(ProcessAccess.CreateThread |
+		nint processHandle = OpenProcess(ProcessAccess.CreateThread |
 		                                   ProcessAccess.VmOperation | ProcessAccess.VmWrite,
 		                                   false, pid);
 
@@ -101,19 +101,19 @@ public static unsafe partial class Native
 			return false;
 		}
 
-		IntPtr kernel32Base = LoadLibrary(KERNEL32_DLL);
+		nint kernel32Base = LoadLibrary(KERNEL32_DLL);
 
 		if (kernel32Base == IntPtr.Zero) {
 			return false;
 		}
 
-		IntPtr loadLibraryAddr = GetProcAddress(kernel32Base, "LoadLibraryA");
+		nint loadLibraryAddr = GetProcAddress(kernel32Base, "LoadLibraryA");
 
 		if (loadLibraryAddr == IntPtr.Zero) {
 			return false;
 		}
 
-		IntPtr remoteAddress = VirtualAllocEx(processHandle, IntPtr.Zero, (uint) dllPath.Length,
+		nint remoteAddress = VirtualAllocEx(processHandle, IntPtr.Zero, (uint) dllPath.Length,
 		                                      AllocationType.Commit | AllocationType.Reserve,
 		                                      MemoryProtection.ExecuteReadWrite);
 
@@ -128,9 +128,9 @@ public static unsafe partial class Native
 			return false;
 		}
 
-		IntPtr remoteThread = CreateRemoteThread(processHandle, IntPtr.Zero, 0,
+		nint remoteThread = CreateRemoteThread(processHandle, IntPtr.Zero, 0,
 		                                         loadLibraryAddr, remoteAddress,
-		                                         0, out IntPtr rId);
+		                                         0, out nint rId);
 
 		if (remoteThread == IntPtr.Zero) {
 			return false;
@@ -148,7 +148,7 @@ public static unsafe partial class Native
 		return (int) SendInput((uint) inputs.Length, inputs, Marshal.SizeOf<InputRecord>() * inputs.Length);
 	}
 
-	public static string GetWindowText(IntPtr hWnd)
+	public static string GetWindowText(nint hWnd)
 	{
 		var sb = new StringBuilder(SIZE_1);
 
@@ -159,14 +159,14 @@ public static unsafe partial class Native
 		return sb.ToString();
 	}
 
-	public static IntPtr SearchForWindow(string title)
+	public static nint SearchForWindow(string title)
 	{
 		SearchData sd = new() { Title = title };
 		EnumWindows(EnumProc, ref sd);
 		return sd.hWnd;
 	}
 
-	public static IntPtr CreateFile(string fileName, FileAccess access, FileShare share,
+	public static nint CreateFile(string fileName, FileAccess access, FileShare share,
 	                                FileMode mode, FileAttributes attributes)
 	{
 		return CreateFile(fileName, access, share, IntPtr.Zero,
@@ -204,7 +204,7 @@ public static unsafe partial class Native
 		SetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
 	}
 
-	private static bool EnumProc(IntPtr hWnd, ref SearchData data)
+	private static bool EnumProc(nint hWnd, ref SearchData data)
 	{
 		// Check classname and title
 		// This is different from FindWindow() in that the code below allows partial matches
@@ -225,7 +225,7 @@ public static unsafe partial class Native
 		return true;
 	}
 
-	public static ImageSectionInfo[] GetPESectionInfo(IntPtr hModule)
+	public static ImageSectionInfo[] GetPESectionInfo(nint hModule)
 	{
 		//todo
 
@@ -233,7 +233,7 @@ public static unsafe partial class Native
 		var pNtHdr = ImageNtHeader(hModule);
 
 		// section table immediately follows the IMAGE_NT_HEADERS
-		var pSectionHdr = (IntPtr) (pNtHdr + 1);
+		var pSectionHdr = (nint) (pNtHdr + 1);
 		var arr         = new ImageSectionInfo[pNtHdr->FileHeader.NumberOfSections];
 
 		int size = Marshal.SizeOf<ImageSectionHeader>();
@@ -269,21 +269,21 @@ public static unsafe partial class Native
 		return modules;
 	}
 
-	public static void RemoveWindowOnTop(IntPtr p)
+	public static void RemoveWindowOnTop(nint p)
 	{
 		SetWindowPos(p, new((int) HandleWindowPosition.HWND_NOTOPMOST),
 		             0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 	}
 
-	public static void KeepWindowOnTop(IntPtr p)
+	public static void KeepWindowOnTop(nint p)
 	{
 		SetWindowPos(p, new((int) HandleWindowPosition.HWND_TOPMOST),
 		             0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 	}
 
-	public static IntPtr FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
+	public static nint FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
 
-	public static Coord GetConsoleCursorPosition(IntPtr hConsoleOutput)
+	public static Coord GetConsoleCursorPosition(nint hConsoleOutput)
 	{
 		ConsoleScreenBufferInfo cbsi = default;
 
@@ -310,7 +310,7 @@ public static unsafe partial class Native
 
 	}*/
 
-	public static void FlashWindow(IntPtr hWnd)
+	public static void FlashWindow(nint hWnd)
 	{
 		var fInfo = new FLASHWINFO
 		{
@@ -342,7 +342,7 @@ public static unsafe partial class Native
 		return name;
 	}
 
-	public static StringBuilder LoadString(IntPtr hInstance, uint id, int buf = SIZE_1)
+	public static StringBuilder LoadString(nint hInstance, uint id, int buf = SIZE_1)
 	{
 		var buffer = new StringBuilder(buf);
 
@@ -355,7 +355,7 @@ public static unsafe partial class Native
 		return buffer;
 	}
 
-	public static IntPtr LoadLibraryEx(string lpFileName, LoadLibraryFlags dwFlags)
+	public static nint LoadLibraryEx(string lpFileName, LoadLibraryFlags dwFlags)
 		=> LoadLibraryEx(lpFileName, IntPtr.Zero, dwFlags);
 
 	public static nint HRFromWin32(nint x)
@@ -395,7 +395,7 @@ public static unsafe partial class Native
 	public static Pointer VirtualAlloc(Process proc, Pointer lpAddr, int dwSize,
 	                                   AllocationType type, MemoryProtection mp)
 	{
-		IntPtr ptr = VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
+		nint ptr = VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
 
 		return ptr;
 	}
@@ -409,7 +409,7 @@ public static unsafe partial class Native
 		return p;
 	}
 
-	public static LinkedList<MemoryBasicInformation> EnumeratePages(IntPtr handle)
+	public static LinkedList<MemoryBasicInformation> EnumeratePages(nint handle)
 	{
 		SystemInfo sysInfo = default;
 
@@ -426,7 +426,7 @@ public static unsafe partial class Native
 		var ll = new LinkedList<MemoryBasicInformation>();
 
 		while (lpMem < maxAddr) {
-			int result = VirtualQueryEx(handle, (IntPtr) lpMem, ref mbi, sizeOf);
+			int result = VirtualQueryEx(handle, (nint) lpMem, ref mbi, sizeOf);
 
 			/*var b = m.State == AllocationType.Commit &&
 					m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE;*/
@@ -462,12 +462,12 @@ public static unsafe partial class Native
 	}
 
 	//helper method with "dynamic" buffer allocation
-	public static IntPtr NtQueryObject(IntPtr handle, ObjectInformationClass infoClass, uint infoLength = 0)
+	public static nint NtQueryObject(nint handle, ObjectInformationClass infoClass, uint infoLength = 0)
 	{
 		if (infoLength == 0)
 			infoLength = (uint) Marshal.SizeOf(typeof(uint));
 
-		IntPtr infoPtr = Marshal.AllocHGlobal((int) infoLength);
+		nint infoPtr = Marshal.AllocHGlobal((int) infoLength);
 
 		int tries = 0;
 
@@ -554,9 +554,9 @@ public static unsafe partial class Native
 		return v;
 	}
 
-	public static Func<IntPtr, string> ClipboardFormatToString(uint? f)
+	public static Func<nint, string> ClipboardFormatToString(uint? f)
 	{
-		Func<IntPtr, string> fn = f switch
+		Func<nint, string> fn = f switch
 		{
 			(uint) ClipboardFormat.FileNameW or
 				(uint) ClipboardFormat.CF_OEMTEXT => Marshal.PtrToStringUni,
@@ -569,9 +569,9 @@ public static unsafe partial class Native
 		return fn;
 	}
 
-	public static Func<string, IntPtr> ClipboardFormatFromString(uint? f)
+	public static Func<string, nint> ClipboardFormatFromString(uint? f)
 	{
-		Func<string, IntPtr> fn = f switch
+		Func<string, nint> fn = f switch
 		{
 			(uint) ClipboardFormat.FileNameW or
 				(uint) ClipboardFormat.CF_OEMTEXT => Marshal.StringToHGlobalUni,

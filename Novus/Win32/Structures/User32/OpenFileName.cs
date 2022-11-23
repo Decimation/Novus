@@ -13,7 +13,7 @@ namespace Novus.Win32.Structures.User32
 	public struct OPENFILENAME
 	{
 		public int    lStructSize;
-		public IntPtr hwndOwner;
+		public nint hwndOwner;
 		public int    hInstance;
 
 		[MA(UT.LPTStr)]

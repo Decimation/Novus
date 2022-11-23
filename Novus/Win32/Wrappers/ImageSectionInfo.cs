@@ -11,13 +11,13 @@ public class ImageSectionInfo
 
 	public int Number { get; }
 
-	public IntPtr Address { get; }
+	public nint Address { get; }
 
 	public int Size { get; }
 
 	public ImageSectionCharacteristics Characteristics { get; }
 
-	internal ImageSectionInfo(ImageSectionHeader struc, int number, IntPtr address)
+	internal ImageSectionInfo(ImageSectionHeader struc, int number, nint address)
 	{
 		Number          = number;
 		Name            = struc.Name;

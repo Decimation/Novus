@@ -264,7 +264,7 @@ public static class Global
 
 		}
 
-		s = string.Format(s, fmt);
+		s = String.Format(s, fmt);
 
 		if (category is { }) {
 			s = $"[{category}] " + s;

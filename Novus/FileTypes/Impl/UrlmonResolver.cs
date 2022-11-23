@@ -32,7 +32,7 @@ public sealed class UrlmonResolver : IFileTypeResolver
 		                                MimeFromDataFlags.IGNORE_MIME_TEXT_PLAIN;
 
 		int ret = FindMimeFromData(IntPtr.Zero, null, dataBytes, dataBytes.Length,
-		                           mimeProposed, flags, out IntPtr outPtr, 0);
+		                           mimeProposed, flags, out nint outPtr, 0);
 
 		if (ret == 0 && outPtr != IntPtr.Zero) {
 			string str = Marshal.PtrToStringUni(outPtr);
@@ -52,11 +52,11 @@ public sealed class UrlmonResolver : IFileTypeResolver
 	}
 
 	[DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-	private static extern int FindMimeFromData(IntPtr pBC, [MA(UT.LPWStr)] string pwzUrl,
+	private static extern int FindMimeFromData(nint pBC, [MA(UT.LPWStr)] string pwzUrl,
 	                                           [MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
 	                                           byte[] pBuffer, int cbSize,
 	                                           [MA(UT.LPWStr)] string pwzMimeProposed,
-	                                           MimeFromDataFlags dwMimeFlags, out IntPtr ppwzMimeOut,
+	                                           MimeFromDataFlags dwMimeFlags, out nint ppwzMimeOut,
 	                                           int dwReserved);
 
 	/// <see cref="FindMimeFromData"/>

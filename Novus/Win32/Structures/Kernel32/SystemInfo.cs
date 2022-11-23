@@ -12,10 +12,10 @@ public struct SystemInfo
 	public ushort Reserved;
 	public uint   PageSize;
 
-	public IntPtr MinimumApplicationAddress;
-	public IntPtr MaximumApplicationAddress;
+	public nint MinimumApplicationAddress;
+	public nint MaximumApplicationAddress;
 
-	public IntPtr ActiveProcessorMask;
+	public nint ActiveProcessorMask;
 	public uint   NumberOfProcessors;
 	public uint   ProcessorType;
 

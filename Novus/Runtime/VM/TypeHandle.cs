@@ -7,8 +7,6 @@ using Novus.Memory;
 
 // ReSharper disable FieldCanBeMadeReadOnly.Local
 
-
-
 namespace Novus.Runtime.VM;
 
 [NativeStructure]
@@ -21,7 +19,6 @@ public unsafe struct TypeHandle
 	}
 
 	private void* Value { get; }
-
 
 	internal Pointer<MethodTable> MethodTable
 	{

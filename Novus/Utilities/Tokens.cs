@@ -378,7 +378,7 @@ public enum CorInfoType
 	CORINFO_TYPE_COUNT, // number of jit types
 };
 
-public enum CorInfoOptions : UInt32
+public enum CorInfoOptions : uint
 {
 	CORINFO_OPT_INIT_LOCALS = 0x00000010, // zero initialize all variables
 
@@ -702,7 +702,7 @@ public enum CorInfoHelpFunc
 }
 
 [Flags]
-public enum CorJitFlag : UInt32
+public enum CorJitFlag : uint
 {
 	CORJIT_FLAG_CALL_GETJITFLAGS = 0xffffffff, // Indicates that the JIT should retrieve flags in the form of a
 
@@ -873,7 +873,7 @@ public enum CorJitFlag : UInt32
 
 //from coreinfo.h
 // these are the attribute flags for fields and methods (getMethodAttribs)
-public enum CorInfoFlag : UInt32
+public enum CorInfoFlag : uint
 {
 	//  CORINFO_FLG_UNUSED                = 0x00000001,
 	//  CORINFO_FLG_UNUSED                = 0x00000002,
@@ -982,7 +982,7 @@ public enum CorInfoCallConv
 	CORINFO_CALLCONV_PARAMTYPE    = 0x80, // Passed last. Same as CORINFO_GENERICS_CTXT_FROM_PARAMTYPEARG
 };
 
-public enum CorInfoRegionKind : UInt32
+public enum CorInfoRegionKind : uint
 {
 	CORINFO_REGION_NONE,
 	CORINFO_REGION_HOT,

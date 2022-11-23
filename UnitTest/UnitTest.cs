@@ -170,7 +170,7 @@ public unsafe class Tests_DynamicLibrary
 	{
 		var dynamicLibrary = new DynamicLibrary(Native.KERNEL32_DLL);
 
-		var ff = dynamicLibrary.GetFunction<IntPtr>(nameof(Native.GetStdHandle),
+		var ff = dynamicLibrary.GetFunction<nint>(nameof(Native.GetStdHandle),
 		                                            CallingConvention.Winapi, CharSet.Auto, typeof(StandardHandle));
 
 		Console.WriteLine(Native.GetStdHandle((StandardHandle) 1));
@@ -179,7 +179,7 @@ public unsafe class Tests_DynamicLibrary
 
 		var expected = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
-		var fn = (delegate* unmanaged<StandardHandle, IntPtr>) ff.Method.MethodHandle.GetFunctionPointer().ToPointer();
+		var fn = (delegate* unmanaged<StandardHandle, nint>) ff.Method.MethodHandle.GetFunctionPointer().ToPointer();
 
 		var actual2 = fn(StandardHandle.STD_OUTPUT_HANDLE);
 
@@ -208,7 +208,7 @@ public class Tests_Other
 
 						wVk         = VirtualKey.MEDIA_PLAY_PAUSE,
 						dwFlags     = 0,
-						dwExtraInfo = new UIntPtr((uint) Native.GetMessageExtraInfo().ToInt64())
+						dwExtraInfo = new nuint((uint) Native.GetMessageExtraInfo().ToInt64())
 					},
 				}
 			}
@@ -443,6 +443,16 @@ public unsafe class Tests_Resources
 
 		Assert.AreEqual(c, 2);
 
+	}
+}
+
+[TestFixture]
+public class Tests_Magic
+{
+	[Test]
+	public void Test1()
+	{
+		
 	}
 }
 
@@ -954,11 +964,11 @@ public class Tests_Allocator
 
 		Assert.True(AllocManager.IsAllocated(h));
 
-		Assert.AreEqual((UIntPtr) 256, AllocManager.GetSize(h));
+		Assert.AreEqual((nuint) 256, AllocManager.GetSize(h));
 
 		h = AllocManager.ReAlloc(h, 512);
 
-		Assert.AreEqual((UIntPtr) 512, AllocManager.GetSize(h));
+		Assert.AreEqual((nuint) 512, AllocManager.GetSize(h));
 
 		Assert.Throws<Exception>(() =>
 		{
@@ -1025,21 +1035,21 @@ public class Tests_Mem
 
 		var s = "foo";
 
-		IntPtr strFixed;
+		nint strFixed;
 
 		fixed (char* c = s) {
-			strFixed = (IntPtr) c;
+			strFixed = (nint) c;
 		}
 
-		IntPtr strPin;
+		nint strPin;
 
 		fixed (char* c = &s.GetPinnableReference()) {
-			strPin = (IntPtr) c;
+			strPin = (nint) c;
 		}
 
 		var pin = s.AsMemory().Pin();
 
-		var strPinHandle = (IntPtr) pin.Pointer;
+		var strPinHandle = (nint) pin.Pointer;
 
 		var strMem = Mem.AddressOfHeap(s, OffsetOptions.StringData).Address;
 
@@ -1051,17 +1061,17 @@ public class Tests_Mem
 		 * Array
 		 */
 
-		IntPtr arrayFixed;
+		nint arrayFixed;
 
 		var rg = new[] { 1, 2, 3 };
 
 		fixed (int* c = rg) {
-			arrayFixed = (IntPtr) c;
+			arrayFixed = (nint) c;
 		}
 
 		var arrayPin = rg.AsMemory().Pin();
 
-		var arrayPinHandle = (IntPtr) arrayPin.Pointer;
+		var arrayPinHandle = (nint) arrayPin.Pointer;
 
 		var arrayMem = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData).Address;
 
@@ -1074,10 +1084,10 @@ public class Tests_Mem
 
 		object obj = new();
 
-		IntPtr objFixed;
+		nint objFixed;
 
 		fixed (byte* p = &Mem.GetPinningHelper(obj).Data) {
-			objFixed = (IntPtr) p;
+			objFixed = (nint) p;
 		}
 
 		var objMem = Mem.AddressOfHeap(obj, OffsetOptions.Fields).Address;
@@ -1230,7 +1240,7 @@ public class Tests_Mem
 	{
 		var a = new Clazz { s = "a" };
 
-		var pointer = Mem.AddressOfField<Object, string>(a, "s");
+		var pointer = Mem.AddressOfField<object, string>(a, "s");
 
 		Assert.AreEqual(a.s, pointer.Value);
 

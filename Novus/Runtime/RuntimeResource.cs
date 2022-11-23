@@ -133,7 +133,7 @@ public class RuntimeResource : IDisposable
 		m_loadedTypes.Remove(t);
 	}
 
-	public void LoadAll(Assembly assembly = null)
+	public void LoadAll([CBN] Assembly assembly = null)
 	{
 		assembly ??= Assembly.GetCallingAssembly();
 
@@ -189,30 +189,6 @@ public class RuntimeResource : IDisposable
 	{
 		EmbeddedResources.ResourceManager,
 	};
-
-	private static ResourceManager GetManager(Assembly assembly, string rsrcName = "EmbeddedResources")
-	{
-		string name = null;
-
-		foreach (string v in assembly.GetManifestResourceNames()) {
-			string value = assembly.GetName().Name;
-
-			if (v.Contains(value!) || v.Contains(rsrcName)) {
-				name = v;
-				break;
-			}
-		}
-
-		if (name == null) {
-			return null;
-		}
-
-		name = name[..name.LastIndexOf('.')];
-
-		var resourceManager = new ResourceManager(name, assembly);
-
-		return resourceManager;
-	}
 
 	private object GetObject(ImportAttribute attr)
 	{
@@ -278,7 +254,7 @@ public class RuntimeResource : IDisposable
 					if (throwOnErr) {
 						unsafe {
 							//todo
-							addr = (IntPtr) ((delegate* managed<void>) &ErrorFunction);
+							addr = (nint) ((delegate* managed<void>) &ErrorFunction);
 
 							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
 							var fnPtr=dyn.MethodHandle.GetFunctionPointer();
@@ -292,7 +268,7 @@ public class RuntimeResource : IDisposable
 					fieldValue = addr;
 				}
 				else {
-					fieldValue = (IntPtr) addr;
+					fieldValue = (nint) addr;
 				}
 
 				break;
@@ -322,11 +298,35 @@ public class RuntimeResource : IDisposable
 	public Pointer GetSymbol(string name)
 	{
 		return (Pointer<byte>) Module.Value.BaseAddress +
-		       (Symbols.Value?.GetSymbol(name)?.Offset
+		       (Symbols.Value.GetSymbol(name)?.Offset
 		        ?? throw new InvalidOperationException());
 	}
 
 	#endregion Import
+
+	public static ResourceManager GetManager(Assembly assembly, string rsrcName = "EmbeddedResources")
+	{
+		string name = null;
+
+		foreach (string v in assembly.GetManifestResourceNames()) {
+			string value = assembly.GetName().Name;
+
+			if (v.Contains(value!) || v.Contains(rsrcName)) {
+				name = v;
+				break;
+			}
+		}
+
+		if (name == null) {
+			return null;
+		}
+
+		name = name[..name.LastIndexOf('.')];
+
+		var resourceManager = new ResourceManager(name, assembly);
+
+		return resourceManager;
+	}
 
 	private static void ErrorFunction()
 	{
@@ -357,7 +357,7 @@ public class RuntimeResource : IDisposable
 
 	private Pointer GetOffset([NN] string s)
 	{
-		return Address + (long.TryParse(s, NumberStyles.HexNumber, null, out long l) ? l : long.Parse(s));
+		return Address + (Int64.TryParse(s, NumberStyles.HexNumber, null, out long l) ? l : Int64.Parse(s));
 	}
 
 	public Pointer<byte> GetExport(string name) => NativeLibrary.GetExport(Module.Value.BaseAddress, name);

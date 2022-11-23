@@ -198,7 +198,7 @@ public static class Program
 		}
 	}
 
-	private static int MyThreadProc(IntPtr param)
+	private static int MyThreadProc(nint param)
 	{
 		var process = Process.GetCurrentProcess();
 		int pid     = process.Id;
@@ -208,7 +208,7 @@ public static class Program
 		return 1;
 	}
 
-	private static void WaitForThreadToExit(IntPtr hThread)
+	private static void WaitForThreadToExit(nint hThread)
 	{
 		var c  = Native.WaitForSingleObject(hThread, unchecked((uint) -1));
 		var ex = Marshal.GetExceptionForHR((int) c);
@@ -235,7 +235,7 @@ public static class Program
 			// We must keep the delegate alive so that fpProc remains valid
 
 			Native.ThreadProc proc   = MyThreadProc;
-			IntPtr            fpProc = Marshal.GetFunctionPointerForDelegate(proc);
+			nint            fpProc = Marshal.GetFunctionPointerForDelegate(proc);
 
 			// Spin up the other process, and pass our pid and function pointer so that it can
 			// use that to call CreateRemoteThread
@@ -258,13 +258,13 @@ public static class Program
 			Console.WriteLine("Pid {0}:Started Child process", pid);
 
 			uint pidParent = UInt32.Parse(args[0]);
-			var  fpProc    = new UIntPtr(UInt64.Parse(args[1]));
+			var  fpProc    = new nuint(UInt64.Parse(args[1]));
 
-			IntPtr hProcess = Native.OpenProcess(ProcessAccess.All, false, (int) pidParent);
+			nint hProcess = Native.OpenProcess(ProcessAccess.All, false, (int) pidParent);
 
 			// Create a thread in the first process.
-			IntPtr hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
-			                                           (IntPtr) fpProc.ToPointer(), new IntPtr(6789),
+			nint hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
+			                                           (nint) fpProc.ToPointer(), new nint(6789),
 			                                           0, out uint dwThreadId);
 			WaitForThreadToExit(hThread);
 			return;

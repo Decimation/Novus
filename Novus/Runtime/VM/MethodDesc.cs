@@ -69,7 +69,6 @@ public unsafe struct MethodDesc
 		}
 	}
 
-
 	internal long RVA
 	{
 		get
@@ -160,7 +159,6 @@ public unsafe struct MethodDesc
 	/// </summary>
 	[field: ImportClr("Sig_GetRVA")]
 	private static delegate* unmanaged[Thiscall]<MethodDesc*, int> Func_GetRVA { get; }
-
 
 	/// <summary>
 	/// <see cref="MethodDesc.Reset"/>

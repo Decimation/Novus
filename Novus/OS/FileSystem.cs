@@ -87,7 +87,7 @@ public static class FileSystem
 	private static string GetPath(KnownFolder knownFolder, KnownFolderFlags flags, bool defaultUser)
 	{
 		int result = Native.SHGetKnownFolderPath(new Guid(KnownFolderGuids[(int) knownFolder]),
-		                                         (uint) flags, new IntPtr(defaultUser ? -1 : 0),
+		                                         (uint) flags, new nint(defaultUser ? -1 : 0),
 		                                         out var outPath);
 
 		if (result >= 0) {

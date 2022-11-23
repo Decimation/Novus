@@ -40,34 +40,34 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
+	public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int X, int Y, int cx, int cy,
 	                                       WindowFlags uFlags);
 
 	[DllImport(USER32_DLL, SetLastError = false)]
-	public static extern IntPtr GetDesktopWindow();
+	public static extern nint GetDesktopWindow();
 
 	[DllImport(USER32_DLL)]
-	public static extern bool PostMessage(IntPtr hWnd, uint msg, int wParam, int lParam);
+	public static extern bool PostMessage(nint hWnd, uint msg, int wParam, int lParam);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
-	public static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr childAfter, string className,
+	public static extern nint FindWindowEx(nint parentHandle, nint childAfter, string className,
 	                                         string windowTitle);
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
-	public static extern IntPtr FindWindow(IntPtr zeroOnly, string lpWindowName);
+	public static extern nint FindWindow(nint zeroOnly, string lpWindowName);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto, ExactSpelling = true)]
-	public static extern IntPtr GetForegroundWindow();
+	public static extern nint GetForegroundWindow();
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	public static extern int GetWindowThreadProcessId(IntPtr handle, out int processId);
+	public static extern int GetWindowThreadProcessId(nint handle, out int processId);
 
 	[DllImport(USER32_DLL)]
 	[return: MA(UT.Bool)]
 	public static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
 
 	[DllImport(USER32_DLL)]
-	public static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
+	public static extern MessageBoxResult MessageBox(nint hWnd, string text, string caption,
 	                                                 MessageBoxOptions options);
 
 	[DllImport(USER32_DLL)]
@@ -76,18 +76,18 @@ public static unsafe partial class Native
 	                                      int cbSize);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
-	public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam,
+	public static extern nint SendMessage(nint hWnd, int msg, nint wParam,
 	                                        [MA(UT.LPWStr)] string lParam);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
-	public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam,
+	public static extern nint SendMessage(nint hWnd, int msg, int wParam,
 	                                        [MA(UT.LPWStr)] string lParam);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
-	public static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, IntPtr lParam);
+	public static extern nint SendMessage(nint hWnd, int msg, int wParam, nint lParam);
 
 	[DllImport(USER32_DLL, SetLastError = false)]
-	public static extern IntPtr GetMessageExtraInfo();
+	public static extern nint GetMessageExtraInfo();
 
 	#region Key
 
@@ -102,47 +102,47 @@ public static unsafe partial class Native
 	public static extern bool GetKeyboardState([MA(UT.LPArray), In] byte[] r);
 
 	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
-	public static extern void keybd_event(byte bVk, byte bScan, KEYEVENTF dwFlags, IntPtr dwExtraInfo = default);
+	public static extern void keybd_event(byte bVk, byte bScan, KEYEVENTF dwFlags, nint dwExtraInfo = default);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool RegisterHotKey(IntPtr hWnd, int id, HotKeyModifiers fsModifiers, uint vk);
+	public static extern bool RegisterHotKey(nint hWnd, int id, HotKeyModifiers fsModifiers, uint vk);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+	public static extern bool UnregisterHotKey(nint hWnd, int id);
 
 	#endregion
 
 	[DllImport(USER32_DLL)]
-	public static extern IntPtr GetFocus();
+	public static extern nint GetFocus();
 
 	[DllImport(USER32_DLL)]
 	[return: MA(UT.Bool)]
-	private static extern bool SetForegroundWindow(IntPtr hWnd);
+	private static extern bool SetForegroundWindow(nint hWnd);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+	private static extern int GetWindowText(nint hWnd, StringBuilder lpString, int nMaxCount);
 
 	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
-	private static extern int GetWindowTextLength(IntPtr hWnd);
+	private static extern int GetWindowTextLength(nint hWnd);
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	private class SearchData
 	{
 		public string Wndclass;
 		public string Title;
-		public IntPtr hWnd;
+		public nint hWnd;
 	}
 
-	private delegate bool EnumWindowsProc(IntPtr hWnd, ref SearchData data);
+	private delegate bool EnumWindowsProc(nint hWnd, ref SearchData data);
 
 	[DllImport(USER32_DLL)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, ref SearchData data);
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
-	public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+	public static extern int GetClassName(nint hWnd, StringBuilder lpClassName, int nMaxCount);
 
 	#region Clipboard
 
@@ -163,14 +163,14 @@ public static unsafe partial class Native
 	public static extern int GetClipboardFormatName(uint format, [Out] StringBuilder lpszFormatName, int cchMaxCount);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
-	public static extern IntPtr GetClipboardData(uint uFormat);
+	public static extern nint GetClipboardData(uint uFormat);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
-	public static extern IntPtr SetClipboardData(uint uFormat, void* hMem);
+	public static extern nint SetClipboardData(uint uFormat, void* hMem);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool OpenClipboard(IntPtr hWndNewOwner);
+	public static extern bool OpenClipboard(nint hWndNewOwner);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
@@ -191,14 +191,14 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool GetMessage(out MSG lpMsg, [Optional] IntPtr hWnd, [Optional] uint wMsgFilterMin,
+	public static extern bool GetMessage(out MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
 	                                     [Optional] uint wMsgFilterMax);
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	public static extern uint RegisterWindowMessage(string lpString);
 
 	[DllImport(USER32_DLL)]
-	public static extern IntPtr DispatchMessage(in MSG lpMsg);
+	public static extern nint DispatchMessage(in MSG lpMsg);
 
 	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
@@ -209,18 +209,18 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool PostThreadMessage(uint idThread, uint Msg, [Optional] IntPtr wParam,
-	                                            [Optional] IntPtr lParam);
+	public static extern bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
+	                                            [Optional] nint lParam);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool KillTimer([Optional] IntPtr hWnd, IntPtr uIDEvent);
+	public static extern bool KillTimer([Optional] nint hWnd, nint uIDEvent);
 
 	[UnmanagedFunctionPointer(CallingConvention.Winapi)]
-	public delegate void Timerproc(IntPtr hwnd, uint uMsg, IntPtr idEvent, uint dwTime);
+	public delegate void Timerproc(nint hwnd, uint uMsg, nint idEvent, uint dwTime);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
-	public static extern IntPtr SetTimer([Optional] IntPtr hWnd, [Optional] IntPtr nIDEvent, [Optional] uint uElapse,
+	public static extern nint SetTimer([Optional] nint hWnd, [Optional] nint nIDEvent, [Optional] uint uElapse,
 	                                     [Optional] Timerproc lpTimerFunc);
 
 	public const int MF_BYCOMMAND = 0x00000000;
@@ -228,10 +228,10 @@ public static unsafe partial class Native
 	private const string COMDLG32_DLL = "Comdlg32.dll";
 
 	[DllImport(USER32_DLL)]
-	public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
+	public static extern int DeleteMenu(nint hMenu, int nPosition, int wFlags);
 
 	[DllImport(USER32_DLL)]
-	public static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+	public static extern nint GetSystemMenu(nint hWnd, bool bRevert);
 }
 
 public enum SysCommand : uint

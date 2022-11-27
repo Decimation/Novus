@@ -1,4 +1,4 @@
-﻿global using MImpl=System.Runtime.CompilerServices.MethodImplAttribute;
+﻿global using MImpl = System.Runtime.CompilerServices.MethodImplAttribute;
 global using Pointer = Novus.Memory.Pointer<byte>;
 using System.Buffers;
 using System.Numerics;
@@ -61,14 +61,14 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Size of element type <typeparamref name="T" />.
 	/// </summary>
-	public readonly int ElementSize => (int) s_ElementSize;
+	public readonly nuint ElementSize => s_ElementSize;
 
 	/// <summary>
 	///     Indexes <see cref="Address" /> as a reference.
 	/// </summary>
 	public ref T this[int index]
 	{
-		[method: MImpl(Global.IMPL_OPTIONS)]
+		[method: MImpl(Global.IMPL_OPTIONS)] 
 		get { return ref AsRef(index); }
 	}
 
@@ -77,7 +77,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T Reference
 	{
-		[method: MImpl(Global.IMPL_OPTIONS)]
+		[method: MImpl(Global.IMPL_OPTIONS)] 
 		get { return ref AsRef(); }
 	}
 
@@ -86,7 +86,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public T Value
 	{
-		get => Read();
+		readonly get => Read();
 		set => Write(value);
 	}
 
@@ -95,7 +95,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public nint Address
 	{
-		get => (nint) m_value;
+		readonly get => (nint) m_value;
 		set => m_value = (void*) value;
 	}
 
@@ -193,17 +193,17 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	/// <param name="other">Other <see cref="Pointer{T}" />.</param>
 	/// <returns></returns>
-	public bool Equals(Pointer<T> other)
+	public readonly bool Equals(Pointer<T> other)
 	{
 		return Address == other.Address;
 	}
 
-	public override bool Equals(object? obj)
+	public readonly override bool Equals(object? obj)
 	{
 		return obj is Pointer<T> pointer && Equals(pointer);
 	}
 
-	public override int GetHashCode()
+	public readonly override int GetHashCode()
 	{
 		// ReSharper disable once NonReadonlyMemberInGetHashCode
 		return unchecked((int) (long) m_value);
@@ -326,15 +326,15 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public Pointer<T> Decrement(int elemCnt = ELEM_CNT) => Increment(-elemCnt);
 
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private void* Offset(int elemCnt)
+	[MImpl(MImplO.AggressiveInlining)]
+	private readonly void* Offset(int elemCnt)
 	{
 		// return (void*) ((long) m_value + (long) Mem.GetByteCount(ElementSize, elemCnt));
 		return U.Add<T>(m_value, elemCnt);
 	}
 
 	[Pure]
-	public Pointer<T> AddressOfIndex(int index) => Offset(index);
+	public readonly Pointer<T> AddressOfIndex(int index) => Offset(index);
 
 	#endregion
 
@@ -355,7 +355,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <returns>The value read from the offset <see cref="Address" />.</returns>
 	[Pure]
 	[method: MImpl(Global.IMPL_OPTIONS)]
-	public T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
+	public readonly T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
 
 	/// <summary>
 	///     Reinterprets <see cref="Address" /> as a reference to a value of type <typeparamref name="T" />.
@@ -389,10 +389,10 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	}
 
 	[Pure]
-	public Pointer<byte> ReadPointer(int elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
+	public readonly Pointer<byte> ReadPointer(int elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
 
 	[Pure]
-	public Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET) => Cast<Pointer<TType>>().Read(elemOffset);
+	public readonly Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET) => Cast<Pointer<TType>>().Read(elemOffset);
 
 	public void WritePointer<TType>(Pointer<TType> ptr, int elemOffset = OFFSET)
 		=> Cast<Pointer<TType>>().Write(ptr, elemOffset);
@@ -401,7 +401,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	{
 		//|  Copy3 | 7.428 ns | 0.0473 ns | 0.0395 ns |
 
-		var count = (long) Mem.GetByteCount(elemCnt, ElementSize);
+		var count = (long) Mem.GetByteCount((nuint) elemCnt, ElementSize);
 
 		Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest,
 		                  count, count);

@@ -47,17 +47,15 @@ public static class AllocManager
 	}
 
 	[MURV]
-	public static Pointer<T> ReAlloc<T>(Pointer<T> ptr, int elemCnt)
+	public static Pointer<T> ReAlloc<T>(Pointer<T> ptr, nuint elemCnt)
 	{
 		if (!IsAllocated(ptr)) {
 			return null;
 		}
-
-		Require.Positive(elemCnt);
-
+		
 		Allocated.Remove(ptr);
 
-		int elemSize = Mem.SizeOf<T>();
+		nuint elemSize =(nuint) Mem.SizeOf<T>();
 		int cb       = (int) Mem.GetByteCount(elemSize, elemCnt);
 
 		ptr = Allocator.ReAlloc(ptr.Address, (nuint) cb);
@@ -87,7 +85,7 @@ public static class AllocManager
 	/// </summary>
 	/// <param name="cb">Number of bytes</param>
 	[MURV]
-	public static Pointer<byte> Alloc(int cb) => Alloc<byte>(cb);
+	public static Pointer<byte> Alloc(nuint cb) => Alloc<byte>(cb);
 
 	/// <summary>
 	/// Allocates memory for <paramref name="elemCnt"></paramref> elements of type <typeparamref name="T"/>.
@@ -95,15 +93,14 @@ public static class AllocManager
 	/// <typeparam name="T">Element type</typeparam>
 	/// <param name="elemCnt">Number of elements</param>
 	[MURV]
-	public static Pointer<T> Alloc<T>(int elemCnt)
+	public static Pointer<T> Alloc<T>(nuint elemCnt)
 	{
-		Require.Positive(elemCnt);
 
-		int elemSize = Mem.SizeOf<T>();
+		var elemSize =(nuint) Mem.SizeOf<T>();
 		var cb       = (nuint) Mem.GetByteCount(elemSize, elemCnt);
 
 		Pointer<T> h = Allocator.Alloc(cb);
-		h.Clear(elemCnt);
+		h.Clear((int) elemCnt);
 
 		Allocated.Add(h);
 

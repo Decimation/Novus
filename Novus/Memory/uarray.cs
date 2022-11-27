@@ -37,13 +37,13 @@ public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 
 	public UArray() : this(Mem.Nullptr, 0) { }
 
-	public UArray(int s) : this(NativeMemory.AllocZeroed((nuint) s, s_elementSize), s) { }
+	public UArray(nuint s) : this(NativeMemory.AllocZeroed((nuint) s, s_elementSize), s) { }
 
-	private UArray(Pointer<T> p, int i)
+	private UArray(Pointer<T> p, nuint i)
 	{
 		Address = p;
-		Length  = i;
-		Size    = (int) Mem.GetByteCount(Length, Mem.SizeOf<T>());
+		Length  =(int) i;
+		Size    = (int) Mem.GetByteCount((nuint) Length,(nuint) Mem.SizeOf<T>());
 	}
 
 	static UArray()

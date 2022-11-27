@@ -987,14 +987,14 @@ public class Tests_Allocator
 
 		Assert.Throws<Exception>(() =>
 		{
-			AllocManager.ReAlloc(h, -1);
+			AllocManager.ReAlloc(h, Mem.Invalid_u);
 		});
 
 		AllocManager.Free(h);
 
 		Assert.False(AllocManager.IsAllocated(h));
 
-		Assert.True(AllocManager.ReAlloc(h, -1) == null);
+		Assert.True(AllocManager.ReAlloc(h, Mem.Invalid_u) == null);
 	}
 
 	/*[Test]

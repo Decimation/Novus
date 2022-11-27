@@ -38,6 +38,55 @@ public class MyStruct
 	}
 }
 
+// [InProcess]
+[RyuJitX64Job]
+public unsafe class Benchmarks25
+{
+	private Pointer<nint> m_ptr;
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		m_ptr = NativeMemory.Alloc((nuint) nint.Size);
+	}
+
+	[GlobalCleanup]
+	public void GlobalCleanup()
+	{
+		NativeMemory.Free(m_ptr.ToPointer());
+	}
+
+	[Benchmark]
+	public nint Read()
+	{
+		return m_ptr.Read();
+	}
+
+	[Benchmark]
+	public ref nint Ref()
+	{
+		return ref m_ptr.Reference;
+	}
+
+	[Benchmark]
+	public void Write()
+	{
+		m_ptr.Write(123);
+	}
+
+	[Benchmark]
+	public Pointer<nint> Add()
+	{
+		return m_ptr.Add();
+	}
+
+	[Benchmark]
+	public Pointer<nint> Op_Add()
+	{
+		return m_ptr++;
+	}
+}
+
 [RyuJitX64Job]
 public class Benchmarks24
 {
@@ -51,7 +100,7 @@ public class Benchmarks24
 		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
 
 		m_path =
-				@"C:\\Users\\Deci\\Pictures\\Art\\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png";
+			@"C:\\Users\\Deci\\Pictures\\Art\\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png";
 		m_stream = File.OpenRead(m_path);
 
 	}
@@ -112,7 +161,7 @@ public class Benchmarks22
 	}
 
 	[Benchmark]
-	public int a()
+	public nuint a()
 	{
 		return m_ptr.ElementSize;
 	}
@@ -508,7 +557,7 @@ public unsafe class BenchmarksPointer
 	private int*         ptr2;
 
 	/*
-		 |             Method |      Mean |     Error |    StdDev |    Median |
+		|             Method |      Mean |     Error |    StdDev |    Median |
 		|------------------- |----------:|----------:|----------:|----------:|
 		|      Pointer_Value | 0.0194 ns | 0.0116 ns | 0.0109 ns | 0.0156 ns |
 		|        Pointer_Ref | 0.0288 ns | 0.0170 ns | 0.0159 ns | 0.0187 ns |
@@ -523,27 +572,27 @@ public unsafe class BenchmarksPointer
 	 */
 
 	/*
-|             Method |      Mean |     Error |    StdDev |    Median |
-|------------------- |----------:|----------:|----------:|----------:|
-|      Pointer_Value | 0.0009 ns | 0.0018 ns | 0.0015 ns | 0.0000 ns |
-|        Pointer_Ref | 0.0000 ns | 0.0001 ns | 0.0001 ns | 0.0000 ns |
-| Native_Dereference | 0.2863 ns | 0.0092 ns | 0.0082 ns | 0.2833 ns |
-|       Native_Index | 0.0013 ns | 0.0018 ns | 0.0014 ns | 0.0009 ns |
-|       Marshal_Read | 1.4553 ns | 0.0023 ns | 0.0020 ns | 1.4554 ns |
+	|             Method |      Mean |     Error |    StdDev |    Median |
+	|------------------- |----------:|----------:|----------:|----------:|
+	|      Pointer_Value | 0.0009 ns | 0.0018 ns | 0.0015 ns | 0.0000 ns |
+	|        Pointer_Ref | 0.0000 ns | 0.0001 ns | 0.0001 ns | 0.0000 ns |
+	| Native_Dereference | 0.2863 ns | 0.0092 ns | 0.0082 ns | 0.2833 ns |
+	|       Native_Index | 0.0013 ns | 0.0018 ns | 0.0014 ns | 0.0009 ns |
+	|       Marshal_Read | 1.4553 ns | 0.0023 ns | 0.0020 ns | 1.4554 ns |
 
-// * Warnings *
-ZeroMeasurement
-  BenchmarksPointer.Pointer_Value: Default -> The method duration is indistinguishable from the empty method duration
-  BenchmarksPointer.Pointer_Ref: Default   -> The method duration is indistinguishable from the empty method duration
-  BenchmarksPointer.Native_Index: Default  -> The method duration is indistinguishable from the empty method duration
+	// * Warnings *
+	ZeroMeasurement
+	  BenchmarksPointer.Pointer_Value: Default -> The method duration is indistinguishable from the empty method duration
+	  BenchmarksPointer.Pointer_Ref: Default   -> The method duration is indistinguishable from the empty method duration
+	  BenchmarksPointer.Native_Index: Default  -> The method duration is indistinguishable from the empty method duration
 
-// * Hints *
-Outliers
-  BenchmarksPointer.Pointer_Value: Default      -> 2 outliers were removed (1.58 ns, 1.59 ns)
-  BenchmarksPointer.Pointer_Ref: Default        -> 2 outliers were removed (1.55 ns, 1.58 ns)
-  BenchmarksPointer.Native_Dereference: Default -> 1 outlier  was  removed (1.87 ns)
-  BenchmarksPointer.Native_Index: Default       -> 3 outliers were removed (1.54 ns..1.55 ns)
-  BenchmarksPointer.Marshal_Read: Default       -> 1 outlier  was  removed (3.00 ns)
+	// * Hints *
+	Outliers
+	  BenchmarksPointer.Pointer_Value: Default      -> 2 outliers were removed (1.58 ns, 1.59 ns)
+	  BenchmarksPointer.Pointer_Ref: Default        -> 2 outliers were removed (1.55 ns, 1.58 ns)
+	  BenchmarksPointer.Native_Dereference: Default -> 1 outlier  was  removed (1.87 ns)
+	  BenchmarksPointer.Native_Index: Default       -> 3 outliers were removed (1.54 ns..1.55 ns)
+	  BenchmarksPointer.Marshal_Read: Default       -> 1 outlier  was  removed (3.00 ns)
 	 */
 
 	[GlobalSetup]

@@ -73,7 +73,18 @@ public static unsafe class Mem
 	/// <summary>
 	///     Address size
 	/// </summary>
-	public static readonly int Size = sizeof(nint);
+	public static readonly int Size = nint.Size;
+
+	public static readonly nuint Invalid_u;
+
+	public static readonly nint Invalid = Native.INVALID;
+
+	static Mem()
+	{
+		fixed (nint* n = &Invalid) {
+			Invalid_u = *(nuint*) n;
+		}
+	}
 
 	/// <summary>
 	///     Represents a <c>null</c> <see cref="Pointer{T}" /> or <see cref="ReadOnlyPointer{T}" />
@@ -383,7 +394,7 @@ public static unsafe class Mem
 		var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
 		//var stackAlloc = stackalloc byte[byteArray.Length];
 
-		nint objAddr = handle.AddrOfPinnedObject() + ofs;
+		nint   objAddr = handle.AddrOfPinnedObject() + ofs;
 		object value   = Marshal.PtrToStructure(objAddr, t);
 
 		handle.Free();
@@ -515,8 +526,6 @@ public static unsafe class Mem
 	#endregion
 
 	#region Size
-
-	public static nuint GetByteCount(int elemCnt, int elemSize) => GetByteCount((nuint) elemCnt, (nuint) elemSize);
 
 	/// <summary>
 	///     Calculates the total byte size of <paramref name="elemCnt" /> elements with

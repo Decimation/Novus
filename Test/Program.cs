@@ -121,11 +121,14 @@ public static class Program
 {
 	private static async Task Main(string[] args)
 	{
-		var uf =await UniFile.GetAsync(
-			"C:\\Users\\Deci\\Pictures\\Art\\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png", 
-			MagicResolver.Instance);
-		Console.WriteLine(uf);
+	}
 
+	private static async Task Test6()
+	{
+		var uf = await UniFile.GetAsync(
+			         "C:\\Users\\Deci\\Pictures\\Art\\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png",
+			         MagicResolver.Instance);
+		Console.WriteLine(uf);
 	}
 
 	private static async Task Test5()

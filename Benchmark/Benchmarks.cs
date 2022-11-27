@@ -39,6 +39,40 @@ public class MyStruct
 }
 
 [RyuJitX64Job]
+public class Benchmarks24
+{
+	private readonly Consumer   m_consumer = new Consumer();
+	private          string     m_path;
+	private          FileStream m_stream;
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
+
+		m_path =
+				@"C:\\Users\\Deci\\Pictures\\Art\\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png";
+		m_stream = File.OpenRead(m_path);
+
+	}
+
+	[GlobalCleanup]
+	public void GlobalCleanup() { }
+
+	[Benchmark]
+	public void Test1()
+	{
+		FileType.Resolve(m_stream).Consume(m_consumer);
+	}
+
+	[Benchmark]
+	public void Test2()
+	{
+		MagicResolver.Instance.Resolve(m_stream).Consume(m_consumer);
+	}
+}
+
+[RyuJitX64Job]
 public class Benchmarks23
 {
 	private readonly Consumer m_consumer = new Consumer();
@@ -50,10 +84,8 @@ public class Benchmarks23
 	}
 
 	[GlobalCleanup]
-	public void GlobalCleanup()
-	{
+	public void GlobalCleanup() { }
 
-	}	
 	[Benchmark]
 	public void Test1()
 	{
@@ -89,7 +121,7 @@ public class Benchmarks22
 [RyuJitX64Job]
 public class Benchmarks21
 {
-	private int    a, b;
+	private int  a, b;
 	private nint fn;
 
 	[GlobalSetup]

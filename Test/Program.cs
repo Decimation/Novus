@@ -25,6 +25,7 @@ using Kantan.Text;
 using Microsoft.VisualBasic.FileIO;
 using Novus;
 using Novus.FileTypes;
+using Novus.FileTypes.Impl;
 using Novus.Memory;
 using Novus.OS;
 using Novus.Runtime.Meta;
@@ -120,6 +121,10 @@ public static class Program
 {
 	private static async Task Main(string[] args)
 	{
+		var uf =await UniFile.GetAsync(
+			"C:\\Users\\Deci\\Pictures\\Art\\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png", 
+			MagicResolver.Instance);
+		Console.WriteLine(uf);
 
 	}
 

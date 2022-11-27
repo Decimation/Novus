@@ -2,7 +2,7 @@
 
 namespace Novus.FileTypes.Impl;
 
-[Obsolete]
+[Obsolete($"Use other {nameof(IFileTypeResolver)}")]
 public sealed class FileCliResolver : IFileTypeResolver
 {
 	public void Dispose() { }

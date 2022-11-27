@@ -118,6 +118,7 @@ public static class FileSystem
 				var split = (Environment.GetEnvironmentVariable(PATH_ENV) ?? String.Empty)
 					.Split(PATH_DELIM);
 
+				// ReSharper disable once LoopCanBeConvertedToQuery
 				foreach (string test in split) {
 					string path = test.Trim();
 
@@ -157,7 +158,6 @@ public static class FileSystem
 
 	public static string GetRelativeParent(string fi, int n)
 	{
-
 		var rg = new string[n + 1];
 
 		Array.Fill(rg, RELATIVE_PATH);

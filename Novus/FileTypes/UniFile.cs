@@ -37,7 +37,8 @@ public sealed class UniFile : IDisposable, IEquatable<UniFile>
 	public static async Task<UniFile> GetAsync(string value, IFileTypeResolver resolver = null,
 	                                           params FileType[] whitelist)
 	{
-		// TODO: null or throw exception?
+
+		resolver ??= IFileTypeResolver.Default;
 
 		value = value.CleanString();
 
@@ -46,7 +47,7 @@ public sealed class UniFile : IDisposable, IEquatable<UniFile>
 
 		if (isFile) {
 			stream = File.OpenRead(value);
-			isUrl  = false;
+			// isUrl  = false;
 		}
 		else {
 			var res = await value.AllowAnyHttpStatus()
@@ -57,28 +58,22 @@ public sealed class UniFile : IDisposable, IEquatable<UniFile>
 			                     })
 			                     .GetAsync();
 
-			/*if (!res.ResponseMessage.IsSuccessStatusCode) {
-					Debug.WriteLine($"invalid status code {res.ResponseMessage.StatusCode} {value}");
-					return null;
-				}*/
+			if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
+				throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
+			}
 
 			stream = await res.GetStreamAsync();
 			isUrl  = true;
-
 		}
 
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
 
-		var types = (await IFileTypeResolver.Default.ResolveAsync(stream)).ToArray();
+		var types = (await resolver.ResolveAsync(stream)).ToArray();
 
 		if (whitelist.Any()) {
 			var inter = types.Intersect(whitelist);
 
 			if (!inter.Any()) {
-				// var e = new ArgumentException("Invalid file types", nameof(value));
-				// return await Task.FromException<SearchQuery>(e);
-				// Debug.WriteLine($"Invalid file types: {value} {types.QuickJoin()}", nameof(TryGetAsync));
-				// return null;
 				throw new ArgumentException($"Invalid file types: {types.QuickJoin()}", nameof(value));
 			}
 
@@ -111,7 +106,6 @@ public sealed class UniFile : IDisposable, IEquatable<UniFile>
 		}
 		catch (ArgumentException e) {
 			Debug.WriteLine($"Argument: {e.Message}", nameof(TryGetAsync));
-
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}", nameof(TryGetAsync));
@@ -168,13 +162,13 @@ public sealed class UniFile : IDisposable, IEquatable<UniFile>
 			return true;
 		}
 
-		return Value == other.Value && IsFile == other.IsFile && IsUri == other.IsUri && Equals(Stream, other.Stream) &&
-		       Equals(FileTypes, other.FileTypes);
+		return Value == other.Value && IsFile == other.IsFile && IsUri == other.IsUri
+		       && Equals(Stream, other.Stream) && Equals(FileTypes, other.FileTypes);
 	}
 
 	public override bool Equals(object obj)
 	{
-		return ReferenceEquals(this, obj) || obj is UniFile other && Equals(other);
+		return ReferenceEquals(this, obj) || (obj is UniFile other && Equals(other));
 	}
 
 	public override int GetHashCode()

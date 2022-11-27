@@ -55,66 +55,71 @@ public class SetupTrace
 }
 
 [TestFixture]
+[Parallelizable]
 public class Tests_FileTypes
 {
 	static object[] _rg =
 	{
 		// new[] { @"http://www.zerochan.net/2750747", null },
-		new[] { @"https://i.imgur.com/QtCausw.png", FileType.Find("jpeg").First().MediaType },
+		new Object[] { @"https://i.imgur.com/QtCausw.png", FileType.Find("jpeg").First() },
 		// new[] { @"https://kemono.party/patreon/user/3332300/post/65227512", null },
 		// @"https://i.pximg.net/img-master/img/2022/05/01/19/44/39/98022741_p0_master1200.jpg",
-		new[] { "C:\\Users\\Deci\\Pictures\\Test Images\\Test1.jpg", FileType.Find("jpeg").First().MediaType },
-		new[] { "http://static.zerochan.net/atago.(azur.lane).full.2750747.png", FileType.Find("png").First().MediaType }
+		new Object[] { "C:\\Users\\Deci\\Pictures\\Test Images\\Test1.jpg", FileType.Find("jpeg").First() },
+		new Object[] { "http://static.zerochan.net/atago.(azur.lane).full.2750747.png", FileType.Find("png").First() }
 	};
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]
-	public async Task Test4(string s, string type)
+	public async Task Test4(string s, FileType type)
 	{
 		var t  = await UniFile.TryGetAsync(s, IFileTypeResolver.Default);
 		var tt = t.FileTypes;
 		// var tt = await IFileTypeResolver.Default.ResolveAsync(t.Stream);
-		Assert.True(tt.Any(x => x.MediaType == type));
+		Assert.Contains(type, tt);
+		// Assert.True(tt.Any(x => x.MediaType == type));
 		// Assert.Contains(new FileType { MediaType = type }, types.ToArray());
 	}
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]
-	public async Task Test1(string s, string type)
+	public async Task Test1(string s, FileType type)
 	{
 		var t = await UniFile.TryGetAsync(s, UrlmonResolver.Instance);
 		// var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
 		var tt = t.FileTypes;
-		Assert.True(tt.Any(x => x.MediaType == type));
+		Assert.Contains(type, tt);
 
 	}
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]
-	public async Task Test2(string s, string type)
+	public async Task Test2(string s, FileType type)
 	{
 		var t = await UniFile.TryGetAsync(s, FastResolver.Instance);
 		// var tt = await MagicResolver.Instance.ResolveAsync(t.Stream);
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 		var tt = t.FileTypes;
-		Assert.True(tt.Any(x => x.MediaType == type));
+		// Assert.True(tt.Any(x => x.MediaType == type));
+		Assert.Contains(type, tt);
 
 	}
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]
-	public async Task Test3(string s, string type)
+	public async Task Test3(string s, FileType type)
 	{
 		var t = await UniFile.TryGetAsync(s, MagicResolver.Instance);
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileTypes;
-		Assert.True(tt.Any(x => x.MediaType == type));
+		// Assert.True(tt.Any(x => x.MediaType == type));
+		Assert.Contains(type, tt);
 
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
 }
 
 [TestFixture]
+[Parallelizable]
 public class Tests_FileResolvers
 {
 	[Test]
@@ -141,6 +146,7 @@ public class Tests_FileResolvers
 }
 
 [TestFixture]
+[Parallelizable]
 public class Tests_MediaTypes
 {
 	[Test]
@@ -163,6 +169,7 @@ public class Tests_MediaTypes
 }
 
 [TestFixture]
+[Parallelizable]
 public unsafe class Tests_DynamicLibrary
 {
 	[Test]
@@ -189,6 +196,7 @@ public unsafe class Tests_DynamicLibrary
 }
 
 [TestFixture]
+[Parallelizable]
 public class Tests_Other
 {
 	[Test]
@@ -221,6 +229,7 @@ public class Tests_Other
 }
 
 [TestFixture]
+[Parallelizable]
 public class Tests_GCHeap
 {
 	[Test]
@@ -269,6 +278,7 @@ public class Tests_Atomic
 }
 
 [TestFixture]
+[Parallelizable]
 public class Tests_UArray
 {
 	[Test]
@@ -285,6 +295,7 @@ public class Tests_UArray
 }
 
 [TestFixture]
+[Parallelizable]
 public unsafe class Tests_NativeUtilities
 {
 	[Test]
@@ -298,6 +309,7 @@ public unsafe class Tests_NativeUtilities
 }
 
 [TestFixture]
+[Parallelizable]
 public unsafe class Tests_Pointer
 {
 	[Test]
@@ -422,6 +434,7 @@ public unsafe class Tests_Pointer
 }
 
 [TestFixture]
+[Parallelizable]
 public unsafe class Tests_Resources
 {
 	private const string s =
@@ -447,6 +460,7 @@ public unsafe class Tests_Resources
 }
 
 [TestFixture]
+[Parallelizable]
 public class Tests_Magic
 {
 	[Test]
@@ -457,6 +471,7 @@ public class Tests_Magic
 }
 
 [TestFixture]
+[Parallelizable]
 public class Tests_Native
 {
 	[Test]

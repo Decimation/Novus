@@ -13,7 +13,6 @@ using Novus.FileTypes;
 using Novus.FileTypes.Impl;
 using Novus.Memory;
 using Novus.Memory.Allocation;
-using Novus.OS;
 using Novus.Win32.Structures;
 using Novus.Runtime.Meta;
 using Novus.Utilities;

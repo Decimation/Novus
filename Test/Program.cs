@@ -29,6 +29,7 @@ using Novus.FileTypes.Impl;
 using Novus.Memory;
 using Novus.OS;
 using Novus.Runtime.Meta;
+using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
@@ -117,21 +118,22 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
 
-public static class Program
+public static unsafe class Program
 {
-	private static async Task Main(string[] args)
+	private static void Main(string[] args)
 	{
+		var sizeOf = Mem.SizeOf<MyClass>(SizeOfOptions.BaseInstance);
+		Console.WriteLine($"{sizeOf}");
+		Pointer<byte> p = stackalloc byte[sizeOf];
+		ref var       d = ref Mem.New<MyClass>(ref p, out var p2);
+		Console.WriteLine(d);
+		d.a = 123;
+		d.f = MathF.PI;
+		Console.WriteLine(d);
+		Console.WriteLine(GCHeap.IsHeapPointer(d));
 	}
 
-	private static async Task Test6()
-	{
-		var uf = await UniFile.GetAsync(
-			         "C:\\Users\\Deci\\Pictures\\Art\\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png",
-			         MagicResolver.Instance);
-		Console.WriteLine(uf);
-	}
-
-	private static async Task Test5()
+	/*private static async Task Test5()
 	{
 		var fileType = FileType.Find("image").ToArray();
 
@@ -142,7 +144,7 @@ public static class Program
 
 		var ft = Activator.CreateInstance<FileType>();
 		Console.WriteLine(ft);
-	}
+	}*/
 
 	public interface IPtr<T>
 	{
@@ -243,7 +245,7 @@ public static class Program
 			// We must keep the delegate alive so that fpProc remains valid
 
 			Native.ThreadProc proc   = MyThreadProc;
-			nint            fpProc = Marshal.GetFunctionPointerForDelegate(proc);
+			nint              fpProc = Marshal.GetFunctionPointerForDelegate(proc);
 
 			// Spin up the other process, and pass our pid and function pointer so that it can
 			// use that to call CreateRemoteThread
@@ -272,8 +274,8 @@ public static class Program
 
 			// Create a thread in the first process.
 			nint hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
-			                                           (nint) fpProc.ToPointer(), new nint(6789),
-			                                           0, out uint dwThreadId);
+			                                         (nint) fpProc.ToPointer(), new nint(6789),
+			                                         0, out uint dwThreadId);
 			WaitForThreadToExit(hThread);
 			return;
 		}

@@ -29,9 +29,9 @@ public class ImportUnmanagedAttribute : ImportAttribute
 	public ImportUnmanagedAttribute(string moduleName, string name, ImportType type,
 	                                string value = null) : base(name, ImportManageType.Unmanaged)
 	{
-		ModuleName    = moduleName;
-		Type = type;
-		Value         = value;
+		ModuleName = moduleName;
+		Type       = type;
+		Value      = value;
 	}
 }
 

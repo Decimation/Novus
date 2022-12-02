@@ -54,7 +54,6 @@ public sealed class UniFile : IDisposable, IEquatable<UniFile>
 			                     .WithHeaders(new
 			                     {
 				                     User_Agent = ER.UserAgent,
-
 			                     })
 			                     .GetAsync();
 

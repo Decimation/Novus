@@ -42,7 +42,7 @@ public unsafe struct MethodDescChunk
 			// for MDC: m_methodTable.GetValue(PTR_HOST_MEMBER_TADDR(MethodDescChunk, this, m_methodTable));
 
 			const int MT_FIELD_OFS = 0;
-			return MethodTableStub.Add(MT_FIELD_OFS);
+			return MethodTableStub.AddBytes(MT_FIELD_OFS);
 		}
 	}
 }

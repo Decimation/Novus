@@ -62,7 +62,7 @@ public unsafe struct FieldDesc
 
 			//return Mem.OffsetField((MethodTable*) EnclosingMethodTableStub, MT_FIELD_OFS);
 
-			return EnclosingMethodTableStub.Add(MT_FIELD_OFS);
+			return EnclosingMethodTableStub.AddBytes(MT_FIELD_OFS);
 		}
 	}
 

@@ -43,6 +43,7 @@ namespace Novus.Memory;
 ///     Provides utilities for manipulating pointers, memory, and types.
 ///     <para>Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.</para>
 /// </summary>
+/// <seealso cref="Pointer"/>
 /// <seealso cref="Mem" />
 /// <seealso cref="BitConverter" />
 /// <seealso cref="Convert" />
@@ -128,7 +129,7 @@ public static unsafe class Mem
 		return p <= hi && p >= lo;
 	}
 
-	public static bool IsAddressInRange(Pointer p, Pointer lo, long size)
+	public static bool IsAddressInRange(Pointer p, Pointer lo, nint size)
 	{
 		return p >= lo && p <= lo + size;
 	}
@@ -812,7 +813,7 @@ public static unsafe class Mem
 
 	public static Pointer AddressOfField(object obj, string name) => AddressOfField<object, byte>(obj, name);
 
-	public static Pointer<TField> AddressOfField<TField>(Type t, string name, [NNINN("t")] object o = null)
+	public static Pointer<TField> AddressOfField<TField>(Type t, string name, [NNINN(nameof(t))] object o = null)
 	{
 		MetaField field = t.GetAnyResolvedField(name).AsMetaField();
 
@@ -866,6 +867,36 @@ public static unsafe class Mem
 		Func<string, byte> func = s1 => Byte.Parse(s1.Replace("0x", null), NumberStyles.HexNumber);
 
 		return s.Split(", ").Select(func).ToArray();
+	}
+
+	/*public static void Write<T>(Pointer p, T value)
+	{
+		Unsafe.Write(p.ToPointer(), value);
+	}
+
+	public static T Read<T>(Pointer p)
+	{
+		return Unsafe.Read<T>(p.ToPointer());
+	}*/
+
+	/// <summary>
+	/// Allocates an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="p"/>.
+	/// The allocated memory size must be at least &gt;= value returned by <see cref="SizeOfOptions.BaseInstance"/>
+	/// <see cref="Mem.SizeOf{T}()"/>
+	/// </summary>
+	/// <typeparam name="T">Type to allocate</typeparam>
+	/// <param name="p">Memory within which to allocate the instance</param>
+	/// <param name="p2">Original base pointer</param>
+	/// <returns>An instance of type <typeparamref name="T"/> allocated within <paramref name="p"/></returns>
+	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
+	public static ref T New<T>(ref Pointer<byte> p, out Pointer<byte> p2)
+	{
+		p2 = p;
+		p.Cast<ObjHeader>().Write(default);
+		p += Size;
+		p.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
+
+		return ref AddressOf(ref p).Cast<T>().Reference;
 	}
 }
 

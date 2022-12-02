@@ -14,7 +14,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Resources;
 using System.Runtime.InteropServices;
-using Novus.OS;
 using static Kantan.Diagnostics.LogCategories;
 using static Novus.Imports.ImportType;
 
@@ -298,7 +297,7 @@ public class RuntimeResource : IDisposable
 	public Pointer GetSymbol(string name)
 	{
 		return (Pointer<byte>) Module.Value.BaseAddress +
-		       (Symbols.Value.GetSymbol(name)?.Offset
+		      (nint)(Symbols.Value.GetSymbol(name)?.Offset
 		        ?? throw new InvalidOperationException());
 	}
 
@@ -357,7 +356,7 @@ public class RuntimeResource : IDisposable
 
 	private Pointer GetOffset([NN] string s)
 	{
-		return Address + (Int64.TryParse(s, NumberStyles.HexNumber, null, out long l) ? l : Int64.Parse(s));
+		return Address + (nint.TryParse(s, NumberStyles.HexNumber, null, out var l) ? l : nint.Parse(s));
 	}
 
 	public Pointer<byte> GetExport(string name) => NativeLibrary.GetExport(Module.Value.BaseAddress, name);

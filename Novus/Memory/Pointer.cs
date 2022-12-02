@@ -68,8 +68,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T this[int index]
 	{
-		[method: MImpl(Global.IMPL_OPTIONS)] 
-		get { return ref AsRef(index); }
+		[method: MImpl(Global.IMPL_OPTIONS)] get { return ref AsRef(index); }
 	}
 
 	/// <summary>
@@ -77,8 +76,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T Reference
 	{
-		[method: MImpl(Global.IMPL_OPTIONS)] 
-		get { return ref AsRef(); }
+		[method: MImpl(Global.IMPL_OPTIONS)] get { return ref AsRef(); }
 	}
 
 	/// <summary>
@@ -237,9 +235,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes added
 	/// </returns>
 	[Pure]
-	public Pointer<T> Add(long byteCnt = ELEM_CNT)
+	public Pointer<T> Add(nint byteCnt = ELEM_CNT)
 	{
-		long val = ToInt64() + byteCnt;
+		nint val = ToNativeInt() + byteCnt;
 		return (void*) val;
 	}
 
@@ -251,11 +249,11 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes subtracted
 	/// </returns>
 	[Pure]
-	public Pointer<T> Subtract(long byteCnt = ELEM_CNT) => Add(-byteCnt);
+	public Pointer<T> Subtract(nint byteCnt = ELEM_CNT) => Add(-byteCnt);
 
-	public static Pointer<T> operator +(Pointer<T> left, long right) => (void*) (left.ToInt64() + right);
+	public static Pointer<T> operator +(Pointer<T> left, nint right) => (void*) (left.ToInt64() + right);
 
-	public static Pointer<T> operator -(Pointer<T> left, long right) => (void*) (left.ToInt64() - right);
+	public static Pointer<T> operator -(Pointer<T> left, nint right) => (void*) (left.ToInt64() - right);
 
 	public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right)
 		=> (void*) (left.ToInt64() + right.ToInt64());
@@ -313,7 +311,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
 	/// </returns>
 	[Pure]
-	public Pointer<T> Increment(int elemCnt = ELEM_CNT) => Offset(elemCnt);
+	public Pointer<T> Increment(nint elemCnt = ELEM_CNT) => Offset(elemCnt);
 
 	/// <summary>
 	///     Decrement <see cref="Address" /> by the specified number of elements
@@ -323,18 +321,18 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
 	/// </returns>
 	[Pure]
-	public Pointer<T> Decrement(int elemCnt = ELEM_CNT) => Increment(-elemCnt);
+	public Pointer<T> Decrement(nint elemCnt = ELEM_CNT) => Increment(-elemCnt);
 
 	[Pure]
 	[MImpl(MImplO.AggressiveInlining)]
-	private readonly void* Offset(int elemCnt)
+	private readonly void* Offset(nint elemCnt)
 	{
 		// return (void*) ((long) m_value + (long) Mem.GetByteCount(ElementSize, elemCnt));
-		return U.Add<T>(m_value, elemCnt);
+		return U.Add<T>(m_value, (int) elemCnt);
 	}
 
 	[Pure]
-	public readonly Pointer<T> AddressOfIndex(int index) => Offset(index);
+	public readonly Pointer<T> AddressOfIndex(nint index) => Offset(index);
 
 	#endregion
 
@@ -346,7 +344,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <param name="value">Value to write.</param>
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	[method: MImpl(Global.IMPL_OPTIONS)]
-	public void Write(T value, int elemOffset = OFFSET) => Unsafe.Write(Offset(elemOffset), value);
+	public void Write(T value, nint elemOffset = OFFSET) => Unsafe.Write(Offset(elemOffset), value);
 
 	/// <summary>
 	///     Reads a value of type <typeparamref name="T" /> from <see cref="Address" />.
@@ -355,7 +353,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <returns>The value read from the offset <see cref="Address" />.</returns>
 	[Pure]
 	[method: MImpl(Global.IMPL_OPTIONS)]
-	public readonly T Read(int elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
+	public readonly T Read(nint elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
 
 	/// <summary>
 	///     Reinterprets <see cref="Address" /> as a reference to a value of type <typeparamref name="T" />.
@@ -364,13 +362,13 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 	[Pure]
 	[method: MImpl(Global.IMPL_OPTIONS)]
-	public ref T AsRef(int elemOffset = OFFSET) => ref Unsafe.AsRef<T>(Offset(elemOffset));
+	public ref T AsRef(nint elemOffset = OFFSET) => ref Unsafe.AsRef<T>(Offset(elemOffset));
 
 	/// <summary>
 	///     Zeros <paramref name="elemCnt" /> elements.
 	/// </summary>
 	/// <param name="elemCnt">Number of elements to zero</param>
-	public void Clear(int elemCnt = ELEM_CNT)
+	public void Clear(nint elemCnt = ELEM_CNT)
 	{
 		for (int i = 0; i < elemCnt; i++) {
 			this[i] = default!;
@@ -389,15 +387,16 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	}
 
 	[Pure]
-	public readonly Pointer<byte> ReadPointer(int elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
+	public readonly Pointer<byte> ReadPointer(nint elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
 
 	[Pure]
-	public readonly Pointer<TType> ReadPointer<TType>(int elemOffset = OFFSET) => Cast<Pointer<TType>>().Read(elemOffset);
+	public readonly Pointer<TType> ReadPointer<TType>(nint elemOffset = OFFSET)
+		=> Cast<Pointer<TType>>().Read(elemOffset);
 
-	public void WritePointer<TType>(Pointer<TType> ptr, int elemOffset = OFFSET)
+	public void WritePointer<TType>(Pointer<TType> ptr, nint elemOffset = OFFSET)
 		=> Cast<Pointer<TType>>().Write(ptr, elemOffset);
 
-	public void Copy(Pointer<T> dest, int startIndex, int elemCnt)
+	public void Copy(Pointer<T> dest, nint startIndex, nint elemCnt)
 	{
 		//|  Copy3 | 7.428 ns | 0.0473 ns | 0.0395 ns |
 
@@ -411,9 +410,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		}*/
 	}
 
-	public void Copy(Pointer<T> dest, int elemCnt) => Copy(dest, OFFSET, elemCnt);
+	public void Copy(Pointer<T> dest, nint elemCnt) => Copy(dest, OFFSET, elemCnt);
 
-	public void Copy(T[] rg, int startIndex, int elemCnt)
+	public void Copy(T[] rg, nint startIndex, nint elemCnt)
 	{
 		/*var       s   = rg.AsMemory();
 		using var pin = s.Pin();
@@ -421,8 +420,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 		// |  Copy3 | 3.690 ns | 0.0655 ns | 0.0580 ns |
 
-		for (int i = startIndex; i < elemCnt + startIndex; i++) {
-			rg[i - startIndex] = this[i];
+		for (nint i = startIndex; i < elemCnt + startIndex; i++) {
+			rg[i - startIndex] = this[(int) i];
 		}
 	}
 
@@ -439,7 +438,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     the current pointer
 	/// </returns>
 	[Pure]
-	public T[] ToArray(int startIndex, int elemCnt)
+	public T[] ToArray(nint startIndex, nint elemCnt)
 	{
 		var rg = new T[elemCnt];
 
@@ -458,7 +457,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     the current pointer
 	/// </returns>
 	[Pure]
-	public T[] ToArray(int elemCnt) => ToArray(OFFSET, elemCnt);
+	public T[] ToArray(nint elemCnt) => ToArray(OFFSET, elemCnt);
 
 	#endregion
 
@@ -488,7 +487,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	#endregion
 
-	public MemoryHandle Pin(int elementIndex = OFFSET)
+	public MemoryHandle Pin(int elementIndex = OFFSET_I)
 	{
 		var handle = new MemoryHandle(Offset(elementIndex));
 
@@ -505,10 +504,12 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Default offset for <see cref="Pointer{T}" />
 	/// </summary>
-	private const int OFFSET = 0;
+	private const nint OFFSET = OFFSET_I;
+
+	private const int OFFSET_I = 0;
 
 	/// <summary>
 	///     Default increment/decrement/element count for <see cref="Pointer{T}" />
 	/// </summary>
-	private const int ELEM_CNT = 1;
+	private const nint ELEM_CNT = 1;
 }

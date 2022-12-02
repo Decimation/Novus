@@ -154,7 +154,7 @@ public unsafe struct EEClass
 		{
 			fixed (EEClass* value = &this) {
 				var thisptr = (Pointer<byte>) value;
-				return thisptr.Add(FixedEEClassFields);
+				return thisptr.AddBytes(FixedEEClassFields);
 			}
 		}
 	}

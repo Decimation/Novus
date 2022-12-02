@@ -66,7 +66,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Indexes <see cref="Address" /> as a reference.
 	/// </summary>
-	public ref T this[int index]
+	public ref T this[nint index]
 	{
 		[method: MImpl(Global.IMPL_OPTIONS)] get { return ref AsRef(index); }
 	}
@@ -168,16 +168,13 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public readonly void* ToPointer() => m_value;
 
 	[Pure]
-	public readonly nint ToNativeInt() => (nint) m_value;
-
-	[Pure]
 	public readonly ulong ToUInt64() => (ulong) m_value;
 
 	[Pure]
-	public readonly long ToInt64() => (long) m_value;
+	public readonly long ToInt64() => Address.ToInt64();
 
 	[Pure]
-	public readonly int ToInt32() => (int) m_value;
+	public readonly int ToInt32() => Address.ToInt32();
 
 	[Pure]
 	public readonly uint ToUInt32() => (uint) m_value;
@@ -235,9 +232,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes added
 	/// </returns>
 	[Pure]
-	public Pointer<T> Add(nint byteCnt = ELEM_CNT)
+	public Pointer<T> AddBytes(nint byteCnt = ELEM_CNT)
 	{
-		nint val = ToNativeInt() + byteCnt;
+		nint val = Address + byteCnt;
 		return (void*) val;
 	}
 
@@ -249,11 +246,11 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes subtracted
 	/// </returns>
 	[Pure]
-	public Pointer<T> Subtract(nint byteCnt = ELEM_CNT) => Add(-byteCnt);
+	public Pointer<T> SubtractBytes(nint byteCnt = ELEM_CNT) => AddBytes(-byteCnt);
 
-	public static Pointer<T> operator +(Pointer<T> left, nint right) => (void*) (left.ToInt64() + right);
+	public static Pointer<T> operator +(Pointer<T> left, nint right) => left.Add(right);
 
-	public static Pointer<T> operator -(Pointer<T> left, nint right) => (void*) (left.ToInt64() - right);
+	public static Pointer<T> operator -(Pointer<T> left, nint right) => left.Subtract(right);
 
 	public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right)
 		=> (void*) (left.ToInt64() + right.ToInt64());
@@ -264,26 +261,26 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Increments the <see cref="Address" /> by the specified number of elements.
 	///     <remarks>
-	///         Equal to <see cref="Pointer{T}.Increment" />
+	///         Equal to <see cref="Add" />
 	///     </remarks>
 	/// </summary>
 	/// <param name="ptr">
 	///     <see cref="Pointer{T}" />
 	/// </param>
 	/// <param name="i">Number of elements (<see cref="ElementSize" />)</param>
-	public static Pointer<T> operator +(Pointer<T> ptr, int i) => ptr.Increment(i);
+	public static Pointer<T> operator +(Pointer<T> ptr, int i) => ptr.Add(i);
 
 	/// <summary>
 	///     Decrements the <see cref="Address" /> by the specified number of elements.
 	///     <remarks>
-	///         Equal to <see cref="Pointer{T}.Decrement" />
+	///         Equal to <see cref="Subtract" />
 	///     </remarks>
 	/// </summary>
 	/// <param name="ptr">
 	///     <see cref="Pointer{T}" />
 	/// </param>
 	/// <param name="i">Number of elements (<see cref="ElementSize" />)</param>
-	public static Pointer<T> operator -(Pointer<T> ptr, int i) => ptr.Decrement(i);
+	public static Pointer<T> operator -(Pointer<T> ptr, int i) => ptr.Subtract(i);
 
 	/// <summary>
 	///     Increments the <see cref="Pointer{T}" /> by one element.
@@ -292,7 +289,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     <see cref="Pointer{T}" />
 	/// </param>
 	/// <returns>The offset <see cref="Address" /></returns>
-	public static Pointer<T> operator ++(Pointer<T> ptr) => ptr.Increment();
+	public static Pointer<T> operator ++(Pointer<T> ptr) => ptr.Add();
 
 	/// <summary>
 	///     Decrements the <see cref="Pointer{T}" /> by one element.
@@ -301,7 +298,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     <see cref="Pointer{T}" />
 	/// </param>
 	/// <returns>The offset <see cref="Address" /></returns>
-	public static Pointer<T> operator --(Pointer<T> ptr) => ptr.Decrement();
+	public static Pointer<T> operator --(Pointer<T> ptr) => ptr.Subtract();
 
 	/// <summary>
 	///     Increment <see cref="Address" /> by the specified number of elements
@@ -311,7 +308,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
 	/// </returns>
 	[Pure]
-	public Pointer<T> Increment(nint elemCnt = ELEM_CNT) => Offset(elemCnt);
+	public Pointer<T> Add(nint elemCnt = ELEM_CNT) => Offset(elemCnt);
 
 	/// <summary>
 	///     Decrement <see cref="Address" /> by the specified number of elements
@@ -321,7 +318,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
 	/// </returns>
 	[Pure]
-	public Pointer<T> Decrement(nint elemCnt = ELEM_CNT) => Increment(-elemCnt);
+	public Pointer<T> Subtract(nint elemCnt = ELEM_CNT) => Add(-elemCnt);
 
 	[Pure]
 	[MImpl(MImplO.AggressiveInlining)]

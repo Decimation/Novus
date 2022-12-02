@@ -76,7 +76,7 @@ public unsafe class Benchmarks25
 	[Benchmark]
 	public Pointer<nint> Add()
 	{
-		return m_ptr.Add();
+		return m_ptr.AddBytes();
 	}
 
 	[Benchmark]

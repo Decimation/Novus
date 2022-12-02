@@ -409,6 +409,24 @@ public unsafe class Tests_Pointer
 	}
 
 	[Test]
+	public void Test7()
+	{
+		Pointer<int> a = stackalloc int[1];
+		Pointer<int> b = stackalloc int[1];
+
+		var a_cpy = a;
+		var b_cpy = b;
+
+		a++;
+
+		Assert.AreEqual(a_cpy, a - 1);
+
+		a--;
+		Assert.AreEqual(a_cpy, a);
+
+	}
+
+	[Test]
 	public void Test1()
 	{
 		int i = 256;

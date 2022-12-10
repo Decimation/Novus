@@ -493,8 +493,6 @@ public static unsafe partial class Native
 		return IntPtr.Zero;
 	}
 
-	#region Clipboard
-
 	/*public static string GetClipboardFormatName(uint u)
 	{
 		var c = new StringBuilder(SIZE_1);
@@ -504,7 +502,4 @@ public static unsafe partial class Native
 			return c.ToString();
 		}
 	}*/
-
-	#endregion
-
 }

@@ -45,11 +45,6 @@ public static class Clipboard
 		return b;
 	}
 
-	public static string GetFileName()
-	{
-		return (string) GetData((uint) ClipboardFormat.FileNameW);
-	}
-
 	public static string[] GetDragQueryList()
 	{
 		var h = Native.GetClipboardData((uint) ClipboardFormat.CF_HDROP);
@@ -69,13 +64,14 @@ public static class Clipboard
 
 	public static object GetData(uint? f = null)
 	{
+
 		var fn = ClipboardFormatToString(f);
 
 		f ??= ((EnumFormats().FirstOrDefault<uint>(Native.IsClipboardFormatAvailable)));
 
 		var d = Native.GetClipboardData(f.Value);
 
-		var v = fn(d);
+		var v = fn?.Invoke(d) ?? d;
 
 		//todo
 
@@ -95,35 +91,44 @@ public static class Clipboard
 		return rg.ToArray();
 	}
 
-	#region 
+	#region
 
-	public static Func<nint, string> ClipboardFormatToString(uint? f)
+	[CBN]
+	public static Func<nint, object> ClipboardFormatToString(uint? f)
 	{
-		Func<nint, string> fn = f switch
-		{
-			(uint) ClipboardFormat.FileNameW or
-				(uint) ClipboardFormat.CF_OEMTEXT => Marshal.PtrToStringUni,
+		switch (f) {
+			case (uint) ClipboardFormat.FileNameW or
+				(uint) ClipboardFormat.CF_OEMTEXT:
+				return Marshal.PtrToStringUni;
+			case (uint) ClipboardFormat.PNG:
+				return (u) =>
+				{
+					var size = Native.GlobalSize(u);
+					var rg   = new byte[size];
+					Marshal.Copy(u, rg, 0, (int) size);
+					return rg;
+				};
+			case (uint) ClipboardFormat.FileName or
+				(uint) ClipboardFormat.CF_TEXT:
+				return Marshal.PtrToStringAnsi;
+			default:
+				return _ => default;
+		}
 
-			(uint) ClipboardFormat.FileName or
-				(uint) ClipboardFormat.CF_TEXT => Marshal.PtrToStringAnsi,
-				
-			_ => Marshal.PtrToStringAuto
-
-		};
-		return fn;
 	}
 
-	public static Func<string, nint> ClipboardFormatFromString(uint? f)
+	[CBN]
+	public static Func<object, nint> ClipboardFormatFromString(uint? f)
 	{
-		Func<string, nint> fn = f switch
+		Func<object, nint> fn = f switch
 		{
 			(uint) ClipboardFormat.FileNameW or
-				(uint) ClipboardFormat.CF_OEMTEXT => Marshal.StringToHGlobalUni,
+				(uint) ClipboardFormat.CF_OEMTEXT => s=>Marshal.StringToHGlobalUni((string) s),
 
 			(uint) ClipboardFormat.FileName or
-				(uint) ClipboardFormat.CF_TEXT => Marshal.StringToHGlobalAnsi,
+				(uint) ClipboardFormat.CF_TEXT =>s=> Marshal.StringToHGlobalAnsi((string) s),
 
-			_ => Marshal.StringToHGlobalAuto,
+			_ => null,
 		};
 
 		return fn;

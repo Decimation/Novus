@@ -357,6 +357,10 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint GlobalLock(nint hMem);
+
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint GlobalUnlock(nint hMem);
+
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial nint GlobalSize(nint hMem);
 }

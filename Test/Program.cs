@@ -60,9 +60,9 @@ using System.Security.Cryptography;
 // ReSharper disable UnusedParameter.Local
 #nullable disable
 
-namespace Test;
-
-// # .NET 7
+namespace Test
+{
+	// # .NET 7
 /*
  * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
  * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
@@ -120,213 +120,224 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
 
-public static unsafe class Program
-{
-	private static void Main(string[] args)
+	public static unsafe class Program
 	{
-		/*Native.OpenClipboard();
+		private static void Main(string[] args)
+		{
+			/*Native.OpenClipboard();
+	
+			const uint png = (uint) (ClipboardFormat.PNG);
+	
+			if (!Native.IsClipboardFormatAvailable(png)) {
+				return;
+			}
+	
+			var data = Native.GetClipboardData(png);
+			var rg   = ReadPNG(data);
+			var i    = Image.FromStream(new MemoryStream(rg));
+			Console.WriteLine(i.PhysicalDimension);*/
+			/*Native.OpenClipboard(IntPtr.Zero);
 
-		const uint png = (uint) (ClipboardFormat.PNG);
+			var d = Native.GetClipboardData((uint) ClipboardFormat.PNG);
 
-		if (!Native.IsClipboardFormatAvailable(png)) {
-			return;
+			nint ptr = Native.GlobalSize(d);
+			Console.WriteLine(ptr);
+			Console.WriteLine(Native.GlobalSize(-1));*/
+			Clipboard.Open();
+			var data = Clipboard.GetData((uint)ClipboardFormat.PNG) as byte[];
+			Console.WriteLine(data);
+			var img=Image.FromStream(new MemoryStream(data));
+			Console.WriteLine(img.PhysicalDimension);
 		}
 
-		var data = Native.GetClipboardData(png);
-		var rg   = ReadPNG(data);
-		var i    = Image.FromStream(new MemoryStream(rg));
-		Console.WriteLine(i.PhysicalDimension);*/
+		public static void ReadWhile<T>(Func<T> fn, int i2, IList<T> list, T[] rg)
+			where T : IEquatable<T>, IEqualityOperators<T, T, bool>
+		{
+			T   t;
+			int i = 0;
 
-	}
+			while ((t = fn()) == rg[i]) {
+				list.Add(t);
 
-	public static void ReadWhile<T>(Func<T> fn, int i2, IList<T> list, T[] rg)
-		where T : IEquatable<T>, IEqualityOperators<T, T, bool>
-	{
-		T   t;
-		int i = 0;
+				if (++i >= rg.Length) {
+					break;
+				}
+			}
 
-		while ((t = fn()) == rg[i]) {
-			list.Add(t);
+		}
 
-			if (++i >= rg.Length) {
-				break;
+		/*private static async Task Test5()
+		{
+			var fileType = FileType.Find("image").ToArray();
+	
+			var t = await UniFile.TryGetAsync("https://i.imgur.com/QtCausw.png", whitelist: fileType);
+			Console.WriteLine(t);
+			var f = await t.DownloadAsync();
+			Console.WriteLine(f);
+	
+			var ft = Activator.CreateInstance<FileType>();
+			Console.WriteLine(ft);
+		}*/
+
+		public interface IPtr<T>
+		{
+			static abstract ref T Ref { get; }
+		}
+
+		private static void Test4()
+		{
+			bool c = Clipboard.Open();
+
+			uint[] f = Clipboard.EnumFormats();
+
+			nint   p = Native.GetClipboardData(49159);
+			string s = Marshal.PtrToStringUni(p);
+			Console.WriteLine(s);
+			Console.WriteLine(Clipboard.GetData());
+
+		}
+
+		private static void Test3()
+		{
+			var type = new MyStruct();
+
+			foreach (var nullMember in type.GetNullMembers()) {
+				Console.WriteLine($"{nullMember.Field.Name} {nullMember.IsNull}");
 			}
 		}
 
-	}
-
-	/*private static async Task Test5()
-	{
-		var fileType = FileType.Find("image").ToArray();
-
-		var t = await UniFile.TryGetAsync("https://i.imgur.com/QtCausw.png", whitelist: fileType);
-		Console.WriteLine(t);
-		var f = await t.DownloadAsync();
-		Console.WriteLine(f);
-
-		var ft = Activator.CreateInstance<FileType>();
-		Console.WriteLine(ft);
-	}*/
-
-	public interface IPtr<T>
-	{
-		static abstract ref T Ref { get; }
-	}
-
-	private static void Test4()
-	{
-		var c = Clipboard.Open();
-
-		var f = Clipboard.EnumFormats();
-
-		var p = Native.GetClipboardData(49159);
-		var s = Marshal.PtrToStringUni(p);
-		Console.WriteLine(s);
-		Console.WriteLine(Clipboard.GetData());
-		Console.WriteLine(Clipboard.GetFileName());
-
-	}
-
-	private static void Test3()
-	{
-		var type = new MyStruct();
-
-		foreach (var nullMember in type.GetNullMembers()) {
-			Console.WriteLine($"{nullMember.Field.Name} {nullMember.IsNull}");
-		}
-	}
-
-	static void err()
-	{
-		throw new Exception();
-	}
-
-	static int fn()
-	{
-		return 1;
-	}
-
-	private struct MyStruct
-	{
-		public int a;
-
-		public float f { get; set; }
-
-		public override string ToString()
+		private static void err()
 		{
-			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+			throw new Exception();
 		}
-	}
 
-	private class MyClass
-	{
-		public int a;
-
-		public float f { get; set; }
-
-		public override string ToString()
+		private static int fn()
 		{
-			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+			return 1;
 		}
-	}
 
-	private static int MyThreadProc(nint param)
-	{
-		var process = Process.GetCurrentProcess();
-		int pid     = process.Id;
+		private struct MyStruct
+		{
+			public int a;
 
-		Console.WriteLine("Pid {0}: Inside my new thread!. Param={1}", pid, param.ToInt32());
+			public float f { get; set; }
 
-		return 1;
-	}
-
-	private static void WaitForThreadToExit(nint hThread)
-	{
-		var c  = Native.WaitForSingleObject(hThread, unchecked((uint) -1));
-		var ex = Marshal.GetExceptionForHR((int) c);
-
-		Native.GetExitCodeThread(hThread, out uint exitCode);
-
-		var process = Process.GetCurrentProcess();
-		int pid     = process.Id;
-
-		Console.WriteLine("Pid {0}: Thread exited with code: {1}", pid, exitCode);
-	}
-
-	private static unsafe void Test2(string[] args, Process p)
-	{
-		var pid = (uint) p.Id;
-
-		if (args.Length == 0) {
-			Console.WriteLine("Pid {0}:Started Parent process", pid);
-
-			// Spawn the child
-			string fileName = p.MainModule.FileName.Replace(".vshost", "");
-
-			// Get thread proc as an IntPtr, which we can then pass to the 2nd-process.
-			// We must keep the delegate alive so that fpProc remains valid
-
-			Native.ThreadProc proc   = MyThreadProc;
-			nint              fpProc = Marshal.GetFunctionPointerForDelegate(proc);
-
-			// Spin up the other process, and pass our pid and function pointer so that it can
-			// use that to call CreateRemoteThread
-
-			string arg = $"{pid} {fpProc}";
-
-			var info = new ProcessStartInfo(fileName, arg)
+			public override string ToString()
 			{
-				// share console, output is interlaces.
-				UseShellExecute = false
+				return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+			}
+		}
+
+		private class MyClass
+		{
+			public int a;
+
+			public float f { get; set; }
+
+			public override string ToString()
+			{
+				return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+			}
+		}
+
+		private static int MyThreadProc(nint param)
+		{
+			var process = Process.GetCurrentProcess();
+			int pid     = process.Id;
+
+			Console.WriteLine("Pid {0}: Inside my new thread!. Param={1}", pid, param.ToInt32());
+
+			return 1;
+		}
+
+		private static void WaitForThreadToExit(nint hThread)
+		{
+			uint c  = Native.WaitForSingleObject(hThread, unchecked((uint) -1));
+			var  ex = Marshal.GetExceptionForHR((int) c);
+
+			Native.GetExitCodeThread(hThread, out uint exitCode);
+
+			var process = Process.GetCurrentProcess();
+			int pid     = process.Id;
+
+			Console.WriteLine("Pid {0}: Thread exited with code: {1}", pid, exitCode);
+		}
+
+		private static unsafe void Test2(string[] args, Process p)
+		{
+			uint pid = (uint) p.Id;
+
+			if (args.Length == 0) {
+				Console.WriteLine("Pid {0}:Started Parent process", pid);
+
+				// Spawn the child
+				string fileName = p.MainModule.FileName.Replace(".vshost", "");
+
+				// Get thread proc as an IntPtr, which we can then pass to the 2nd-process.
+				// We must keep the delegate alive so that fpProc remains valid
+
+				Native.ThreadProc proc   = MyThreadProc;
+				nint              fpProc = Marshal.GetFunctionPointerForDelegate(proc);
+
+				// Spin up the other process, and pass our pid and function pointer so that it can
+				// use that to call CreateRemoteThread
+
+				string arg = $"{pid} {fpProc}";
+
+				var info = new ProcessStartInfo(fileName, arg)
+				{
+					// share console, output is interlaces.
+					UseShellExecute = false
+				};
+
+				var processChild = Process.Start(info);
+
+				processChild.WaitForExit();
+				GC.KeepAlive(proc); // keep the delegate from being collected
+				return;
+			}
+			else {
+				Console.WriteLine("Pid {0}:Started Child process", pid);
+
+				uint  pidParent = UInt32.Parse(args[0]);
+				nuint fpProc    = new nuint(UInt64.Parse(args[1]));
+
+				nint hProcess = Native.OpenProcess(ProcessAccess.All, false, (int) pidParent);
+
+				// Create a thread in the first process.
+				nint hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
+				                                         (nint) fpProc.ToPointer(), new nint(6789),
+				                                         0, out uint dwThreadId);
+				WaitForThreadToExit(hThread);
+				return;
+			}
+		}
+
+		private static void Test1()
+		{
+			dynamic o = new ExpandoObject();
+			// o.a = (Func<int>) (() => { return 1; });
+			var dictionary = (IDictionary<string, object>) o;
+			dictionary.Add("a", 1);
+
+			Console.WriteLine(o);
+			Console.WriteLine(o.a);
+
+			var kl = new KeyboardListener()
+			{
+				KeyWhitelist =
+				{
+					VirtualKey.LBUTTON
+				}
 			};
 
-			var processChild = Process.Start(info);
-
-			processChild.WaitForExit();
-			GC.KeepAlive(proc); // keep the delegate from being collected
-			return;
-		}
-		else {
-			Console.WriteLine("Pid {0}:Started Child process", pid);
-
-			uint pidParent = UInt32.Parse(args[0]);
-			var  fpProc    = new nuint(UInt64.Parse(args[1]));
-
-			nint hProcess = Native.OpenProcess(ProcessAccess.All, false, (int) pidParent);
-
-			// Create a thread in the first process.
-			nint hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
-			                                         (nint) fpProc.ToPointer(), new nint(6789),
-			                                         0, out uint dwThreadId);
-			WaitForThreadToExit(hThread);
-			return;
-		}
-	}
-
-	private static void Test1()
-	{
-		dynamic o = new ExpandoObject();
-		// o.a = (Func<int>) (() => { return 1; });
-		var dictionary = (IDictionary<string, object>) o;
-		dictionary.Add("a", 1);
-
-		Console.WriteLine(o);
-		Console.WriteLine(o.a);
-
-		var kl = new KeyboardListener()
-		{
-			KeyWhitelist =
+			kl.KeyStroke += (sender, key) =>
 			{
-				VirtualKey.LBUTTON
-			}
-		};
+				Console.WriteLine($"! {key}");
 
-		kl.KeyStroke += (sender, key) =>
-		{
-			Console.WriteLine($"! {key}");
-
-		};
-		kl.Start();
-		Thread.Sleep(TimeSpan.FromSeconds(10));
+			};
+			kl.Start();
+			Thread.Sleep(TimeSpan.FromSeconds(10));
+		}
 	}
 }

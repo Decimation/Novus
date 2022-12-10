@@ -715,14 +715,14 @@ public class Benchmarks
 		return sl.GetSymbol("g_pGCHeap");
 	}
 
-	private SymbolReader sl;
+	private Win32SymbolReader sl;
 
 	[GlobalSetup]
 	public void GlobalSetup()
 	{
 
 		Global.Setup();
-		sl = new SymbolReader(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb");
+		sl = new Win32SymbolReader(Native.GetCurrentProcess(), @"C:\Users\Deci\Desktop\coreclr.pdb");
 		sl.LoadAll();
 	}
 

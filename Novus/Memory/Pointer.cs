@@ -32,13 +32,19 @@ namespace Novus.Memory;
 ///             <description>Equals the size of <see cref="P:System.IntPtr.Size" /></description>
 ///         </item>
 ///         <item>
-///             <description>Supports pointer arithmetic, reading/writing different any type, and other pointer operations.</description>
+///             <description>
+/// Supports pointer arithmetic, reading/writing any type,
+/// and other pointer operations.
+/// </description>
 ///         </item>
 ///         <item>
 ///             <description>No bounds checking</description>
 ///         </item>
 ///         <item>
 ///             <description>Minimum type safety</description>
+///         </item>
+/// <item>
+///             <description>Pointer semantics</description>
 ///         </item>
 ///     </list>
 /// </remarks>

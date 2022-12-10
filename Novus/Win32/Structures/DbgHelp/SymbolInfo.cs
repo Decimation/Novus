@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Imports;
+using Novus.Imports.Attributes;
 
 namespace Novus.Win32.Structures.DbgHelp;
 

@@ -1,5 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Imports;
+using Novus.Imports.Attributes;
+using Novus.Win32;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -19,8 +21,6 @@ public unsafe struct EEClassLayoutInfo
 	// the base NStruct is treated as the first member for the purpose of
 	// this calculation.
 
-		
-
 	// Post V1.0 addition: This is the equivalent of m_LargestAlignmentRequirementOfAllMember
 	// for the managed layout.
 
@@ -32,5 +32,4 @@ public unsafe struct EEClassLayoutInfo
 
 	internal byte PackingSize { get; }
 
-		
 }

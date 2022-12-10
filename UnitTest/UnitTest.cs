@@ -14,6 +14,7 @@ using Novus;
 using Novus.FileTypes;
 using Novus.FileTypes.Impl;
 using Novus.Imports;
+using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Memory.Allocation;
 using Novus.OS;
@@ -56,7 +57,7 @@ public class SetupTrace
 
 [TestFixture]
 [Parallelizable]
-public class Tests_FileTypes
+public class Tests_FileTypes2
 {
 	static object[] _rg =
 	{
@@ -72,7 +73,7 @@ public class Tests_FileTypes
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test4(string s, FileType type)
 	{
-		var t  = await UniFile.TryGetAsync(s, IFileTypeResolver.Default);
+		var t = await UniSource.TryGetAsync(s, IFileTypeResolver.Default);
 		var tt = t.FileTypes;
 		// var tt = await IFileTypeResolver.Default.ResolveAsync(t.Stream);
 		Assert.Contains(type, tt);
@@ -84,7 +85,7 @@ public class Tests_FileTypes
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test1(string s, FileType type)
 	{
-		var t = await UniFile.TryGetAsync(s, UrlmonResolver.Instance);
+		var t = await UniSource.TryGetAsync(s, UrlmonResolver.Instance);
 		// var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
 		var tt = t.FileTypes;
 		Assert.Contains(type, tt);
@@ -95,7 +96,7 @@ public class Tests_FileTypes
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test2(string s, FileType type)
 	{
-		var t = await UniFile.TryGetAsync(s, FastResolver.Instance);
+		var t = await UniSource.TryGetAsync(s, FastResolver.Instance);
 		// var tt = await MagicResolver.Instance.ResolveAsync(t.Stream);
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 		var tt = t.FileTypes;
@@ -108,7 +109,7 @@ public class Tests_FileTypes
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test3(string s, FileType type)
 	{
-		var t = await UniFile.TryGetAsync(s, MagicResolver.Instance);
+		var t = await UniSource.TryGetAsync(s, MagicResolver.Instance);
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileTypes;
 		// Assert.True(tt.Any(x => x.MediaType == type));
@@ -117,7 +118,6 @@ public class Tests_FileTypes
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
 }
-
 [TestFixture]
 [Parallelizable]
 public class Tests_FileResolvers
@@ -493,7 +493,7 @@ public class Tests_Native
 	[TestCase(@"C:\Symbols\coreclr.pdb")]
 	public void SymbolsTest(string sss)
 	{
-		var m = new SymbolReader(sss);
+		var m = new Win32SymbolReader(sss);
 
 		if (!File.Exists(sss)) {
 			Assert.Inconclusive();
@@ -508,7 +508,7 @@ public class Tests_Native
 	[TestCase(@"C:\Symbols\charmap.exe")]
 	public void SymbolsTest2(string a)
 	{
-		var d = SymbolReader.GetSymbolFile(a);
+		var d = Win32SymbolReader.GetSymbolFile(a);
 		TestContext.WriteLine(d);
 
 	}

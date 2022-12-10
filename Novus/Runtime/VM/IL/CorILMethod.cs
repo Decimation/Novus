@@ -3,6 +3,8 @@
 using System;
 using System.Runtime.InteropServices;
 using Novus.Imports;
+using Novus.Imports.Attributes;
+using Novus.Win32;
 
 // ReSharper disable ArrangeAccessorOwnerBody
 
@@ -26,7 +28,6 @@ public struct CorILMethod
 	 *
 	 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/CoreClr/VM/Jit/CorMethod.cs
 	 */
-
 
 	[FieldOffset(0)]
 	internal CorILMethodFat Fat;

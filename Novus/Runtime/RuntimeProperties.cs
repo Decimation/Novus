@@ -13,6 +13,7 @@ using Novus.Memory;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Kantan.Diagnostics;
+using Novus.Imports.Attributes;
 using Novus.Utilities;
 
 // ReSharper disable UnusedVariable

@@ -230,10 +230,6 @@ public static class FileSystem
 	/// <returns>Size of the file, in bytes</returns>
 	public static long GetFileSize(string file) => new FileInfo(file).Length;
 
-	#region File types
-
-	#endregion
-
 	public static Task<string> CreateRandomFileAsync(long cb, string? f = null)
 	{
 		return Task.Run(() =>

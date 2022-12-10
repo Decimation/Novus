@@ -2,8 +2,10 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Novus.Imports;
+using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Utilities;
+using Novus.Win32;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global

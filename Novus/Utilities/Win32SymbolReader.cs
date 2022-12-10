@@ -27,7 +27,7 @@ using Novus.OS;
 
 namespace Novus.Utilities;
 
-public sealed class SymbolReader : IDisposable
+public sealed class Win32SymbolReader : IDisposable
 {
 	private bool m_disposed;
 
@@ -43,7 +43,7 @@ public sealed class SymbolReader : IDisposable
 
 	private const string MASK_ALL = "*!*";
 
-	public SymbolReader(nint process, string image)
+	public Win32SymbolReader(nint process, string image)
 	{
 		Require.FileExists(image);
 		Process = process;
@@ -55,7 +55,7 @@ public sealed class SymbolReader : IDisposable
 		LoadAll();
 	}
 
-	public SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
+	public Win32SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
 
 	[CBN]
 	public Symbol GetSymbol(string name)
@@ -77,7 +77,7 @@ public sealed class SymbolReader : IDisposable
 
 		if (m_disposed)
 		{
-			throw new ObjectDisposedException(nameof(SymbolReader));
+			throw new ObjectDisposedException(nameof(Win32SymbolReader));
 		}
 
 		var sym = Symbols.FirstOrDefault(s => s.Name.Contains(name));
@@ -101,7 +101,7 @@ public sealed class SymbolReader : IDisposable
 	{
 		if (m_disposed)
 		{
-			throw new ObjectDisposedException(nameof(SymbolReader));
+			throw new ObjectDisposedException(nameof(Win32SymbolReader));
 		}
 
 		if (AllLoaded)

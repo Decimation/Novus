@@ -2,8 +2,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Novus.Imports;
+using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Utilities;
+using Novus.Win32;
+
 // ReSharper disable IdentifierTypo
 // ReSharper disable CommentTypo
 
@@ -39,8 +42,6 @@ public unsafe struct EEClass
 
 	internal void* ObjectHandleDelegate => Union1;
 
-		
-
 	internal CorInterfaceType InterfaceType
 	{
 		get
@@ -49,7 +50,6 @@ public unsafe struct EEClass
 			return (CorInterfaceType) (uint) ul;
 		}
 	}
-
 
 	internal void* CCWTemplate { get; }
 
@@ -111,8 +111,6 @@ public unsafe struct EEClass
 		}
 	}
 
-		
-
 	/// <summary>
 	///     <see cref="FieldDesc"/> list length
 	/// </summary>
@@ -159,7 +157,6 @@ public unsafe struct EEClass
 		}
 	}
 }
-
 
 [Flags]
 public enum LayoutFlags : byte
@@ -215,7 +212,6 @@ public enum EEClassFieldId : uint
 	NumNonVirtualSlots,
 	COUNT
 }
-
 
 [Flags]
 public enum VMFlags : uint

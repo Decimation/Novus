@@ -301,7 +301,9 @@ public enum ClipboardFormat : uint
 	CF_BITMAP      = 2,
 
 	FileName  = 0xC006,
-	FileNameW = 0xC007
+	FileNameW = 0xC007,
+
+	PNG=49273,
 }
 
 public enum HandleWindowPosition

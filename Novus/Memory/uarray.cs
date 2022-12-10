@@ -18,6 +18,8 @@ namespace Novus.Memory;
  * https://github.com/ikorin24/UnmanagedArray
  */
 
+// TODO: WIP
+
 [StructLayout(LayoutKind.Sequential)]
 public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 {

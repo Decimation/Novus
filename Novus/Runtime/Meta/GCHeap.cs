@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
-using Novus.Imports;
+using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Runtime.VM;
 using Novus.Utilities;

@@ -39,6 +39,8 @@ public static unsafe partial class Native
 
 	public const uint S_OK = 0x00000000;
 
+	public const uint ZERO_U = 0u;
+
 	#region DLL
 
 	/*
@@ -72,12 +74,6 @@ public static unsafe partial class Native
 	public const uint E_OUTOFMEMORY  = 0x8007000E;
 	public const uint E_POINTER      = 0x80004003;
 	public const uint E_UNEXPECTED   = 0x8000FFFF;
-
-	#endregion
-
-	#region EXE
-
-	private const uint ZERO_U = 0u;
 
 	#endregion
 
@@ -499,105 +495,6 @@ public static unsafe partial class Native
 
 	#region Clipboard
 
-	public static bool OpenClipboard() => OpenClipboard(IntPtr.Zero);
-
-	public static bool SetClipboard(object s, uint? fmt = null)
-	{
-		fmt ??= DefaultClipboardFormat; //todo
-		bool b = false;
-
-		switch (s) {
-			case string str:
-				var ptr = ClipboardFormatFromString(fmt)(str);
-				b = SetClipboardData(fmt.Value, ptr.ToPointer()) != IntPtr.Zero;
-				break;
-		}
-
-		return b;
-	}
-
-	public static string GetClipboardFileName()
-	{
-		return (string) GetClipboard((uint) ClipboardFormat.FileNameW);
-	}
-
-	public static string[] GetClipboardDragQueryList()
-	{
-		var h = GetClipboardData((uint) ClipboardFormat.CF_HDROP);
-
-		var cn = DragQueryFile(h, UInt32.MaxValue, null, 0);
-		var rg = new List<string>();
-
-		for (int i = 0; i < cn; i++) {
-			var l    = DragQueryFile(h, (uint) i, null, 0) + 1;
-			var file = new StringBuilder(l);
-			l = DragQueryFile(h, (uint) i, file, l);
-			rg.Add(file.ToString());
-		}
-
-		return rg.ToArray();
-	}
-
-	public static object GetClipboard(uint? f = null)
-	{
-		var fn = ClipboardFormatToString(f);
-
-		f ??= ((EnumClipboardFormats().FirstOrDefault(IsClipboardFormatAvailable)));
-		f ??= DefaultClipboardFormat;
-
-		var d = GetClipboardData(f.Value);
-
-		var v = fn(d);
-
-		//todo
-
-		return v;
-	}
-
-	public static Func<nint, string> ClipboardFormatToString(uint? f)
-	{
-		Func<nint, string> fn = f switch
-		{
-			(uint) ClipboardFormat.FileNameW or
-				(uint) ClipboardFormat.CF_OEMTEXT => Marshal.PtrToStringUni,
-
-			(uint) ClipboardFormat.FileName or
-				(uint) ClipboardFormat.CF_TEXT => Marshal.PtrToStringAnsi,
-
-			_ => Marshal.PtrToStringAuto
-		};
-		return fn;
-	}
-
-	public static Func<string, nint> ClipboardFormatFromString(uint? f)
-	{
-		Func<string, nint> fn = f switch
-		{
-			(uint) ClipboardFormat.FileNameW or
-				(uint) ClipboardFormat.CF_OEMTEXT => Marshal.StringToHGlobalUni,
-
-			(uint) ClipboardFormat.FileName or
-				(uint) ClipboardFormat.CF_TEXT => Marshal.StringToHGlobalAnsi,
-
-			_ => Marshal.StringToHGlobalAuto
-		};
-
-		return fn;
-	}
-
-	public static uint[] EnumClipboardFormats()
-	{
-		var rg = new List<uint>();
-
-		uint u = EnumClipboardFormats(ZERO_U);
-
-		while ((u = EnumClipboardFormats(u)) != ZERO_U) {
-			rg.Add(u);
-		}
-
-		return rg.ToArray();
-	}
-
 	/*public static string GetClipboardFormatName(uint u)
 	{
 		var c = new StringBuilder(SIZE_1);
@@ -607,8 +504,6 @@ public static unsafe partial class Native
 			return c.ToString();
 		}
 	}*/
-
-	public static uint DefaultClipboardFormat { get; set; } = (uint) ClipboardFormat.CF_TEXT;
 
 	#endregion
 

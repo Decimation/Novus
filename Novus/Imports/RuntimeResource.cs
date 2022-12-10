@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using Novus.Imports;
 using Novus.Memory;
 using Novus.Properties;
 using Novus.Utilities;
@@ -15,7 +14,8 @@ using System.Reflection.Emit;
 using System.Resources;
 using System.Runtime.InteropServices;
 using static Kantan.Diagnostics.LogCategories;
-using static Novus.Imports.ImportType;
+using static Novus.Imports.Attributes.ImportType;
+using Novus.Imports.Attributes;
 
 // ReSharper disable UnusedMember.Local
 
@@ -27,13 +27,13 @@ using static Novus.Imports.ImportType;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Novus.Runtime;
+namespace Novus.Imports;
 
 /// <summary>
 /// Represents a runtime component which contains data and resources.
 /// </summary>
-/// <seealso cref="EmbeddedResources"/>
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+/// <seealso cref="ER"/>
+[DAM(DAMT.All)]
 public class RuntimeResource : IDisposable
 {
 	public Pointer<byte> Address => Module.Value.BaseAddress;
@@ -44,7 +44,7 @@ public class RuntimeResource : IDisposable
 
 	public Lazy<SigScanner> Scanner { get; }
 
-	public Lazy<SymbolReader> Symbols { get; }
+	public Lazy<Win32SymbolReader> Symbols { get; }
 
 	public bool LoadedModule { get; private init; }
 
@@ -58,10 +58,10 @@ public class RuntimeResource : IDisposable
 	{
 		ModuleName = moduleName;
 
-		Module       = new(() => p.FindModule(moduleName));
-		Scanner      = new Lazy<SigScanner>(() => new SigScanner(Module.Value));
-		
-		Symbols      = new Lazy<SymbolReader>(() => pdb is not null ? new SymbolReader(pdb) : null);
+		Module  = new(() => p.FindModule(moduleName));
+		Scanner = new Lazy<SigScanner>(() => new SigScanner(Module.Value));
+
+		Symbols      = new Lazy<Win32SymbolReader>(() => pdb is not null ? new Win32SymbolReader(pdb) : null);
 		LoadedModule = false;
 	}
 
@@ -72,7 +72,7 @@ public class RuntimeResource : IDisposable
 	{
 		var f = new FileInfo(moduleFile);
 
-		Debug.WriteLine($"Loading {f.Name}");
+		Debug.WriteLine($"Loading {f.Name}", nameof(LoadModule));
 
 		//var l = Native.LoadLibrary(f.FullName);
 		var l = NativeLibrary.Load(f.FullName);
@@ -160,7 +160,7 @@ public class RuntimeResource : IDisposable
 			m_managers.Add(mgr);
 		}
 
-		Debug.WriteLine($"Loading type {t.Name}", C_DEBUG);
+		Debug.WriteLine($"Loading type {t.Name}", nameof(LoadImports));
 
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
@@ -173,12 +173,12 @@ public class RuntimeResource : IDisposable
 
 			field.SetValue(null, fieldValue);
 
-			Debug.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}", C_DEBUG);
+			Debug.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}", nameof(LoadImports));
 		}
 
 		m_loadedTypes.Add(t);
 
-		Trace.WriteLine($"Loaded type {t.Name}", C_INFO);
+		Trace.WriteLine($"Loaded type {t.Name}", nameof(LoadImports));
 
 	}
 
@@ -186,7 +186,7 @@ public class RuntimeResource : IDisposable
 
 	private readonly List<ResourceManager> m_managers = new()
 	{
-		EmbeddedResources.ResourceManager,
+		ER.ResourceManager,
 	};
 
 	private object GetObject(ImportAttribute attr)
@@ -253,7 +253,7 @@ public class RuntimeResource : IDisposable
 					if (throwOnErr) {
 						unsafe {
 							//todo
-							addr = (nint) ((delegate* managed<void>) &ErrorFunction);
+							addr = (nint) (delegate* managed<void>) &ErrorFunction;
 
 							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
 							var fnPtr=dyn.MethodHandle.GetFunctionPointer();
@@ -297,8 +297,8 @@ public class RuntimeResource : IDisposable
 	public Pointer GetSymbol(string name)
 	{
 		return (Pointer<byte>) Module.Value.BaseAddress +
-		      (nint)(Symbols.Value.GetSymbol(name)?.Offset
-		        ?? throw new InvalidOperationException());
+		       (nint) (Symbols.Value.GetSymbol(name)?.Offset
+		               ?? throw new InvalidOperationException());
 	}
 
 	#endregion Import

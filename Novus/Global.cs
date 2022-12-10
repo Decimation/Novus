@@ -30,6 +30,7 @@ using Novus.Properties;
 using Novus.Runtime;
 using Novus.Utilities;
 using System.Xml.Linq;
+using Novus.Imports;
 
 // ReSharper disable LocalizableElement
 
@@ -97,7 +98,7 @@ namespace Novus;
 ///         </item>
 ///         <item>
 ///             <description>
-///                 <see cref="SymbolReader" />
+///                 <see cref="Win32SymbolReader" />
 ///             </description>
 ///         </item>
 ///         <item>

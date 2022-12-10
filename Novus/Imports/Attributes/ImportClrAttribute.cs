@@ -1,8 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Novus.Runtime;
 
-namespace Novus.Imports;
+namespace Novus.Imports.Attributes;
 
 /// <summary>
 ///     Describes an imported unmanaged CLR function. Shortcut for <see cref="ImportUnmanagedAttribute" /> for
@@ -13,6 +12,6 @@ namespace Novus.Imports;
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class ImportClrAttribute : ImportUnmanagedAttribute
 {
-	public ImportClrAttribute(string name = null, ImportType unmanagedType = ImportType.Signature)
-		: base(Global.CLR_MODULE, name, unmanagedType) { }
+    public ImportClrAttribute(string name = null, ImportType unmanagedType = ImportType.Signature)
+        : base(Global.CLR_MODULE, name, unmanagedType) { }
 }

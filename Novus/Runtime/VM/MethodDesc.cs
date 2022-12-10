@@ -4,6 +4,8 @@ using System;
 using System.Runtime.InteropServices;
 using Novus.Runtime.VM.IL;
 using Kantan.Diagnostics;
+using Novus.Imports.Attributes;
+using Novus.Win32;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global

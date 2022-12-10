@@ -1,6 +1,9 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Imports;
+using Novus.Imports.Attributes;
 using Novus.Memory;
+using Novus.Win32;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable ArrangeAccessorOwnerBody
 
@@ -16,7 +19,6 @@ internal unsafe struct CorILMethodTiny
 	 */
 
 	private byte m_flagsAndCodeSize;
-
 
 	internal bool IsTiny
 	{
@@ -48,7 +50,6 @@ internal unsafe struct CorILMethodTiny
 			}
 		}
 	}
-
 
 	internal int MaxStackSize
 	{

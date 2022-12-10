@@ -3,7 +3,9 @@ using Novus.Memory;
 using Novus.Runtime.VM.EE;
 using System;
 using System.Runtime.InteropServices;
+using Novus.Imports.Attributes;
 using Novus.Utilities;
+using Novus.Win32;
 
 // ReSharper disable StructCanBeMadeReadOnly
 // ReSharper disable InconsistentNaming

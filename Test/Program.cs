@@ -7,10 +7,12 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.SymbolStore;
+using System.Drawing;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
@@ -122,15 +124,35 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		var sizeOf = Mem.SizeOf<MyClass>(SizeOfOptions.BaseInstance);
-		Console.WriteLine($"{sizeOf}");
-		Pointer<byte> p = stackalloc byte[sizeOf];
-		ref var       d = ref Mem.New<MyClass>(ref p, out var p2);
-		Console.WriteLine(d);
-		d.a = 123;
-		d.f = MathF.PI;
-		Console.WriteLine(d);
-		Console.WriteLine(GCHeap.IsHeapPointer(d));
+		/*Native.OpenClipboard();
+
+		const uint png = (uint) (ClipboardFormat.PNG);
+
+		if (!Native.IsClipboardFormatAvailable(png)) {
+			return;
+		}
+
+		var data = Native.GetClipboardData(png);
+		var rg   = ReadPNG(data);
+		var i    = Image.FromStream(new MemoryStream(rg));
+		Console.WriteLine(i.PhysicalDimension);*/
+
+	}
+
+	public static void ReadWhile<T>(Func<T> fn, int i2, IList<T> list, T[] rg)
+		where T : IEquatable<T>, IEqualityOperators<T, T, bool>
+	{
+		T   t;
+		int i = 0;
+
+		while ((t = fn()) == rg[i]) {
+			list.Add(t);
+
+			if (++i >= rg.Length) {
+				break;
+			}
+		}
+
 	}
 
 	/*private static async Task Test5()
@@ -153,15 +175,15 @@ public static unsafe class Program
 
 	private static void Test4()
 	{
-		var c = Native.OpenClipboard();
+		var c = Clipboard.Open();
 
-		var f = Native.EnumClipboardFormats();
+		var f = Clipboard.EnumFormats();
 
 		var p = Native.GetClipboardData(49159);
 		var s = Marshal.PtrToStringUni(p);
 		Console.WriteLine(s);
-		Console.WriteLine(Native.GetClipboard());
-		Console.WriteLine(Native.GetClipboardFileName());
+		Console.WriteLine(Clipboard.GetData());
+		Console.WriteLine(Clipboard.GetFileName());
 
 	}
 

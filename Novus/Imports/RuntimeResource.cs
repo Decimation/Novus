@@ -12,6 +12,7 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Resources;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using static Kantan.Diagnostics.LogCategories;
 using static Novus.Imports.Attributes.ImportType;

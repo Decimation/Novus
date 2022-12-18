@@ -28,6 +28,8 @@ using Microsoft.VisualBasic.FileIO;
 using Novus;
 using Novus.FileTypes;
 using Novus.FileTypes.Impl;
+using Novus.Imports;
+using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.OS;
 using Novus.Runtime.Meta;
@@ -124,46 +126,23 @@ namespace Test
 	{
 		private static void Main(string[] args)
 		{
-			/*Native.OpenClipboard();
-	
-			const uint png = (uint) (ClipboardFormat.PNG);
-	
-			if (!Native.IsClipboardFormatAvailable(png)) {
-				return;
-			}
-	
-			var data = Native.GetClipboardData(png);
-			var rg   = ReadPNG(data);
-			var i    = Image.FromStream(new MemoryStream(rg));
-			Console.WriteLine(i.PhysicalDimension);*/
-			/*Native.OpenClipboard(IntPtr.Zero);
 
-			var d = Native.GetClipboardData((uint) ClipboardFormat.PNG);
-
-			nint ptr = Native.GlobalSize(d);
-			Console.WriteLine(ptr);
-			Console.WriteLine(Native.GlobalSize(-1));*/
-			Clipboard.Open();
-			var data = Clipboard.GetData((uint)ClipboardFormat.PNG) as byte[];
-			Console.WriteLine(data);
-			var img=Image.FromStream(new MemoryStream(data));
-			Console.WriteLine(img.PhysicalDimension);
+			MyClass2.doSomething2(1);
 		}
 
-		public static void ReadWhile<T>(Func<T> fn, int i2, IList<T> list, T[] rg)
-			where T : IEquatable<T>, IEqualityOperators<T, T, bool>
+		public class MyClass2
 		{
-			T   t;
-			int i = 0;
+			public const string s =
+				"H:\\Archives & Backups\\Computer Science\\Code\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
 
-			while ((t = fn()) == rg[i]) {
-				list.Add(t);
+			[ImportUnmanaged(s, nameof(doSomething2), ImportType.Offset, Value = "1090")]
+			public static readonly delegate* unmanaged<int, void> doSomething2;
 
-				if (++i >= rg.Length) {
-					break;
-				}
+			static MyClass2()
+			{
+				var rr = RuntimeResource.LoadModule(MyClass2.s);
+				rr.LoadImports(typeof(MyClass2));
 			}
-
 		}
 
 		/*private static async Task Test5()

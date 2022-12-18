@@ -2,10 +2,21 @@
 using System.Net;
 using Flurl;
 using Flurl.Http;
+using JetBrains.Annotations;
 using Kantan.Text;
 
 namespace Novus.FileTypes;
 
+// todo: wip
+
+/// <summary>
+/// Encapsulates a resource from:
+/// <list type="bullet">
+/// <item>File</item>
+/// <item>HTTP</item>
+/// <item><see cref="Stream"/></item>
+/// </list>
+/// </summary>
 public class UniSource : IDisposable, IEquatable<UniSource>
 {
 	public UniSourceType SourceType { get; }
@@ -22,7 +33,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 	public bool IsFile   => SourceType == UniSourceType.File;
 	public bool IsStream => SourceType == UniSourceType.Stream;
 
-	protected UniSource(object value, Stream s, UniSourceType u)
+	private UniSource(object value, Stream s, UniSourceType u)
 	{
 		Value      = value;
 		Stream     = s;
@@ -36,12 +47,17 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 		resolver ??= IFileTypeResolver.Default;
 
+		if (o is string os) {
+			os = os.CleanString();
+			o  = os;
+		}
+
 		switch (o) {
 			case Stream s:
 				buf = new UniSource(o, s, UniSourceType.Stream);
 				break;
 			case string value when Url.IsValid(value):
-				value = value.CleanString();
+				// value = value.CleanString();
 
 				var res = await value.AllowAnyHttpStatus()
 				                     .WithHeaders(new
@@ -54,13 +70,13 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 					throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
 				}
 
-				buf = new HttpUniSource(o, await res.GetStreamAsync())
+				buf = new UniSource(o, await res.GetStreamAsync(), UniSourceType.Uri)
 					{ };
 				break;
 			case string s when File.Exists(s):
-				s = s.CleanString();
+				// s = s.CleanString();
 
-				buf = new SourceUniSource(o, File.OpenRead(s))
+				buf = new UniSource(o, File.OpenRead(s), UniSourceType.File)
 					{ };
 				break;
 			default:
@@ -90,11 +106,36 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		return buf;
 	}
 
-	public static readonly UniSource Null = new(null, Stream.Null, default);
+	public static UniSourceType GetSourceType(object value)
+	{
+		return HandleType(value, (_, _) => UniSourceType.Stream, (_, _) => UniSourceType.Uri,
+		                  (_, _) => UniSourceType.File, (_) => UniSourceType.NA);
+	}
 
-	public static (bool IsFile, bool IsUri) IsUriOrFile(string value) => (File.Exists(value), Url.IsValid(value));
+	public static T HandleType<T>(Object o, Func<object, Stream, T> fnStream, Func<object, Url, T> fnUri,
+	                              Func<object, string, T> fnFile, [CanBeNull] Func<object,T> unknown)
+	{
+		if (unknown == null) {
+			unknown = (o1) => { return default; };
 
-	public static async Task<UniSource> TryGetAsync(string value, IFileTypeResolver resolver = null,
+		}
+		switch (o) {
+			case Stream s:
+				return fnStream(o, s);
+				break;
+			case string value when Url.IsValid(value):
+				return fnUri(o, value);
+				break;
+			case string s when File.Exists(s):
+				return fnFile(o, s);
+				break;
+			default:
+				return unknown(o);
+
+		}
+	}
+
+	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
 	                                                params FileType[] whitelist)
 	{
 		try {
@@ -183,17 +224,8 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 public enum UniSourceType
 {
+	NA,
 	File,
 	Uri,
 	Stream
-}
-
-file sealed class HttpUniSource : UniSource
-{
-	internal HttpUniSource(object value, Stream s) : base(value, s, UniSourceType.Uri) { }
-}
-
-file class SourceUniSource : UniSource
-{
-	internal SourceUniSource(object value, Stream s) : base(value, s, UniSourceType.File) { }
 }

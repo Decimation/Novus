@@ -185,12 +185,6 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory")]
 	public static partial void CopyMemory(nint pdst, byte[] psrc, int cb);
 
-	[LibraryImport(KERNEL32_DLL)]
-	public static partial nint HeapSize(nint p, uint f, nint m);
-
-	[LibraryImport(KERNEL32_DLL)]
-	public static partial nint GetProcessHeap();
-
 	#endregion
 
 	#region Library
@@ -356,6 +350,12 @@ public static unsafe partial class Native
 	public static partial uint WaitForSingleObject(nint hHandle, uint dwMilliseconds);
 
 	[LibraryImport(KERNEL32_DLL)]
+	public static partial nint HeapSize(nint p, uint f, nint m);
+
+	[LibraryImport(KERNEL32_DLL)]
+	public static partial nint GetProcessHeap();
+
+	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint GlobalLock(nint hMem);
 
 	[LibraryImport(KERNEL32_DLL)]
@@ -363,4 +363,5 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint GlobalSize(nint hMem);
+	
 }

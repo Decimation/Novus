@@ -46,9 +46,6 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, SetLastError = false)]
 	public static extern nint GetDesktopWindow();
 
-	[DllImport(USER32_DLL)]
-	public static extern bool PostMessage(nint hWnd, uint msg, int wParam, int lParam);
-
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public static extern nint FindWindowEx(nint parentHandle, nint childAfter, string className,
 	                                         string windowTitle);
@@ -75,19 +72,46 @@ public static unsafe partial class Native
 	                                      [MA(UT.LPArray), In] InputRecord[] pInputs,
 	                                      int cbSize);
 
-	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
-	public static extern nint SendMessage(nint hWnd, int msg, nint wParam,
+	[LibraryImport(USER32_DLL)]
+	[return: MA(UT.Bool)]
+	public static partial bool PostMessage(nint hWnd, uint msg, int wParam, int lParam);
+
+	[LibraryImport(USER32_DLL, StringMarshalling = StringMarshalling.Utf16)]
+	public static partial nint SendMessage(nint hWnd, int msg, nint wParam,
 	                                        [MA(UT.LPWStr)] string lParam);
 
-	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
-	public static extern nint SendMessage(nint hWnd, int msg, int wParam,
+	[LibraryImport(USER32_DLL, StringMarshalling = StringMarshalling.Utf16)]
+	public static partial nint SendMessage(nint hWnd, int msg, int wParam,
 	                                        [MA(UT.LPWStr)] string lParam);
 
-	[DllImport(USER32_DLL, CharSet = CharSet.Auto)]
-	public static extern nint SendMessage(nint hWnd, int msg, int wParam, nint lParam);
+	[LibraryImport(USER32_DLL)]
+	public static partial nint SendMessage(nint hWnd, int msg, int wParam, nint lParam);
 
-	[DllImport(USER32_DLL, SetLastError = false)]
-	public static extern nint GetMessageExtraInfo();
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static partial bool GetMessage(out MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
+	                                     [Optional] uint wMsgFilterMax);
+
+	[LibraryImport(USER32_DLL, SetLastError = false)]
+	public static partial nint GetMessageExtraInfo();
+
+	[LibraryImport(USER32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+	public static partial uint RegisterWindowMessage(string lpString);
+
+	[LibraryImport(USER32_DLL)]
+	public static partial nint DispatchMessage(in MSG lpMsg);
+
+	[LibraryImport(USER32_DLL, SetLastError = false)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static partial bool TranslateMessage(in MSG lpMsg);
+	
+	[LibraryImport(USER32_DLL, SetLastError = false)]
+	public static partial void PostQuitMessage([Optional] int nExitCode);
+
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static partial bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
+	                                            [Optional] nint lParam);
 
 	#region Key
 
@@ -162,55 +186,37 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
 	public static extern int GetClipboardFormatName(uint format, [Out] StringBuilder lpszFormatName, int cchMaxCount);
 
-	[DllImport(USER32_DLL, SetLastError = true)]
-	public static extern nint GetClipboardData(uint uFormat);
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	public static partial nint GetClipboardData(uint uFormat);
 
-	[DllImport(USER32_DLL, SetLastError = true)]
-	public static extern nint SetClipboardData(uint uFormat, void* hMem);
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	public static partial nint SetClipboardData(uint uFormat, void* hMem);
 
-	[DllImport(USER32_DLL, SetLastError = true)]
+	[LibraryImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool OpenClipboard(nint hWndNewOwner);
+	public static partial bool OpenClipboard(nint hWndNewOwner);
 
-	[DllImport(USER32_DLL, SetLastError = true)]
+	[LibraryImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool CloseClipboard();
+	public static partial bool CloseClipboard();
 
-	[DllImport(USER32_DLL, SetLastError = true)]
+	[LibraryImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool EmptyClipboard();
+	public static partial bool EmptyClipboard();
 
-	[DllImport(USER32_DLL, SetLastError = true)]
+	[LibraryImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool IsClipboardFormatAvailable(uint uFormat);
+	public static partial bool IsClipboardFormatAvailable(uint uFormat);
 
-	[DllImport(USER32_DLL, SetLastError = true)]
-	public static extern uint EnumClipboardFormats(uint uFormat);
-
-	#endregion
-
-	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool GetMessage(out MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
-	                                     [Optional] uint wMsgFilterMax);
-
-	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
-	public static extern uint RegisterWindowMessage(string lpString);
-
-	[DllImport(USER32_DLL)]
-	public static extern nint DispatchMessage(in MSG lpMsg);
-
-	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool TranslateMessage(in MSG lpMsg);
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	public static partial uint EnumClipboardFormats(uint uFormat);
 	
-	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
-	public static extern void PostQuitMessage([Optional] int nExitCode);
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	public static partial int CountClipboardFormats();
 
-	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
-	                                            [Optional] nint lParam);
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	public static partial int GetClipboardSequenceNumber();
+	#endregion
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]

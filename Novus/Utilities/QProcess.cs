@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text;
 
 namespace Novus.Utilities;
-
+//todo: WIP
 public class QProcess : IDisposable
 {
 	public Process Process { get; private set; }

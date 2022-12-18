@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Novus.Win32;
-
+//TODO: WIP
 public static class Clipboard
 {
 	public static bool IsOpen { get; private set; }
 
 	public static bool Open()
 	{
-		return IsOpen = Win32.Native.OpenClipboard(IntPtr.Zero);
+		return IsOpen = Native.OpenClipboard(IntPtr.Zero);
 	}
 
 	public static bool Close()
@@ -21,12 +22,7 @@ public static class Clipboard
 		return IsOpen = !Native.CloseClipboard();
 	}
 
-	public static object Cache { get; private set; }
-
-	public static bool IsFormatAvailable(uint n)
-	{
-		return Native.IsClipboardFormatAvailable(n);
-	}
+	public static bool IsFormatAvailable(uint n) => Native.IsClipboardFormatAvailable(n);
 
 	public static bool SetData(object s, uint fmt)
 	{
@@ -35,9 +31,10 @@ public static class Clipboard
 		unsafe {
 			switch (s) {
 				case string str:
-					var ptr = ClipboardFormatFromString(fmt)(str);
+					var ptr = ClipboardFormatFromObject(fmt)(str);
 					b = Native.SetClipboardData(fmt, ptr.ToPointer()) != IntPtr.Zero;
 					break;
+
 			}
 
 		}
@@ -65,9 +62,8 @@ public static class Clipboard
 	public static object GetData(uint? f = null)
 	{
 
-		var fn = ClipboardFormatToString(f);
-
 		f ??= ((EnumFormats().FirstOrDefault<uint>(Native.IsClipboardFormatAvailable)));
+		var fn = ClipboardFormatToObject(f);
 
 		var d = Native.GetClipboardData(f.Value);
 
@@ -94,11 +90,10 @@ public static class Clipboard
 	#region
 
 	[CBN]
-	public static Func<nint, object> ClipboardFormatToString(uint? f)
+	public static Func<nint, object> ClipboardFormatToObject(uint? f)
 	{
 		switch (f) {
-			case (uint) ClipboardFormat.FileNameW or
-				(uint) ClipboardFormat.CF_OEMTEXT:
+			case (uint) ClipboardFormat.FileNameW or (uint) ClipboardFormat.CF_OEMTEXT:
 				return Marshal.PtrToStringUni;
 			case (uint) ClipboardFormat.PNG:
 				return (u) =>
@@ -108,8 +103,7 @@ public static class Clipboard
 					Marshal.Copy(u, rg, 0, (int) size);
 					return rg;
 				};
-			case (uint) ClipboardFormat.FileName or
-				(uint) ClipboardFormat.CF_TEXT:
+			case (uint) ClipboardFormat.FileName or (uint) ClipboardFormat.CF_TEXT:
 				return Marshal.PtrToStringAnsi;
 			default:
 				return _ => default;
@@ -118,17 +112,18 @@ public static class Clipboard
 	}
 
 	[CBN]
-	public static Func<object, nint> ClipboardFormatFromString(uint? f)
+	public static Func<object, nint> ClipboardFormatFromObject(uint? f)
 	{
 		Func<object, nint> fn = f switch
 		{
 			(uint) ClipboardFormat.FileNameW or
-				(uint) ClipboardFormat.CF_OEMTEXT => s=>Marshal.StringToHGlobalUni((string) s),
+				(uint) ClipboardFormat.CF_OEMTEXT => s => Marshal.StringToHGlobalUni((string) s),
 
 			(uint) ClipboardFormat.FileName or
-				(uint) ClipboardFormat.CF_TEXT =>s=> Marshal.StringToHGlobalAnsi((string) s),
+				(uint) ClipboardFormat.CF_TEXT => s => Marshal.StringToHGlobalAnsi((string) s),
 
-			_ => null,
+			_ => null
+			// _ => n => nint.Parse((string) n),
 		};
 
 		return fn;
@@ -137,4 +132,6 @@ public static class Clipboard
 	#endregion
 
 	public static uint DefaultFormat { get; set; } = (uint) ClipboardFormat.CF_TEXT;
+
+	public static int SequenceNumber => Native.GetClipboardSequenceNumber();
 }

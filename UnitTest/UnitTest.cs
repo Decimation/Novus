@@ -26,6 +26,7 @@ using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using UnitTest.TestTypes;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using InputRecord = Novus.Win32.Structures.User32.InputRecord;
@@ -59,7 +60,7 @@ public class SetupTrace
 [Parallelizable]
 public class Tests_FileTypes2
 {
-	static object[] _rg =
+	public static object[] _rg =
 	{
 		// new[] { @"http://www.zerochan.net/2750747", null },
 		new Object[] { @"https://i.imgur.com/QtCausw.png", FileType.Find("jpeg").First() },
@@ -73,7 +74,7 @@ public class Tests_FileTypes2
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test4(string s, FileType type)
 	{
-		var t = await UniSource.TryGetAsync(s, IFileTypeResolver.Default);
+		var t  = await UniSource.TryGetAsync(s, IFileTypeResolver.Default);
 		var tt = t.FileTypes;
 		// var tt = await IFileTypeResolver.Default.ResolveAsync(t.Stream);
 		Assert.Contains(type, tt);
@@ -118,6 +119,20 @@ public class Tests_FileTypes2
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
 }
+
+[TestFixture]
+[Parallelizable]
+public class Tests_UniSource
+{
+	private static object[] _rg = Tests_FileTypes2._rg;
+
+	[Test]
+	public async Task Test1()
+	{
+		Assert.Pass();
+	}
+}
+
 [TestFixture]
 [Parallelizable]
 public class Tests_FileResolvers

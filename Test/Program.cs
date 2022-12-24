@@ -45,7 +45,6 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Novus.Runtime;
-using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
@@ -62,261 +61,271 @@ using System.Security.Cryptography;
 // ReSharper disable UnusedParameter.Local
 #nullable disable
 
-namespace Test
-{
-	// # .NET 7
+namespace Test;
 /*
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
- * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
- *
- * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
- *
- * todo: integrate pdbex
- * todo: IL, ILSupport
- */
+* C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
+* C:\Windows\Microsoft.NET\Framework64\v4.0.30319
+*
+* symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
+*
+* todo: integrate pdbex
+*
+*
+*/
+
 /*
- * ◆ Novus				https://github.com/Decimation/Novus
- * ⨉ NeoCore			https://github.com/Decimation/NeoCore
- * ⨉ RazorSharp			https://github.com/Decimation/RazorSharp
- * 
- * ◆ Kantan				https://github.com/Decimation/Kantan
- * 
- */
+* ◆ Novus				https://github.com/Decimation/Novus
+* ⨉ NeoCore			https://github.com/Decimation/NeoCore
+* ⨉ RazorSharp			https://github.com/Decimation/RazorSharp
+* 
+* ◆ Kantan				https://github.com/Decimation/Kantan
+* 
+*/
 /* Runtime
- *
- * https://github.com/dotnet/runtime
- *
- *
- *
- * Field
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
- *
- * Method
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
- *
- * EEClass
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
- *
- * MethodTable
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
- *
- * TypeIntPtr
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.cpp
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.inl
- *
- * Marshal Native
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
- *
- * Other
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
- */
+*
+* https://github.com/dotnet/runtime
+*
+*
+*
+* Field
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
+*
+* Method
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
+*
+* EEClass
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
+*
+* MethodTable
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
+*
+* TypeIntPtr
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.h
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.cpp
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.inl
+*
+* Marshal Native
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
+*
+* Other
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
+* https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
+*/
 
-	public static unsafe class Program
+public static unsafe class Program
+{
+	private static void Main(string[] args)
 	{
-		private static void Main(string[] args)
-		{
 
-			MyClass2.doSomething2(1);
+		// MyClass2.doSomething2(1);
+		Console.WriteLine("hi");
+		shutdown(0);
+		Console.WriteLine("bye");
+	}
+
+	[ImportClr(nameof(shutdown), ImportType.Signature, Value = "48 8B C4 48 89 58 08 48 89 70 10 57 48 83 EC 30 48 8B D9 48 89 48 E8 83 60 F0 00")]
+	public static readonly delegate* unmanaged<int,void> shutdown;
+
+	static Program()
+	{
+		Global.Clr.LoadImports(typeof(Program));
+
+	}
+	public class MyClass2
+	{
+		public const string s =
+			"H:\\Archives & Backups\\Computer Science\\Code\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
+
+		[ImportUnmanaged(s, nameof(doSomething2), ImportType.Offset, Value = "1090")]
+		public static readonly delegate* unmanaged<int, void> doSomething2;
+
+		static MyClass2()
+		{
+			var rr = RuntimeResource.LoadModule(MyClass2.s);
+			rr.LoadImports(typeof(MyClass2));
 		}
+	}
 
-		public class MyClass2
+	/*private static async Task Test5()
+	{
+		var fileType = FileType.Find("image").ToArray();
+
+		var t = await UniFile.TryGetAsync("https://i.imgur.com/QtCausw.png", whitelist: fileType);
+		Console.WriteLine(t);
+		var f = await t.DownloadAsync();
+		Console.WriteLine(f);
+
+		var ft = Activator.CreateInstance<FileType>();
+		Console.WriteLine(ft);
+	}*/
+
+	public interface IPtr<T>
+	{
+		static abstract ref T Ref { get; }
+	}
+
+	private static void Test4()
+	{
+		bool c = Clipboard.Open();
+
+		uint[] f = Clipboard.EnumFormats();
+
+		nint   p = Native.GetClipboardData(49159);
+		string s = Marshal.PtrToStringUni(p);
+		Console.WriteLine(s);
+		Console.WriteLine(Clipboard.GetData());
+
+	}
+
+	private static void Test3()
+	{
+		var type = new MyStruct();
+
+		foreach (var nullMember in type.GetNullMembers()) {
+			Console.WriteLine($"{nullMember.Field.Name} {nullMember.IsNull}");
+		}
+	}
+
+	private static void err()
+	{
+		throw new Exception();
+	}
+
+	private static int fn()
+	{
+		return 1;
+	}
+
+	private struct MyStruct
+	{
+		public int a;
+
+		public float f { get; set; }
+
+		public override string ToString()
 		{
-			public const string s =
-				"H:\\Archives & Backups\\Computer Science\\Code\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
+			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		}
+	}
 
-			[ImportUnmanaged(s, nameof(doSomething2), ImportType.Offset, Value = "1090")]
-			public static readonly delegate* unmanaged<int, void> doSomething2;
+	private class MyClass
+	{
+		public int a;
 
-			static MyClass2()
+		public float f { get; set; }
+
+		public override string ToString()
+		{
+			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		}
+	}
+
+	private static int MyThreadProc(nint param)
+	{
+		var process = Process.GetCurrentProcess();
+		int pid     = process.Id;
+
+		Console.WriteLine("Pid {0}: Inside my new thread!. Param={1}", pid, param.ToInt32());
+
+		return 1;
+	}
+
+	private static void WaitForThreadToExit(nint hThread)
+	{
+		uint c  = Native.WaitForSingleObject(hThread, unchecked((uint) -1));
+		var  ex = Marshal.GetExceptionForHR((int) c);
+
+		Native.GetExitCodeThread(hThread, out uint exitCode);
+
+		var process = Process.GetCurrentProcess();
+		int pid     = process.Id;
+
+		Console.WriteLine("Pid {0}: Thread exited with code: {1}", pid, exitCode);
+	}
+
+	private static unsafe void Test2(string[] args, Process p)
+	{
+		uint pid = (uint) p.Id;
+
+		if (args.Length == 0) {
+			Console.WriteLine("Pid {0}:Started Parent process", pid);
+
+			// Spawn the child
+			string fileName = p.MainModule.FileName.Replace(".vshost", "");
+
+			// Get thread proc as an IntPtr, which we can then pass to the 2nd-process.
+			// We must keep the delegate alive so that fpProc remains valid
+
+			Native.ThreadProc proc   = MyThreadProc;
+			nint              fpProc = Marshal.GetFunctionPointerForDelegate(proc);
+
+			// Spin up the other process, and pass our pid and function pointer so that it can
+			// use that to call CreateRemoteThread
+
+			string arg = $"{pid} {fpProc}";
+
+			var info = new ProcessStartInfo(fileName, arg)
 			{
-				var rr = RuntimeResource.LoadModule(MyClass2.s);
-				rr.LoadImports(typeof(MyClass2));
-			}
-		}
-
-		/*private static async Task Test5()
-		{
-			var fileType = FileType.Find("image").ToArray();
-	
-			var t = await UniFile.TryGetAsync("https://i.imgur.com/QtCausw.png", whitelist: fileType);
-			Console.WriteLine(t);
-			var f = await t.DownloadAsync();
-			Console.WriteLine(f);
-	
-			var ft = Activator.CreateInstance<FileType>();
-			Console.WriteLine(ft);
-		}*/
-
-		public interface IPtr<T>
-		{
-			static abstract ref T Ref { get; }
-		}
-
-		private static void Test4()
-		{
-			bool c = Clipboard.Open();
-
-			uint[] f = Clipboard.EnumFormats();
-
-			nint   p = Native.GetClipboardData(49159);
-			string s = Marshal.PtrToStringUni(p);
-			Console.WriteLine(s);
-			Console.WriteLine(Clipboard.GetData());
-
-		}
-
-		private static void Test3()
-		{
-			var type = new MyStruct();
-
-			foreach (var nullMember in type.GetNullMembers()) {
-				Console.WriteLine($"{nullMember.Field.Name} {nullMember.IsNull}");
-			}
-		}
-
-		private static void err()
-		{
-			throw new Exception();
-		}
-
-		private static int fn()
-		{
-			return 1;
-		}
-
-		private struct MyStruct
-		{
-			public int a;
-
-			public float f { get; set; }
-
-			public override string ToString()
-			{
-				return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
-			}
-		}
-
-		private class MyClass
-		{
-			public int a;
-
-			public float f { get; set; }
-
-			public override string ToString()
-			{
-				return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
-			}
-		}
-
-		private static int MyThreadProc(nint param)
-		{
-			var process = Process.GetCurrentProcess();
-			int pid     = process.Id;
-
-			Console.WriteLine("Pid {0}: Inside my new thread!. Param={1}", pid, param.ToInt32());
-
-			return 1;
-		}
-
-		private static void WaitForThreadToExit(nint hThread)
-		{
-			uint c  = Native.WaitForSingleObject(hThread, unchecked((uint) -1));
-			var  ex = Marshal.GetExceptionForHR((int) c);
-
-			Native.GetExitCodeThread(hThread, out uint exitCode);
-
-			var process = Process.GetCurrentProcess();
-			int pid     = process.Id;
-
-			Console.WriteLine("Pid {0}: Thread exited with code: {1}", pid, exitCode);
-		}
-
-		private static unsafe void Test2(string[] args, Process p)
-		{
-			uint pid = (uint) p.Id;
-
-			if (args.Length == 0) {
-				Console.WriteLine("Pid {0}:Started Parent process", pid);
-
-				// Spawn the child
-				string fileName = p.MainModule.FileName.Replace(".vshost", "");
-
-				// Get thread proc as an IntPtr, which we can then pass to the 2nd-process.
-				// We must keep the delegate alive so that fpProc remains valid
-
-				Native.ThreadProc proc   = MyThreadProc;
-				nint              fpProc = Marshal.GetFunctionPointerForDelegate(proc);
-
-				// Spin up the other process, and pass our pid and function pointer so that it can
-				// use that to call CreateRemoteThread
-
-				string arg = $"{pid} {fpProc}";
-
-				var info = new ProcessStartInfo(fileName, arg)
-				{
-					// share console, output is interlaces.
-					UseShellExecute = false
-				};
-
-				var processChild = Process.Start(info);
-
-				processChild.WaitForExit();
-				GC.KeepAlive(proc); // keep the delegate from being collected
-				return;
-			}
-			else {
-				Console.WriteLine("Pid {0}:Started Child process", pid);
-
-				uint  pidParent = UInt32.Parse(args[0]);
-				nuint fpProc    = new nuint(UInt64.Parse(args[1]));
-
-				nint hProcess = Native.OpenProcess(ProcessAccess.All, false, (int) pidParent);
-
-				// Create a thread in the first process.
-				nint hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
-				                                         (nint) fpProc.ToPointer(), new nint(6789),
-				                                         0, out uint dwThreadId);
-				WaitForThreadToExit(hThread);
-				return;
-			}
-		}
-
-		private static void Test1()
-		{
-			dynamic o = new ExpandoObject();
-			// o.a = (Func<int>) (() => { return 1; });
-			var dictionary = (IDictionary<string, object>) o;
-			dictionary.Add("a", 1);
-
-			Console.WriteLine(o);
-			Console.WriteLine(o.a);
-
-			var kl = new KeyboardListener()
-			{
-				KeyWhitelist =
-				{
-					VirtualKey.LBUTTON
-				}
+				// share console, output is interlaces.
+				UseShellExecute = false
 			};
 
-			kl.KeyStroke += (sender, key) =>
-			{
-				Console.WriteLine($"! {key}");
+			var processChild = Process.Start(info);
 
-			};
-			kl.Start();
-			Thread.Sleep(TimeSpan.FromSeconds(10));
+			processChild.WaitForExit();
+			GC.KeepAlive(proc); // keep the delegate from being collected
+			return;
 		}
+		else {
+			Console.WriteLine("Pid {0}:Started Child process", pid);
+
+			uint  pidParent = UInt32.Parse(args[0]);
+			nuint fpProc    = new nuint(UInt64.Parse(args[1]));
+
+			nint hProcess = Native.OpenProcess(ProcessAccess.All, false, (int) pidParent);
+
+			// Create a thread in the first process.
+			nint hThread = Native.CreateRemoteThread(hProcess, IntPtr.Zero, 0,
+			                                         (nint) fpProc.ToPointer(), new nint(6789),
+			                                         0, out uint dwThreadId);
+			WaitForThreadToExit(hThread);
+			return;
+		}
+	}
+
+	private static void Test1()
+	{
+		dynamic o = new ExpandoObject();
+		// o.a = (Func<int>) (() => { return 1; });
+		var dictionary = (IDictionary<string, object>) o;
+		dictionary.Add("a", 1);
+
+		Console.WriteLine(o);
+		Console.WriteLine(o.a);
+
+		var kl = new KeyboardListener()
+		{
+			KeyWhitelist =
+			{
+				VirtualKey.LBUTTON
+			}
+		};
+
+		kl.KeyStroke += (sender, key) =>
+		{
+			Console.WriteLine($"! {key}");
+
+		};
+		kl.Start();
+		Thread.Sleep(TimeSpan.FromSeconds(10));
 	}
 }

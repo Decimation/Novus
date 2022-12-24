@@ -35,7 +35,7 @@ using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-#pragma warning disable 0649, IDE0044, CA1822, IDE1006
+#pragma warning disable 0649, IDE0044, CA1822, IDE1006, CA2211, IDE0052, CS1998
 #pragma warning disable SYSLIB0014
 
 namespace UnitTest;
@@ -796,8 +796,8 @@ public class Tests_Metadata
 	[Test]
 	public void StaticTest()
 	{
-		c.i = 1;
-		var p = (Pointer<int>) typeof(c).GetAnyField(nameof(c.i)).AsMetaField().StaticAddress;
+		static_clazz.i = 1;
+		var p = (Pointer<int>) typeof(static_clazz).GetAnyField(nameof(static_clazz.i)).AsMetaField().StaticAddress;
 
 		Assert.AreEqual(p.Value, 1);
 
@@ -1391,7 +1391,7 @@ public class Tests_Mem
 	}
 }
 
-static class c
+static class static_clazz
 {
 	public static int i;
 }

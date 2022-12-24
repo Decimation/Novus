@@ -7,7 +7,8 @@ public static class Program
 	public static void Main(string[] args)
 	{
 		// cd .\Benchmark\ ; dotnet build -c Release ; dotnet run -c Release
-			
+		//dotnet build -c Release ; dotnet run -c Release --project .\Benchmark\TestBenchmark.csproj
+
 		BenchmarkRunner.Run<Benchmarks25>();
 
 	}

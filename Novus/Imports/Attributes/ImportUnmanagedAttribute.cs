@@ -15,29 +15,39 @@ namespace Novus.Imports.Attributes;
 [AttributeUsage(AttributeTargets.Field)]
 public class ImportUnmanagedAttribute : ImportAttribute
 {
-    public string ModuleName { get; set; }
+	public string ModuleName { get; set; }
 
-    public ImportType Type { get; set; }
+	public ImportType Type { get; set; }
 
-    [CBN]
-    public string Value { get; set; }
+	/// <summary>
+	/// Import value:
+	/// 
+	/// <list type="bullet">
+	/// <item><see cref="ImportType.Signature"/>: <c>X1 X2 Xn...</c> format where <c>X</c> is an unsigned byte value. <c>?</c> indicates wildcard</item>
+	/// <item><see cref="ImportType.Offset"/>: hexadecimal offset value</item>
+	/// <item><see cref="ImportType.Symbol"/>: Symbol name</item>
+	/// <item><see cref="ImportType.Export"/>: Export name</item>
+	/// </list>
+	/// </summary>
+	[CBN]
+	public string Value { get; set; }
 
-    public ImportUnmanagedAttribute(string moduleName, ImportType type, string value = null)
-        : this(moduleName, null, type, value) { }
+	public ImportUnmanagedAttribute(string moduleName, ImportType type, string value = null)
+		: this(moduleName, null, type, value) { }
 
-    public ImportUnmanagedAttribute(string moduleName, string name, ImportType type,
-                                    string value = null) : base(name, ImportManageType.Unmanaged)
-    {
-        ModuleName = moduleName;
-        Type = type;
-        Value = value;
-    }
+	public ImportUnmanagedAttribute(string moduleName, string name, ImportType type,
+									string value = null) : base(name, ImportManageType.Unmanaged)
+	{
+		ModuleName = moduleName;
+		Type = type;
+		Value = value;
+	}
 }
 
 public enum ImportType
 {
-    Signature,
-    Offset,
-    Symbol,
-    Export
+	Signature,
+	Offset,
+	Symbol,
+	Export
 }

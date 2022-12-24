@@ -20,6 +20,9 @@ using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Wrappers;
 using Dia2Lib;
+using Newtonsoft.Json.Linq;
+using Novus.Imports.Attributes;
+using Novus.Imports;
 
 // ReSharper disable InconsistentNaming
 

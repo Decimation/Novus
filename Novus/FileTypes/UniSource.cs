@@ -122,13 +122,12 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		switch (o) {
 			case Stream s:
 				return fnStream(o, s);
-				break;
+				
 			case string value when Url.IsValid(value):
 				return fnUri(o, value);
-				break;
+				
 			case string s when File.Exists(s):
 				return fnFile(o, s);
-				break;
 			default:
 				return unknown(o);
 

@@ -49,6 +49,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.0" />
     <PackageReference Include="Flurl" Version="3.0.6" />
     <PackageReference Include="Flurl.Http" Version="3.2.4" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />

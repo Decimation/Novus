@@ -80,8 +80,7 @@ public static class ReflectionHelper
 		else {
 			return member as FI;
 		}
-
-		return null;
+		
 	}
 
 	public static FI GetResolvedField(this MMI member)

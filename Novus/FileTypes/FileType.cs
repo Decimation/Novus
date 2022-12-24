@@ -17,7 +17,7 @@ using Kantan.Utilities;
 namespace Novus.FileTypes;
 
 /// <remarks><a href="https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern">6.1</a></remarks>
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+[DAM(DAMT.All)]
 public readonly struct FileType : IEquatable<FileType>
 {
 	[MN]

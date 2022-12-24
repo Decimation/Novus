@@ -5,6 +5,7 @@ using Novus.Utilities;
 using Kantan.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -35,7 +36,7 @@ namespace Novus.Imports;
 /// </summary>
 /// <seealso cref="ER"/>
 [DAM(DAMT.All)]
-public class RuntimeResource : IDisposable
+public sealed class RuntimeResource : IDisposable
 {
 	public Pointer<byte> Address => Module.Value.BaseAddress;
 
@@ -69,6 +70,7 @@ public class RuntimeResource : IDisposable
 	/// <summary>
 	/// Loads a module and creates a <see cref="RuntimeResource"/> from it.
 	/// </summary>
+	[MURV]
 	public static RuntimeResource LoadModule(string moduleFile)
 	{
 		var f = new FileInfo(moduleFile);
@@ -185,9 +187,9 @@ public class RuntimeResource : IDisposable
 
 	private readonly List<Type> m_loadedTypes = new();
 
-	private readonly List<ResourceManager> m_managers = new()
+	private readonly HashSet<ResourceManager> m_managers = new()
 	{
-		ER.ResourceManager,
+		ER.ResourceManager
 	};
 
 	private object GetObject(ImportAttribute attr)
@@ -304,14 +306,15 @@ public class RuntimeResource : IDisposable
 
 	#endregion Import
 
-	public static ResourceManager GetManager(Assembly assembly, string rsrcName = "EmbeddedResources")
+	public static ResourceManager GetManager(Assembly assembly, [CanBeNull] string rsrcName = "EmbeddedResources")
 	{
 		string name = null;
 
 		foreach (string v in assembly.GetManifestResourceNames()) {
 			string value = assembly.GetName().Name;
+			rsrcName ??= value;
 
-			if (v.Contains(value!) || v.Contains(rsrcName)) {
+			if (v.Contains(value!) || v.Contains(rsrcName!)) {
 				name = v;
 				break;
 			}
@@ -374,7 +377,7 @@ public class RuntimeResource : IDisposable
 			NativeLibrary.Free(Module.Value.BaseAddress);
 		}
 
-		GC.SuppressFinalize(this);
+		// GC.SuppressFinalize(this);
 	}
 
 	public override string ToString()

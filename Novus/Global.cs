@@ -20,6 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
@@ -31,6 +32,7 @@ using Novus.Runtime;
 using Novus.Utilities;
 using System.Xml.Linq;
 using Novus.Imports;
+// ReSharper disable InconsistentNaming
 
 // ReSharper disable LocalizableElement
 
@@ -148,7 +150,7 @@ public static class Global
 
 	static Global()
 	{
-		
+
 		if (!Directory.Exists(DataFolder)) {
 			Directory.CreateDirectory(DataFolder);
 		}
@@ -215,14 +217,23 @@ public static class Global
 		IsSetup = false;
 	}
 
+	[SupportedOSPlatformGuard(OS_WIN)]
+	public static readonly bool IsWindows = OperatingSystem.IsWindows();
+
+	public static readonly bool IsWorkstationGC = !GCSettings.IsServerGC;
+
+	public static readonly bool IsCorrectVersion = Environment.Version == ClrVersion;
+
 	public static bool IsCompatible()
 	{
-		bool ver = Environment.Version == ClrVersion;
-		bool gc  = !GCSettings.IsServerGC;
-		bool os  = OperatingSystem.IsWindows();
-
-		return ver && gc && os;
+		return IsCorrectVersion && IsWorkstationGC && IsWindows;
 	}
+
+	internal const MethodImplOptions IMPL_OPTIONS =
+		MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization;
+
+	public const string OS_WIN   = "windows";
+	public const string OS_LINUX = "linux";
 
 	#region QWrite
 
@@ -281,11 +292,4 @@ public static class Global
 	}
 
 	#endregion
-
-	internal const MethodImplOptions IMPL_OPTIONS =
-		MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization;
-
-	public const string OS_WIN = "windows";
-	public const string OS_LINUX = "linux";
-
 }

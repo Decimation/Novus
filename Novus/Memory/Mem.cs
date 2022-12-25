@@ -1,6 +1,7 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
 #pragma warning disable IDE0005, CS1574
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -18,6 +19,8 @@ using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
+using Novus.Win32.Structures.Kernel32;
+using Novus.Win32.Wrappers;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 
@@ -46,6 +49,7 @@ namespace Novus.Memory;
 /// <seealso cref="Pointer"/>
 /// <seealso cref="Mem" />
 /// <seealso cref="BitConverter" />
+/// <seealso cref="BinaryPrimitives" />
 /// <seealso cref="Convert" />
 /// <seealso cref="CollectionsMarshal" />
 /// <seealso cref="MemoryMarshal" />
@@ -82,6 +86,7 @@ public static unsafe class Mem
 
 	static Mem()
 	{
+		
 		fixed (nint* n = &Invalid) {
 			Invalid_u = *(nuint*) n;
 		}
@@ -131,7 +136,7 @@ public static unsafe class Mem
 
 	public static bool IsAddressInRange(Pointer p, Pointer lo, nint size)
 	{
-		return p >= lo && p <= lo + size;
+		return p >= lo && p <= lo.AddBytes(size);
 	}
 
 	#region CRT
@@ -897,6 +902,37 @@ public static unsafe class Mem
 		p.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
 
 		return ref AddressOf(ref p).Cast<T>().Reference;
+	}
+
+	public static (ModuleEntry32, ImageSectionInfo) Locate(Pointer<byte> ptr, Process proc)
+	{
+		var modules = Native.EnumProcessModules((uint)proc.Id);
+
+		foreach (var m in modules)
+		{
+			var b = Mem.IsAddressInRange(ptr, m.modBaseAddr, (nint)m.modBaseSize);
+
+			if (!b)
+			{
+				continue;
+			}
+
+			var pe = Native.GetPESectionInfo(m.hModule);
+			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
+
+			foreach (var e in pe)
+			{
+				var b2 = Mem.IsAddressInRange(ptr, e.Address, e.Size);
+
+				if (b2)
+				{
+					return (m, e);
+
+				}
+			}
+		}
+
+		return (default, default);
 	}
 }
 

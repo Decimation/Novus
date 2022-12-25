@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using Novus.Imports.Attributes;
 using Novus.Win32.Structures.Kernel32;
 
 // ReSharper disable IdentifierTypo
@@ -8,6 +9,7 @@ using Novus.Win32.Structures.Kernel32;
 namespace Novus.Win32.Structures.DbgHelp;
 
 [StructLayout(LayoutKind.Sequential)]
+[NativeStructure]
 internal struct ImageFileHeader
 {
 	/// WORD->unsigned short

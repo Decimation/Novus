@@ -110,9 +110,15 @@ public sealed class SigScanner
 
 	private const byte UNKNOWN_BYTE = 0x0;
 
-	//todo: Convert.To/FromHexString
+	/// <summary>
+	/// Parses a <see cref="byte"/> array signature in the following format:<para />
+	/// <c>X1 X2 Xn...</c> format where <c>X</c> is an unsigned byte value<br />
+	/// <c>?</c> indicates wildcard<br />
+	/// Space delimited
+	/// </summary>
 	public static byte[] ReadSignature(string pattern)
 	{
+		//todo: Convert.To/FromHexString
 		string[] strByteArr = pattern.Split(' ');
 
 		byte[] patternBytes = new byte[strByteArr.Length];

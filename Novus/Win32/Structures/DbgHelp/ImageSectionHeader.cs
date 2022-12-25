@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using Novus.Imports.Attributes;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
@@ -9,6 +10,7 @@
 namespace Novus.Win32.Structures.DbgHelp;
 
 [StructLayout(LayoutKind.Explicit)]
+[NativeStructure]
 internal struct ImageSectionHeader
 {
 	private const int IMAGE_SIZEOF_SHORT_NAME = 8;

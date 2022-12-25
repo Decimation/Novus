@@ -35,7 +35,7 @@ using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-#pragma warning disable 0649, IDE0044, CA1822, IDE1006, CA2211, IDE0052, CS1998
+#pragma warning disable 0649, IDE0044, CA1822, IDE1006, CA2211, IDE0052, CS1998,CS0612
 #pragma warning disable SYSLIB0014
 
 namespace UnitTest;

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Novus.Utilities;
 
+[Obsolete]
 public static class AtomicHelper
 {
 	private static readonly Dictionary<Type, nint> Cache = new();

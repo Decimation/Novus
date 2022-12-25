@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Novus.Win32;
+
 //TODO: WIP
 public static class Clipboard
 {

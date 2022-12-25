@@ -23,6 +23,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Kantan.Collections;
 using Kantan.Text;
 using Microsoft.VisualBasic.FileIO;
 using Novus;
@@ -36,8 +37,10 @@ using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
+using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
+using Novus.Win32.Wrappers;
 using FileType = Novus.FileTypes.FileType;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
@@ -128,18 +131,51 @@ public static unsafe class Program
 
 		// MyClass2.doSomething2(1);
 		Console.WriteLine("hi");
-		shutdown(0);
+
 		Console.WriteLine("bye");
+
+		int i   = 123;
+		var ptr = GCHeap.GlobalHeap;
+
+		Console.WriteLine(ptr);
+		var currentProcess = CurrentProcess(ptr, Process.GetCurrentProcess());
+		Console.WriteLine($"{currentProcess.Item1}");
+		Console.WriteLine($"{currentProcess.Item2}");
 	}
 
-	[ImportClr(nameof(shutdown), ImportType.Signature, Value = "48 8B C4 48 89 58 08 48 89 70 10 57 48 83 EC 30 48 8B D9 48 89 48 E8 83 60 F0 00")]
-	public static readonly delegate* unmanaged<int,void> shutdown;
+	public static (ModuleEntry32, ImageSectionInfo) CurrentProcess(Pointer<byte> ptr, Process proc)
+	{
+		var modules = Native.EnumProcessModules((uint) proc.Id);
+
+		foreach (var m in modules) {
+			var b = Mem.IsAddressInRange(ptr, m.modBaseAddr, (nint) m.modBaseSize);
+
+			if (!b) {
+				continue;
+			}
+
+			var pe = Native.GetPESectionInfo(m.hModule);
+			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
+
+			foreach (var e in pe) {
+				var b2 = Mem.IsAddressInRange(ptr, e.Address, e.Size);
+
+				if (b2) {
+					return (m, e);
+					
+				}
+			}
+		}
+
+		return (default, default);
+	}
 
 	static Program()
 	{
 		Global.Clr.LoadImports(typeof(Program));
 
 	}
+
 	public class MyClass2
 	{
 		public const string s =
@@ -148,10 +184,12 @@ public static unsafe class Program
 		[ImportUnmanaged(s, nameof(doSomething2), ImportType.Offset, Value = "1090")]
 		public static readonly delegate* unmanaged<int, void> doSomething2;
 
+		public static readonly RuntimeResource _rr;
+
 		static MyClass2()
 		{
-			var rr = RuntimeResource.LoadModule(MyClass2.s);
-			rr.LoadImports(typeof(MyClass2));
+			_rr = RuntimeResource.LoadModule(MyClass2.s);
+			_rr.LoadImports(typeof(MyClass2));
 		}
 	}
 

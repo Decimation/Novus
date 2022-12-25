@@ -74,7 +74,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T this[nint index]
 	{
-		[method: MImpl(Global.IMPL_OPTIONS)] get { return ref AsRef(index); }
+		[method: MImpl(Global.IMPL_OPTIONS)]
+		get { return ref AsRef(index); }
 	}
 
 	/// <summary>
@@ -82,7 +83,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public ref T Reference
 	{
-		[method: MImpl(Global.IMPL_OPTIONS)] get { return ref AsRef(); }
+		[method: MImpl(Global.IMPL_OPTIONS)]
+		get { return ref AsRef(); }
 	}
 
 	/// <summary>

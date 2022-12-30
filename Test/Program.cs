@@ -33,6 +33,7 @@ using Novus.Imports;
 using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.OS;
+using Novus.Properties;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
@@ -138,36 +139,16 @@ public static unsafe class Program
 		var ptr = GCHeap.GlobalHeap;
 
 		Console.WriteLine(ptr);
-		var currentProcess = CurrentProcess(ptr, Process.GetCurrentProcess());
+		var currentProcess = Mem.Locate(ptr, Process.GetCurrentProcess());
 		Console.WriteLine($"{currentProcess.Item1}");
 		Console.WriteLine($"{currentProcess.Item2}");
-	}
 
-	public static (ModuleEntry32, ImageSectionInfo) CurrentProcess(Pointer<byte> ptr, Process proc)
-	{
-		var modules = Native.EnumProcessModules((uint) proc.Id);
-
-		foreach (var m in modules) {
-			var b = Mem.IsAddressInRange(ptr, m.modBaseAddr, (nint) m.modBaseSize);
-
-			if (!b) {
-				continue;
-			}
-
-			var pe = Native.GetPESectionInfo(m.hModule);
-			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
-
-			foreach (var e in pe) {
-				var b2 = Mem.IsAddressInRange(ptr, e.Address, e.Size);
-
-				if (b2) {
-					return (m, e);
-					
-				}
-			}
+		var o = Global.Clr.Symbols.Value.GetSymbols(EmbeddedResources.Sym_IsHeapPointer);
+		foreach (var symbol in o) {
+			Console.WriteLine(symbol);
 		}
 
-		return (default, default);
+		Console.WriteLine(GCHeap.IsHeapPointer("foo"));
 	}
 
 	static Program()

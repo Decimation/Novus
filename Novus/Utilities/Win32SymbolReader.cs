@@ -46,9 +46,9 @@ public sealed class Win32SymbolReader : IDisposable
 	public Win32SymbolReader(nint process, string image)
 	{
 		Require.FileExists(image);
-		Process = process;
-		Image = image;
-		m_modBase = LoadModule();
+		Process    = process;
+		Image      = image;
+		m_modBase  = LoadModule();
 		m_disposed = false;
 
 		Symbols = new List<Symbol>();
@@ -58,7 +58,7 @@ public sealed class Win32SymbolReader : IDisposable
 	public Win32SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
 
 	[CBN]
-	public Symbol GetSymbol(string name)
+	public IEnumerable<Symbol> GetSymbols(string name)
 	{
 		/*
 		 * https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/ns-dbghelp-symbol_info
@@ -75,12 +75,11 @@ public sealed class Win32SymbolReader : IDisposable
 		 * https://github.com/moyix/pdbparse
 		 */
 
-		if (m_disposed)
-		{
+		if (m_disposed) {
 			throw new ObjectDisposedException(nameof(Win32SymbolReader));
 		}
 
-		var sym = Symbols.FirstOrDefault(s => s.Name.Contains(name));
+		var sym = Symbols.Where(s => s.Name.Contains(name));
 
 		//todo: SymFromName...
 		/*var d = new DebugSymbol();
@@ -97,15 +96,19 @@ public sealed class Win32SymbolReader : IDisposable
 		return sym;
 	}
 
+	[CBN]
+	public Symbol GetSymbol(string name)
+	{
+		return GetSymbols(name)?.FirstOrDefault();
+	}
+
 	public void LoadAll(string mask = MASK_ALL)
 	{
-		if (m_disposed)
-		{
+		if (m_disposed) {
 			throw new ObjectDisposedException(nameof(Win32SymbolReader));
 		}
 
-		if (AllLoaded)
-		{
+		if (AllLoaded) {
 			return;
 		}
 
@@ -115,7 +118,7 @@ public sealed class Win32SymbolReader : IDisposable
 			Symbols.Add(symbol);
 			return b;
 		}, IntPtr.Zero);
-
+		Trace.WriteLine($"Loaded {Symbols.Count} symbols", nameof(LoadAll));
 	}
 
 	private void Cleanup()
@@ -123,13 +126,13 @@ public sealed class Win32SymbolReader : IDisposable
 		Native.SymCleanup(Process);
 		Native.SymUnloadModule64(Process, m_modBase);
 		Symbols.Clear();
-		m_modBase = 0;
+		m_modBase  = 0;
 		m_disposed = true;
 	}
 
 	private static unsafe bool EnumSymCallback(nint info, uint symbolSize, nint pUserContext, out Symbol item)
 	{
-		var symbol = (SymbolInfo*)info;
+		var symbol = (SymbolInfo*) info;
 
 		item = new Symbol(symbol);
 
@@ -150,11 +153,11 @@ public sealed class Win32SymbolReader : IDisposable
 		Native.SymInitialize(Process, IntPtr.Zero, false);
 
 		const int BASE_OF_DLL = 0x400000;
-		const int DLL_SIZE = 0x20000;
+		const int DLL_SIZE    = 0x20000;
 
 		ulong modBase = Native.SymLoadModuleEx(Process, IntPtr.Zero, Image,
-											   null, BASE_OF_DLL, DLL_SIZE,
-											   IntPtr.Zero, 0);
+		                                       null, BASE_OF_DLL, DLL_SIZE,
+		                                       IntPtr.Zero, 0);
 
 		return modBase;
 	}
@@ -171,10 +174,9 @@ public sealed class Win32SymbolReader : IDisposable
 	}
 
 	public static string GetSymbolFile(string fname, [CBN] string o = null,
-									   SymbolSource src = SymbolSource.Symchk)
+	                                   SymbolSource src = SymbolSource.Symchk)
 	{
-		switch (src)
-		{
+		switch (src) {
 
 			case SymbolSource.Symchk:
 				break;
@@ -191,14 +193,13 @@ public sealed class Win32SymbolReader : IDisposable
 
 		//symchk <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /osc <output>
 
-		if (!File.Exists(fname))
-		{
+		if (!File.Exists(fname)) {
 			throw new FileNotFoundException(null, fname);
 		}
 
-		const string symchk = "symchk";
-		var process = Command.Run(symchk);
-		var info = process.StartInfo;
+		const string symchk  = "symchk";
+		var          process = Command.Run(symchk);
+		var          info    = process.StartInfo;
 
 		info.Arguments = $"{fname} /su SRV**{ER.MicrosoftSymbolServer} /oscdb {o}";
 
@@ -208,8 +209,7 @@ public sealed class Win32SymbolReader : IDisposable
 		var error = process.StandardError.ReadToEnd();
 		// var ee    = process.StandardOutput.ReadToEnd();
 
-		if (!string.IsNullOrWhiteSpace(error))
-		{
+		if (!string.IsNullOrWhiteSpace(error)) {
 			process.Dispose();
 			return null;
 		}
@@ -222,8 +222,7 @@ public sealed class Win32SymbolReader : IDisposable
 		// var outFile = ee.Split("PDB: ")[1].Split("DBG: ")[0].Trim();
 		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(fname) + ".pdb");
 
-		if (!File.Exists(outFile))
-		{
+		if (!File.Exists(outFile)) {
 			throw new FileNotFoundException(null, outFile);
 		}
 
@@ -237,7 +236,7 @@ public sealed class Win32SymbolReader : IDisposable
 			using var peReader = new PEReader(File.OpenRead(fname));
 
 			var codeViewEntry = peReader.ReadDebugDirectory()
-										.First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+				.First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
 
 			var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 
@@ -247,34 +246,31 @@ public sealed class Win32SymbolReader : IDisposable
 			using var wc = new WebClient();
 
 			// Check if the correct version of the PDB is already cached
-			var path = Path.ChangeExtension(fname, "pdb");
-			var fileName = Path.GetFileName(path);
+			var path       = Path.ChangeExtension(fname, "pdb");
+			var fileName   = Path.GetFileName(path);
 			var pdbDirPath = Path.Combine(o, fileName);
 
-			if (!Directory.Exists(pdbDirPath))
-			{
+			if (!Directory.Exists(pdbDirPath)) {
 				Directory.CreateDirectory(pdbDirPath);
 			}
 
 			var pdbPlusGuidDirPath = Path.Combine(pdbDirPath, pdbData.Guid.ToString());
 
-			if (!Directory.Exists(pdbPlusGuidDirPath))
-			{
+			if (!Directory.Exists(pdbPlusGuidDirPath)) {
 				Directory.CreateDirectory(pdbPlusGuidDirPath);
 			}
 
 			//var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, path);
 			var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
 
-			if (File.Exists(pdbFilePath))
-			{
+			if (File.Exists(pdbFilePath)) {
 				Debug.WriteLine($"Using {pdbFilePath}", nameof(GetSymbolFile));
 				goto ret;
 			}
 
 			var uriString = ER.MicrosoftSymbolServer +
-							$"{fileName}/" +
-							$"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
+			                $"{fileName}/" +
+			                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
 
 			Debug.WriteLine($"Downloading {uriString}", nameof(GetSymbolFile));
 
@@ -283,7 +279,7 @@ public sealed class Win32SymbolReader : IDisposable
 
 			Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(GetSymbolFile));
 
-		ret:
+			ret:
 
 			return pdbFilePath;
 		}

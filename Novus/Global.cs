@@ -173,7 +173,9 @@ public static class Global
 		Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
 		Trace.WriteLine($"[{LIB_NAME}]", C_INFO);
 
-		Clr = new RuntimeResource(CLR_MODULE);
+		// var s = Path.Combine(Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine), "coreclr.pdb");
+		
+		Clr = new RuntimeResource(CLR_MODULE, @"C:\Symbols\coreclr.pdb");
 
 		/* try {
 			DateTime dt = default;

@@ -151,14 +151,6 @@
   <data name="MicrosoftSymbolServer" xml:space="preserve">
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
-  <data name="Ofs_GCHeap" xml:space="preserve">
-    <value>497820</value>
-    <comment>g_pGCHeap</comment>
-  </data>
-  <data name="Ofs_IsHeapPointer" xml:space="preserve">
-    <value>31D880</value>
-    <comment>WKS::GCHeap::IsHeapPointer</comment>
-  </data>
   <data name="RequiredVersion" xml:space="preserve">
     <value>7.0.0</value>
   </data>
@@ -213,6 +205,14 @@
   <data name="Sig_SetEntryPoint" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B FA 48 8B F1 E8 ? ? ? ? 48 8B CE</value>
     <comment>MethodDesc::SetStableEntryPointInterlocked</comment>
+  </data>
+  <data name="Sym_GCHeap" xml:space="preserve">
+    <value>g_pGCHeap</value>
+    <comment>g_pGCHeap</comment>
+  </data>
+  <data name="Sym_IsHeapPointer" xml:space="preserve">
+    <value>WKS::GCHeap::IsHeapPointer</value>
+    <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="UserAgent" xml:space="preserve">
     <value>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36</value>

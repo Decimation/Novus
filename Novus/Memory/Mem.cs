@@ -86,7 +86,7 @@ public static unsafe class Mem
 
 	static Mem()
 	{
-		
+
 		fixed (nint* n = &Invalid) {
 			Invalid_u = *(nuint*) n;
 		}
@@ -906,26 +906,22 @@ public static unsafe class Mem
 
 	public static (ModuleEntry32, ImageSectionInfo) Locate(Pointer<byte> ptr, Process proc)
 	{
-		var modules = Native.EnumProcessModules((uint)proc.Id);
+		var modules = Native.EnumProcessModules((uint) proc.Id);
 
-		foreach (var m in modules)
-		{
-			var b = Mem.IsAddressInRange(ptr, m.modBaseAddr, (nint)m.modBaseSize);
+		foreach (var m in modules) {
+			var b = Mem.IsAddressInRange(ptr, m.modBaseAddr, (nint) m.modBaseSize);
 
-			if (!b)
-			{
+			if (!b) {
 				continue;
 			}
 
 			var pe = Native.GetPESectionInfo(m.hModule);
 			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
 
-			foreach (var e in pe)
-			{
+			foreach (var e in pe) {
 				var b2 = Mem.IsAddressInRange(ptr, e.Address, e.Size);
 
-				if (b2)
-				{
+				if (b2) {
 					return (m, e);
 
 				}

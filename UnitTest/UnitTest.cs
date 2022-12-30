@@ -244,7 +244,6 @@ public class Tests_Other
 }
 
 [TestFixture]
-[Parallelizable]
 public class Tests_GCHeap
 {
 	[Test]
@@ -264,7 +263,6 @@ public class Tests_GCHeap
 	[Test]
 	public void Alloc()
 	{
-
 		var o = GCHeap.AllocObject<List<int>>();
 
 		o.Add(1);

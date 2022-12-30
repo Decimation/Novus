@@ -162,24 +162,6 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 497820.
-        /// </summary>
-        internal static string Ofs_GCHeap {
-            get {
-                return ResourceManager.GetString("Ofs_GCHeap", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to 31D880.
-        /// </summary>
-        internal static string Ofs_IsHeapPointer {
-            get {
-                return ResourceManager.GetString("Ofs_IsHeapPointer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to 7.0.0.
         /// </summary>
         internal static string RequiredVersion {
@@ -302,6 +284,24 @@ namespace Novus.Properties {
         internal static string Sig_SetEntryPoint {
             get {
                 return ResourceManager.GetString("Sig_SetEntryPoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to g_pGCHeap.
+        /// </summary>
+        internal static string Sym_GCHeap {
+            get {
+                return ResourceManager.GetString("Sym_GCHeap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WKS::GCHeap::IsHeapPointer.
+        /// </summary>
+        internal static string Sym_IsHeapPointer {
+            get {
+                return ResourceManager.GetString("Sym_IsHeapPointer", resourceCulture);
             }
         }
         

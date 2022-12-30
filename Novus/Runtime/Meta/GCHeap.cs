@@ -63,13 +63,13 @@ public static unsafe class GCHeap
 	/// <summary>
 	/// <c>g_pGCHeap</c>
 	/// </summary>
-	[field: ImportClr("Ofs_GCHeap", ImportType.Offset)]
+	[field: ImportClr("Sym_GCHeap", ImportType.Symbol)]
 	public static Pointer<byte> GlobalHeap { get; }
 
 	/// <summary>
 	/// <see cref="IsHeapPointer"/>
 	/// </summary>
-	[field: ImportClr("Ofs_IsHeapPointer", ImportType.Offset)]
+	[field: ImportClr("Sym_IsHeapPointer", ImportType.Symbol)]
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
 
 	/// <summary>

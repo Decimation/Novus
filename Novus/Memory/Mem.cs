@@ -1,6 +1,7 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
 #pragma warning disable IDE0005, CS1574
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Drawing;
@@ -902,6 +903,18 @@ public static unsafe class Mem
 		p.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
 
 		return ref AddressOf(ref p).Cast<T>().Reference;
+	}
+
+	public static ref T ReadRef<T>(this Memory<T> sp, out MemoryHandle mh)
+	{
+		mh = sp.Pin();
+		Pointer<T> p = mh.Pointer;
+		return ref p.Reference;
+	}
+
+	public static ref T ReadRef<T>(this Span<T> sp)
+	{
+		return ref sp.GetPinnableReference();
 	}
 
 	public static (ModuleEntry32, ImageSectionInfo) Locate(Pointer<byte> ptr, Process proc)

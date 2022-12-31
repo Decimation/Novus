@@ -144,6 +144,7 @@ public static unsafe class Program
 		Console.WriteLine($"{currentProcess.Item2}");
 
 		var o = Global.Clr.Symbols.Value.GetSymbols(EmbeddedResources.Sym_IsHeapPointer);
+
 		foreach (var symbol in o) {
 			Console.WriteLine(symbol);
 		}

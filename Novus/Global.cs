@@ -133,6 +133,8 @@ public static class Global
 	/// </summary>
 	public static readonly Version ClrVersion = Version.Parse(EmbeddedResources.RequiredVersion);
 
+	public static string ClrPdb { get; set; } = @"C:\Symbols\coreclr.pdb";
+
 	/// <summary>
 	///     Runtime CLR resources
 	/// </summary>
@@ -174,8 +176,8 @@ public static class Global
 		Trace.WriteLine($"[{LIB_NAME}]", C_INFO);
 
 		// var s = Path.Combine(Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine), "coreclr.pdb");
-		
-		Clr = new RuntimeResource(CLR_MODULE, @"C:\Symbols\coreclr.pdb");
+		//todo
+		Clr = new RuntimeResource(CLR_MODULE, ClrPdb);
 
 		/* try {
 			DateTime dt = default;

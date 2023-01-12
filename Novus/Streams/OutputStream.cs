@@ -16,10 +16,7 @@ public class OutputStream : IDisposable
 
 	public virtual void Close()
 	{
-		if (Wrapped != null)
-		{
-			Wrapped.Close();
-		}
+		Wrapped?.Close();
 	}
 
 	public void Dispose()
@@ -29,10 +26,7 @@ public class OutputStream : IDisposable
 
 	public virtual void Flush()
 	{
-		if (Wrapped != null)
-		{
-			Wrapped.Flush();
-		}
+		Wrapped?.Flush();
 	}
 
 	internal Stream GetWrappedStream()
@@ -42,7 +36,7 @@ public class OutputStream : IDisposable
 		return new WrappedSystemStream(this);
 	}
 
-	static internal OutputStream Wrap(Stream s)
+	public static OutputStream Wrap(Stream s)
 	{
 		var stream = new OutputStream();
 		stream.Wrapped = s;
@@ -51,8 +45,8 @@ public class OutputStream : IDisposable
 
 	public virtual void Write(int b)
 	{
-		if (Wrapped is WrappedSystemStream)
-			((WrappedSystemStream)Wrapped).OutputStream.Write(b);
+		if (Wrapped is WrappedSystemStream stream)
+			stream.OutputStream.Write(b);
 		else
 		{
 			if (Wrapped == null)
@@ -68,8 +62,8 @@ public class OutputStream : IDisposable
 
 	public virtual void Write(byte[] b, int offset, int len)
 	{
-		if (Wrapped is WrappedSystemStream)
-			((WrappedSystemStream)Wrapped).OutputStream.Write(b, offset, len);
+		if (Wrapped is WrappedSystemStream stream)
+			stream.OutputStream.Write(b, offset, len);
 		else
 		{
 			if (Wrapped != null)

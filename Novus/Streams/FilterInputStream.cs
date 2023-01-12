@@ -2,55 +2,55 @@
 
 public class FilterInputStream : InputStream
 {
-	protected InputStream @in;
+	protected InputStream In;
 
 	public FilterInputStream(InputStream s)
 	{
-		@in = s;
+		In = s;
 	}
 
 	public override int Available()
 	{
-		return @in.Available();
+		return In.Available();
 	}
 
 	public override void Close()
 	{
-		@in.Close();
+		In.Close();
 	}
 
-	public override void Mark(int readlimit)
+	public override void Mark(int readLimit)
 	{
-		@in.Mark(readlimit);
+		In.Mark(readLimit);
 	}
 
 	public override bool MarkSupported()
 	{
-		return @in.MarkSupported();
+		return In.MarkSupported();
 	}
 
 	public override int Read()
 	{
-		return @in.Read();
+		return In.Read();
 	}
 
 	public override int Read(byte[] buf)
 	{
-		return @in.Read(buf);
+		return In.Read(buf);
 	}
 
 	public override int Read(byte[] b, int off, int len)
 	{
-		return @in.Read(b, off, len);
+		return In.Read(b, off, len);
 	}
 
 	public override void Reset()
 	{
-		@in.Reset();
+		In.Reset();
 	}
 
 	public override long Skip(long cnt)
 	{
-		return @in.Skip(cnt);
+		return In.Skip(cnt);
 	}
 }

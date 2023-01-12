@@ -1,24 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-/*
+﻿/*
  * https://github.com/mono/ngit/tree/master/Sharpen/Sharpen
  */
+
 namespace Novus.Streams;
 
-using System;
-using System.IO;
-using System;
-using System.IO;
 using System;
 using System.IO;
 
 public class InputStream : IDisposable
 {
-	private   long   mark;
+	private long m_mark;
+
 	protected Stream Wrapped;
 	protected Stream BaseStream;
 
@@ -34,16 +26,15 @@ public class InputStream : IDisposable
 
 	public virtual int Available()
 	{
-		if (Wrapped is WrappedSystemStream)
-			return ((WrappedSystemStream)Wrapped).InputStream.Available();
+		if (Wrapped is WrappedSystemStream stream)
+			return stream.InputStream.Available();
 		else
 			return 0;
 	}
 
 	public virtual void Close()
 	{
-		if (Wrapped != null)
-		{
+		if (Wrapped != null) {
 			Wrapped.Close();
 		}
 	}
@@ -60,32 +51,30 @@ public class InputStream : IDisposable
 		return new WrappedSystemStream(this);
 	}
 
-	public virtual void Mark(int readlimit)
+	public virtual void Mark(int readLimit)
 	{
-		if (Wrapped is WrappedSystemStream)
-			((WrappedSystemStream)Wrapped).InputStream.Mark(readlimit);
-		else
-		{
-			if (BaseStream is WrappedSystemStream)
-				((WrappedSystemStream)BaseStream).OnMark(readlimit);
+		if (Wrapped is WrappedSystemStream stream)
+			stream.InputStream.Mark(readLimit);
+		else {
+			if (BaseStream is WrappedSystemStream systemStream)
+				systemStream.OnMark(readLimit);
 
 			if (Wrapped != null)
-				mark = Wrapped.Position;
+				m_mark = Wrapped.Position;
 		}
 	}
 
 	public virtual bool MarkSupported()
 	{
-		if (Wrapped is WrappedSystemStream)
-			return ((WrappedSystemStream)Wrapped).InputStream.MarkSupported();
+		if (Wrapped is WrappedSystemStream stream)
+			return stream.InputStream.MarkSupported();
 		else
-			return Wrapped != null && Wrapped.CanSeek;
+			return Wrapped is { CanSeek: true };
 	}
 
 	public virtual int Read()
 	{
-		if (Wrapped == null)
-		{
+		if (Wrapped == null) {
 			throw new NotImplementedException();
 		}
 
@@ -99,24 +88,22 @@ public class InputStream : IDisposable
 
 	public virtual int Read(byte[] b, int off, int len)
 	{
-		if (Wrapped is WrappedSystemStream)
-			return ((WrappedSystemStream)Wrapped).InputStream.Read(b, off, len);
+		if (Wrapped is WrappedSystemStream stream)
+			return stream.InputStream.Read(b, off, len);
 
-		if (Wrapped != null)
-		{
+		if (Wrapped != null) {
 			int num = Wrapped.Read(b, off, len);
 			return num <= 0 ? -1 : num;
 		}
 
 		int totalRead = 0;
 
-		while (totalRead < len)
-		{
+		while (totalRead < len) {
 			int nr = Read();
 
 			if (nr == -1)
 				return -1;
-			b[off + totalRead] = (byte)nr;
+			b[off + totalRead] = (byte) nr;
 			totalRead++;
 		}
 
@@ -125,25 +112,23 @@ public class InputStream : IDisposable
 
 	public virtual void Reset()
 	{
-		if (Wrapped is WrappedSystemStream)
-			((WrappedSystemStream)Wrapped).InputStream.Reset();
-		else
-		{
+		if (Wrapped is WrappedSystemStream stream)
+			stream.InputStream.Reset();
+		else {
 			if (Wrapped == null)
 				throw new IOException();
-			Wrapped.Position = mark;
+			Wrapped.Position = m_mark;
 		}
 	}
 
 	public virtual long Skip(long cnt)
 	{
-		if (Wrapped is WrappedSystemStream)
-			return ((WrappedSystemStream)Wrapped).InputStream.Skip(cnt);
+		if (Wrapped is WrappedSystemStream stream)
+			return stream.InputStream.Skip(cnt);
 
 		long n = cnt;
 
-		while (n > 0)
-		{
+		while (n > 0) {
 			if (Read() == -1)
 				return cnt - n;
 			n--;
@@ -154,10 +139,7 @@ public class InputStream : IDisposable
 
 	internal bool CanSeek()
 	{
-		if (Wrapped != null)
-			return Wrapped.CanSeek;
-		else
-			return false;
+		return Wrapped is { CanSeek: true };
 	}
 
 	internal long Position
@@ -178,7 +160,7 @@ public class InputStream : IDisposable
 		}
 	}
 
-	static internal InputStream Wrap(Stream s)
+	public static InputStream Wrap(Stream s)
 	{
 		var stream = new InputStream();
 		stream.Wrapped = s;

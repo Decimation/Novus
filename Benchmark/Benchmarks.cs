@@ -40,6 +40,46 @@ public class MyStruct
 	}
 }
 
+[RyuJitX64Job]
+public class Benchmarks26
+{
+	private IFileTypeResolver magic, fast, urlmon;
+	private FileStream        m_stream1;
+	private string            m_path1;
+	private Consumer m_consumer;
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		magic  = MagicResolver.Instance;
+		fast   = FastResolver.Instance;
+		urlmon = UrlmonResolver.Instance;
+
+		m_path1 =
+			@"C:\Users\Deci\Pictures\Art\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png";
+		m_stream1  = File.OpenRead(m_path1);
+		m_consumer = new Consumer();
+	}
+
+	[Benchmark]
+	public void Urlmon()
+	{
+		urlmon.Resolve(m_stream1).Consume(m_consumer);
+	}
+
+	[Benchmark]
+	public void Magic()
+	{
+		magic.Resolve(m_stream1).Consume(m_consumer);
+	}
+
+	[Benchmark]
+	public void Fast()
+	{
+		fast.Resolve(m_stream1).Consume(m_consumer);
+	}
+}
+
 // [InProcess]
 [RyuJitX64Job]
 public unsafe class Benchmarks25

@@ -7,6 +7,8 @@ using System.Net;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Web;
+using CliWrap;
+using CliWrap.Buffered;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Novus.Win32.Structures;
@@ -173,15 +175,15 @@ public sealed class Win32SymbolReader : IDisposable
 		Download
 	}
 
-	public static string GetSymbolFile(string fname, [CBN] string o = null,
-	                                   SymbolSource src = SymbolSource.Symchk)
+	public static async Task<string> GetSymbolFileAsync(string fname, [CBN] string o = null,
+	                                               SymbolSource src = SymbolSource.Symchk)
 	{
 		switch (src) {
 
 			case SymbolSource.Symchk:
 				break;
 			case SymbolSource.Download:
-				return Download();
+				return await DownloadAsync();
 			default:
 				throw new ArgumentOutOfRangeException(nameof(src), src, null);
 		}
@@ -197,24 +199,30 @@ public sealed class Win32SymbolReader : IDisposable
 			throw new FileNotFoundException(null, fname);
 		}
 
-		const string symchk  = "symchk";
-		var          process = Command.Run(symchk);
+		/*var          process = Command.Run(symchk);
 		var          info    = process.StartInfo;
 
 		info.Arguments = $"{fname} /su SRV**{ER.MicrosoftSymbolServer} /oscdb {o}";
 
 		process.Start();
-		process.WaitForExit();
+		process.WaitForExit();*/
 
-		var error = process.StandardError.ReadToEnd();
+		var cmd = Cli.Wrap(ER.E_Symchk)
+			.WithArguments($"{fname} /su SRV**{ER.MicrosoftSymbolServer} /oscdb {o}");
+
+		var bcr     = await cmd.ExecuteBufferedAsync();
+		var error = bcr.StandardError;
+
+		// var error = process.StandardError.ReadToEnd();
 		// var ee    = process.StandardOutput.ReadToEnd();
 
 		if (!string.IsNullOrWhiteSpace(error)) {
-			process.Dispose();
+			// process.Dispose();
 			return null;
+
 		}
 
-		process.Dispose();
+		// process.Dispose();
 		// var f = ee.Split(' ')[1];
 		// var combine = Path.Combine(Path.GetFileName(s), o);
 		// return combine;
@@ -228,7 +236,7 @@ public sealed class Win32SymbolReader : IDisposable
 
 		return outFile;
 
-		string Download()
+		async Task<string> DownloadAsync()
 		{
 			// fname=FileSystem.SearchInPath(fname);
 			fname = Path.GetFullPath(fname);
@@ -264,7 +272,7 @@ public sealed class Win32SymbolReader : IDisposable
 			var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
 
 			if (File.Exists(pdbFilePath)) {
-				Debug.WriteLine($"Using {pdbFilePath}", nameof(GetSymbolFile));
+				Debug.WriteLine($"Using {pdbFilePath}", nameof(GetSymbolFileAsync));
 				goto ret;
 			}
 
@@ -272,12 +280,12 @@ public sealed class Win32SymbolReader : IDisposable
 			                $"{fileName}/" +
 			                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
 
-			Debug.WriteLine($"Downloading {uriString}", nameof(GetSymbolFile));
+			Debug.WriteLine($"Downloading {uriString}", nameof(GetSymbolFileAsync));
 
-			//await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
-			wc.DownloadFile(new Uri(uriString), pdbFilePath);
+			await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
+			// wc.DownloadFile(new Uri(uriString), pdbFilePath);
 
-			Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(GetSymbolFile));
+			Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(GetSymbolFileAsync));
 
 			ret:
 

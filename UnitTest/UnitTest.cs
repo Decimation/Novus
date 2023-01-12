@@ -521,7 +521,7 @@ public class Tests_Native
 	[TestCase(@"C:\Symbols\charmap.exe")]
 	public void SymbolsTest2(string a)
 	{
-		var d = Win32SymbolReader.GetSymbolFile(a);
+		var d = Win32SymbolReader.GetSymbolFileAsync(a);
 		TestContext.WriteLine(d);
 
 	}

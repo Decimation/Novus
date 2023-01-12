@@ -1,57 +1,46 @@
 ﻿namespace Novus.Streams;
 
-internal class WrappedSystemStream : Stream
+public class WrappedSystemStream : Stream
 {
-	private InputStream  ist;
-	private OutputStream ost;
-	int                  position;
-	int                  markedPosition;
+	private int m_position;
+	private int m_markedPosition;
 
 	public WrappedSystemStream(InputStream ist)
 	{
-		this.ist = ist;
+		this.InputStream = ist;
 	}
 
 	public WrappedSystemStream(OutputStream ost)
 	{
-		this.ost = ost;
+		this.OutputStream = ost;
 	}
 
-	public InputStream InputStream
-	{
-		get { return ist; }
-	}
+	public InputStream InputStream { get; }
 
-	public OutputStream OutputStream
-	{
-		get { return ost; }
-	}
+	public OutputStream OutputStream { get; }
 
 	public override void Close()
 	{
-		if (ist != null)
-		{
-			ist.Close();
+		if (InputStream != null) {
+			InputStream.Close();
 		}
 
-		if (ost != null)
-		{
-			ost.Close();
+		if (OutputStream != null) {
+			OutputStream.Close();
 		}
 	}
 
 	public override void Flush()
 	{
-		ost.Flush();
+		OutputStream.Flush();
 	}
 
 	public override int Read(byte[] buffer, int offset, int count)
 	{
-		int res = ist.Read(buffer, offset, count);
+		int res = InputStream.Read(buffer, offset, count);
 
-		if (res != -1)
-		{
-			position += res;
+		if (res != -1) {
+			m_position += res;
 			return res;
 		}
 		else
@@ -60,21 +49,22 @@ internal class WrappedSystemStream : Stream
 
 	public override int ReadByte()
 	{
-		int res = ist.Read();
+		int res = InputStream.Read();
 
 		if (res != -1)
-			position++;
+			m_position++;
 		return res;
 	}
 
 	public override long Seek(long offset, SeekOrigin origin)
 	{
-		if (origin == SeekOrigin.Begin)
-			Position = offset;
-		else if (origin == SeekOrigin.Current)
-			Position = Position + offset;
-		else if (origin == SeekOrigin.End)
-			Position = Length + offset;
+		Position = origin switch
+		{
+			SeekOrigin.Begin   => offset,
+			SeekOrigin.Current => Position + offset,
+			SeekOrigin.End     => Length + offset,
+			_                  => Position
+		};
 		return Position;
 	}
 
@@ -85,19 +75,19 @@ internal class WrappedSystemStream : Stream
 
 	public override void Write(byte[] buffer, int offset, int count)
 	{
-		ost.Write(buffer, offset, count);
-		position += count;
+		OutputStream.Write(buffer, offset, count);
+		m_position += count;
 	}
 
 	public override void WriteByte(byte value)
 	{
-		ost.Write(value);
-		position++;
+		OutputStream.Write(value);
+		m_position++;
 	}
 
 	public override bool CanRead
 	{
-		get { return ist != null; }
+		get { return InputStream != null; }
 	}
 
 	public override bool CanSeek
@@ -107,7 +97,7 @@ internal class WrappedSystemStream : Stream
 
 	public override bool CanWrite
 	{
-		get { return ost != null; }
+		get { return OutputStream != null; }
 	}
 
 	public override long Length
@@ -117,28 +107,27 @@ internal class WrappedSystemStream : Stream
 
 	internal void OnMark(int nb)
 	{
-		markedPosition = position;
-		ist.Mark(nb);
+		m_markedPosition = m_position;
+		InputStream.Mark(nb);
 	}
 
 	public override long Position
 	{
 		get
 		{
-			if (ist != null && ist.CanSeek())
-				return ist.Position;
+			if (InputStream != null && InputStream.CanSeek())
+				return InputStream.Position;
 			else
-				return position;
+				return m_position;
 		}
 		set
 		{
-			if (value == position)
+			if (value == m_position)
 				return;
-			else if (value == markedPosition)
-				ist.Reset();
-			else if (ist != null && ist.CanSeek())
-			{
-				ist.Position = value;
+			else if (value == m_markedPosition)
+				InputStream.Reset();
+			else if (InputStream != null && InputStream.CanSeek()) {
+				InputStream.Position = value;
 			}
 			else
 				throw new NotSupportedException();

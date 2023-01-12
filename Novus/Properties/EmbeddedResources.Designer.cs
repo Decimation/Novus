@@ -97,6 +97,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to symchk.
+        /// </summary>
+        internal static string E_Symchk {
+            get {
+                return ResourceManager.GetString("E_Symchk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to magic.mgc.
         /// </summary>
         internal static string F_Magic {

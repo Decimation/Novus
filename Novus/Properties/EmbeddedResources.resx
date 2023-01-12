@@ -129,6 +129,9 @@
   <data name="E_Py" xml:space="preserve">
     <value>python.exe</value>
   </data>
+  <data name="E_Symchk" xml:space="preserve">
+    <value>symchk</value>
+  </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="File_types" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\File types.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

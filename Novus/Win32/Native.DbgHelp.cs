@@ -11,6 +11,7 @@ public static unsafe partial class Native
 
 	[DllImport(DBGHELP_DLL)]
 	private static extern ImageNtHeaders* ImageNtHeader(nint hModule);
+
 	#region Symbols
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
@@ -45,7 +46,5 @@ public static unsafe partial class Native
 	internal static extern ulong SymLoadModuleEx(nint hProcess, nint hFile, string imageName,
 	                                             string moduleName, ulong baseOfDll, uint dllSize, nint data,
 	                                             uint flags);
-
-	#endregion
-
+#endregion
 }

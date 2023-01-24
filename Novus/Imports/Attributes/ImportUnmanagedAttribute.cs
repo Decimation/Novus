@@ -36,11 +36,12 @@ public class ImportUnmanagedAttribute : ImportAttribute
 		: this(moduleName, null, type, value) { }
 
 	public ImportUnmanagedAttribute(string moduleName, string name, ImportType type,
-									string value = null) : base(name, ImportManageType.Unmanaged)
+	                                string value = null, int ordinal = ORDINAL_NA)
+		: base(name, ImportManageType.Unmanaged, ordinal)
 	{
 		ModuleName = moduleName;
-		Type = type;
-		Value = value;
+		Type       = type;
+		Value      = value;
 	}
 }
 

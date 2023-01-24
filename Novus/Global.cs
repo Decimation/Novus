@@ -18,6 +18,9 @@ using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
@@ -171,14 +174,14 @@ public static class Global
 		/*
 		 * Setup
 		 */
-
+		
 		Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
 		Trace.WriteLine($"[{LIB_NAME}]", C_INFO);
 
 		// var s = Path.Combine(Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine), "coreclr.pdb");
 		//todo
 		Clr = new RuntimeResource(CLR_MODULE, ClrPdb);
-
+		
 		/* try {
 			DateTime dt = default;
 

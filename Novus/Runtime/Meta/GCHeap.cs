@@ -73,8 +73,8 @@ public static unsafe class GCHeap
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
 
 	/// <summary>
-	/// <see cref="IsHeapPointer"/>
+	/// <see cref="AllocObject{T}"/>
 	/// </summary>
-	[field: ImportClr("Sig_AllocObject")]
+	[field: ImportClr("Sym_AllocObject",ImportType.Symbol, 1)]
 	private static delegate* unmanaged<MethodTable*, BOOL, void*> Func_AllocObject { get; }
 }

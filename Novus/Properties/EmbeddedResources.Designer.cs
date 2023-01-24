@@ -171,20 +171,11 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 7.0.0.
+        ///   Looks up a localized string similar to 7.0.2.
         /// </summary>
         internal static string RequiredVersion {
             get {
                 return ResourceManager.GetString("RequiredVersion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 56 41 57 48 83 EC 50 48 8B D9.
-        /// </summary>
-        internal static string Sig_AllocObject {
-            get {
-                return ResourceManager.GetString("Sig_AllocObject", resourceCulture);
             }
         }
         
@@ -293,6 +284,15 @@ namespace Novus.Properties {
         internal static string Sig_SetEntryPoint {
             get {
                 return ResourceManager.GetString("Sig_SetEntryPoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AllocateObject.
+        /// </summary>
+        internal static string Sym_AllocObject {
+            get {
+                return ResourceManager.GetString("Sym_AllocObject", resourceCulture);
             }
         }
         

@@ -15,9 +15,9 @@ using System.Reflection.Emit;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static Kantan.Diagnostics.LogCategories;
-using static Novus.Imports.Attributes.ImportType;
 using Novus.Imports.Attributes;
+using Novus.Win32.Structures.DbgHelp;
+using Novus.Win32.Wrappers;
 
 // ReSharper disable UnusedMember.Local
 
@@ -131,7 +131,7 @@ public sealed class RuntimeResource : IDisposable
 			field.SetValue(null, null);
 		}
 
-		Trace.WriteLine($"Unloaded type {t.Name}", C_INFO);
+		Trace.WriteLine($"Unloaded type {t.Name}", LogCategories.C_INFO);
 		m_loadedTypes.Remove(t);
 	}
 
@@ -244,14 +244,14 @@ public sealed class RuntimeResource : IDisposable
 
 				// Find address
 
-				var addr = FindImport(resValue, unmanagedType);
+				var addr = FindImport(resValue, unmanagedType, field.FieldType, attribute.Ordinal);
 
 				//Require.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
 				if (addr.IsNull) {
 					// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 
-					Trace.WriteLine($"Could not find import value for {unmanagedAttr.Name}!", C_ERROR);
+					Trace.WriteLine($"Could not find import value for {unmanagedAttr.Name}!", LogCategories.C_ERROR);
 
 					if (throwOnErr) {
 						unsafe {
@@ -297,11 +297,24 @@ public sealed class RuntimeResource : IDisposable
 		return fieldValue;
 	}
 
-	public Pointer GetSymbol(string name)
+	public Pointer GetSymbol(string name, Type t = null, int ordinal = ImportAttribute.ORDINAL_NA)
 	{
+
+		var symbols = Symbols.Value.GetSymbols(name).Where(s =>
+			                                                   s.Tag == SymbolTag.Function || s.Tag == SymbolTag.Data)
+			.ToArray();
+
+		Symbol symbol = null;
+
+		if (ordinal != ImportAttribute.ORDINAL_NA) {
+			symbol = symbols[ordinal];
+		}
+		else {
+			symbol = symbols.FirstOrDefault();
+		}
+
 		return (Pointer<byte>) Module.Value.BaseAddress +
-		       (nint) (Symbols.Value.GetSymbol(name)?.Offset
-		               ?? throw new InvalidOperationException());
+		       (nint) (symbol?.Offset ?? throw new InvalidOperationException());
 	}
 
 	#endregion Import
@@ -346,15 +359,16 @@ public sealed class RuntimeResource : IDisposable
 	public static Pointer<byte> FindImport(string m, string s, ImportType x)
 		=> FindImport(Process.GetCurrentProcess(), m, s, x);
 
-	public Pointer<byte> FindImport(string s, ImportType x)
+	public Pointer FindImport(string s, ImportType x, [CanBeNull] Type t = null,
+	                          int ordinal = ImportAttribute.ORDINAL_NA)
 	{
 		return x switch
 		{
-			Signature => GetSignature(s),
-			Export    => GetExport(s),
-			Offset    => GetOffset(s),
-			Symbol    => GetSymbol(s),
-			_         => throw new ArgumentOutOfRangeException(nameof(x), x, null)
+			ImportType.Signature => GetSignature(s),
+			ImportType.Export    => GetExport(s),
+			ImportType.Offset    => GetOffset(s),
+			ImportType.Symbol    => GetSymbol(s, t, ordinal),
+			_                    => throw new ArgumentOutOfRangeException(nameof(x), x, null)
 		};
 	}
 

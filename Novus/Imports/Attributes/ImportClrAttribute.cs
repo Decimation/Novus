@@ -12,6 +12,6 @@ namespace Novus.Imports.Attributes;
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class ImportClrAttribute : ImportUnmanagedAttribute
 {
-    public ImportClrAttribute(string name = null, ImportType unmanagedType = ImportType.Signature)
-        : base(Global.CLR_MODULE, name, unmanagedType) { }
+    public ImportClrAttribute(string name = null, ImportType unmanagedType = ImportType.Signature, int ordinal = ORDINAL_NA)
+        : base(Global.CLR_MODULE, name, unmanagedType, ordinal: ordinal) { }
 }

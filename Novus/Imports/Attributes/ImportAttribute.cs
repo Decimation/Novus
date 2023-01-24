@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
+
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Imports.Attributes;
@@ -13,22 +14,27 @@ namespace Novus.Imports.Attributes;
 [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors)]
 public abstract class ImportAttribute : Attribute
 {
-    protected ImportAttribute(string name, ImportManageType manageType)
-    {
-        Name = name;
-        ManageType = manageType;
-    }
+	protected ImportAttribute(string name, ImportManageType manageType, int ordinal = ORDINAL_NA)
+	{
+		Name       = name;
+		ManageType = manageType;
+		Ordinal    = ordinal;
+	}
 
-    protected ImportAttribute(ImportManageType manageType) : this(null, manageType) { }
+	protected ImportAttribute(ImportManageType manageType) : this(null, manageType) { }
 
-    [MN]
-    public string Name { get; set; }
+	[MN]
+	public string Name { get; set; }
 
-    public ImportManageType ManageType { get; set; }
+	public ImportManageType ManageType { get; set; }
+
+	public int Ordinal { get; set; }
+
+	public const int ORDINAL_NA = -1;
 }
 
 public enum ImportManageType
 {
-    Unmanaged,
-    Managed
+	Unmanaged,
+	Managed
 }

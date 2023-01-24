@@ -19,6 +19,8 @@ using System.Reflection.Metadata;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -129,7 +131,10 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+	}
 
+	private static void Test5()
+	{
 		// MyClass2.doSomething2(1);
 		Console.WriteLine("hi");
 
@@ -156,6 +161,34 @@ public static unsafe class Program
 	{
 		Global.Clr.LoadImports(typeof(Program));
 
+	}
+
+	[Serializable]
+	public class CyberRankData
+	{
+		// Token: 0x060002DF RID: 735 RVA: 0x00016992 File Offset: 0x00014B92
+		public CyberRankData()
+		{
+			this.preciseWavesByDifficulty = new float[6];
+			this.kills                    = new int[6];
+			this.style                    = new int[6];
+			this.time                     = new float[6];
+		}
+
+		// Token: 0x0400045E RID: 1118
+		public int wave;
+
+		// Token: 0x0400045F RID: 1119
+		public float[] preciseWavesByDifficulty;
+
+		// Token: 0x04000460 RID: 1120
+		public int[] kills;
+
+		// Token: 0x04000461 RID: 1121
+		public int[] style;
+
+		// Token: 0x04000462 RID: 1122
+		public float[] time;
 	}
 
 	public class MyClass2

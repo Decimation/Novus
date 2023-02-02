@@ -14,11 +14,11 @@ namespace Novus.Imports.Attributes;
 [MeansImplicitUse(ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors)]
 public abstract class ImportAttribute : Attribute
 {
-	protected ImportAttribute(string name, ImportManageType manageType, int ordinal = ORDINAL_NA)
+	protected ImportAttribute(string name, ImportManageType manageType, Type resolver = null)
 	{
 		Name       = name;
 		ManageType = manageType;
-		Ordinal    = ordinal;
+		Resolver    = resolver;
 	}
 
 	protected ImportAttribute(ImportManageType manageType) : this(null, manageType) { }
@@ -28,9 +28,10 @@ public abstract class ImportAttribute : Attribute
 
 	public ImportManageType ManageType { get; set; }
 
-	public int Ordinal { get; set; }
+	[CanBeNull]
+	public Type Resolver { get; set; }
 
-	public const int ORDINAL_NA = -1;
+	public bool AbsoluteMatch { get; set; }
 }
 
 public enum ImportManageType

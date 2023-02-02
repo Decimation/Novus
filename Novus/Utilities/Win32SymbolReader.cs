@@ -11,6 +11,7 @@ using CliWrap;
 using CliWrap.Buffered;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
+using Kantan.Text;
 using Novus.Win32.Structures;
 using Novus.Properties;
 using Novus.Win32.Structures.DbgHelp;
@@ -33,7 +34,8 @@ public sealed class Win32SymbolReader : IDisposable
 {
 	private bool m_disposed;
 
-	private ulong m_modBase;
+	private                 ulong              m_modBase;
+	private static readonly Func<Symbol, bool> AnyPredicate = static _ => true;
 
 	public bool AllLoaded => m_modBase != 0 && Symbols.Any();
 
@@ -59,9 +61,10 @@ public sealed class Win32SymbolReader : IDisposable
 
 	public Win32SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
 
-	[CBN]
-	public IEnumerable<Symbol> GetSymbols(string name)
+	public Symbol[] GetSymbols(string name, [CBN] Func<Symbol, bool> pred = null)
 	{
+		pred ??= AnyPredicate;
+
 		/*
 		 * https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/ns-dbghelp-symbol_info
 		 *
@@ -81,8 +84,14 @@ public sealed class Win32SymbolReader : IDisposable
 			throw new ObjectDisposedException(nameof(Win32SymbolReader));
 		}
 
-		var sym = Symbols.Where(s => s.Name.Contains(name));
+		var sym = Symbols.Where(s => s.Name.Contains(name) && pred(s)).ToArray();
 
+		Debug.WriteLine($"found {sym.Length} for {name}");
+
+		for (int i = 0; i < sym.Length; i++) {
+			Debug.WriteLine($"{sym[i]}");
+		}
+		
 		//todo: SymFromName...
 		/*var d = new DebugSymbol();
 		d.SizeOfStruct = (uint)Marshal.SizeOf<DebugSymbol>();
@@ -99,9 +108,11 @@ public sealed class Win32SymbolReader : IDisposable
 	}
 
 	[CBN]
-	public Symbol GetSymbol(string name)
+	public Symbol GetSymbol(string name, [CBN] Func<Symbol, bool> pred = null)
 	{
-		return GetSymbols(name)?.FirstOrDefault();
+		pred ??= AnyPredicate;
+
+		return GetSymbols(name).FirstOrDefault(pred);
 	}
 
 	public void LoadAll(string mask = MASK_ALL)
@@ -176,7 +187,7 @@ public sealed class Win32SymbolReader : IDisposable
 	}
 
 	public static async Task<string> GetSymbolFileAsync(string fname, [CBN] string o = null,
-	                                               SymbolSource src = SymbolSource.Symchk)
+	                                                    SymbolSource src = SymbolSource.Symchk)
 	{
 		switch (src) {
 
@@ -210,7 +221,7 @@ public sealed class Win32SymbolReader : IDisposable
 		var cmd = Cli.Wrap(ER.E_Symchk)
 			.WithArguments($"{fname} /su SRV**{ER.MicrosoftSymbolServer} /oscdb {o}");
 
-		var bcr     = await cmd.ExecuteBufferedAsync();
+		var bcr   = await cmd.ExecuteBufferedAsync();
 		var error = bcr.StandardError;
 
 		// var error = process.StandardError.ReadToEnd();

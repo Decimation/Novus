@@ -6,7 +6,7 @@ public unsafe class Symbol
 {
 	internal Symbol(SymbolInfo* pSymInfo)
 	{
-		Name = pSymInfo->ReadSymbolName();
+		Name = pSymInfo->ReadSymbolName().Trim('\0');
 		//Name         = new string(pSymInfo->Name);
 		SizeOfStruct = (int) pSymInfo->SizeOfStruct;
 		TypeIndex    = (int) pSymInfo->TypeIndex;

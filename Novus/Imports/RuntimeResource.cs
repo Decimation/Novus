@@ -244,7 +244,8 @@ public sealed class RuntimeResource : IDisposable
 
 				// Find address
 
-				var addr = FindImport(resValue, unmanagedType, field.FieldType, attribute.Ordinal);
+				var addr = FindImport(resValue, unmanagedType, unmanagedAttr.AbsoluteMatch, 
+				                      t: field.FieldType, resolver: attribute.Resolver);
 
 				//Require.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
@@ -297,17 +298,23 @@ public sealed class RuntimeResource : IDisposable
 		return fieldValue;
 	}
 
-	public Pointer GetSymbol(string name, Type t = null, int ordinal = ImportAttribute.ORDINAL_NA)
+	public Pointer GetSymbol(string name, Type t = null, Type resolver = null, bool absolute = false)
 	{
 
-		var symbols = Symbols.Value.GetSymbols(name).Where(s =>
-			                                                   s.Tag == SymbolTag.Function || s.Tag == SymbolTag.Data)
-			.ToArray();
+		var symbols1 = Symbols.Value.GetSymbols(name)
+			.Where(s => s.Tag is SymbolTag.Function or SymbolTag.Data);
+
+		if (absolute) {
+			symbols1 = symbols1.Where(s => s.Name == name);
+		}
+
+		var symbols = symbols1.ToArray();
 
 		Symbol symbol = null;
 
-		if (ordinal != ImportAttribute.ORDINAL_NA) {
-			symbol = symbols[ordinal];
+		if (resolver != null) {
+			var m = (IResourceResolver<Symbol>) Activator.CreateInstance(resolver);
+			symbol = symbols.FirstOrDefault(m.Resolve);
 		}
 		else {
 			symbol = symbols.FirstOrDefault();
@@ -349,25 +356,25 @@ public sealed class RuntimeResource : IDisposable
 		throw new InvalidOperationException();
 	}
 
-	public static Pointer<byte> FindImport(Process p, string m, string s, ImportType x)
+	public static Pointer FindImport(Process p, string m, string s, ImportType x, bool absolute = false)
 	{
 		using var resource = new RuntimeResource(p, m, s);
 
-		return resource.FindImport(s, x);
+		return resource.FindImport(s, x, absolute);
 	}
 
 	public static Pointer<byte> FindImport(string m, string s, ImportType x)
-		=> FindImport(Process.GetCurrentProcess(), m, s, x);
+		=> FindImport(Process.GetCurrentProcess(), m, s, x, false);
 
-	public Pointer FindImport(string s, ImportType x, [CanBeNull] Type t = null,
-	                          int ordinal = ImportAttribute.ORDINAL_NA)
+	public Pointer FindImport(string s, ImportType x, bool absolute = false, [CanBeNull] Type t = null,
+	                          Type resolver = null)
 	{
 		return x switch
 		{
 			ImportType.Signature => GetSignature(s),
 			ImportType.Export    => GetExport(s),
 			ImportType.Offset    => GetOffset(s),
-			ImportType.Symbol    => GetSymbol(s, t, ordinal),
+			ImportType.Symbol    => GetSymbol(s, t, resolver, absolute),
 			_                    => throw new ArgumentOutOfRangeException(nameof(x), x, null)
 		};
 	}
@@ -398,4 +405,9 @@ public sealed class RuntimeResource : IDisposable
 	{
 		return $"{Module.Value.ModuleName} ({Scanner.Value.Address})";
 	}
+}
+
+public interface IResourceResolver<in T>
+{
+	public bool Resolve(T s);
 }

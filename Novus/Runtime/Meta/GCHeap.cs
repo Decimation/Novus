@@ -9,6 +9,7 @@ using Novus.Memory;
 using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
+using Novus.Win32.Wrappers;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable InconsistentNaming
@@ -75,6 +76,7 @@ public static unsafe class GCHeap
 	/// <summary>
 	/// <see cref="AllocObject{T}"/>
 	/// </summary>
-	[field: ImportClr("Sym_AllocObject",ImportType.Symbol, 1)]
+	[field: ImportClr("Sym_AllocObject",ImportType.Symbol, AbsoluteMatch = true)]
 	private static delegate* unmanaged<MethodTable*, BOOL, void*> Func_AllocObject { get; }
+	
 }

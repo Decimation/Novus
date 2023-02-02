@@ -131,6 +131,7 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+		Test5();
 	}
 
 	private static void Test5()

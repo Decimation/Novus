@@ -86,12 +86,6 @@ public sealed class Win32SymbolReader : IDisposable
 
 		var sym = Symbols.Where(s => s.Name.Contains(name) && pred(s)).ToArray();
 
-		Debug.WriteLine($"found {sym.Length} for {name}");
-
-		for (int i = 0; i < sym.Length; i++) {
-			Debug.WriteLine($"{sym[i]}");
-		}
-		
 		//todo: SymFromName...
 		/*var d = new DebugSymbol();
 		d.SizeOfStruct = (uint)Marshal.SizeOf<DebugSymbol>();

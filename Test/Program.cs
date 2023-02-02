@@ -131,7 +131,16 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
-		Test5();
+		var str = "hi"u8;
+
+		fixed (byte* p = str) {
+			var br = new BinaryReader(new UnmanagedMemoryStream(p, str.Length));
+			var c  = br.BaseStream.ReadUntil((byte s) => s == '\0', f => (byte) f.ReadByte()).ToArray();
+			var c2 = Encoding.ASCII.GetString(c);
+
+			Console.WriteLine(str.ToString());
+			Console.WriteLine(c2);
+		}
 	}
 
 	private static void Test5()

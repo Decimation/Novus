@@ -19,6 +19,7 @@ public static class StreamExtensions
 
 	public static Pointer<T> ToPointer<T>(this Span<T> s) => Mem.AddressOf(ref s.GetPinnableReference());
 
+	[MURV]
 	public static MemoryStream Copy(this Stream inputStream, int bufferSize = 256)
 	{
 		var ret = new MemoryStream();
@@ -90,6 +91,26 @@ public static class StreamExtensions
 		var rg = br.ReadBytes(s);
 
 		return Mem.ReadFromBytes<T>(rg);
+	}
+
+	public static LinkedList<T> ReadUntil<T>(this Stream s, Predicate<T> pred, Func<Stream, T> read,
+	                                         CancellationToken? token = null, int max = Native.INVALID)
+	{
+		token ??= CancellationToken.None;
+
+		var ll = new LinkedList<T>();
+		T   t;
+
+		while (!pred(t = read(s))) {
+			ll.AddLast(t);
+
+			if (token.Value.IsCancellationRequested || (max != Native.INVALID && ll.Count >= max)) {
+				goto ret;
+			}
+		}
+
+		ret:
+		return ll;
 	}
 
 	public static string ReadCString(this BinaryReader br, int count)

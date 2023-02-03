@@ -18,7 +18,7 @@ public abstract class ImportAttribute : Attribute
 	{
 		Name       = name;
 		ManageType = manageType;
-		Resolver    = resolver;
+		Resolver   = resolver;
 	}
 
 	protected ImportAttribute(ImportManageType manageType) : this(null, manageType) { }

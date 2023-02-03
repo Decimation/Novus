@@ -13,6 +13,7 @@ namespace Novus.OS;
 /// <summary>
 ///     Utilities for working with the command prompt.
 /// </summary>
+[Obsolete($"Use {nameof(CliWrap)}")]
 public static class Command
 {
 	/// <summary>

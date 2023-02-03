@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Novus;
@@ -21,6 +22,7 @@ using Novus.OS;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM.IL;
+using Novus.Streams;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
@@ -521,7 +523,7 @@ public class Tests_Native
 	[TestCase(@"C:\Symbols\charmap.exe")]
 	public void SymbolsTest2(string a)
 	{
-		var d = Win32SymbolReader.GetSymbolFileAsync(a);
+		var d = Win32SymbolReader.SymchkSymbolFileAsync(a);
 		TestContext.WriteLine(d);
 
 	}
@@ -1386,6 +1388,23 @@ public class Tests_Mem
 		Assert.AreEqual(d.s, s);
 
 		AllocManager.Free(p2);
+	}
+}
+
+[TestFixture]
+public class Tests_Streams
+{
+	[Test]
+	public unsafe void Test1()
+	{
+		var str = "hi\0"u8;
+
+		fixed (byte* p = str) {
+			var br = new BinaryReader(new UnmanagedMemoryStream(p, str.Length));
+			var c  = br.BaseStream.ReadUntil((byte s) => s == '\0', f => (byte) f.ReadByte()).ToArray();
+			var c2 = Encoding.ASCII.GetString(c);
+			Assert.AreEqual(Encoding.ASCII.GetString(str).Trim('\0'),c2);
+		}
 	}
 }
 

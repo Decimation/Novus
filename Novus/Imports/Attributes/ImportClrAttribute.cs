@@ -15,3 +15,4 @@ public sealed class ImportClrAttribute : ImportUnmanagedAttribute
     public ImportClrAttribute(string name = null, ImportType unmanagedType = ImportType.Signature, Type resolver = null)
         : base(Global.CLR_MODULE, name, unmanagedType, resolver: resolver) { }
 }
+

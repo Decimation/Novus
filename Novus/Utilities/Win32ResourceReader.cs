@@ -12,39 +12,38 @@ namespace Novus.Utilities;
 
 public sealed class Win32ResourceReader : IDisposable
 {
-    private nint m_hModule;
+	private nint m_hModule;
 
-    public Win32ResourceReader(string filename)
-    {
-        m_hModule = Native.LoadLibraryEx(filename, LoadLibraryFlags.AsDataFile | LoadLibraryFlags.AsImageResource);
-    }
+	public Win32ResourceReader(string filename)
+	{
+		m_hModule = Native.LoadLibraryEx(filename, LoadLibraryFlags.AsDataFile | LoadLibraryFlags.AsImageResource);
+	}
 
-    public string GetString(uint id)
-    {
-        var buffer = new StringBuilder(Native.SIZE_1);
-        Native.LoadString(m_hModule, id, buffer, buffer.Capacity);
+	public string GetString(uint id)
+	{
+		var buffer = new StringBuilder(Native.SIZE_1);
+		Native.LoadString(m_hModule, id, buffer, buffer.Capacity);
 
-        return buffer.ToString();
-    }
+		return buffer.ToString();
+	}
 
-    ~Win32ResourceReader()
-    {
-        Dispose(false);
-    }
+	~Win32ResourceReader()
+	{
+		Dispose(false);
+	}
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+	public void Dispose()
+	{
+		Dispose(true);
+		GC.SuppressFinalize(this);
+	}
 
-    public void Dispose(bool disposing)
-    {
-        if (m_hModule != IntPtr.Zero)
-        {
-            Native.FreeLibrary(m_hModule);
-        }
+	public void Dispose(bool disposing)
+	{
+		if (m_hModule != IntPtr.Zero) {
+			Native.FreeLibrary(m_hModule);
+		}
 
-        m_hModule = IntPtr.Zero;
-    }
+		m_hModule = IntPtr.Zero;
+	}
 }

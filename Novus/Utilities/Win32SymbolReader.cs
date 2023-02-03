@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection.PortableExecutable;
+using System.Runtime.Caching;
 using System.Runtime.InteropServices;
 using System.Web;
 using CliWrap;
@@ -34,7 +36,8 @@ public sealed class Win32SymbolReader : IDisposable
 {
 	private bool m_disposed;
 
-	private                 ulong              m_modBase;
+	private ulong m_modBase;
+
 	private static readonly Func<Symbol, bool> AnyPredicate = static _ => true;
 
 	public bool AllLoaded => m_modBase != 0 && Symbols.Any();
@@ -43,7 +46,7 @@ public sealed class Win32SymbolReader : IDisposable
 
 	public nint Process { get; }
 
-	public List<Symbol> Symbols { get; }
+	public ConcurrentBag<Symbol> Symbols { get; }
 
 	private const string MASK_ALL = "*!*";
 
@@ -55,7 +58,7 @@ public sealed class Win32SymbolReader : IDisposable
 		m_modBase  = LoadModule();
 		m_disposed = false;
 
-		Symbols = new List<Symbol>();
+		Symbols = new();
 		LoadAll();
 	}
 
@@ -125,16 +128,8 @@ public sealed class Win32SymbolReader : IDisposable
 			Symbols.Add(symbol);
 			return b;
 		}, IntPtr.Zero);
-		Trace.WriteLine($"Loaded {Symbols.Count} symbols", nameof(LoadAll));
-	}
 
-	private void Cleanup()
-	{
-		Native.SymCleanup(Process);
-		Native.SymUnloadModule64(Process, m_modBase);
-		Symbols.Clear();
-		m_modBase  = 0;
-		m_disposed = true;
+		Trace.WriteLine($"Loaded {Symbols.Count} symbols", nameof(LoadAll));
 	}
 
 	private static unsafe bool EnumSymCallback(nint info, uint symbolSize, nint pUserContext, out Symbol item)
@@ -169,29 +164,22 @@ public sealed class Win32SymbolReader : IDisposable
 		return modBase;
 	}
 
+	private void Cleanup()
+	{
+		Native.SymCleanup(Process);
+		Native.SymUnloadModule64(Process, m_modBase);
+		Symbols.Clear();
+		m_modBase  = 0;
+		m_disposed = true;
+	}
+
 	public void Dispose()
 	{
 		Cleanup();
 	}
 
-	public enum SymbolSource
+	public static async Task<string> SymchkSymbolFileAsync(string fname, [CBN] string o = null)
 	{
-		Symchk,
-		Download
-	}
-
-	public static async Task<string> GetSymbolFileAsync(string fname, [CBN] string o = null,
-	                                                    SymbolSource src = SymbolSource.Symchk)
-	{
-		switch (src) {
-
-			case SymbolSource.Symchk:
-				break;
-			case SymbolSource.Download:
-				return await DownloadAsync();
-			default:
-				throw new ArgumentOutOfRangeException(nameof(src), src, null);
-		}
 
 		o ??= FS.GetPath(KnownFolder.Downloads);
 
@@ -215,10 +203,11 @@ public sealed class Win32SymbolReader : IDisposable
 		var cmd = Cli.Wrap(ER.E_Symchk)
 			.WithArguments($"{fname} /su SRV**{ER.MicrosoftSymbolServer} /oscdb {o}");
 
-		var bcr   = await cmd.ExecuteBufferedAsync();
-		var error = bcr.StandardError;
+		var bcr = await cmd.ExecuteBufferedAsync();
 
+		var error = bcr.StandardError;
 		// var error = process.StandardError.ReadToEnd();
+
 		// var ee    = process.StandardOutput.ReadToEnd();
 
 		if (!string.IsNullOrWhiteSpace(error)) {
@@ -228,11 +217,15 @@ public sealed class Win32SymbolReader : IDisposable
 		}
 
 		// process.Dispose();
+
 		// var f = ee.Split(' ')[1];
+
 		// var combine = Path.Combine(Path.GetFileName(s), o);
+
 		// return combine;
 
 		// var outFile = ee.Split("PDB: ")[1].Split("DBG: ")[0].Trim();
+
 		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(fname) + ".pdb");
 
 		if (!File.Exists(outFile)) {
@@ -240,61 +233,56 @@ public sealed class Win32SymbolReader : IDisposable
 		}
 
 		return outFile;
+	}
 
-		async Task<string> DownloadAsync()
-		{
-			// fname=FileSystem.SearchInPath(fname);
-			fname = Path.GetFullPath(fname);
+	public static async Task<string> DownloadSymbolFileAsync(string fname, string o)
+	{
+		// fname=FileSystem.SearchInPath(fname);
+		fname = Path.GetFullPath(fname);
 
-			using var peReader = new PEReader(File.OpenRead(fname));
+		using var peReader = new PEReader(File.OpenRead(fname));
 
-			var codeViewEntry = peReader.ReadDebugDirectory()
-				.First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+		var codeViewEntry = peReader.ReadDebugDirectory()
+			.First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
 
-			var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
+		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 
-			// var cacheDirectoryPath = Global.ProgramData;
+		// var cacheDirectoryPath = Global.ProgramData;
 
-			o ??= FS.GetPath(KnownFolder.Downloads);
-			using var wc = new WebClient();
+		o ??= FS.GetPath(KnownFolder.Downloads);
+		using var wc = new WebClient();
 
-			// Check if the correct version of the PDB is already cached
-			var path       = Path.ChangeExtension(fname, "pdb");
-			var fileName   = Path.GetFileName(path);
-			var pdbDirPath = Path.Combine(o, fileName);
+		// Check if the correct version of the PDB is already cached
+		var path       = Path.ChangeExtension(fname, "pdb");
+		var fileName   = Path.GetFileName(path);
+		var pdbDirPath = Path.Combine(o, fileName);
 
-			if (!Directory.Exists(pdbDirPath)) {
-				Directory.CreateDirectory(pdbDirPath);
-			}
-
-			var pdbPlusGuidDirPath = Path.Combine(pdbDirPath, pdbData.Guid.ToString());
-
-			if (!Directory.Exists(pdbPlusGuidDirPath)) {
-				Directory.CreateDirectory(pdbPlusGuidDirPath);
-			}
-
-			//var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, path);
-			var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
-
-			if (File.Exists(pdbFilePath)) {
-				Debug.WriteLine($"Using {pdbFilePath}", nameof(GetSymbolFileAsync));
-				goto ret;
-			}
-
-			var uriString = ER.MicrosoftSymbolServer +
-			                $"{fileName}/" +
-			                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
-
-			Debug.WriteLine($"Downloading {uriString}", nameof(GetSymbolFileAsync));
-
-			await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
-			// wc.DownloadFile(new Uri(uriString), pdbFilePath);
-
-			Debug.WriteLine($"Downloaded to {pdbFilePath} ({pdbPlusGuidDirPath})", nameof(GetSymbolFileAsync));
-
-			ret:
-
-			return pdbFilePath;
+		if (!Directory.Exists(pdbDirPath)) {
+			Directory.CreateDirectory(pdbDirPath);
 		}
+
+		var pdbPlusGuidDirPath = Path.Combine(pdbDirPath, pdbData.Guid.ToString());
+
+		if (!Directory.Exists(pdbPlusGuidDirPath)) {
+			Directory.CreateDirectory(pdbPlusGuidDirPath);
+		}
+
+		//var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, path);
+		var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
+
+		if (File.Exists(pdbFilePath)) {
+			goto ret;
+		}
+
+		var uriString = ER.MicrosoftSymbolServer +
+		                $"{fileName}/" +
+		                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
+
+		await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
+		// wc.DownloadFile(new Uri(uriString), pdbFilePath);
+
+		ret:
+
+		return pdbFilePath;
 	}
 }

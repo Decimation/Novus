@@ -57,7 +57,7 @@ public static unsafe class GCHeap
 	{
 		var ptr = AllocObject(typeof(T), args);
 		var obj = U.As<T>(ptr);
-		
+
 		return obj;
 	}
 
@@ -76,7 +76,6 @@ public static unsafe class GCHeap
 	/// <summary>
 	/// <see cref="AllocObject{T}"/>
 	/// </summary>
-	[field: ImportClr("Sym_AllocObject",ImportType.Symbol, AbsoluteMatch = true)]
+	[field: ImportClr("Sym_AllocObject", ImportType.Symbol, AbsoluteMatch = true)]
 	private static delegate* unmanaged<MethodTable*, BOOL, void*> Func_AllocObject { get; }
-	
 }

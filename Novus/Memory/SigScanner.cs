@@ -39,7 +39,7 @@ public sealed class SigScanner
 	/// Memory of the module
 	/// </summary>
 	public byte[] Buffer { get; }
-
+		
 	/// <summary>
 	/// Module pointer
 	/// </summary>

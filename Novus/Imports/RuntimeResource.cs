@@ -39,7 +39,7 @@ namespace Novus.Imports;
 [DAM(DAMT.All)]
 public sealed class RuntimeResource : IDisposable
 {
-	public Pointer<byte> Address => Module.Value.BaseAddress;
+	public Pointer Address => Module.Value.BaseAddress;
 
 	public Lazy<ProcessModule> Module { get; }
 
@@ -51,7 +51,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
-	public Pointer<byte> ModuleAddress => Module.IsValueCreated ? Module.Value.BaseAddress : Mem.Nullptr;
+	public Pointer ModuleAddress => Module.IsValueCreated ? Module.Value.BaseAddress : Mem.Nullptr;
 
 	/// <summary>
 	/// Creates a <see cref="RuntimeResource"/> from an already-loaded module.
@@ -247,12 +247,7 @@ public sealed class RuntimeResource : IDisposable
 
 				// Find address
 
-				IRuntimeResourceImporter importer = unmanagedAttr.Resolver == null
-					                                    ? new RuntimeResourceImporter()
-					                                    : (IRuntimeResourceImporter) Activator.CreateInstance(
-						                                    unmanagedAttr.Resolver)!;
-
-				var addr = importer.FindImport(this, attribute, resValue);
+				var addr = FindImport(attribute, resValue);
 
 				//Require.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
@@ -274,7 +269,7 @@ public sealed class RuntimeResource : IDisposable
 
 				}
 
-				if (field.FieldType == typeof(Pointer<byte>)) {
+				if (field.FieldType == typeof(Pointer)) {
 					fieldValue = addr;
 				}
 				else {
@@ -339,6 +334,45 @@ public sealed class RuntimeResource : IDisposable
 
 	#region
 
+	public Pointer FindImport(ImportAttribute a, string s = null)
+	{
+		var n        = a.Name;
+		var x        = default(ImportType);
+		var t        = a.Resolver;
+		var absolute = a.AbsoluteMatch;
+
+		switch (a) {
+			case ImportUnmanagedAttribute ua:
+				s ??= ua.Value;
+				x =   ua.Type;
+				break;
+		}
+
+		return x switch
+		{
+			// currying
+
+			ImportType.Signature => this.GetSignature(s),
+			ImportType.Export    => this.GetExport(s),
+			ImportType.Offset    => this.GetOffset(s),
+			ImportType.Symbol    => this.GetSymbol(s, t, absolute),
+			_                    => Mem.Nullptr
+		};
+	}
+
+	public static Pointer FindImport(Process p, string m, string s, ImportType x, bool absolute = false)
+	{
+		using var resource = new RuntimeResource(p, m, s);
+
+		return resource.FindImport(new ImportUnmanagedAttribute(m, x, s)
+		{
+			AbsoluteMatch = absolute
+		}, s);
+	}
+
+	public static Pointer<byte> FindImport(string m, string s, ImportType x)
+		=> FindImport(Process.GetCurrentProcess(), m, s, x);
+
 	#endregion
 
 	#region
@@ -360,8 +394,9 @@ public sealed class RuntimeResource : IDisposable
 
 		Symbol symbol = null;
 
-		Func<Symbol, bool> predicate = absolute ? s => s.Name == name
-											: s => s.Name.Contains(name);
+		Func<Symbol, bool> predicate = absolute
+			                               ? s => s.Name == name
+			                               : s => s.Name.Contains(name);
 
 		symbol = symbols1.FirstOrDefault(predicate);
 
@@ -373,7 +408,7 @@ public sealed class RuntimeResource : IDisposable
 			symbol = symbols.FirstOrDefault();
 		}*/
 
-		return (Pointer<byte>) Module.Value.BaseAddress +
+		return (Pointer) Module.Value.BaseAddress +
 		       (nint) (symbol?.Offset ?? throw new InvalidOperationException());
 	}
 
@@ -396,53 +431,4 @@ public sealed class RuntimeResource : IDisposable
 	{
 		return $"{Module.Value.ModuleName} ({Scanner.Value.Address})";
 	}
-}
-
-public class RuntimeResourceImporter : IRuntimeResourceImporter
-{
-	public Pointer FindImport(RuntimeResource r, ImportAttribute a, string s = null)
-	{
-		var n        = a.Name;
-		var x        = default(ImportType);
-		var t        = a.Resolver;
-		var absolute = a.AbsoluteMatch;
-
-		switch (a) {
-			case ImportUnmanagedAttribute ua:
-				s ??= ua.Value;
-				x =   ua.Type;
-				break;
-		}
-
-		return x switch
-		{
-			// currying
-
-			ImportType.Signature => r.GetSignature(s),
-			ImportType.Export    => r.GetExport(s),
-			ImportType.Offset    => r.GetOffset(s),
-			ImportType.Symbol    => r.GetSymbol(s, t, absolute),
-			_                    => Mem.Nullptr
-		};
-	}
-
-	public static Pointer FindImport(Process p, string m, string s, ImportType x, bool absolute = false)
-	{
-		using var resource = new RuntimeResource(p, m, s);
-
-		var i = new RuntimeResourceImporter();
-
-		return i.FindImport(resource, new ImportUnmanagedAttribute(m, x, s)
-		{
-			AbsoluteMatch = absolute
-		}, s);
-	}
-
-	public static Pointer<byte> FindImport(string m, string s, ImportType x)
-		=> FindImport(Process.GetCurrentProcess(), m, s, x);
-}
-
-public interface IRuntimeResourceImporter
-{
-	Pointer FindImport(RuntimeResource r, ImportAttribute a, [CanBeNull] string s = null);
 }

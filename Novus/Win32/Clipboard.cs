@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Novus.Win32;
 
@@ -16,13 +18,14 @@ public static class Clipboard
 	public static bool Open()
 	{
 		return IsOpen = Native.OpenClipboard(IntPtr.Zero);
+		
 	}
 
 	public static bool Close()
 	{
 		return IsOpen = !Native.CloseClipboard();
 	}
-
+	
 	public static bool IsFormatAvailable(uint n) => Native.IsClipboardFormatAvailable(n);
 
 	public static bool SetData(object s, uint fmt)

@@ -48,7 +48,7 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public static extern nint FindWindowEx(nint parentHandle, nint childAfter, string className,
-	                                         string windowTitle);
+	                                       string windowTitle);
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
 	public static extern nint FindWindow(nint zeroOnly, string lpWindowName);
@@ -78,19 +78,19 @@ public static unsafe partial class Native
 
 	[LibraryImport(USER32_DLL, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial nint SendMessage(nint hWnd, int msg, nint wParam,
-	                                        [MA(UT.LPWStr)] string lParam);
+	                                       [MA(UT.LPWStr)] string lParam);
 
 	[LibraryImport(USER32_DLL, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial nint SendMessage(nint hWnd, int msg, int wParam,
-	                                        [MA(UT.LPWStr)] string lParam);
+	                                       [MA(UT.LPWStr)] string lParam);
 
 	[LibraryImport(USER32_DLL)]
 	public static partial nint SendMessage(nint hWnd, int msg, int wParam, nint lParam);
 
-	[LibraryImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	public static partial bool GetMessage(out MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
-	                                     [Optional] uint wMsgFilterMax);
+	[DllImport(USER32_DLL, SetLastError = true)]
+	// [return: MarshalAs(UnmanagedType.Bool)]
+	public static extern int GetMessage(out MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
+	                                      [Optional] uint wMsgFilterMax);
 
 	[LibraryImport(USER32_DLL, SetLastError = false)]
 	public static partial nint GetMessageExtraInfo();
@@ -104,14 +104,14 @@ public static unsafe partial class Native
 	[LibraryImport(USER32_DLL, SetLastError = false)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static partial bool TranslateMessage(in MSG lpMsg);
-	
+
 	[LibraryImport(USER32_DLL, SetLastError = false)]
 	public static partial void PostQuitMessage([Optional] int nExitCode);
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static partial bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
-	                                            [Optional] nint lParam);
+	                                             [Optional] nint lParam);
 
 	#region Key
 
@@ -156,7 +156,7 @@ public static unsafe partial class Native
 	{
 		public string Wndclass;
 		public string Title;
-		public nint hWnd;
+		public nint   hWnd;
 	}
 
 	private delegate bool EnumWindowsProc(nint hWnd, ref SearchData data);
@@ -210,13 +210,30 @@ public static unsafe partial class Native
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
 	public static partial uint EnumClipboardFormats(uint uFormat);
-	
+
 	[LibraryImport(USER32_DLL, SetLastError = true)]
 	public static partial int CountClipboardFormats();
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
 	public static partial int GetClipboardSequenceNumber();
+
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static partial bool AddClipboardFormatListener(IntPtr hwnd);
+
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static partial bool RemoveClipboardFormatListener(IntPtr hwnd);
+
+	[LibraryImport(USER32_DLL, SetLastError = true)]
+	public static partial IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
+
 	#endregion
+
+	// See http://msdn.microsoft.com/en-us/library/ms633541%28v=vs.85%29.aspx
+	// See http://msdn.microsoft.com/en-us/library/ms649033%28VS.85%29.aspx
+	[LibraryImport(USER32_DLL)]
+	public static partial IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
@@ -227,7 +244,7 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	public static extern nint SetTimer([Optional] nint hWnd, [Optional] nint nIDEvent, [Optional] uint uElapse,
-	                                     [Optional] Timerproc lpTimerFunc);
+	                                   [Optional] Timerproc lpTimerFunc);
 
 	public const int MF_BYCOMMAND = 0x00000000;
 
@@ -309,7 +326,9 @@ public enum ClipboardFormat : uint
 	FileName  = 0xC006,
 	FileNameW = 0xC007,
 
-	PNG=49273,
+	// PNG=49273,
+
+	PNG = 49299,
 }
 
 public enum HandleWindowPosition

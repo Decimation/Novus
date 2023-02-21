@@ -82,7 +82,7 @@ public class MessageLoop
 
 		Running = true;
 
-		while (Native.GetMessage(out var msg))
+		while (Native.GetMessage(out var msg)!=0)
 		{
 			System.Diagnostics.Debug.WriteLine($"Message loop: message={msg.message}");
 

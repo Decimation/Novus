@@ -11,7 +11,12 @@ public sealed class UrlmonResolver : IFileTypeResolver
 
 	public void Dispose() { }
 
-	public static string ResolveFromData(byte[] dataBytes, string mimeProposed = null)
+	public const MimeFromDataFlags FLAGS_DEFAULT = MimeFromDataFlags.ENABLE_MIME_SNIFFING |
+	                                               MimeFromDataFlags.RETURN_UPDATED_IMG_MIMES |
+	                                               MimeFromDataFlags.IGNORE_MIME_TEXT_PLAIN;
+
+	public static string ResolveFromData(byte[] dataBytes, string mimeProposed = null,
+	                                     MimeFromDataFlags flags = FLAGS_DEFAULT)
 	{
 		//https://stackoverflow.com/questions/2826808/how-to-identify-the-extension-type-of-the-file-using-c/2826884#2826884
 		//https://stackoverflow.com/questions/18358548/urlmon-dll-findmimefromdata-works-perfectly-on-64bit-desktop-console-but-gener
@@ -26,10 +31,6 @@ public sealed class UrlmonResolver : IFileTypeResolver
 			//suggestPtr = Marshal.StringToCoTaskMemUni(mimeProposed); // for your experiments ;-)
 			mimeRet = mimeProposed;
 		}
-
-		const MimeFromDataFlags flags = MimeFromDataFlags.ENABLE_MIME_SNIFFING |
-		                                MimeFromDataFlags.RETURN_UPDATED_IMG_MIMES |
-		                                MimeFromDataFlags.IGNORE_MIME_TEXT_PLAIN;
 
 		int ret = FindMimeFromData(IntPtr.Zero, null, dataBytes, dataBytes.Length,
 		                           mimeProposed, flags, out nint outPtr, 0);
@@ -61,7 +62,7 @@ public sealed class UrlmonResolver : IFileTypeResolver
 
 	/// <see cref="FindMimeFromData"/>
 	[Flags]
-	private enum MimeFromDataFlags
+	public enum MimeFromDataFlags
 	{
 		DEFAULT                  = 0x00000000,
 		URL_AS_FILENAME          = 0x00000001,

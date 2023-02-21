@@ -26,4 +26,5 @@ public interface IFileTypeResolver : IDisposable
 		|  Magic | 17,845.1 ns | 142.41 ns | 111.18 ns |
 		|   Fast |    460.9 ns |   9.21 ns |  10.97 ns |
 	 */
+
 }

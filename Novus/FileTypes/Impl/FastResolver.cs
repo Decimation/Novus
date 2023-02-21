@@ -2,32 +2,32 @@
 
 public sealed class FastResolver : IFileTypeResolver
 {
-    #region Implementation of IDisposable
+	#region Implementation of IDisposable
 
-    public void Dispose() { }
+	public void Dispose() { }
 
-    #endregion
+	#endregion
 
-    private FastResolver() { }
+	private FastResolver() { }
 
-    public static readonly IFileTypeResolver Instance = new FastResolver();
+	public static readonly IFileTypeResolver Instance = new FastResolver();
 
-    #region Implementation of IFileTypeResolver
+	#region Implementation of IFileTypeResolver
 
-    public IEnumerable<FileType> Resolve(byte[] rg)
-    {
-        return FileType.Resolve(rg);
-    }
+	public IEnumerable<FileType> Resolve(byte[] rg)
+	{
+		return FileType.Resolve(rg);
+	}
 
-    public async Task<IEnumerable<FileType>> ResolveAsync(Stream m)
-    {
-        return await FileType.ResolveAsync(m);
-    }
+	public Task<IEnumerable<FileType>> ResolveAsync(Stream m)
+	{
+		return FileType.ResolveAsync(m);
+	}
 
-    public IEnumerable<FileType> Resolve(Stream m)
-    {
-        return FileType.Resolve(m);
-    }
+	public IEnumerable<FileType> Resolve(Stream m)
+	{
+		return FileType.Resolve(m);
+	}
 
-    #endregion
+	#endregion
 }

@@ -139,13 +139,13 @@ public readonly struct FileType : IEquatable<FileType>
 		return b is >= 0x00 and <= 0x08 or 0x0B or >= 0x0E and <= 0x1A or >= 0x1C and <= 0x1F;
 	}
 
-	public static bool CheckPattern(byte[] input, FileType s, ISet<byte> ignored = null)
+	public static bool CheckPattern(Span<byte> input, FileType s, ISet<byte> ignored = null)
 		=> CheckPattern(input, s.Pattern, s.Mask, ignored);
 
 	/// <remarks>
 	///     <a href="https://mimesniff.spec.whatwg.org/#matching-a-mime-type-pattern">6</a>
 	/// </remarks>
-	public static bool CheckPattern(byte[] input, byte[] pattern, byte[] mask, ISet<byte> ignored = null)
+	public static bool CheckPattern(Span<byte> input, Span<byte> pattern, Span<byte> mask, ISet<byte> ignored = null)
 	{
 		Require.Assert(pattern.Length == mask.Length);
 
@@ -184,17 +184,38 @@ public readonly struct FileType : IEquatable<FileType>
 	public static IEnumerable<FileType> Resolve(Stream s)
 	{
 		return Resolve(s.ReadBlock());
+
+		/* 2-21-23
+
+		| Method |      Mean |     Error |    StdDev |
+		|------- |----------:|----------:|----------:|
+		| Urlmon |  2.118 us | 0.0135 us | 0.0119 us |
+		|  Magic | 17.918 us | 0.2329 us | 0.2179 us |
+		|   Fast | 18.167 us | 0.0823 us | 0.0729 us |
+		 */
+		/*return All.Where(t =>
+			{
+
+				unsafe {
+					Span<byte> sp = stackalloc byte[256];
+					int        i  = s.Read(sp);
+					return CheckPattern(sp, t);
+				}
+			})
+			.DistinctBy(x => x.MediaType)*/
+		;
 	}
 
 	public static async Task<IEnumerable<FileType>> ResolveAsync(Stream s)
 	{
 		return Resolve(await s.ReadBlockAsync());
+
 	}
 
 	public static IEnumerable<FileType> Resolve(byte[] h)
 	{
 		return All.Where(t => CheckPattern(h, t))
-		          .DistinctBy(x => x.MediaType);
+			.DistinctBy(x => x.MediaType);
 	}
 
 	public static bool IsType(string p, string mt)
@@ -243,38 +264,4 @@ public readonly struct FileType : IEquatable<FileType>
 	private const char MIME_TYPE_DELIM = '/';
 
 	#endregion
-
-	public static string ResolveMimeType(string file, string mimeProposed = null)
-		=> ResolveMimeType(File.ReadAllBytes(file), mimeProposed);
-
-	public static string ResolveMimeType(byte[] dataBytes, string mimeProposed = null)
-	{
-		//https://stackoverflow.com/questions/2826808/how-to-identify-the-extension-type-of-the-file-using-c/2826884#2826884
-		//https://stackoverflow.com/questions/18358548/urlmon-dll-findmimefromdata-works-perfectly-on-64bit-desktop-console-but-gener
-		//https://stackoverflow.com/questions/11547654/determine-the-file-type-using-c-sharp
-		//https://github.com/GetoXs/MimeDetect/blob/master/src/Winista.MimeDetect/URLMONMimeDetect/urlmonMimeDetect.cs
-
-		Require.ArgumentNotNull(dataBytes, nameof(dataBytes));
-
-		string mimeRet = String.Empty;
-
-		if (!String.IsNullOrEmpty(mimeProposed)) {
-			//suggestPtr = Marshal.StringToCoTaskMemUni(mimeProposed); // for your experiments ;-)
-			mimeRet = mimeProposed;
-		}
-
-		int ret = Native.FindMimeFromData(IntPtr.Zero, null, dataBytes, dataBytes.Length,
-		                                  mimeProposed, 0, out var outPtr, 0);
-
-		if (ret == 0 && outPtr != IntPtr.Zero) {
-
-			string str = Marshal.PtrToStringUni(outPtr)!;
-
-			Marshal.FreeHGlobal(outPtr);
-
-			return str;
-		}
-
-		return mimeRet;
-	}
 }

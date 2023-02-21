@@ -60,11 +60,11 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 				// value = value.CleanString();
 
 				var res = await value.AllowAnyHttpStatus()
-				                     .WithHeaders(new
-				                     {
-					                     User_Agent = ER.UserAgent,
-				                     })
-				                     .GetAsync();
+					          .WithHeaders(new
+					          {
+						          User_Agent = ER.UserAgent,
+					          })
+					          .GetAsync();
 
 				if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
 					throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
@@ -113,19 +113,19 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 	}
 
 	public static T HandleType<T>(Object o, Func<object, Stream, T> fnStream, Func<object, Url, T> fnUri,
-	                              Func<object, string, T> fnFile, [CanBeNull] Func<object,T> unknown)
+	                              Func<object, string, T> fnFile, [CanBeNull] Func<object, T> unknown)
 	{
 		if (unknown == null) {
 			unknown = (o1) => { return default; };
-
 		}
+
 		switch (o) {
 			case Stream s:
 				return fnStream(o, s);
-				
+
 			case string value when Url.IsValid(value):
 				return fnUri(o, value);
-				
+
 			case string s when File.Exists(s):
 				return fnFile(o, s);
 			default:

@@ -11,6 +11,8 @@ using System.Windows;
 namespace Novus.Win32;
 
 //TODO: WIP
+//https://github.com/aayush-pokharel/ClipboardMonitor
+
 public static class Clipboard
 {
 	public static bool IsOpen { get; private set; }

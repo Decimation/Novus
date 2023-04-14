@@ -155,7 +155,7 @@
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>7.0.2</value>
+    <value>7.0.5</value>
   </data>
   <data name="Sig_GetEEClass" xml:space="preserve">
     <value>48 8B 41 28 A8 01 74 08 48 83 E0 FE 48 8B 40 28 C3</value>

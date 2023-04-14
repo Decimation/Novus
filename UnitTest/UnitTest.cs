@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Flurl.Http;
 using Novus;
 using Novus.FileTypes;
 using Novus.FileTypes.Impl;
@@ -178,8 +179,16 @@ public class Tests_MediaTypes
 	{
 		// var binaryUris = MediaSniffer.Scan(u, new HttpMediaResourceFilter());
 		// Assert.True(binaryUris.Select(x => x.Value.ToString()).ToList().Contains(s));
-		var h  = new HttpClient();
-		var t  = await h.GetStreamAsync(s);
+		/*var h = new HttpClient();
+		var r = await h.GetAsync(s);
+		var t = await h.GetStreamAsync(s);*/
+		var r = await s.AllowAnyHttpStatus().GetAsync();
+
+		if (!r.ResponseMessage.IsSuccessStatusCode) {
+			Assert.Inconclusive();
+		}
+		// TestContext.WriteLine($"{r.ResponseMessage.IsSuccessStatusCode}");
+		var t  = await r.GetStreamAsync();
 		var ft = await IFileTypeResolver.Default.ResolveAsync(t);
 		Assert.True(ft.Any(f => f.IsType(FileType.MT_IMAGE)));
 	}

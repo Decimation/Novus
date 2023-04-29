@@ -131,6 +131,7 @@ public static unsafe class Program
 {
 	private static void Main(string[] args)
 	{
+		Global.Setup();
 	}
 
 	private static void Test5()

@@ -4,7 +4,6 @@ using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Text;
-
 namespace Novus.FileTypes;
 
 // todo: wip
@@ -56,22 +55,11 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			case Stream s:
 				buf = new UniSource(o, s, UniSourceType.Stream);
 				break;
+			case Url u when Url.IsValid(u):
+				buf = await HandleUri(u);
+				break;
 			case string value when Url.IsValid(value):
-				// value = value.CleanString();
-
-				var res = await value.AllowAnyHttpStatus()
-					          .WithHeaders(new
-					          {
-						          User_Agent = ER.UserAgent,
-					          })
-					          .GetAsync();
-
-				if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
-					throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
-				}
-
-				buf = new UniSource(o, await res.GetStreamAsync(), UniSourceType.Uri)
-					{ };
+				buf = await HandleUri(value);
 				break;
 			case string s when File.Exists(s):
 				// s = s.CleanString();
@@ -104,6 +92,26 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		}
 
 		return buf;
+
+		async Task<UniSource> HandleUri(string value)
+		{
+			// value = value.CleanString();
+
+			var res = await value.AllowAnyHttpStatus()
+				          .WithHeaders(new
+				          {
+					          User_Agent = ER.UserAgent,
+				          })
+				          .GetAsync();
+
+			if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
+				throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
+			}
+
+			buf = new UniSource(o, await res.GetStreamAsync(), UniSourceType.Uri)
+				{ };
+			return buf;
+		}
 	}
 
 	public static UniSourceType GetSourceType(object value)
@@ -123,6 +131,8 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			case Stream s:
 				return fnStream(o, s);
 
+			case Url u when Url.IsValid(u):
+				return fnUri(o, u.ToString());
 			case string value when Url.IsValid(value):
 				return fnUri(o, value);
 

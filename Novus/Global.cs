@@ -34,7 +34,9 @@ using Novus.Properties;
 using Novus.Runtime;
 using Novus.Utilities;
 using System.Xml.Linq;
+using Microsoft.Extensions.Logging;
 using Novus.Imports;
+
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable LocalizableElement
@@ -153,12 +155,20 @@ public static class Global
 
 	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
 
+	// internal static readonly ILoggerFactory LoggerFactory = new LoggerFactory();
+
+	internal static readonly ILoggerFactory Factory =
+		LoggerFactory.Create(builder => builder.AddDebug());
+
+	internal static readonly ILogger Log = Factory.CreateLogger(LIB_NAME);
+
 	static Global()
 	{
 
 		if (!Directory.Exists(DataFolder)) {
 			Directory.CreateDirectory(DataFolder);
 		}
+
 	}
 
 	/// <summary>
@@ -170,18 +180,18 @@ public static class Global
 		if (IsSetup) {
 			return;
 		}
-
+		
 		/*
 		 * Setup
 		 */
-		
-		Trace.WriteLine($"[{LIB_NAME}] Module init", C_INFO);
-		Trace.WriteLine($"[{LIB_NAME}]", C_INFO);
+
+		Log.LogTrace($"[{LIB_NAME}] Module init");
+		Log.LogTrace($"[{LIB_NAME}]");
 
 		// var s = Path.Combine(Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine), "coreclr.pdb");
 		//todo
 		Clr = new RuntimeResource(CLR_MODULE, ClrPdb);
-		
+
 		/* try {
 			DateTime dt = default;
 
@@ -193,10 +203,8 @@ public static class Global
 			Debug.WriteLine($"{e}");
 		} */
 
-		bool compatible = IsCompatible();
-
-		if (!compatible) {
-			Trace.WriteLine($"[{LIB_NAME}] Compatibility check failed! " +
+		if (!IsCompatible) {
+			Log.LogCritical($"[{LIB_NAME}] Compatibility check failed! " +
 			                $"(Runtime: {Environment.Version} | Target: {ClrVersion})", C_ERROR);
 			//Require.Fail();
 		}
@@ -212,7 +220,7 @@ public static class Global
 			//Close();
 		};
 
-		Trace.WriteLine($"[{LIB_NAME}] CLR: ({Environment.Version})", C_INFO);
+		Log.LogDebug($"[{LIB_NAME}] CLR: ({Environment.Version})", C_INFO);
 
 	}
 
@@ -231,10 +239,7 @@ public static class Global
 
 	public static readonly bool IsCorrectVersion = Environment.Version == ClrVersion;
 
-	public static bool IsCompatible()
-	{
-		return IsCorrectVersion && IsWorkstationGC && IsWindows;
-	}
+	public static bool IsCompatible => IsCorrectVersion && IsWorkstationGC && IsWindows;
 
 	internal const MethodImplOptions IMPL_OPTIONS =
 		MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization;
@@ -276,7 +281,7 @@ public static class Global
 
 			else if (EnumerableHelper.TryCastDictionary(obj as IDictionary, out var kv)) {
 				s = kv.Select(x => $"{x.Key} = {x.Value}")
-				      .QuickJoin("\n");
+					.QuickJoin("\n");
 			}
 
 			fmt[i++] = s2;

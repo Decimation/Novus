@@ -4,6 +4,7 @@ using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Text;
+
 namespace Novus.FileTypes;
 
 // todo: wip
@@ -51,27 +52,32 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			o  = os;
 		}
 
-		switch (o) {
-			case Stream s:
-				buf = new UniSource(o, s, UniSourceType.Stream);
-				break;
-			case Url u when Url.IsValid(u):
-				buf = await HandleUri(u);
-				break;
-			case string value when Url.IsValid(value):
-				buf = await HandleUri(value);
-				break;
-			case string s when File.Exists(s):
-				// s = s.CleanString();
+		if (IsUrl(o, out var u2)) {
+			buf = await HandleUri(u2,o);
+		}
+		else {
+			switch (o) {
+				case Stream s:
+					buf = new UniSource(o, s, UniSourceType.Stream);
+					break;
+				/*case Url u when Url.IsValid(u):
+					buf = await HandleUri(u);
+					break;
+				case string value when Url.IsValid(value):
+					buf = await HandleUri(value);
+					break;*/
+				case string s when File.Exists(s):
+					// s = s.CleanString();
 
-				buf = new UniSource(o, File.OpenRead(s), UniSourceType.File)
-					{ };
-				break;
-			default:
-				throw new ArgumentException();
+					buf = new UniSource(o, File.OpenRead(s), UniSourceType.File)
+						{ };
+					break;
+				default:
+					throw new ArgumentException();
+
+			}
 
 		}
-
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
 
 		var types = (await resolver.ResolveAsync(buf.Stream)).ToArray();
@@ -93,7 +99,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 		return buf;
 
-		async Task<UniSource> HandleUri(string value)
+		static async Task<UniSource> HandleUri(string value, object o)
 		{
 			// value = value.CleanString();
 
@@ -108,7 +114,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 				throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
 			}
 
-			buf = new UniSource(o, await res.GetStreamAsync(), UniSourceType.Uri)
+			var buf = new UniSource(o, await res.GetStreamAsync(), UniSourceType.Uri)
 				{ };
 			return buf;
 		}
@@ -127,14 +133,19 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			unknown = (o1) => { return default; };
 		}
 
+		if (IsUrl(o, out var u)) {
+			return fnUri(o, u);
+		}
+
 		switch (o) {
 			case Stream s:
 				return fnStream(o, s);
 
-			case Url u when Url.IsValid(u):
+			/*case Url u when Url.IsValid(u):
 				return fnUri(o, u.ToString());
+
 			case string value when Url.IsValid(value):
-				return fnUri(o, value);
+				return fnUri(o, value);*/
 
 			case string s when File.Exists(s):
 				return fnFile(o, s);
@@ -142,6 +153,18 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 				return unknown(o);
 
 		}
+	}
+
+	public static bool IsUrl(object value, out Url u)
+	{
+		u = value switch
+		{
+			Url u2   => u2,
+			string s => s,
+			_        => null
+		};
+
+		return Url.IsValid(u);
 	}
 
 	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,

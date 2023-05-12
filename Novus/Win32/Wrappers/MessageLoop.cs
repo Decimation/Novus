@@ -108,8 +108,8 @@ public class MessageLoop
 				callbackObj = null;
 			}
 
-			Native.TranslateMessage(msg);
-			Native.DispatchMessage(msg);
+			Native.TranslateMessage(ref msg);
+			Native.DispatchMessage(ref msg);
 		}
 
 		Running = false;

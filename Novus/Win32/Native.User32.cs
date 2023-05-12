@@ -98,12 +98,12 @@ public static unsafe partial class Native
 	[LibraryImport(USER32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial uint RegisterWindowMessage(string lpString);
 
-	[LibraryImport(USER32_DLL)]
-	public static partial nint DispatchMessage(in MSG lpMsg);
+	[DllImport(USER32_DLL)]
+	public static extern nint DispatchMessage(ref MSG lpMsg);
 
-	[LibraryImport(USER32_DLL, SetLastError = false)]
+	[DllImport(USER32_DLL, SetLastError = false)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static partial bool TranslateMessage(in MSG lpMsg);
+	public static extern bool TranslateMessage(ref MSG lpMsg);
 
 	[LibraryImport(USER32_DLL, SetLastError = false)]
 	public static partial void PostQuitMessage([Optional] int nExitCode);

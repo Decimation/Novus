@@ -47,6 +47,7 @@ using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
+using static Novus.Win32.Structures.User32.WindowMessage;
 using FileType = Novus.FileTypes.FileType;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
@@ -129,101 +130,59 @@ namespace Test;
 * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
 * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
 */
-
 public static class Program
 {
-	private static readonly Process Cp   = Process.GetCurrentProcess();
-	private static readonly IntPtr  mwhd = Cp.MainWindowHandle;
+	private static readonly IntPtr HWND_MESSAGE = new IntPtr(-3);
 
 	private static unsafe void Main(string[] args)
 	{
-		var    hInstance = Marshal.GetHINSTANCE(typeof(Program).Module);
-		string name      = "Test";
+		Native.SetParent(Native.GetConsoleWindow(), HWND_MESSAGE);
+		Native.OpenClipboard(HWND_MESSAGE);
+		Native.AddClipboardFormatListener(HWND_MESSAGE);
 
-		WNDCLASSEX wndClassEx = new WNDCLASSEX
-		{
-			cbSize        = Marshal.SizeOf(typeof(WNDCLASSEX)),
-			style         = ClassStyles.CS_GLOBALCLASS,
-			cbClsExtra    = 0,
-			cbWndExtra    = 0,
-			hbrBackground = IntPtr.Zero,
-			hCursor       = IntPtr.Zero,
-			hIcon         = IntPtr.Zero,
-			hIconSm       = IntPtr.Zero,
-			lpszMenuName  = null,
-			hInstance     = hInstance,
-			lpfnWndProc   = new Native.WndProc(WndProcFunction)
-		};
-
-		var pz        = name.AsMemory();
-		var mh        = pz.Pin();
-		var stringPtr = Marshal.StringToHGlobalAuto(name);
-		wndClassEx.lpszClassName = (char*) mh.Pointer;
-
-		// var  register = Native.RegisterClassEx(ref wndClassEx);
-
-		var  hwnd_message = (nint) (-3);
-
-		_window = Native.CreateWindowEx(
-			(int) WindowStylesEx.WS_EX_NOACTIVATE,
-			name,
-			"Test Window",
-			0,
-			0, 0, 0, 0,
-			hwnd_message,
-			IntPtr.Zero,
-			wndClassEx.hInstance,
-			IntPtr.Zero
-		);
-
-		if (!Native.OpenClipboard(_window)) {
-			Debugger.Break();
-		}
-		
-		Native.SetClipboardData(13, mh.Pointer);
 		MSG msg;
 
-		while (Native.GetMessage(out msg, IntPtr.Zero, 0, 0) != 0) {
-			Native.TranslateMessage(in msg);
-			Native.DispatchMessage(in msg);
+		while (Native.GetMessage(out msg, HWND_MESSAGE, 0, 0) != 0) {
+			Native.TranslateMessage(ref msg);
+			Native.DispatchMessage(ref msg);
 		}
 	}
 
-	private static IntPtr _nextInChain = IntPtr.Zero;
-	private static nint   _window;
+	// Define the WM_CLIPBOARDUPDATE constant
+	private const           int    WM_CLIPBOARDUPDATE = 0x031D;
 
-	internal static unsafe IntPtr WndProcFunction(IntPtr hwnd, WindowMessage windowMessage, void* wParam1,
-	                                              void* lParam1)
+	// Define the HWND_MESSAGE constant
+
+	// Define the delegate for the Win32 API callback function
+	private delegate void ClipboardUpdateCallback();
+
+	// Define the WndProc method to handle clipboard messages
+	static void WndProc(ref MSG m)
 	{
-		if (windowMessage == WindowMessage.WM_CREATE) {
-			var listener = Native.AddClipboardFormatListener(hwnd);
-			var result   = Native.OpenClipboard(_window);
-			//_nextInChain = User32Ext.SetClipboardViewer(hwnd);
+		if (m.message == WM_CLIPBOARDUPDATE) {
+			// The clipboard contents have changed
+			OnClipboardChanged();
 		}
 
-		if (windowMessage == WindowMessage.WM_CLIPBOARDUPDATE) {
-			var pointerToText = Native.GetClipboardData(1);
-			var text          = Marshal.PtrToStringAnsi(pointerToText);
-			Console.WriteLine(text);
-		}
+		WndProc(ref m);
+	}
 
-		if (windowMessage == WindowMessage.WM_DRAWCLIPBOARD) {
-			if (_nextInChain != IntPtr.Zero) {
-				Native.SendMessage(_nextInChain, (int) windowMessage, (int) wParam1, (nint) lParam1);
+	// Define the OnClipboardChanged method to handle clipboard changes
+	static void OnClipboardChanged()
+	{
+		// Check if the clipboard contains a specific format
+		bool hasFormat = Native.IsClipboardFormatAvailable((int) ClipboardFormat.CF_UNICODETEXT);
+
+		if (hasFormat) {
+			// Get the clipboard data and do something with it
+			IntPtr clipboardData = Native.GetClipboardData((int) ClipboardFormat.CF_UNICODETEXT);
+
+			if (clipboardData != IntPtr.Zero) {
+				string clipboardText = Marshal.PtrToStringUni(clipboardData);
+				// ...
+				Console.WriteLine(clipboardText);
 			}
 		}
-
-		if (windowMessage == WindowMessage.WM_CHANGECBCHAIN) {
-			_nextInChain = hwnd;
-			//send message...
-		}
-
-		if (windowMessage == WindowMessage.WM_DESTROY) {
-			//chain msg
-			Native.RemoveClipboardFormatListener(hwnd);
-		}
-
-		return hwnd; //success
 	}
 
 	private static void Test5()

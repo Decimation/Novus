@@ -60,6 +60,8 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="7.0.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="6.0.0-preview.5.21301.5" />
+    <PackageReference Include="Mime-Detective" Version="22.12.14" />
+    <PackageReference Include="Mime-Detective.Definitions.Exhaustive" Version="22.12.14" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Reflection" Version="4.3.0" />

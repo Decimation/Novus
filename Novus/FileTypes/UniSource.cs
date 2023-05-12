@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Net.Mime;
+using System.Diagnostics;
 using System.Net;
 using Flurl;
 using Flurl.Http;
@@ -53,7 +54,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		}
 
 		if (IsUrl(o, out var u2)) {
-			buf = await HandleUri(u2,o);
+			buf = await HandleUri(u2, o);
 		}
 		else {
 			switch (o) {

@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+
 #pragma warning disable IDE0060
 namespace TestBenchmark;
 
@@ -9,7 +10,7 @@ public static class Program
 		// cd .\Benchmark\ ; dotnet build -c Release ; dotnet run -c Release
 		//dotnet build -c Release ; dotnet run -c Release --project .\Benchmark\TestBenchmark.csproj
 
-		BenchmarkRunner.Run<Benchmarks26>();
+		BenchmarkRunner.Run<Benchmarks_M2>();
 
 	}
 }

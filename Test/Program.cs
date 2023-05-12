@@ -4,6 +4,9 @@
 
 global using Native = Novus.Win32.Native;
 using System.Buffers;
+using System.Buffers.Binary;
+using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.SymbolStore;
@@ -25,11 +28,11 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Flurl.Http;
 using Kantan.Collections;
 using Kantan.Text;
 using Microsoft.VisualBasic.FileIO;
 using Novus;
-using Novus.FileTypes;
 using Novus.FileTypes.Impl;
 using Novus.Imports;
 using Novus.Imports.Attributes;
@@ -127,11 +130,100 @@ namespace Test;
 * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
 */
 
-public static unsafe class Program
+public static class Program
 {
-	private static void Main(string[] args)
+	private static readonly Process Cp   = Process.GetCurrentProcess();
+	private static readonly IntPtr  mwhd = Cp.MainWindowHandle;
+
+	private static unsafe void Main(string[] args)
 	{
-		Global.Setup();
+		var    hInstance = Marshal.GetHINSTANCE(typeof(Program).Module);
+		string name      = "Test";
+
+		WNDCLASSEX wndClassEx = new WNDCLASSEX
+		{
+			cbSize        = Marshal.SizeOf(typeof(WNDCLASSEX)),
+			style         = ClassStyles.CS_GLOBALCLASS,
+			cbClsExtra    = 0,
+			cbWndExtra    = 0,
+			hbrBackground = IntPtr.Zero,
+			hCursor       = IntPtr.Zero,
+			hIcon         = IntPtr.Zero,
+			hIconSm       = IntPtr.Zero,
+			lpszMenuName  = null,
+			hInstance     = hInstance,
+			lpfnWndProc   = new Native.WndProc(WndProcFunction)
+		};
+
+		var pz        = name.AsMemory();
+		var mh        = pz.Pin();
+		var stringPtr = Marshal.StringToHGlobalAuto(name);
+		wndClassEx.lpszClassName = (char*) mh.Pointer;
+
+		// var  register = Native.RegisterClassEx(ref wndClassEx);
+
+		var  hwnd_message = (nint) (-3);
+
+		_window = Native.CreateWindowEx(
+			(int) WindowStylesEx.WS_EX_NOACTIVATE,
+			name,
+			"Test Window",
+			0,
+			0, 0, 0, 0,
+			hwnd_message,
+			IntPtr.Zero,
+			wndClassEx.hInstance,
+			IntPtr.Zero
+		);
+
+		if (!Native.OpenClipboard(_window)) {
+			Debugger.Break();
+		}
+		
+		Native.SetClipboardData(13, mh.Pointer);
+		MSG msg;
+
+		while (Native.GetMessage(out msg, IntPtr.Zero, 0, 0) != 0) {
+			Native.TranslateMessage(in msg);
+			Native.DispatchMessage(in msg);
+		}
+	}
+
+	private static IntPtr _nextInChain = IntPtr.Zero;
+	private static nint   _window;
+
+	internal static unsafe IntPtr WndProcFunction(IntPtr hwnd, WindowMessage windowMessage, void* wParam1,
+	                                              void* lParam1)
+	{
+		if (windowMessage == WindowMessage.WM_CREATE) {
+			var listener = Native.AddClipboardFormatListener(hwnd);
+			var result   = Native.OpenClipboard(_window);
+			//_nextInChain = User32Ext.SetClipboardViewer(hwnd);
+		}
+
+		if (windowMessage == WindowMessage.WM_CLIPBOARDUPDATE) {
+			var pointerToText = Native.GetClipboardData(1);
+			var text          = Marshal.PtrToStringAnsi(pointerToText);
+			Console.WriteLine(text);
+		}
+
+		if (windowMessage == WindowMessage.WM_DRAWCLIPBOARD) {
+			if (_nextInChain != IntPtr.Zero) {
+				Native.SendMessage(_nextInChain, (int) windowMessage, (int) wParam1, (nint) lParam1);
+			}
+		}
+
+		if (windowMessage == WindowMessage.WM_CHANGECBCHAIN) {
+			_nextInChain = hwnd;
+			//send message...
+		}
+
+		if (windowMessage == WindowMessage.WM_DESTROY) {
+			//chain msg
+			Native.RemoveClipboardFormatListener(hwnd);
+		}
+
+		return hwnd; //success
 	}
 
 	private static void Test5()
@@ -161,38 +253,11 @@ public static unsafe class Program
 	static Program()
 	{
 		Global.Clr.LoadImports(typeof(Program));
+		Global.Setup();
 
 	}
 
-	[Serializable]
-	public class CyberRankData
-	{
-		// Token: 0x060002DF RID: 735 RVA: 0x00016992 File Offset: 0x00014B92
-		public CyberRankData()
-		{
-			this.preciseWavesByDifficulty = new float[6];
-			this.kills                    = new int[6];
-			this.style                    = new int[6];
-			this.time                     = new float[6];
-		}
-
-		// Token: 0x0400045E RID: 1118
-		public int wave;
-
-		// Token: 0x0400045F RID: 1119
-		public float[] preciseWavesByDifficulty;
-
-		// Token: 0x04000460 RID: 1120
-		public int[] kills;
-
-		// Token: 0x04000461 RID: 1121
-		public int[] style;
-
-		// Token: 0x04000462 RID: 1122
-		public float[] time;
-	}
-
-	public class MyClass2
+	public unsafe class MyClass2
 	{
 		public const string s =
 			"H:\\Archives & Backups\\Computer Science\\Code\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";

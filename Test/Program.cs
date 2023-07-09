@@ -136,20 +136,21 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
-		Native.SetParent(Native.GetConsoleWindow(), HWND_MESSAGE);
-		Native.OpenClipboard(HWND_MESSAGE);
-		Native.AddClipboardFormatListener(HWND_MESSAGE);
+		Global.Setup();
+		dynamic d = new ExpandoObject();
+		d.name = 1;
+		d.arr  = new[] { 1, 2, 3 };
 
-		MSG msg;
+		var t=d.GetType();
+		Console.WriteLine(t);
+		IDictionary<string, object> x = d;
+		Console.WriteLine(x.Count);
 
-		while (Native.GetMessage(out msg, HWND_MESSAGE, 0, 0) != 0) {
-			Native.TranslateMessage(ref msg);
-			Native.DispatchMessage(ref msg);
-		}
+		Console.WriteLine("hi");
 	}
 
 	// Define the WM_CLIPBOARDUPDATE constant
-	private const           int    WM_CLIPBOARDUPDATE = 0x031D;
+	private const int WM_CLIPBOARDUPDATE = 0x031D;
 
 	// Define the HWND_MESSAGE constant
 

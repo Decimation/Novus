@@ -42,7 +42,8 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 	}
 
-	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver, FileType[] whitelist)
+	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver, FileType[] whitelist,
+	                                             CancellationToken ct = default)
 	{
 		UniSource buf = null;
 
@@ -54,7 +55,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		}
 
 		if (IsUrl(o, out var u2)) {
-			buf = await HandleUri(u2, o);
+			buf = await HandleUri(u2, o, ct);
 		}
 		else {
 			switch (o) {
@@ -100,7 +101,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 		return buf;
 
-		static async Task<UniSource> HandleUri(string value, object o)
+		static async Task<UniSource> HandleUri(string value, object o, CancellationToken ct)
 		{
 			// value = value.CleanString();
 
@@ -109,7 +110,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 				          {
 					          User_Agent = ER.UserAgent,
 				          })
-				          .GetAsync();
+				          .GetAsync(ct);
 
 			if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
 				throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
@@ -123,8 +124,10 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 	public static UniSourceType GetSourceType(object value)
 	{
-		return HandleType(value, (_, _) => UniSourceType.Stream, (_, _) => UniSourceType.Uri,
-		                  (_, _) => UniSourceType.File, (_) => UniSourceType.NA);
+		return HandleType(value, (_, _) => UniSourceType.Stream,
+		                  (_, _) => UniSourceType.Uri,
+		                  (_, _) => UniSourceType.File,
+		                  (_) => UniSourceType.NA);
 	}
 
 	public static T HandleType<T>(Object o, Func<object, Stream, T> fnStream, Func<object, Url, T> fnUri,
@@ -169,10 +172,11 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 	}
 
 	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
+	                                                CancellationToken ct = default,
 	                                                params FileType[] whitelist)
 	{
 		try {
-			return await GetAsync(value, resolver, whitelist);
+			return await GetAsync(value, resolver, whitelist, ct);
 		}
 		catch (FlurlHttpException e) {
 			Debug.WriteLine($"HTTP: {e.Message}", nameof(TryGetAsync));

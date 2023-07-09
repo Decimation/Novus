@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
 using InputRecord = Novus.Win32.Structures.User32.InputRecord;
+
 #pragma warning disable SYSLIB1054
 // ReSharper disable IdentifierTypo
 
@@ -20,8 +21,8 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL)]
 	public static extern nint CreateWindowEx(int dwExStyle, string lpClassName, string lpWindowName, uint dwStyle,
-											int x, int y, int nWidth, int nHeight, nint hWndParent, nint hMenu,
-											nint hInstance, nint lpParam);
+	                                         int x, int y, int nWidth, int nHeight, nint hWndParent, nint hMenu,
+	                                         nint hInstance, nint lpParam);
 
 	[DllImport(USER32_DLL)]
 	public static extern bool DestroyWindow(nint hwnd);
@@ -30,7 +31,8 @@ public static unsafe partial class Native
 	public static extern int GetDlgItem(nint hDlg, int nIDDlgItem);
 
 	[DllImport(COMDLG32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	public static extern bool GetOpenFileName(ref OPENFILENAME lpofn);
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool GetOpenFileName([In,Out] ref OpenFileName lpofn);
 
 	[DllImport(USER32_DLL)]
 	public static extern nint GetParent(nint hWnd);
@@ -41,14 +43,14 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int X, int Y, int cx, int cy,
-										   WindowFlags uFlags);
+	                                       WindowFlags uFlags);
 
 	[DllImport(USER32_DLL, SetLastError = false)]
 	public static extern nint GetDesktopWindow();
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	public static extern nint FindWindowEx(nint parentHandle, nint childAfter, string className,
-										   string windowTitle);
+	                                       string windowTitle);
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
 	public static extern nint FindWindow(nint zeroOnly, string lpWindowName);
@@ -65,12 +67,12 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL)]
 	public static extern MessageBoxResult MessageBox(nint hWnd, string text, string caption,
-													 MessageBoxOptions options);
+	                                                 MessageBoxOptions options);
 
 	[DllImport(USER32_DLL)]
 	internal static extern uint SendInput(uint nInputs,
-										  [MA(UT.LPArray), In] InputRecord[] pInputs,
-										  int cbSize);
+	                                      [MA(UT.LPArray), In] InputRecord[] pInputs,
+	                                      int cbSize);
 
 	[LibraryImport(USER32_DLL)]
 	[return: MA(UT.Bool)]
@@ -78,11 +80,11 @@ public static unsafe partial class Native
 
 	[LibraryImport(USER32_DLL, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial nint SendMessage(nint hWnd, int msg, nint wParam,
-										   [MA(UT.LPWStr)] string lParam);
+	                                       [MA(UT.LPWStr)] string lParam);
 
 	[LibraryImport(USER32_DLL, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial nint SendMessage(nint hWnd, int msg, int wParam,
-										   [MA(UT.LPWStr)] string lParam);
+	                                       [MA(UT.LPWStr)] string lParam);
 
 	[LibraryImport(USER32_DLL)]
 	public static partial nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);
@@ -90,7 +92,7 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, SetLastError = true)]
 	// [return: MarshalAs(UnmanagedType.Bool)]
 	public static extern int GetMessage(out MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
-										[Optional] uint wMsgFilterMax);
+	                                    [Optional] uint wMsgFilterMax);
 
 	[LibraryImport(USER32_DLL, SetLastError = false)]
 	public static partial nint GetMessageExtraInfo();
@@ -111,7 +113,7 @@ public static unsafe partial class Native
 	[LibraryImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static partial bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
-												 [Optional] nint lParam);
+	                                             [Optional] nint lParam);
 
 	#region Key
 
@@ -244,7 +246,7 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	public static extern nint SetTimer([Optional] nint hWnd, [Optional] nint nIDEvent, [Optional] uint uElapse,
-									   [Optional] Timerproc lpTimerFunc);
+	                                   [Optional] Timerproc lpTimerFunc);
 
 	public const int MF_BYCOMMAND = 0x00000000;
 
@@ -262,7 +264,6 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.U2)]
 	public static extern short RegisterClassEx(ref WNDCLASSEX lpwcx);
-
 }
 
 public enum SysCommand : uint
@@ -336,8 +337,8 @@ public enum ClipboardFormat : uint
 
 	// PNG=49273,
 
-	// PNG = 49299,
-	PNG = 49496,
+	PNG = 49299,
+	PNG2 = 49496,
 }
 
 public enum HandleWindowPosition
@@ -690,4 +691,3 @@ public enum WindowStylesEx : uint
 	/// </summary>
 	WS_EX_NOREDIRECTIONBITMAP = 0x00200000,
 }
-	

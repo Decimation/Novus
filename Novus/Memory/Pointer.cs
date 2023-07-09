@@ -204,6 +204,16 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public readonly override bool Equals(object? obj)
 	{
 		return obj is Pointer<T> pointer && Equals(pointer);
+
+		/*if (obj is Pointer p && Equals(p)) {
+			return true;
+		}
+		else if (obj == null) {
+			return IsNull;
+		}
+		else {
+			return object.Equals(this, obj);
+		}*/
 	}
 
 	public readonly override int GetHashCode()

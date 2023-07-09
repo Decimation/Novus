@@ -31,10 +31,14 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
+
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE;DEBUG</DefineConstants>
+
   </PropertyGroup>
 
   <ItemGroup>

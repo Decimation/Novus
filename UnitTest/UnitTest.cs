@@ -130,9 +130,16 @@ public class Tests_UniSource
 	private static object[] _rg = Tests_FileTypes2._rg;
 
 	[Test]
-	public async Task Test1()
+	[TestCaseSource(nameof(_rg))]
+	public async Task Test3(string s, FileType type)
 	{
-		Assert.Pass();
+		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default, FileType.Image);
+		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
+		var tt = t.FileTypes;
+		// Assert.True(tt.Any(x => x.MediaType == type));
+		Assert.Contains(type, tt);
+
+		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
 }
 
@@ -172,9 +179,6 @@ public class Tests_MediaTypes
 	// [TestCase("https://www.zerochan.net/2750747", "http://static.zerochan.net/atago.(azur.lane).full.2750747.png")]
 	// [TestCase(@"C:\Users\Deci\Pictures\NSFW\17EA29A6-8966-4801-A508-AC89FABE714D.png", true, false)]
 	// [TestCase("http://s1.zerochan.net/atago.(azur.lane).600.2750747.jpg", false, true)]
-	[TestCase("https://kemono.party/data/45/a0/45a04a55cdc142ee78f6f00452886bc4b336d9f35d3d851f5044852a7e26b5da.png")]
-	[TestCase(
-		"https://data19.kemono.party/data/1e/90/1e90c71e9bedc2998289ca175e2dcc6580bbbc3d3c698cdbb0f427f0a0d364b7.png?f=Bianca%20bunny%201-3.png")]
 	public async Task Test1(string s)
 	{
 		// var binaryUris = MediaSniffer.Scan(u, new HttpMediaResourceFilter());
@@ -480,7 +484,7 @@ public unsafe class Tests_Pointer
 public unsafe class Tests_Resources
 {
 	private const string s =
-		"H:\\Archives & Backups\\Computer Science\\Code\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
+		"C:\\Users\\Deci\\VSProjects\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
 
 	private const string s2 = "SandboxLibrary.dll";
 
@@ -500,7 +504,20 @@ public unsafe class Tests_Resources
 
 	}
 }
+[TestFixture]
+[Parallelizable]
+public unsafe class Tests_Resources2
+{
+	[Test]
+	public void Test()
+	{
 
+		using var r = new RuntimeResource(Process.GetCurrentProcess(), "coreclr.dll");
+		Assert.Null(r.Symbols.Value);
+		Assert.AreEqual(r.FindImport(new ImportClrAttribute("g_pGCHeap", ImportType.Symbol)), Mem.Nullptr);
+
+	}
+}
 [TestFixture]
 [Parallelizable]
 public class Tests_Magic

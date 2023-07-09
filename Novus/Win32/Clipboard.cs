@@ -20,14 +20,14 @@ public static class Clipboard
 	public static bool Open()
 	{
 		return IsOpen = Native.OpenClipboard(IntPtr.Zero);
-		
+
 	}
 
 	public static bool Close()
 	{
 		return IsOpen = !Native.CloseClipboard();
 	}
-	
+
 	public static bool IsFormatAvailable(uint n) => Native.IsClipboardFormatAvailable(n);
 
 	public static bool SetData(object s, uint fmt)

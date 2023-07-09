@@ -65,8 +65,8 @@ public sealed class RuntimeResource : IDisposable
 
 		Module  = new(() => p.FindModule(moduleName));
 		Scanner = new Lazy<SigScanner>(() => new SigScanner(Module.Value));
-
-		Symbols      = new Lazy<Win32SymbolReader>(() => pdb is not null ? new Win32SymbolReader(pdb) : null);
+		
+		Symbols      = new Lazy<Win32SymbolReader>(() => File.Exists(pdb) ? new Win32SymbolReader(pdb) : null);
 		LoadedModule = false;
 	}
 
@@ -388,6 +388,9 @@ public sealed class RuntimeResource : IDisposable
 
 	public Pointer GetSymbol(string name, Type t = null, bool absolute = false)
 	{
+		if (Symbols.Value == null) {
+			return Mem.Nullptr;
+		}
 
 		var symbols1 = Symbols.Value.GetSymbols(name)
 			.Where(s => s.Tag is SymbolTag.Function or SymbolTag.Data);

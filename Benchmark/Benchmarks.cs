@@ -24,8 +24,6 @@ using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Wrappers;
 using Dia2Lib;
 using Flurl.Http;
-using MimeDetective;
-using MimeDetective.Engine;
 using Newtonsoft.Json.Linq;
 using Novus.Imports.Attributes;
 using Novus.Imports;
@@ -54,130 +52,6 @@ public static class Values
 
 	public const string f2 =
 		@"C:\Users\Deci\Pictures\Art\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png";
-}
-
-[RyuJitX64Job]
-public class Benchmarks_M2
-{
-	private ContentInspector     m_i;
-	private FileStream           m_s;
-	private byte[]               m_m;
-	private ImmutableArray<byte> m_r;
-	private Consumer             m_c;
-
-	[GlobalSetup]
-	public async void GlobalSetup()
-	{
-		m_i = new MimeDetective.ContentInspectorBuilder()
-			{
-				Definitions = MimeDetective.Definitions.Default.All()
-			}
-			.Build();
-
-		m_s = File.OpenRead(Values.f1);
-		// var r = ImmutableArray.Create<byte>();
-		m_m = new byte[256];
-		await m_s.ReadAsync(m_m);
-		m_r = m_m.ToImmutableArray();
-		m_c = new Consumer();
-
-	}
-
-	/*
-	 f1
-|              Method |           Mean |        Error |       StdDev |
-|-------------------- |---------------:|-------------:|-------------:|
-|   Test_MimeDetector | 1,757,476.3 ns | 13,361.30 ns | 11,844.45 ns |
-|   Test_FastResolver |       457.0 ns |      8.99 ns |      8.41 ns |
-|  Test_MagicResolver |    16,491.3 ns |     35.21 ns |     29.41 ns |
-| Test_UrlmonResolver |     1,887.6 ns |      5.43 ns |      4.82 ns |
-	 */
-
-	[Benchmark]
-	public void Test_MimeDetector()
-	{
-		m_i.Inspect(m_s).Consume(m_c);
-
-	}
-
-	[Benchmark]
-	public void Test_FastResolver()
-	{
-		FastResolver.Instance.Resolve(m_s).Consume(m_c);
-	}
-
-	[Benchmark]
-	public void Test_MagicResolver()
-	{
-		MagicResolver.Instance.Resolve(m_s).Consume(m_c);
-	}
-
-	[Benchmark]
-	public void Test_UrlmonResolver()
-	{
-		UrlmonResolver.Instance.Resolve(m_s).Consume(m_c);
-	}
-}
-
-[RyuJitX64Job]
-public class Benchmarks_M
-{
-	private ContentInspector     m_i;
-	private FileStream           m_s;
-	private byte[]               m_m;
-	private ImmutableArray<byte> m_r;
-
-	[GlobalSetup]
-	public async void GlobalSetup()
-	{
-		m_i = new MimeDetective.ContentInspectorBuilder()
-			{
-				Definitions = MimeDetective.Definitions.Default.All()
-			}
-			.Build();
-
-		m_s = File.OpenRead(Values.f1);
-		// var r = ImmutableArray.Create<byte>();
-		m_m = new byte[256];
-		await m_s.ReadAsync(m_m);
-		m_r = m_m.ToImmutableArray();
-
-	}
-
-	/*
-U, f
-| Method |        Mean |       Error |      StdDev |      Median |
-|------- |------------:|------------:|------------:|------------:|
-|  Test2 |    334.7 us |     6.39 us |     5.66 us |    333.7 us |
-| Test1a | 37,035.7 us | 1,886.09 us | 5,319.76 us | 35,040.1 us |
-| Test1b | 39,685.8 us |   789.27 us |   616.21 us | 39,635.9 us |
-	 */
-
-	[Benchmark]
-	public async Task<ImmutableArray<DefinitionMatch>> Test2()
-	{
-
-		var mt1 = m_i.Inspect(m_r);
-
-		return mt1;
-	}
-
-	[Benchmark]
-	public async Task<ImmutableArray<DefinitionMatch>> Test1a()
-	{
-
-		var mt1 = m_i.Inspect(m_m);
-
-		return mt1;
-	}
-
-	[Benchmark]
-	public async Task<ImmutableArray<DefinitionMatch>> Test1b()
-	{
-		var mt1 = m_i.Inspect(m_r);
-
-		return mt1;
-	}
 }
 
 [RyuJitX64Job]

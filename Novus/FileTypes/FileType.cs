@@ -1,4 +1,7 @@
-﻿global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
+﻿// Read S Novus FileType.cs
+// 2022-05-10 @ 2:49 AM
+
+global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
 global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 using System.Diagnostics;
@@ -16,48 +19,49 @@ using Kantan.Utilities;
 
 namespace Novus.FileTypes;
 
-/// <remarks><a href="https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern">6.1</a></remarks>
+/// <remarks>
+///     <a href="https://mimesniff.spec.whatwg.org/#matching-an-image-type-pattern">6.1</a>
+/// </remarks>
 [DAM(DAMT.All)]
 public readonly struct FileType : IEquatable<FileType>
 {
 	[MN]
-	public byte[] Mask { get; init; }
+	public byte[] Mask { get; }
 
 	[MN]
-	public byte[] Pattern { get; init; }
+	public byte[] Pattern { get; }
 
-	public string MediaType { get; init; }
+	/// <summary>
+	/// <c><see cref="Name"/>/<see cref="Type"/></c>
+	/// </summary>
+	public string MediaType { get; }
+
+	/// <summary>
+	/// First component of <see cref="MediaType"/>
+	/// </summary>
+	public string Name { get; }
+	/// <summary>
+	/// Second component of <see cref="MediaType"/>
+	/// </summary>
+	public string Type { get; }
 
 	public bool IsPartial => Mask is null && Pattern is null && MediaType is not null;
 
-	public static IEnumerable<FileType> Find(string name)
+	public FileType() : this(null, null, null) { }
+	public FileType(string mediaType) : this(null, null, mediaType) { }
+
+	public FileType(byte[] mask, byte[] pattern, [NN] string mediaType)
 	{
-		var query = Cache.AddOrGetExisting(name, FindInternal(name), new CacheItemPolicy() { })
-		            // ReSharper disable once ConstantNullCoalescingCondition
-		            ?? Cache[name];
+		Mask      = mask;
+		Pattern   = pattern;
+		MediaType = mediaType;
+		var split = mediaType.Split(MIME_TYPE_DELIM);
+		Type = split[0];
+		Name = split[1];
 
-		return (IEnumerable<FileType>) query;
-
-		static IEnumerable<FileType> FindInternal(string s)
-		{
-			return from ft in All
-			       let mt = ft.MediaType
-			       where mt == s || mt.Split(MIME_TYPE_DELIM).LastOrDefault() == s
-			                     || ft.IsType(s)
-			       select ft;
-		}
 	}
 
-	public FileType()
-	{
-		Mask      = null;
-		Pattern   = null;
-		MediaType = null;
-	}
-
-	private static readonly ObjectCache Cache = MemoryCache.Default;
-
-	public bool IsType(string p) => IsType(p, MediaType);
+	#region
 
 	static FileType()
 	{
@@ -69,16 +73,18 @@ public readonly struct FileType : IEquatable<FileType>
 		      */
 
 		All   = ReadDatabase();
-		Image = All.Where(a => a.IsType(MT_IMAGE)).ToArray();
-		Video = All.Where(a => a.IsType(MT_VIDEO)).ToArray();
+		Image = All.Where(a => MT_IMAGE == a.Type).ToArray();
+		Video = All.Where(a => MT_VIDEO == a.Type).ToArray();
 	}
+
+	private static readonly ObjectCache Cache = MemoryCache.Default;
 
 	public static readonly FileType[] All;
 	public static readonly FileType[] Image;
 	public static readonly FileType[] Video;
 
 	/// <summary>
-	/// Reads <see cref="FileType"/> from <see cref="ER.File_types"/>
+	///     Reads <see cref="FileType" /> from <see cref="ER.File_types" />
 	/// </summary>
 	public static FileType[] ReadDatabase()
 	{
@@ -93,18 +99,35 @@ public readonly struct FileType : IEquatable<FileType>
 			var sig       = o[ER.K_Pattern].ToString();
 			var mediaType = o[ER.K_Name].ToString();
 
-			var ft = new FileType()
-			{
-				Mask      = M.ReadByteArrayString(mask),
-				Pattern   = M.ReadByteArrayString(sig),
-				MediaType = mediaType
-			};
+			var ft = new FileType(M.ReadByteArrayString(mask), M.ReadByteArrayString(sig), mediaType)
+				{ };
 
 			rg.Add(ft);
 		}
 
 		return rg.ToArray();
 	}
+
+	public static IEnumerable<FileType> Find(string name)
+	{
+		var query = Cache.AddOrGetExisting(name, FindInternal(name), new CacheItemPolicy() { })
+		            // ReSharper disable once ConstantNullCoalescingCondition
+		            ?? Cache[name];
+
+		return (IEnumerable<FileType>) query;
+
+		static IEnumerable<FileType> FindInternal(string s)
+		{
+			return from ft in All
+			       let mt = ft.MediaType
+			       where mt == s || ft.Name == s || s == ft.Type
+			       select ft;
+		}
+	}
+
+	#endregion
+
+	#region 
 
 	public const int RSRC_HEADER_LEN = 1445;
 
@@ -145,7 +168,8 @@ public readonly struct FileType : IEquatable<FileType>
 	/// <remarks>
 	///     <a href="https://mimesniff.spec.whatwg.org/#matching-a-mime-type-pattern">6</a>
 	/// </remarks>
-	public static bool CheckPattern(Span<byte> input, Span<byte> pattern, Span<byte> mask, ISet<byte> ignored = null)
+	public static bool CheckPattern(Span<byte> input, Span<byte> pattern, Span<byte> mask,
+	                                ISet<byte> ignored = null)
 	{
 		Require.Assert(pattern.Length == mask.Length);
 
@@ -218,10 +242,7 @@ public readonly struct FileType : IEquatable<FileType>
 			.DistinctBy(x => x.MediaType);
 	}
 
-	public static bool IsType(string p, string mt)
-	{
-		return mt.Split(MIME_TYPE_DELIM).FirstOrDefault()?.ToLower() == p.ToLower();
-	}
+	#endregion
 
 	public bool Equals(FileType other)
 	{

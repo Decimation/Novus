@@ -10,120 +10,126 @@ namespace Novus.Streams;
 
 public static class StreamExtensions
 {
-    public static void Write<T>(this Span<T> s, params T[] v)
-    {
-        for (int i = 0; i < v.Length; i++)
-        {
-            s[i] = v[i];
-        }
-    }
+	/*public static void Write<T>(this Span<T> s, params T[] v)
+	{
+		for (int i = 0; i < v.Length; i++) {
+			s[i] = v[i];
+		}
+	}*/
 
-    public static Pointer<T> ToPointer<T>(this Span<T> s) => M.AddressOf(ref s.GetPinnableReference());
+	public static long TrySeek(this Stream s, long pos = 0)
+	{
+		long oldPos = s.Position;
 
-    [MURV]
-    public static MemoryStream Copy(this Stream inputStream, int bufferSize = 256)
-    {
-        var ret = new MemoryStream();
+		if (s.CanSeek) {
+			s.Position = pos;
+		}
 
-        var buf = new byte[bufferSize];
+		return oldPos;
+	}
 
-        int cb = 0;
+	public static Pointer<T> ToPointer<T>(this Span<T> s) => M.AddressOf(ref s.GetPinnableReference());
 
-        while ((cb = inputStream.Read(buf, 0, bufferSize)) > 0)
-            ret.Write(buf, 0, cb);
+	[MURV]
+	public static MemoryStream Copy(this Stream inputStream, int bufferSize = 256)
+	{
+		var ret = new MemoryStream();
 
-        ret.Position = 0;
+		var buf = new byte[bufferSize];
 
-        return ret;
-    }
+		int cb = 0;
 
-    public static void ReadFully(this Stream stream, byte[] buffer)
-    {
-        int offset = 0;
-        int readBytes;
+		while ((cb = inputStream.Read(buf, 0, bufferSize)) > 0)
+			ret.Write(buf, 0, cb);
 
-        do
-        {
-            // If you are using Socket directly instead of a Stream:
-            //readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
-            //                           SocketFlags.None);
+		ret.Position = 0;
 
-            readBytes = stream.Read(buffer, offset, buffer.Length - offset);
+		return ret;
+	}
 
-            offset += readBytes;
-        } while (readBytes > 0 && offset < buffer.Length);
+	public static void ReadFully(this Stream stream, byte[] buffer)
+	{
+		int offset = 0;
+		int readBytes;
 
-        if (offset < buffer.Length)
-        {
-            throw new EndOfStreamException();
-        }
-    }
+		do {
+			// If you are using Socket directly instead of a Stream:
+			//readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
+			//                           SocketFlags.None);
 
-    public static async Task ReadFullyAsync(this Stream stream, byte[] buffer)
-    {
-        int offset = 0;
-        int readBytes;
+			readBytes = stream.Read(buffer, offset, buffer.Length - offset);
 
-        do
-        {
-            // If you are using Socket directly instead of a Stream:
-            //readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
-            //                           SocketFlags.None);
+			offset += readBytes;
+		} while (readBytes > 0 && offset < buffer.Length);
 
-            readBytes = await stream.ReadAsync(buffer, offset, buffer.Length - offset);
+		if (offset < buffer.Length) {
+			throw new EndOfStreamException();
+		}
+	}
 
-            offset += readBytes;
-        } while (readBytes > 0 && offset < buffer.Length);
+	public static async Task ReadFullyAsync(this Stream stream, byte[] buffer)
+	{
+		int offset = 0;
+		int readBytes;
 
-        if (offset < buffer.Length)
-        {
-            throw new EndOfStreamException();
-        }
-    }
+		do {
+			// If you are using Socket directly instead of a Stream:
+			//readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
+			//                           SocketFlags.None);
 
-    public static T ReadAny<T>(this Stream br)
-    {
-        var s = M.SizeOf<T>();
-        var rg2 = new byte[s];
-        var rg = br.Read(rg2);
+			readBytes = await stream.ReadAsync(buffer, offset, buffer.Length - offset);
 
-        return M.ReadFromBytes<T>(rg2);
-    }
+			offset += readBytes;
+		} while (readBytes > 0 && offset < buffer.Length);
 
-    public static T ReadAny<T>(this BinaryReader br)
-    {
-        var s = M.SizeOf<T>();
-        var rg = br.ReadBytes(s);
+		if (offset < buffer.Length) {
+			throw new EndOfStreamException();
+		}
+	}
 
-        return M.ReadFromBytes<T>(rg);
-    }
+	public static T ReadAny<T>(this Stream br)
+	{
+		var s   = M.SizeOf<T>();
+		var rg2 = new byte[s];
+		var rg  = br.Read(rg2);
 
-    public static LinkedList<T> ReadUntil<T>(this Stream s, Predicate<T> pred, Func<Stream, T> read,
-                                             CancellationToken? token = null, int max = Native.INVALID)
-    {
-        token ??= CancellationToken.None;
+		return M.ReadFromBytes<T>(rg2);
+	}
 
-        var ll = new LinkedList<T>();
-        T t;
+	public static LinkedList<T> ReadUntil<T>(this Stream s, Predicate<T> pred, Func<Stream, T> read,
+	                                         CancellationToken token = default, int max = Native.INVALID)
+	{
 
-        while (!pred(t = read(s)))
-        {
-            ll.AddLast(t);
+		var ll = new LinkedList<T>();
+		T   t;
 
-            if (token.Value.IsCancellationRequested || max != Native.INVALID && ll.Count >= max)
-            {
-                goto ret;
-            }
-        }
+		while (!pred(t = read(s))) {
+			ll.AddLast(t);
 
-    ret:
-        return ll;
-    }
+			if (token.IsCancellationRequested || max != Native.INVALID && ll.Count >= max) {
+				goto ret;
+			}
+		}
 
-    public static string ReadCString(this BinaryReader br, int count)
-    {
-        string s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
+		ret:
+		return ll;
+	}
+}
 
-        return s;
-    }
+public static class BinaryReaderExtensions
+{
+	public static T ReadAny<T>(this BinaryReader br)
+	{
+		var s  = M.SizeOf<T>();
+		var rg = br.ReadBytes(s);
+
+		return M.ReadFromBytes<T>(rg);
+	}
+
+	public static string ReadCString(this BinaryReader br, int count)
+	{
+		string s = Encoding.ASCII.GetString(br.ReadBytes(count)).TrimEnd('\0');
+
+		return s;
+	}
 }

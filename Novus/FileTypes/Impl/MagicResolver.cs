@@ -57,7 +57,7 @@ public sealed class MagicResolver : IFileTypeResolver
 
 		var sz = MagicNative.magic_buffer(Magic, rg, rg.Length);
 		var s  = Marshal.PtrToStringAnsi(sz);
-		return new[] { new FileType() { MediaType = s } };
+		return new[] { new FileType(s) {  } };
 	}
 
 	public IEnumerable<FileType> Resolve(Stream stream)

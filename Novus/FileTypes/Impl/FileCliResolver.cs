@@ -70,7 +70,7 @@ public sealed class FileCliResolver : IFileTypeResolver
 
 			File.Delete(s);
 
-			return new[] { new FileType() { MediaType = output } };
+			return new[] { new FileType(output) {  } };
 		}
 		catch (Exception)
 		{

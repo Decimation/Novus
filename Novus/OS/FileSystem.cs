@@ -1,5 +1,4 @@
-﻿
-global using FS=Novus.OS.FileSystem;
+﻿global using FS = Novus.OS.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -267,8 +266,8 @@ public static class FileSystem
 
 			/* Executing directory */
 			Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory
-			                               .Replace("file:///", String.Empty)
-			                               .Replace("/", "\\"))!,
+				                      .Replace("file:///", String.Empty)
+				                      .Replace("/", "\\"))!,
 
 			//Assembly.GetCallingAssembly().Location
 		};
@@ -387,6 +386,38 @@ public static class FileSystem
 
 		return principal.IsInRole(WindowsBuiltInRole.Administrator);
 
+	}
+
+	public static string GetTempFileName(string? fn = null, string? ext = null)
+	{
+		string tmp = Path.GetTempFileName();
+		
+		if (fn != null) {
+			var ext1 = Path.GetExtension(fn);
+
+			/*if (ext != null && ext1 != ext) {
+					fn = Path.ChangeExtension(fn, ext);
+				}*/
+			if (ext == null && ext1 != null) {
+				ext = ext1;
+			}
+
+			var tmp3 = Path.ChangeExtension(Path.Combine(Path.GetDirectoryName(tmp), fn), "tmp");
+			File.Move(tmp, tmp3, true);
+			tmp = tmp3;
+		}
+		else { }
+
+		if (ext != null) {
+			var tmp2 = Path.ChangeExtension(tmp, ext);
+
+			if (tmp2 != tmp) {
+				File.Move(tmp, tmp2, true);
+				tmp = tmp2;
+			}
+		}
+
+		return tmp;
 	}
 }
 

@@ -4,7 +4,9 @@ using System.Net;
 using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
+using Kantan.Net.Utilities;
 using Kantan.Text;
+using Novus.Streams;
 
 namespace Novus.FileTypes;
 
@@ -30,8 +32,10 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 	public object Value { get; }
 
-	public bool IsUri    => SourceType == UniSourceType.Uri;
-	public bool IsFile   => SourceType == UniSourceType.File;
+	public bool IsUri => SourceType == UniSourceType.Uri;
+
+	public bool IsFile => SourceType == UniSourceType.File;
+
 	public bool IsStream => SourceType == UniSourceType.Stream;
 
 	private UniSource(object value, Stream s, UniSourceType u)
@@ -39,7 +43,6 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		Value      = value;
 		Stream     = s;
 		SourceType = u;
-
 	}
 
 	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver, FileType[] whitelist,
@@ -54,21 +57,20 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			o  = os;
 		}
 
-		if (IsUrl(o, out var u2)) {
-			buf = await HandleUri(u2, o, ct);
+		var uh = UniHandler.GetUniType(o, out var o2);
+		var s  = o.ToString();
+
+		if (uh == UniSourceType.Uri) {
+			// Debug.Assert(o == o2);
+			// Debug.Assert(s == o2);
+			buf = await HandleUri(s, ct);
 		}
 		else {
-			switch (o) {
-				case Stream s:
-					buf = new UniSource(o, s, UniSourceType.Stream);
+			switch (uh) {
+				case UniSourceType.Stream:
+					buf = new UniSource(o, o as Stream, UniSourceType.Stream);
 					break;
-				/*case Url u when Url.IsValid(u):
-					buf = await HandleUri(u);
-					break;
-				case string value when Url.IsValid(value):
-					buf = await HandleUri(value);
-					break;*/
-				case string s when File.Exists(s):
+				case UniSourceType.File:
 					// s = s.CleanString();
 
 					buf = new UniSource(o, File.OpenRead(s), UniSourceType.File)
@@ -76,10 +78,9 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 					break;
 				default:
 					throw new ArgumentException();
-
 			}
-
 		}
+
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
 
 		var types = (await resolver.ResolveAsync(buf.Stream)).ToArray();
@@ -94,14 +95,11 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		}
 
 		buf.FileTypes = types;
-
-		if (buf.Stream.CanSeek) {
-			buf.Stream.Position = 0;
-		}
+		buf.Stream.TrySeek();
 
 		return buf;
 
-		static async Task<UniSource> HandleUri(string value, object o, CancellationToken ct)
+		static async Task<UniSource> HandleUri(Url value, CancellationToken ct)
 		{
 			// value = value.CleanString();
 
@@ -116,59 +114,48 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 				throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
 			}
 
-			var buf = new UniSource(o, await res.GetStreamAsync(), UniSourceType.Uri)
+			var buf = new UniSource(value, await res.GetStreamAsync(), UniSourceType.Uri)
 				{ };
 			return buf;
 		}
 	}
 
-	public static UniSourceType GetSourceType(object value)
+	[CanBeNull]
+	public async Task<string> TryDownload()
 	{
-		return HandleType(value, (_, _) => UniSourceType.Stream,
-		                  (_, _) => UniSourceType.Uri,
-		                  (_, _) => UniSourceType.File,
-		                  (_) => UniSourceType.NA);
+		if (IsUri) {
+			var url = (Url) Value;
+			var fn  = url.GetFileName();
+			// fn = Path.Combine(Path.GetTempPath(), fn);
+
+			string path = await WriteStreamToFileAsync(fn,null);
+			return path;
+		}
+
+		if (IsFile) {
+			return Value.ToString();
+		}
+
+		if (IsStream) {
+			var path = await WriteStreamToFileAsync(null,FileTypes[0].Name);
+			return path;
+		}
+
+		throw new InvalidOperationException();
 	}
 
-	public static T HandleType<T>(Object o, Func<object, Stream, T> fnStream, Func<object, Url, T> fnUri,
-	                              Func<object, string, T> fnFile, [CanBeNull] Func<object, T> unknown)
+	private async Task<string> WriteStreamToFileAsync(string fn, string ext)
 	{
-		if (unknown == null) {
-			unknown = (o1) => { return default; };
-		}
-
-		if (IsUrl(o, out var u)) {
-			return fnUri(o, u);
-		}
-
-		switch (o) {
-			case Stream s:
-				return fnStream(o, s);
-
-			/*case Url u when Url.IsValid(u):
-				return fnUri(o, u.ToString());
-
-			case string value when Url.IsValid(value):
-				return fnUri(o, value);*/
-
-			case string s when File.Exists(s):
-				return fnFile(o, s);
-			default:
-				return unknown(o);
-
-		}
-	}
-
-	public static bool IsUrl(object value, out Url u)
-	{
-		u = value switch
-		{
-			Url u2   => u2,
-			string s => s,
-			_        => null
-		};
-
-		return Url.IsValid(u);
+		// var tmp = Path.Combine(Path.GetTempPath(), fn);
+		var tmp = FS.GetTempFileName(fn, ext);
+		
+		// tmp = FS.SanitizeFilename(tmp);
+		var fs = new FileStream(fn, FileMode.Create) { };
+		await Stream.CopyToAsync(fs);
+		await fs.FlushAsync();
+		fs.Dispose();
+		Stream.TrySeek();
+		return tmp;
 	}
 
 	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
@@ -211,8 +198,10 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			return true;
 		}
 
-		return SourceType == other.SourceType && Equals(Stream, other.Stream) && IsValid == other.IsValid &&
-		       Equals(FileTypes, other.FileTypes);
+		return SourceType == other.SourceType
+		       && Equals(Stream, other.Stream)
+		       && IsValid == other.IsValid
+		       && Equals(FileTypes, other.FileTypes);
 	}
 
 	public override bool Equals(object obj)

@@ -141,6 +141,66 @@ public class Tests_UniSource
 
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
+
+	[Test]
+	[TestCaseSource(nameof(_rg))]
+	public async Task Test1(string s, FileType type)
+	{
+		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default, FileType.Image);
+		var f = await t.TryDownload();
+		TestContext.WriteLine($"{f}");
+
+	}
+
+	[Test]
+	public async Task Test1b()
+	{
+		const string png = @"C:\Users\Deci\Pictures\1mcvbqv39yta1.png";
+		var str = File.OpenRead(png);
+		var    t                                 = await UniSource.GetAsync(str, IFileTypeResolver.Default, FileType.Image);
+		var    f                                 = await t.TryDownload();
+		TestContext.WriteLine($"{f}");
+
+	}
+	[Test]
+	public async Task Test2()
+	{
+		//------------------------------------------------------------
+		//-----------       Created with 010 Editor        -----------
+		//------         www.sweetscape.com/010editor/          ------
+		//
+		// File    : C:\Users\Deci\Pictures\Epic anime\__sashou_mihiro_original_drawn_by_infinote__ec1ebb276d934ba6ce9d03a08d02f7d9.png
+		// Address : 0 (0x0)
+		// Size    : 256 (0x100)
+		//------------------------------------------------------------
+		byte[] x =
+		{
+			0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+			0x00, 0x00, 0x0A, 0x72, 0x00, 0x00, 0x0E, 0x97, 0x08, 0x02, 0x00, 0x00, 0x00, 0xF4, 0xA6, 0xBB,
+			0xC2, 0x00, 0x00, 0x00, 0x19, 0x74, 0x45, 0x58, 0x74, 0x53, 0x6F, 0x66, 0x74, 0x77, 0x61, 0x72,
+			0x65, 0x00, 0x41, 0x64, 0x6F, 0x62, 0x65, 0x20, 0x49, 0x6D, 0x61, 0x67, 0x65, 0x52, 0x65, 0x61,
+			0x64, 0x79, 0x71, 0xC9, 0x65, 0x3C, 0x00, 0x00, 0x03, 0x84, 0x69, 0x54, 0x58, 0x74, 0x58, 0x4D,
+			0x4C, 0x3A, 0x63, 0x6F, 0x6D, 0x2E, 0x61, 0x64, 0x6F, 0x62, 0x65, 0x2E, 0x78, 0x6D, 0x70, 0x00,
+			0x00, 0x00, 0x00, 0x00, 0x3C, 0x3F, 0x78, 0x70, 0x61, 0x63, 0x6B, 0x65, 0x74, 0x20, 0x62, 0x65,
+			0x67, 0x69, 0x6E, 0x3D, 0x22, 0xEF, 0xBB, 0xBF, 0x22, 0x20, 0x69, 0x64, 0x3D, 0x22, 0x57, 0x35,
+			0x4D, 0x30, 0x4D, 0x70, 0x43, 0x65, 0x68, 0x69, 0x48, 0x7A, 0x72, 0x65, 0x53, 0x7A, 0x4E, 0x54,
+			0x63, 0x7A, 0x6B, 0x63, 0x39, 0x64, 0x22, 0x3F, 0x3E, 0x20, 0x3C, 0x78, 0x3A, 0x78, 0x6D, 0x70,
+			0x6D, 0x65, 0x74, 0x61, 0x20, 0x78, 0x6D, 0x6C, 0x6E, 0x73, 0x3A, 0x78, 0x3D, 0x22, 0x61, 0x64,
+			0x6F, 0x62, 0x65, 0x3A, 0x6E, 0x73, 0x3A, 0x6D, 0x65, 0x74, 0x61, 0x2F, 0x22, 0x20, 0x78, 0x3A,
+			0x78, 0x6D, 0x70, 0x74, 0x6B, 0x3D, 0x22, 0x41, 0x64, 0x6F, 0x62, 0x65, 0x20, 0x58, 0x4D, 0x50,
+			0x20, 0x43, 0x6F, 0x72, 0x65, 0x20, 0x36, 0x2E, 0x30, 0x2D, 0x63, 0x30, 0x30, 0x32, 0x20, 0x31,
+			0x31, 0x36, 0x2E, 0x31, 0x36, 0x34, 0x36, 0x35, 0x35, 0x2C, 0x20, 0x32, 0x30, 0x32, 0x31, 0x2F,
+			0x30, 0x31, 0x2F, 0x32, 0x36, 0x2D, 0x31, 0x35, 0x3A, 0x34, 0x31, 0x3A, 0x32, 0x30, 0x20, 0x20
+		};
+
+		var t = await UniSource.GetAsync(new MemoryStream(x), IFileTypeResolver.Default, FileType.Image);
+		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
+		var tt = t.FileTypes;
+		// Assert.True(tt.Any(x => x.MediaType == type));
+		Assert.Contains(FileType.Find("png").First(), tt);
+
+		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
+	}
 }
 
 [TestFixture]
@@ -153,7 +213,7 @@ public class Tests_FileResolvers
 	{
 		var stream = File.OpenRead(s);
 		var task   = await IFileTypeResolver.Default.ResolveAsync(stream);
-		Assert.True(task.Any(x => x.IsType(FileType.MT_IMAGE)));
+		Assert.True(task.Any(x => FileType.MT_IMAGE == x.Type));
 	}
 
 	/*[Test]
@@ -191,10 +251,11 @@ public class Tests_MediaTypes
 		if (!r.ResponseMessage.IsSuccessStatusCode) {
 			Assert.Inconclusive();
 		}
+
 		// TestContext.WriteLine($"{r.ResponseMessage.IsSuccessStatusCode}");
 		var t  = await r.GetStreamAsync();
 		var ft = await IFileTypeResolver.Default.ResolveAsync(t);
-		Assert.True(ft.Any(f => f.IsType(FileType.MT_IMAGE)));
+		Assert.True(ft.Any(f => FileType.MT_IMAGE == f.Type));
 	}
 }
 
@@ -504,6 +565,7 @@ public unsafe class Tests_Resources
 
 	}
 }
+
 [TestFixture]
 [Parallelizable]
 public unsafe class Tests_Resources2
@@ -518,6 +580,7 @@ public unsafe class Tests_Resources2
 
 	}
 }
+
 [TestFixture]
 [Parallelizable]
 public class Tests_Magic
@@ -1023,6 +1086,22 @@ public class Tests_FileSystem
 		var d = new DirectoryInfo(a);
 		Assert.AreEqual(d.FullName, b);
 	}
+
+	[Test]
+	public void FileSystemTest2()
+	{
+		var fs = FileSystem.GetTempFileName(null, "jpg");
+		Assert.True(fs.EndsWith(".jpg"));
+
+		var fs2 = FileSystem.GetTempFileName("hello", "jpg");
+		Assert.True(File.Exists(fs2));
+
+		var fs3 = FileSystem.GetTempFileName("hello2");
+		Assert.True(File.Exists(fs3));
+
+		var fs4 = FileSystem.GetTempFileName();
+		Assert.True(File.Exists(fs4));
+	}
 }
 
 [TestFixture]
@@ -1429,7 +1508,7 @@ public class Tests_Streams
 			var br = new BinaryReader(new UnmanagedMemoryStream(p, str.Length));
 			var c  = br.BaseStream.ReadUntil((byte s) => s == '\0', f => (byte) f.ReadByte()).ToArray();
 			var c2 = Encoding.ASCII.GetString(c);
-			Assert.AreEqual(Encoding.ASCII.GetString(str).Trim('\0'),c2);
+			Assert.AreEqual(Encoding.ASCII.GetString(str).Trim('\0'), c2);
 		}
 	}
 }

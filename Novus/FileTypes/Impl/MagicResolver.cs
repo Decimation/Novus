@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Kantan.Utilities;
 using Novus.Properties;
+using Novus.Streams;
 
 #endregion
 

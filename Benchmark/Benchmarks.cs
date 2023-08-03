@@ -47,11 +47,28 @@ public class MyStruct
 
 public static class Values
 {
-	public const string u1 = "https://us.rule34.xxx//images/4777/eb5d308334c52a2ecd4b0b06846454e4.jpeg?5440124";
-	public const string f1 = @"C:\Users\Deci\Pictures\2b_butt.jpg";
+	public const string u1 = "https://i.imgur.com/QtCausw.png";
+	public const string f1 = @"C:\Users\Deci\Pictures\Epic anime\0c4c80957134d4304538c27499d84dbe.jpeg";
 
 	public const string f2 =
-		@"C:\Users\Deci\Pictures\Art\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png";
+		@"C:\Users\Deci\Pictures\Epic anime\2B_neko_FINALE_1_12.jpg";
+}
+
+[RyuJitX64Job]
+public class Benchmarks27
+{
+	[Benchmark]
+	public async Task<UniSource> Test1()
+	{
+		return await UniSource.GetAsync(Values.u1);
+	}
+
+	[Benchmark]
+	public async Task<UniSource> Test2()
+	{
+		return await UniSource.GetAsync(Values.f1);
+	}
+	
 }
 
 [RyuJitX64Job]

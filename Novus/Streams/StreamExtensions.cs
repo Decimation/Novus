@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using Novus.Memory;
+using System;
 
 // ReSharper disable UnusedMember.Global
 
@@ -17,6 +18,68 @@ public static class StreamExtensions
 		}
 	}*/
 
+	public static string[] ReadAllLines(this StreamReader stream)
+	{
+		var list = new List<string>();
+
+		while (!stream.EndOfStream) {
+			string line = stream.ReadLine();
+
+			if (line != null) {
+				list.Add(line);
+			}
+		}
+
+		return list.ToArray();
+	}
+
+	public static byte[] ToByteArray(this Stream stream)
+	{
+		// NOTE: throws when stream is not seekable
+		stream.TrySeek();
+		// using var ms = new MemoryStream();
+		// stream.CopyTo(ms);
+		// var rg = ms.ToArray();
+
+		int length = checked((int) stream.Length);
+
+		return stream.ReadBlock(length);
+	}
+
+	public static int BlockSize { get; set; } = 0xFF;
+
+	public static byte[] ReadBlock(this Stream stream, int? i = null)
+	{
+		i ??= BlockSize;
+
+		stream.TrySeek();
+
+		var buffer = new byte[i.Value];
+
+		int read = stream.Read(buffer);
+
+		return buffer;
+	}
+
+	public static async Task<byte[]> ReadBlockAsync(this Stream m, int? l1 = null, CancellationToken ct = default)
+	{
+		l1 ??= BlockSize;
+		int l = (l1.Value);
+
+		if (m.CanSeek) {
+			m.Position = 0;
+			int d = checked((int) m.Length);
+			l = d >= l1.Value ? l1.Value : d;
+		}
+
+		// int l=Math.Clamp(d, d, HttpType.RSRC_HEADER_LEN);
+		var data = new byte[l];
+
+		int l2 = await m.ReadAsync(data, 0, l, ct);
+
+		return data;
+	}
+
 	public static long TrySeek(this Stream s, long pos = 0)
 	{
 		long oldPos = s.Position;
@@ -31,15 +94,17 @@ public static class StreamExtensions
 	public static Pointer<T> ToPointer<T>(this Span<T> s) => M.AddressOf(ref s.GetPinnableReference());
 
 	[MURV]
-	public static MemoryStream Copy(this Stream inputStream, int bufferSize = 256)
+	public static MemoryStream Copy(this Stream inputStream, int? bufferSize = null)
 	{
+		bufferSize ??= BlockSize;
+
 		var ret = new MemoryStream();
 
-		var buf = new byte[bufferSize];
+		var buf = new byte[bufferSize.Value];
 
 		int cb = 0;
 
-		while ((cb = inputStream.Read(buf, 0, bufferSize)) > 0)
+		while ((cb = inputStream.Read(buf, 0, bufferSize.Value)) > 0)
 			ret.Write(buf, 0, cb);
 
 		ret.Position = 0;
@@ -67,7 +132,7 @@ public static class StreamExtensions
 		}
 	}
 
-	public static async Task ReadFullyAsync(this Stream stream, byte[] buffer)
+	public static async Task ReadFullyAsync(this Stream stream, byte[] buffer, CancellationToken ct = default)
 	{
 		int offset = 0;
 		int readBytes;
@@ -77,7 +142,7 @@ public static class StreamExtensions
 			//readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
 			//                           SocketFlags.None);
 
-			readBytes = await stream.ReadAsync(buffer, offset, buffer.Length - offset);
+			readBytes = await stream.ReadAsync(buffer.AsMemory(offset, buffer.Length - offset), ct);
 
 			offset += readBytes;
 		} while (readBytes > 0 && offset < buffer.Length);
@@ -97,7 +162,7 @@ public static class StreamExtensions
 	}
 
 	public static LinkedList<T> ReadUntil<T>(this Stream s, Predicate<T> pred, Func<Stream, T> read,
-	                                         CancellationToken token = default, int max = Native.INVALID)
+	                                         int? max = null, CancellationToken token = default)
 	{
 
 		var ll = new LinkedList<T>();
@@ -106,7 +171,7 @@ public static class StreamExtensions
 		while (!pred(t = read(s))) {
 			ll.AddLast(t);
 
-			if (token.IsCancellationRequested || max != Native.INVALID && ll.Count >= max) {
+			if (token.IsCancellationRequested || !max.HasValue && ll.Count >= max) {
 				goto ret;
 			}
 		}

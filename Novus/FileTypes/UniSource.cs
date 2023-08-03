@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Novus.Streams;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Novus.FileTypes;
 
@@ -45,12 +46,13 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		SourceType = u;
 	}
 
-	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver, FileType[] whitelist,
+	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null, FileType[] whitelist = null,
 	                                             CancellationToken ct = default)
 	{
 		UniSource buf = null;
 
-		resolver ??= IFileTypeResolver.Default;
+		resolver  ??= IFileTypeResolver.Default;
+		whitelist ??= Array.Empty<FileType>();
 
 		if (o is string os) {
 			os = os.CleanString();
@@ -60,25 +62,23 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		var uh = UniHandler.GetUniType(o, out var o2);
 		var s  = o.ToString();
 
-		if (uh == UniSourceType.Uri) {
-			// Debug.Assert(o == o2);
-			// Debug.Assert(s == o2);
-			buf = await HandleUri(s, ct);
-		}
-		else {
-			switch (uh) {
-				case UniSourceType.Stream:
-					buf = new UniSource(o, o as Stream, UniSourceType.Stream);
-					break;
-				case UniSourceType.File:
-					// s = s.CleanString();
+		switch (uh) {
+			case UniSourceType.Uri:
+				// Debug.Assert(o == o2);
+				// Debug.Assert(s == o2);
+				buf = await HandleUri(s, ct);
+				break;
+			case UniSourceType.Stream:
+				buf = new UniSource(o, o as Stream, UniSourceType.Stream);
+				break;
+			case UniSourceType.File:
+				// s = s.CleanString();
 
-					buf = new UniSource(o, File.OpenRead(s), UniSourceType.File)
-						{ };
-					break;
-				default:
-					throw new ArgumentException();
-			}
+				buf = new UniSource(o, File.OpenRead(s), UniSourceType.File)
+					{ };
+				break;
+			default:
+				throw new ArgumentException();
 		}
 
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
@@ -120,44 +120,6 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		}
 	}
 
-	[CanBeNull]
-	public async Task<string> TryDownload()
-	{
-		if (IsUri) {
-			var url = (Url) Value;
-			var fn  = url.GetFileName();
-			// fn = Path.Combine(Path.GetTempPath(), fn);
-
-			string path = await WriteStreamToFileAsync(fn,null);
-			return path;
-		}
-
-		if (IsFile) {
-			return Value.ToString();
-		}
-
-		if (IsStream) {
-			var path = await WriteStreamToFileAsync(null,FileTypes[0].Name);
-			return path;
-		}
-
-		throw new InvalidOperationException();
-	}
-
-	private async Task<string> WriteStreamToFileAsync(string fn, string ext)
-	{
-		// var tmp = Path.Combine(Path.GetTempPath(), fn);
-		var tmp = FS.GetTempFileName(fn, ext);
-		
-		// tmp = FS.SanitizeFilename(tmp);
-		var fs = new FileStream(fn, FileMode.Create) { };
-		await Stream.CopyToAsync(fs);
-		await fs.FlushAsync();
-		fs.Dispose();
-		Stream.TrySeek();
-		return tmp;
-	}
-
 	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
 	                                                CancellationToken ct = default,
 	                                                params FileType[] whitelist)
@@ -177,6 +139,44 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		finally { }
 
 		return null;
+	}
+
+	[ItemCanBeNull]
+	public async Task<string> TryDownloadAsync()
+	{
+		string fn  = null, ext = null;
+
+		if (IsUri) {
+			var url = (Url) Value;
+			fn  = url.GetFileName();
+			// fn = Path.Combine(Path.GetTempPath(), fn);
+			
+		}
+		else if (IsFile) {
+			Debug.Assert(File.Exists(Value.ToString()));
+			return Value.ToString();
+		}
+
+		else if (IsStream) {
+			ext = FileTypes[0].Name;
+		}
+
+		// var tmp = Path.Combine(Path.GetTempPath(), fn);
+		var tmp  = FS.GetTempFileName(fn, ext);
+		// tmp = FS.SanitizeFilename(tmp);
+
+		var path = await WriteStreamToFileAsync(tmp);
+		return path;
+	}
+
+	public async Task<string> WriteStreamToFileAsync(string tmp)
+	{
+		var fs = new FileStream(tmp, FileMode.Create) { };
+		await Stream.CopyToAsync(fs);
+		await fs.FlushAsync();
+		fs.Dispose();
+		Stream.TrySeek();
+		return tmp;
 	}
 
 	public virtual void Dispose()

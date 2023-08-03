@@ -34,6 +34,7 @@ using Novus.Properties;
 using Novus.Runtime;
 using Novus.Utilities;
 using System.Xml.Linq;
+using Kantan.Utilities;
 using Microsoft.Extensions.Logging;
 using Novus.Imports;
 
@@ -276,7 +277,7 @@ public static class Global
 			};
 
 			if (obj.GetType().IsAnyPointer()) {
-				s = Strings.ToHexString(obj);
+				s = FormatHelper.ToHexString(obj);
 			}
 
 			else if (EnumerableHelper.TryCastDictionary(obj as IDictionary, out var kv)) {

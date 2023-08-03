@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
+using Novus.Streams;
 
 #nullable disable
 // ReSharper disable InconsistentNaming
@@ -48,17 +49,22 @@ public readonly struct FileType : IEquatable<FileType>
 	public bool IsPartial => Mask is null && Pattern is null && MediaType is not null;
 
 	public FileType() : this(null, null, null) { }
+
 	public FileType(string mediaType) : this(null, null, mediaType) { }
 
-	public FileType(byte[] mask, byte[] pattern, [NN] string mediaType)
+	public FileType(byte[] mask, byte[] pattern, [MN] string mediaType)
 	{
 		Mask      = mask;
 		Pattern   = pattern;
-		MediaType = mediaType;
-		var split = mediaType.Split(MIME_TYPE_DELIM);
-		Type = split[0];
-		Name = split[1];
 
+		MediaType = mediaType;
+
+		if (MediaType != null) {
+			var split = MediaType.Split(MIME_TYPE_DELIM);
+			Type = split[0];
+			Name = split[1];
+
+		}
 	}
 
 	#region

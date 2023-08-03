@@ -143,7 +143,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
 
-	public static implicit operator Pointer<T>(Span<T> s) => s.ToPointer();
+	public static explicit operator Pointer<T>(Span<T> s) => s.ToPointer();
 
 	/// <summary>
 	///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to
@@ -478,7 +478,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	#region Format
 
-	public override string ToString() => ToString(Strings.HexFormatter.FMT_P);
+	public override string ToString() => ToString(FormatHelper.HexFormatter.FMT_P);
 
 	public string ToString(string format) => ToString(format, null);
 
@@ -496,13 +496,14 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		//	_       => throw new FormatException()
 		//};
 
-		return Strings.ToHexString(Address, format);
+		return FormatHelper.ToHexString(Address, format);
 
 	}
 
 	#endregion
 
-	public MemoryHandle Pin(int elementIndex = OFFSET_I)
+	[MURV]
+	public readonly MemoryHandle Pin(int elementIndex = OFFSET_I)
 	{
 		var handle = new MemoryHandle(Offset(elementIndex));
 

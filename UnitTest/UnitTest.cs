@@ -27,12 +27,10 @@ using Novus.Streams;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
-using Novus.Win32.Structures.User32;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 using UnitTest.TestTypes;
 using static Novus.Utilities.ReflectionOperatorHelpers;
-using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
 // ReSharper disable StringLiteralTypo
 
@@ -147,7 +145,7 @@ public class Tests_UniSource
 	public async Task Test1(string s, FileType type)
 	{
 		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default, FileType.Image);
-		var f = await t.TryDownload();
+		var f = await t.TryDownloadAsync();
 		TestContext.WriteLine($"{f}");
 
 	}
@@ -156,12 +154,13 @@ public class Tests_UniSource
 	public async Task Test1b()
 	{
 		const string png = @"C:\Users\Deci\Pictures\1mcvbqv39yta1.png";
-		var str = File.OpenRead(png);
-		var    t                                 = await UniSource.GetAsync(str, IFileTypeResolver.Default, FileType.Image);
-		var    f                                 = await t.TryDownload();
+		var          str = File.OpenRead(png);
+		var          t   = await UniSource.GetAsync(str, IFileTypeResolver.Default, FileType.Image);
+		var          f   = await t.TryDownloadAsync();
 		TestContext.WriteLine($"{f}");
 
 	}
+
 	[Test]
 	public async Task Test2()
 	{
@@ -287,39 +286,6 @@ public unsafe class Tests_DynamicLibrary
 }
 
 [TestFixture]
-[Parallelizable]
-public class Tests_Other
-{
-	[Test]
-	public static void SendInputTest()
-	{
-		var a = Native.SendInput(new[]
-		{
-			new InputRecord
-			{
-				type = InputType.Keyboard,
-				U = new InputUnion
-				{
-					ki = new KeyboardInput
-					{
-						// dwFlags     = (KeyEventFlags.KeyDown | KeyEventFlags.SCANCODE),
-						// wScan       = ScanCodeShort.KEY_W,
-
-						wVk         = VirtualKey.MEDIA_PLAY_PAUSE,
-						dwFlags     = 0,
-						dwExtraInfo = new nuint((uint) Native.GetMessageExtraInfo().ToInt64())
-					},
-				}
-			}
-		});
-
-		if (a != 0) {
-			Assert.Pass();
-		}
-	}
-}
-
-[TestFixture]
 public class Tests_GCHeap
 {
 	[Test]
@@ -404,8 +370,8 @@ public unsafe class Tests_Pointer
 	[Test]
 	public void Test5()
 	{
-		Span<int>    s = stackalloc int[4] { 1, 2, 3, 4 };
-		Pointer<int> p = s;
+		Span<int> s = stackalloc int[4] { 1, 2, 3, 4 };
+		var       p = (Pointer<int>) s;
 		Assert.AreEqual(s[0], p[0]);
 		p++;
 		Assert.AreEqual(s[1], p.Value);

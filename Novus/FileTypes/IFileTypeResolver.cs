@@ -1,5 +1,6 @@
 ﻿using Kantan.Utilities;
 using Novus.FileTypes.Impl;
+using Novus.Streams;
 
 namespace Novus.FileTypes;
 

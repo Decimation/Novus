@@ -24,7 +24,6 @@ using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Wrappers;
 using Dia2Lib;
 using Flurl.Http;
-using Newtonsoft.Json.Linq;
 using Novus.Imports.Attributes;
 using Novus.Imports;
 using System.Linq;

@@ -48,6 +48,7 @@ using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
 using static Novus.Win32.Structures.User32.WindowMessage;
+using FileSystem = Novus.OS.FileSystem;
 using FileType = Novus.FileTypes.FileType;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
@@ -132,14 +133,12 @@ namespace Test;
 */
 public static class Program
 {
-	private static unsafe void Main(string[] args)
+	private static async Task Main(string[] args)
 	{
-		var bins=File.ReadAllBytes(@"C:\Users\Deci\Other Programs\donut_v0.9.3\loader.bin");
+		var r =await "https://w.wallhaven.cc/full/e7/wallhaven-e7v1zo.jpg".WithAutoRedirect(true).AllowAnyHttpStatus().GetAsync();
+		var s = await r.GetStreamAsync();
 
-		var o=Native.VirtualAlloc(Process.GetCurrentProcess(), 0, bins.Length, AllocationType.Commit,
-		                    MemoryProtection.ExecuteReadWrite);
-		Console.WriteLine(o);
-		
+		Debugger.Break();
 	}
 
 	static Program()

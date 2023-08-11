@@ -868,7 +868,7 @@ public static unsafe class Mem
 	/// <summary>
 	/// Parses a <see cref="byte"/> array formatted as <c>0x00, 0x01, 0x02 ...</c>
 	/// </summary>
-	public static byte[] ReadByteArrayString(string s)
+	public static byte[] ReadAOBString(string s)
 	{
 		Func<string, byte> func = s1 => Byte.Parse(s1.Replace("0x", null), NumberStyles.HexNumber);
 

@@ -1,6 +1,7 @@
 ﻿// Read S UnitTest UnitTest2.cs
 // 2023-08-03 @ 1:10 PM
 
+using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using NUnit.Framework;
@@ -38,6 +39,18 @@ public class Tests_Other
 
 		if (a != 0) {
 			Assert.Pass();
+		}
+	}
+}
+[TestFixture]
+[Parallelizable]
+public class Tests_FileTypes
+{
+	[Test]
+	public void Test1()
+	{
+		foreach (var ft in FileType.Image) {
+			TestContext.WriteLine($"{ft}");
 		}
 	}
 }

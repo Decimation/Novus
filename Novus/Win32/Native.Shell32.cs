@@ -9,6 +9,27 @@ public static unsafe partial class Native
 	public static extern int DragQueryFile(nint hDrop, uint iFile,
 	                                       [Out] StringBuilder lpszFile, int cch);
 
-	[DllImport(SHELL32_DLL, CharSet = CharSet.Ansi)]
+	[DllImport(SHELL32_DLL, CharSet = CharSet.Unicode)]
 	public static extern void DragAcceptFiles(nint hDrop, [MA(UT.Bool)] bool fAccept);
+
+	[DllImport(SHELL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
+	[return:MarshalAs(UnmanagedType.Bool)]
+	public static extern bool SHFileOperation(ref SHFILEOPSTRUCT op);
+
+	public const int FO_DELETE          = 0x0003;
+	public const int FOF_ALLOWUNDO      = 0x0040;
+	public const int FOF_NOCONFIRMATION = 0x0010;
+}
+
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+public struct SHFILEOPSTRUCT
+{
+	public IntPtr hwnd;
+	public uint   wFunc;
+	public string pFrom;
+	public string pTo;
+	public ushort fFlags;
+	public bool   fAnyOperationsAborted;
+	public IntPtr hNameMappings;
+	public string lpszProgressTitle;
 }

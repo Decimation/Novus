@@ -59,7 +59,7 @@ public class SetupTrace
 
 [TestFixture]
 [Parallelizable]
-public class Tests_FileTypes2
+public class Tests_FileTypes1
 {
 	public static object[] _rg =
 	{
@@ -125,7 +125,7 @@ public class Tests_FileTypes2
 [Parallelizable]
 public class Tests_UniSource
 {
-	private static object[] _rg = Tests_FileTypes2._rg;
+	private static object[] _rg = Tests_FileTypes1._rg;
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]

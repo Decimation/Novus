@@ -12,6 +12,7 @@ using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
+using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 
@@ -68,7 +69,8 @@ public static class FileSystem
 	/// <returns>The default path of the known folder.</returns>
 	/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 	///     could not be retrieved.</exception>
-	public static string GetPath(KnownFolder knownFolder) => GetPath(knownFolder, false);
+	public static string GetPath(KnownFolder knownFolder)
+		=> GetPath(knownFolder, false);
 
 	/// <summary>
 	/// Gets the current path to the specified known folder as currently configured. This does
@@ -100,39 +102,6 @@ public static class FileSystem
 	}
 
 	#endregion
-
-	/// <summary>
-	/// Expands environment variables and, if unqualified, locates the exe in the working directory
-	/// or the environment's path.
-	/// </summary>
-	/// <param name="f">The name of the executable file</param>
-	/// <returns>The fully-qualified path to the file</returns>
-	/// <exception cref="System.IO.FileNotFoundException">Raised when the exe was not found</exception>
-	public static string? FindInPath(string f)
-	{
-		f = Environment.ExpandEnvironmentVariables(f);
-
-		if (!File.Exists(f)) {
-			if (Path.GetDirectoryName(f) == String.Empty) {
-				var split = (Environment.GetEnvironmentVariable(PATH_ENV) ?? String.Empty)
-					.Split(PATH_DELIM);
-
-				// ReSharper disable once LoopCanBeConvertedToQuery
-				foreach (string test in split) {
-					string path = test.Trim();
-
-					if (!String.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, f))) {
-						return Path.GetFullPath(path);
-					}
-				}
-			}
-
-			return null;
-			// throw new FileNotFoundException(new FileNotFoundException().Message, f);
-		}
-
-		return Path.GetFullPath(f);
-	}
 
 	public static string GetRootDirectory()
 		=> Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
@@ -175,7 +144,42 @@ public static class FileSystem
 		return GetParent(Directory.GetParent(fi)!.FullName, --n);
 	}
 
-	public static string GetRandomName() => Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+	#region
+
+	public static string GetRandomName()
+		=> Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
+
+	public static string GetTempFileName(string? fn = null, string? ext = null)
+	{
+		string tmp = Path.GetTempFileName();
+
+		if (fn != null) {
+			var ext1 = Path.GetExtension(fn);
+
+			/*if (ext != null && ext1 != ext) {
+					fn = Path.ChangeExtension(fn, ext);
+				}*/
+			if (ext == null && ext1 != null) {
+				ext = ext1;
+			}
+
+			var tmp3 = Path.ChangeExtension(Path.Combine(Path.GetDirectoryName(tmp), fn), "tmp");
+			File.Move(tmp, tmp3, true);
+			tmp = tmp3;
+		}
+		else { }
+
+		if (ext != null) {
+			var tmp2 = Path.ChangeExtension(tmp, ext);
+
+			if (tmp2 != tmp) {
+				File.Move(tmp, tmp2, true);
+				tmp = tmp2;
+			}
+		}
+
+		return tmp;
+	}
 
 	public static string CreateTempFile(string fname, string[] data)
 	{
@@ -185,6 +189,23 @@ public static class FileSystem
 
 		return file;
 	}
+
+	public static Task<string> CreateRandomFileAsync(long cb, string? f = null)
+	{
+		return Task.Run(() =>
+		{
+			f ??= Path.GetTempFileName();
+			var s = File.OpenWrite(f);
+
+			for (long i = 0; i < cb; i++) {
+				s.WriteByte((byte) (i ^ cb));
+			}
+
+			return f;
+		});
+	}
+
+	#endregion
 
 	public static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
 	{
@@ -227,24 +248,88 @@ public static class FileSystem
 	/// </summary>
 	/// <param name="file">File location</param>
 	/// <returns>Size of the file, in bytes</returns>
-	public static long GetFileSize(string file) => new FileInfo(file).Length;
+	public static long GetFileSize(string file)
+		=> new FileInfo(file).Length;
 
-	public static Task<string> CreateRandomFileAsync(long cb, string? f = null)
+	public static bool Open(string s)
 	{
-		return Task.Run(() =>
+		var r = Open(s, out var p);
+		p?.Dispose();
+		return r;
+	}
+
+	public static bool Open(string s, out Process? p)
+	{
+		try {
+			p = Process.Start(new ProcessStartInfo
+			{
+				FileName        = s,
+				UseShellExecute = true
+			});
+			return true;
+		}
+		catch (Exception ex) {
+			// Handle any exceptions that might occur
+			Trace.WriteLine($"Error opening: {ex.Message}");
+			p = null;
+			return false;
+		}
+	}
+
+	public static bool SendFileToRecycleBin(string filePath)
+	{
+		if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
+			return false;
+
+		SHFILEOPSTRUCT fileOp = new SHFILEOPSTRUCT
 		{
-			f ??= Path.GetTempFileName();
-			var s = File.OpenWrite(f);
+			wFunc = Native.FO_DELETE,
+			pFrom = filePath + '\0', // The path should be null-terminated
+			// Set appropriate flags to enable Undo and avoid confirmation prompt
+			fFlags = Native.FOF_ALLOWUNDO | Native.FOF_NOCONFIRMATION
+		};
 
-			for (long i = 0; i < cb; i++) {
-				s.WriteByte((byte) (i ^ cb));
-			}
+		// Perform the operation
+		var result = Native.SHFileOperation(ref fileOp);
 
-			return f;
-		});
+		// Check if the operation was successful
+		return result;
 	}
 
 	#region Path
+
+	/// <summary>
+	/// Expands environment variables and, if unqualified, locates the exe in the working directory
+	/// or the environment's path.
+	/// </summary>
+	/// <param name="f">The name of the executable file</param>
+	/// <returns>The fully-qualified path to the file</returns>
+	/// <exception cref="System.IO.FileNotFoundException">Raised when the exe was not found</exception>
+	public static string? FindInPath(string f)
+	{
+		f = Environment.ExpandEnvironmentVariables(f);
+
+		if (!File.Exists(f)) {
+			if (Path.GetDirectoryName(f) == String.Empty) {
+				var split = (Environment.GetEnvironmentVariable(PATH_ENV) ?? String.Empty)
+					.Split(PATH_DELIM);
+
+				// ReSharper disable once LoopCanBeConvertedToQuery
+				foreach (string test in split) {
+					string path = test.Trim();
+
+					if (!String.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, f))) {
+						return Path.GetFullPath(path);
+					}
+				}
+			}
+
+			return null;
+			// throw new FileNotFoundException(new FileNotFoundException().Message, f);
+		}
+
+		return Path.GetFullPath(f);
+	}
 
 	public static string? FindExecutableLocation(string exe)
 	{
@@ -296,9 +381,9 @@ public static class FileSystem
 		return s;
 	}
 
-	public static string? SearchInPath(string s)
+	public static string? SearchInPath(string s, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		string[] path = GetEnvironmentPathDirectories();
+		string[] path = GetEnvironmentPathDirectories(t);
 
 		foreach (string directory in path) {
 			if (Directory.Exists(directory)) {
@@ -324,41 +409,37 @@ public static class FileSystem
 	/// </summary>
 	public const char PATH_DELIM = ';';
 
-	public static string[] GetEnvironmentPathDirectories() => GetEnvironmentPathDirectories(Target);
+	public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
+	{
+		return GetEnvironmentPath(t).Split(PATH_DELIM);
+	}
 
-	public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t)
-		=> GetEnvironmentPath(t).Split(PATH_DELIM);
-
-	public static string GetEnvironmentPath() => GetEnvironmentPath(Target);
-
-	public static string GetEnvironmentPath(EnvironmentVariableTarget t)
+	public static string GetEnvironmentPath(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
 		return Environment.GetEnvironmentVariable(PATH_ENV, t);
 	}
 
-	public static void SetEnvironmentPath(string s) => SetEnvironmentPath(s, Target);
-
-	public static void SetEnvironmentPath(string s, EnvironmentVariableTarget t)
+	public static void SetEnvironmentPath(string s, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
 		Environment.SetEnvironmentVariable(PATH_ENV, s, t);
 	}
 
 	/// <summary>
-	///     Removes <paramref name="location" /> from <see cref="GetEnvironmentPathDirectories()" />
+	///     Removes <paramref name="location" /> from <see cref="GetEnvironmentPathDirectories" />
 	/// </summary>
-	public static void RemoveFromPath(string location)
+	public static void RemoveFromPath(string location, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		string oldValue = GetEnvironmentPath();
+		string oldValue = GetEnvironmentPath(t);
 
-		SetEnvironmentPath(oldValue.Replace(PATH_DELIM + location, String.Empty));
+		SetEnvironmentPath(oldValue.Replace(PATH_DELIM + location, String.Empty), t);
 	}
 
 	/// <summary>
-	///     Determines whether <paramref name="location" /> is in <see cref="GetEnvironmentPathDirectories()" />
+	///     Determines whether <paramref name="location" /> is in <see cref="GetEnvironmentPathDirectories" />
 	/// </summary>
-	public static bool IsFolderInPath(string location)
+	public static bool IsFolderInPath(string location, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		return GetEnvironmentPathDirectories().Contains(location);
+		return GetEnvironmentPathDirectories(t).Contains(location);
 	}
 
 	#endregion
@@ -369,11 +450,6 @@ public static class FileSystem
 		var extension        = Path.GetExtension(filename);
 		return withoutExtension + append + extension;
 	}
-
-	/// <summary>
-	///     Environment variable target
-	/// </summary>
-	public static EnvironmentVariableTarget Target { get; set; } = EnvironmentVariableTarget.User;
 
 	public static string? SymbolPath
 		=> Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
@@ -386,38 +462,6 @@ public static class FileSystem
 
 		return principal.IsInRole(WindowsBuiltInRole.Administrator);
 
-	}
-
-	public static string GetTempFileName(string? fn = null, string? ext = null)
-	{
-		string tmp = Path.GetTempFileName();
-		
-		if (fn != null) {
-			var ext1 = Path.GetExtension(fn);
-
-			/*if (ext != null && ext1 != ext) {
-					fn = Path.ChangeExtension(fn, ext);
-				}*/
-			if (ext == null && ext1 != null) {
-				ext = ext1;
-			}
-
-			var tmp3 = Path.ChangeExtension(Path.Combine(Path.GetDirectoryName(tmp), fn), "tmp");
-			File.Move(tmp, tmp3, true);
-			tmp = tmp3;
-		}
-		else { }
-
-		if (ext != null) {
-			var tmp2 = Path.ChangeExtension(tmp, ext);
-
-			if (tmp2 != tmp) {
-				File.Move(tmp, tmp2, true);
-				tmp = tmp2;
-			}
-		}
-
-		return tmp;
 	}
 }
 

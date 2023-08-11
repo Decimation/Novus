@@ -123,6 +123,17 @@ public static unsafe partial class Native
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 	public static extern bool SetCurrentConsoleFontEx(nint hConsoleOutput, bool bMaximumWindow,
 	                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
+	[DllImport(KERNEL32_DLL)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool AllocConsole();
+
+	[DllImport(KERNEL32_DLL)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool FreeConsole();
+
+	[DllImport(KERNEL32_DLL)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool AttachConsole(int dwProcessId);
 
 	#endregion
 

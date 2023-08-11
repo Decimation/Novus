@@ -53,12 +53,12 @@ public sealed class UrlmonResolver : IFileTypeResolver
 	}
 
 	[DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-	private static extern int FindMimeFromData(nint pBC, [MA(UT.LPWStr)] string pwzUrl,
-	                                           [MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
-	                                           byte[] pBuffer, int cbSize,
-	                                           [MA(UT.LPWStr)] string pwzMimeProposed,
-	                                           MimeFromDataFlags dwMimeFlags, out nint ppwzMimeOut,
-	                                           int dwReserved);
+	public static extern int FindMimeFromData(nint pBC, [MA(UT.LPWStr)] string pwzUrl,
+	                                          [MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
+	                                          byte[] pBuffer, int cbSize,
+	                                          [MA(UT.LPWStr)] string pwzMimeProposed,
+	                                          MimeFromDataFlags dwMimeFlags, out nint ppwzMimeOut,
+	                                          int dwReserved);
 
 	/// <see cref="FindMimeFromData"/>
 	[Flags]

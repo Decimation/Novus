@@ -38,11 +38,12 @@ public readonly struct FileType : IEquatable<FileType>
 	public string MediaType { get; }
 
 	/// <summary>
-	/// First component of <see cref="MediaType"/>
+	/// Second component of <see cref="MediaType"/>
 	/// </summary>
 	public string Name { get; }
+
 	/// <summary>
-	/// Second component of <see cref="MediaType"/>
+	/// First component of <see cref="MediaType"/>
 	/// </summary>
 	public string Type { get; }
 
@@ -54,8 +55,8 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public FileType(byte[] mask, byte[] pattern, [MN] string mediaType)
 	{
-		Mask      = mask;
-		Pattern   = pattern;
+		Mask    = mask;
+		Pattern = pattern;
 
 		MediaType = mediaType;
 
@@ -96,22 +97,22 @@ public readonly struct FileType : IEquatable<FileType>
 	{
 		var jNode  = JsonNode.Parse(ER.File_types);
 		var jArray = jNode.AsArray();
-		var rg     = new List<FileType>();
+		var rg     = new FileType[jArray.Count];
 
-		foreach (var r in jArray) {
+		for (int i = 0; i < jArray.Count; i++) {
+			var r = jArray[i];
 			var o = r.AsObject();
 
 			var mask      = o[ER.K_Mask].ToString();
 			var sig       = o[ER.K_Pattern].ToString();
 			var mediaType = o[ER.K_Name].ToString();
 
-			var ft = new FileType(M.ReadByteArrayString(mask), M.ReadByteArrayString(sig), mediaType)
+			var ft = new FileType(M.ReadAOBString(mask), M.ReadAOBString(sig), mediaType)
 				{ };
-
-			rg.Add(ft);
+			rg[i] = ft;
 		}
 
-		return rg.ToArray();
+		return rg;
 	}
 
 	public static IEnumerable<FileType> Find(string name)
@@ -133,7 +134,7 @@ public readonly struct FileType : IEquatable<FileType>
 
 	#endregion
 
-	#region 
+	#region
 
 	public const int RSRC_HEADER_LEN = 1445;
 

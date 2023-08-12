@@ -18,13 +18,13 @@ public static class BitCalculator
 	 * https://github.com/rubendal/BitStream
 	 */
 	public static Bit GetBit<T>(this T n, T index)
-		where T : IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>, INumber<T>
+		where T : INumber<T>, IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>
 	{
 		return Bit.Create(n >> index);
 	}
 
 	public static T CircularShift<T>(this T n, T bits, bool leftShift)
-		where T : IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>, INumber<T>
+		where T : INumber<T>, IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>
 	{
 		if (leftShift) {
 			n = n << bits | n >> T.CreateChecked(M.SizeOf<T>() * BITS_PER_BYTE) - bits;

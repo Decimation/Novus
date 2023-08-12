@@ -8,11 +8,11 @@ namespace Novus.Numerics;
 [Serializable]
 public struct Bit
 {
-	private byte value;
+	private byte m_value;
 
 	private Bit(int value)
 	{
-		this.value = (byte) (value & 1);
+		this.m_value = (byte) (value & 1);
 	}
 
 	public static Bit Create<T>(T t) where T : IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>, INumber<T>
@@ -32,51 +32,51 @@ public struct Bit
 
 	public static implicit operator int(Bit bit)
 	{
-		return bit.value;
+		return bit.m_value;
 	}
 
 	public static implicit operator byte(Bit bit)
 	{
-		return (byte) bit.value;
+		return (byte) bit.m_value;
 	}
 
 	public static implicit operator bool(Bit bit)
 	{
-		return bit.value == 1;
+		return bit.m_value == 1;
 	}
 
 	public static Bit operator &(Bit x, Bit y)
 	{
-		return x.value & y.value;
+		return x.m_value & y.m_value;
 	}
 
 	public static Bit operator |(Bit x, Bit y)
 	{
-		return x.value | y.value;
+		return x.m_value | y.m_value;
 	}
 
 	public static Bit operator ^(Bit x, Bit y)
 	{
-		return x.value ^ y.value;
+		return x.m_value ^ y.m_value;
 	}
 
 	public static Bit operator ~(Bit bit)
 	{
-		return (~(bit.value) & 1);
+		return (~(bit.m_value) & 1);
 	}
 
 	public static implicit operator string(Bit bit)
 	{
-		return bit.value.ToString();
+		return bit.m_value.ToString();
 	}
 
 	public int AsInt()
 	{
-		return this.value;
+		return this.m_value;
 	}
 
 	public bool AsBool()
 	{
-		return this.value == 1;
+		return this.m_value == 1;
 	}
 }

@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Flurl.Http;
+using Kantan.Text;
 using Novus;
 using Novus.FileTypes;
 using Novus.FileTypes.Impl;
@@ -1495,13 +1496,71 @@ public class Tests_Streams
 		int j = 0;
 
 		for (int i = 0; i < bs.Length * BitCalculator.BITS_PER_BYTE; i++) {
-			sb2[unchecked(i/ BitCalculator.BITS_PER_BYTE)] += bs.ReadBit() ? 1 : 0;
+			sb2[unchecked(i / BitCalculator.BITS_PER_BYTE)] += bs.ReadBit() ? 1 : 0;
 
 		}
 
 		for (int i = 0; i < rg.Length; i++) {
 			Assert.AreEqual(sb[i], sb2[i]);
 		}
+	}
+
+	[Test]
+	public unsafe void Test3()
+	{
+		var ms = new MyStruct() { a = 321, b = 0xBEEF};
+
+		var bs = new BitStream(
+			new UnmanagedMemoryStream(Mem.AddressOf(ref ms).ToPointer<byte>(), Mem.SizeOf<MyStruct>()), true);
+
+		Assert.AreEqual(bs.Read<MyStruct>(), ms);
+		var ms2 = new MyStruct() { a = Random.Shared.Next(), b = Random.Shared.Next() };
+		bs.ResetPosition();
+		bs.Write(ms2);
+		bs.ResetPosition();
+		Assert.AreEqual(bs.Read<MyStruct>(), ms2);
+	}
+
+	[Test]
+	public unsafe void Test4()
+	{
+		/*byte   a = (byte)Random.Shared.Next();
+		sbyte  b = (sbyte)Random.Shared.Next();
+		short  c = (short)Random.Shared.Next();
+		ushort d = (ushort)Random.Shared.Next();*/
+		int    e = (int)Random.Shared.Next();
+		/*uint   f = (uint)Random.Shared.Next();
+		long   g = Random.Shared.Next();
+		ulong    h = (ulong) Random.Shared.Next();*/
+		
+		var bs = new BitStream(
+			new UnmanagedMemoryStream(Mem.AddressOf(ref e).ToPointer<byte>(), Mem.SizeOf<int>()), true);
+
+		Assert.AreEqual(bs.Read<int>(), e);
+		bs.ResetPosition();
+		var s2 = Random.Shared.Next();
+		bs.Write(s2);
+		bs.ResetPosition();
+		Assert.AreEqual(bs.Read<int>(), s2);
+
+	}
+
+	[Test]
+	public unsafe void Test5()
+	{
+		var s = Strings.CreateRandom(10);
+
+		var bs = new BitStream(
+			new UnmanagedMemoryStream(Mem.AddressOf(ref s).ToPointer<byte>(), Mem.SizeOf<string>()), true);
+
+		Assert.AreEqual(bs.Read<string>(), s);
+		bs.ResetPosition();
+		var s2 = "foo";
+		bs.Write(s2);
+		bs.ResetPosition();
+
+		Assert.AreEqual(bs.Read<string>(), s2);
+
 	}
 }
 

@@ -1,6 +1,10 @@
-﻿using System.Text;
+﻿using System.Runtime.InteropServices;
+using System.Text;
 using static System.Net.WebRequestMethods;
+using static Novus.Numerics.BitCalculator;
 using File = System.IO.File;
+
+// ReSharper disable InconsistentNaming
 
 namespace Novus.Numerics;
 
@@ -13,8 +17,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 	private long     m_offset;
 	private int      m_bit;
 	private bool     m_msb;
-	private Stream   m_stream;
-	private Encoding m_encoding;
+	public  Stream   Stream   { get; private set; }
+	public  Encoding Encoding { get; set; }
 
 	/// <summary>
 	/// Allows the <see cref="BitStream"/> auto increase in size when needed
@@ -26,7 +30,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public long Length
 	{
-		get { return m_stream.Length; }
+		get => Stream.Length;
 	}
 
 	/// <summary>
@@ -34,7 +38,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public long BitPosition
 	{
-		get { return m_bit; }
+		get => m_bit;
 	}
 
 	/// <summary>
@@ -54,12 +58,12 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="MSB">true if Most Significant Bit will be used, if false LSB will be used</param>
 	public BitStream(Stream stream, bool MSB = false)
 	{
-		m_stream = new MemoryStream();
-		stream.CopyTo(m_stream);
+		Stream = new MemoryStream();
+		stream.CopyTo(Stream);
 		m_msb              = MSB;
 		m_offset           = 0;
 		m_bit              = 0;
-		m_encoding         = Encoding.UTF8;
+		Encoding           = Encoding.UTF8;
 		AutoIncreaseStream = false;
 	}
 
@@ -71,12 +75,12 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="MSB">true if Most Significant Bit will be used, if false LSB will be used</param>
 	public BitStream(Stream stream, Encoding encoding, bool MSB = false)
 	{
-		m_stream = new MemoryStream();
-		stream.CopyTo(m_stream);
+		Stream = new MemoryStream();
+		stream.CopyTo(Stream);
 		m_msb              = MSB;
 		m_offset           = 0;
 		m_bit              = 0;
-		m_encoding         = encoding;
+		Encoding           = encoding;
 		AutoIncreaseStream = false;
 	}
 
@@ -87,13 +91,13 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="MSB">true if Most Significant Bit will be used, if false LSB will be used</param>
 	public BitStream(byte[] buffer, bool MSB = false)
 	{
-		m_stream = new MemoryStream();
+		Stream = new MemoryStream();
 		var m = new MemoryStream(buffer);
-		m.CopyTo(m_stream);
+		m.CopyTo(Stream);
 		m_msb              = MSB;
 		m_offset           = 0;
 		m_bit              = 0;
-		m_encoding         = Encoding.UTF8;
+		Encoding           = Encoding.UTF8;
 		AutoIncreaseStream = false;
 	}
 
@@ -105,13 +109,13 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="MSB">true if Most Significant Bit will be used, if false LSB will be used</param>
 	public BitStream(byte[] buffer, Encoding encoding, bool MSB = false)
 	{
-		m_stream = new MemoryStream();
+		Stream = new MemoryStream();
 		var m = new MemoryStream(buffer);
-		m.CopyTo(m_stream);
+		m.CopyTo(Stream);
 		m_msb              = MSB;
 		m_offset           = 0;
 		m_bit              = 0;
-		m_encoding         = encoding;
+		Encoding           = encoding;
 		AutoIncreaseStream = false;
 	}
 
@@ -136,20 +140,14 @@ public class BitStream : IDisposable, IAsyncDisposable
 		return new BitStream(buffer, encoding, msb);
 	}
 
-	/// <summary>
-	/// Creates a <see cref="BitStream"/> using a file path, throws IOException if file doesn't exists or path is not a file
-	/// </summary>
-	/// <param name="path">File path</param>
-	/// <param name="encoding">Encoding of the file, if null default <see cref="Encoding"/> will be used</param>
-	/// <returns></returns>
 	public static BitStream CreateFromFile(string path, Encoding encoding = null)
 	{
 		if (!File.Exists(path)) {
-			throw new IOException("File doesn't exists!");
+			throw new IOException("File doesn't exist");
 		}
 
 		if (File.GetAttributes(path) == FileAttributes.Directory) {
-			throw new IOException("Path is a directory!");
+			throw new IOException("Path is a directory");
 		}
 
 		if (encoding == null) {
@@ -179,14 +177,12 @@ public class BitStream : IDisposable, IAsyncDisposable
 		//set {
 		//    Seek(offset, bit);
 		//}
-		private set { }
+		// private set { }
 	}
 
-	/// <summary>
-	/// Seek through the stream selecting the offset and bit using <see cref="SeekOrigin.Begin"/>
-	/// </summary>
-	/// <param name="offset">offset on the stream</param>
-	/// <param name="bit">bit position</param>
+	public void ResetPosition()
+		=> Seek(0, 0);
+
 	public void Seek(long offset, int bit)
 	{
 		if (offset > Length) {
@@ -201,16 +197,16 @@ public class BitStream : IDisposable, IAsyncDisposable
 			}
 		}
 
-		if (bit >= 8) {
-			int n = bit / 8;
+		if (bit >= BITS_PER_BYTE) {
+			int n = bit / BITS_PER_BYTE;
 			m_offset += n;
-			m_bit    =  bit % 8;
+			m_bit    =  bit % BITS_PER_BYTE;
 		}
 		else {
 			m_bit = bit;
 		}
 
-		m_stream.Seek(offset, SeekOrigin.Begin);
+		Stream.Seek(offset, SeekOrigin.Begin);
 	}
 
 	/// <summary>
@@ -218,7 +214,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void AdvanceBit()
 	{
-		m_bit = (m_bit + 1) % 8;
+		m_bit = (m_bit + 1) % BITS_PER_BYTE;
 
 		if (m_bit == 0) {
 			m_offset++;
@@ -241,44 +237,13 @@ public class BitStream : IDisposable, IAsyncDisposable
 		}
 	}
 
-	/// <summary>
-	/// Get the edited stream
-	/// </summary>
-	/// <returns>Modified stream</returns>
-	public Stream GetStream()
+	public byte[] ReadToEnd()
 	{
-		return m_stream;
-	}
-
-	/// <summary>
-	/// Get the stream data as a byte[]
-	/// </summary>
-	/// <returns>Stream as byte[]</returns>
-	public byte[] GetStreamData()
-	{
-		m_stream.Seek(0, SeekOrigin.Begin);
+		Stream.Seek(0, SeekOrigin.Begin);
 		var s = new MemoryStream();
-		m_stream.CopyTo(s);
+		Stream.CopyTo(s);
 		Seek(m_offset, m_bit);
 		return s.ToArray();
-	}
-
-	/// <summary>
-	/// Get the <see cref="Encoding"/> used for chars and strings
-	/// </summary>
-	/// <returns><see cref="Encoding"/> used</returns>
-	public Encoding GetEncoding()
-	{
-		return m_encoding;
-	}
-
-	/// <summary>
-	/// Set the <see cref="Encoding"/> that will be used for chars and strings
-	/// </summary>
-	/// <param name="encoding"><see cref="Encoding"/> to use</param>
-	public void SetEncoding(Encoding encoding)
-	{
-		m_encoding = encoding;
 	}
 
 	/// <summary>
@@ -288,8 +253,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <returns>return true if stream changed length, false if it wasn't possible</returns>
 	public bool ChangeLength(long length)
 	{
-		if (m_stream.CanSeek && m_stream.CanWrite) {
-			m_stream.SetLength(length);
+		if (Stream.CanSeek && Stream.CanWrite) {
+			Stream.SetLength(length);
 			return true;
 		}
 		else {
@@ -304,26 +269,26 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="length">Length of the new <see cref="BitStream"/></param>
 	public void CutStream(long offset, long length)
 	{
-		byte[] data   = GetStreamData();
+		byte[] data   = ReadToEnd();
 		byte[] buffer = new byte[length];
 		Array.Copy(data, offset, buffer, 0, length);
-		m_stream = new MemoryStream();
+		Stream = new MemoryStream();
 		var m = new MemoryStream(buffer);
-		m_stream = new MemoryStream();
-		m.CopyTo(m_stream);
+		Stream = new MemoryStream();
+		m.CopyTo(Stream);
 		m_offset = 0;
 		m_bit    = 0;
 	}
 
 	/// <summary>
-	/// Copies the current <see cref="BitStream"/> buffer to another <see cref="Stream"/>
+	/// Copies the current <see cref="BitStream"/> buffer to another <see cref="System.IO.Stream"/>
 	/// </summary>
-	/// <param name="stream"><see cref="Stream"/> to copy buffer</param>
+	/// <param name="stream"><see cref="System.IO.Stream"/> to copy buffer</param>
 	public void CopyStreamTo(Stream stream)
 	{
 		Seek(0, 0);
-		stream.SetLength(m_stream.Length);
-		m_stream.CopyTo(stream);
+		stream.SetLength(Stream.Length);
+		Stream.CopyTo(stream);
 	}
 
 	/// <summary>
@@ -333,8 +298,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 	public void CopyStreamTo(BitStream stream)
 	{
 		Seek(0, 0);
-		stream.ChangeLength(m_stream.Length);
-		m_stream.CopyTo(stream.m_stream);
+		stream.ChangeLength(Stream.Length);
+		Stream.CopyTo(stream.Stream);
 		stream.Seek(0, 0);
 	}
 
@@ -344,7 +309,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="filename">File to write data, if it exists it will be overwritten</param>
 	public void SaveStreamAsFile(string filename)
 	{
-		File.WriteAllBytes(filename, GetStreamData());
+		File.WriteAllBytes(filename, ReadToEnd());
 	}
 
 	/// <summary>
@@ -353,7 +318,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <returns><see cref="MemoryStream"/> containing current <see cref="BitStream"/> data</returns>
 	public MemoryStream CloneAsMemoryStream()
 	{
-		return new MemoryStream(GetStreamData());
+		return new MemoryStream(ReadToEnd());
 	}
 
 	/// <summary>
@@ -362,9 +327,9 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <returns><see cref="BufferedStream"/> containing current <see cref="BitStream"/> data</returns>
 	public BufferedStream CloneAsBufferedStream()
 	{
-		var bs = new BufferedStream(m_stream);
+		var bs = new BufferedStream(Stream);
 		var sw = new StreamWriter(bs);
-		sw.Write(GetStreamData());
+		sw.Write(ReadToEnd());
 		bs.Seek(0, SeekOrigin.Begin);
 		return bs;
 	}
@@ -378,7 +343,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	{
 		long o = m_offset;
 		int  b = m_bit;
-		b = (b + 1) % 8;
+		b = (b + 1) % BITS_PER_BYTE;
 
 		if (b == 0) {
 			o++;
@@ -401,18 +366,18 @@ public class BitStream : IDisposable, IAsyncDisposable
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
-		m_stream.Seek(m_offset, SeekOrigin.Begin);
+		Stream.Seek(m_offset, SeekOrigin.Begin);
 		byte value;
 
 		if (!m_msb) {
-			value = (byte) (m_stream.ReadByte() >> m_bit & 1);
+			value = (byte) (Stream.ReadByte() >> m_bit & 1);
 		}
 		else {
-			value = (byte) (m_stream.ReadByte() >> 7 - m_bit & 1);
+			value = (byte) (Stream.ReadByte() >> 7 - m_bit & 1);
 		}
 
 		AdvanceBit();
-		m_stream.Seek(m_offset, SeekOrigin.Begin);
+		Stream.Seek(m_offset, SeekOrigin.Begin);
 		return value;
 	}
 
@@ -438,9 +403,9 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="data">Bit to write, it data is not 0 or 1 data = data & 1</param>
 	public void WriteBit(Bit data)
 	{
-		m_stream.Seek(m_offset, SeekOrigin.Begin);
-		byte value = (byte) m_stream.ReadByte();
-		m_stream.Seek(m_offset, SeekOrigin.Begin);
+		Stream.Seek(m_offset, SeekOrigin.Begin);
+		byte value = (byte) Stream.ReadByte();
+		Stream.Seek(m_offset, SeekOrigin.Begin);
 
 		if (!m_msb) {
 			value &= (byte) ~(1 << m_bit);
@@ -452,12 +417,12 @@ public class BitStream : IDisposable, IAsyncDisposable
 		}
 
 		if (ValidPosition) {
-			m_stream.WriteByte(value);
+			Stream.WriteByte(value);
 		}
 		else {
 			if (AutoIncreaseStream) {
 				if (ChangeLength(Length + (m_offset - Length) + 1)) {
-					m_stream.WriteByte(value);
+					Stream.WriteByte(value);
 				}
 				else {
 					throw new IOException("Cannot write in an offset bigger than the length of the stream");
@@ -469,14 +434,14 @@ public class BitStream : IDisposable, IAsyncDisposable
 		}
 
 		AdvanceBit();
-		m_stream.Seek(m_offset, SeekOrigin.Begin);
+		Stream.Seek(m_offset, SeekOrigin.Begin);
 	}
 
 	/// <summary>
 	/// Write a sequence of bits into the stream
 	/// </summary>
 	/// <param name="bits"><see cref="Bit"/>[] to write</param>
-	public void WriteBits(ICollection<Bit> bits)
+	public void WriteBits(IList<Bit> bits)
 	{
 		foreach (Bit b in bits) {
 			WriteBit(b);
@@ -488,7 +453,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	/// <param name="bits"><see cref="Bit"/>[] to write</param>
 	/// <param name="length">Number of bits to write</param>
-	public void WriteBits(ICollection<Bit> bits, int length)
+	public void WriteBits(IList<Bit> bits, int length)
 	{
 		var b = new Bit[bits.Count];
 		bits.CopyTo(b, 0);
@@ -524,7 +489,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	public byte[] ReadBytes(long length, bool isBytes = false)
 	{
 		if (isBytes) {
-			length *= 8;
+			length *= BITS_PER_BYTE;
 		}
 
 		var data = new List<byte>();
@@ -532,7 +497,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 		for (long i = 0; i < length;) {
 			byte value = 0;
 
-			for (int p = 0; p < 8 && i < length; i++, p++) {
+			for (int p = 0; p < BITS_PER_BYTE && i < length; i++, p++) {
 				if (!m_msb) {
 					value |= (byte) (ReadBit() << p);
 				}
@@ -547,12 +512,39 @@ public class BitStream : IDisposable, IAsyncDisposable
 		return data.ToArray();
 	}
 
+	public T Read<T>()
+	{
+		var          size  = M.SizeOf<T>();
+		var          bsize = size * BITS_PER_BYTE;
+		T            val   = default;
+		Memory<byte> rg    = ReadBytes(size, true);
+		using var    mh    = rg.Pin();
+		var          ptr   = M.AddressOf(ref val).Cast();
+
+		unsafe {
+			NativeMemory.Copy(mh.Pointer, (void*) ptr.ToPointer(), (nuint) size);
+
+		}
+
+		return val;
+	}
+
+	public void Write<T>(T t)
+	{
+		var size  = M.SizeOf<T>();
+		var bsize = size * BITS_PER_BYTE;
+		var rg    = new byte[size];
+		var ptr   = M.AddressOf(ref t).Cast();
+		ptr.Copy(rg);
+		WriteBytes(rg, rg.Length, true);
+	}
+
 	/// <summary>
 	/// Read a byte based on the current stream and bit position
 	/// </summary>
 	public byte ReadByte()
 	{
-		return ReadBytes(8)[0];
+		return ReadBytes(BITS_PER_BYTE)[0];
 	}
 
 	/// <summary>
@@ -564,8 +556,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 			bits = 0;
 		}
 
-		if (bits > 8) {
-			bits = 8;
+		if (bits > BITS_PER_BYTE) {
+			bits = BITS_PER_BYTE;
 		}
 
 		return ReadBytes(bits)[0];
@@ -576,7 +568,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public sbyte ReadSByte()
 	{
-		return (sbyte) ReadBytes(8)[0];
+		return (sbyte) ReadBytes(BITS_PER_BYTE)[0];
 	}
 
 	/// <summary>
@@ -588,8 +580,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 			bits = 0;
 		}
 
-		if (bits > 8) {
-			bits = 8;
+		if (bits > BITS_PER_BYTE) {
+			bits = BITS_PER_BYTE;
 		}
 
 		return (sbyte) ReadBytes(bits)[0];
@@ -600,7 +592,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public bool ReadBool()
 	{
-		return ReadBytes(8)[0] == 0 ? false : true;
+		return ReadBytes(BITS_PER_BYTE)[0] == 0 ? false : true;
 	}
 
 	/// <summary>
@@ -608,7 +600,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public char ReadChar()
 	{
-		return m_encoding.GetChars(ReadBytes(m_encoding.GetMaxByteCount(1) * 8))[0];
+		return Encoding.GetChars(ReadBytes(Encoding.GetMaxByteCount(1) * BITS_PER_BYTE))[0];
 	}
 
 	/// <summary>
@@ -617,8 +609,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="length">Length of the string to read</param>
 	public string ReadString(int length)
 	{
-		int bitsPerChar = m_encoding.GetByteCount(" ") * 8;
-		return m_encoding.GetString(ReadBytes(bitsPerChar * length));
+		int bitsPerChar = Encoding.GetByteCount(" ") * BITS_PER_BYTE;
+		return Encoding.GetString(ReadBytes(bitsPerChar * length));
 	}
 
 	/// <summary>
@@ -656,7 +648,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	public Int48 ReadInt48()
 	{
 		byte[] bytes = ReadBytes(48);
-		Array.Resize(ref bytes, 8);
+		Array.Resize(ref bytes, BITS_PER_BYTE);
 		Int48 value = BitConverter.ToInt64(bytes, 0);
 		return value;
 	}
@@ -705,7 +697,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	public UInt48 ReadUInt48()
 	{
 		byte[] bytes = ReadBytes(48);
-		Array.Resize(ref bytes, 8);
+		Array.Resize(ref bytes, BITS_PER_BYTE);
 		UInt48 value = BitConverter.ToUInt64(bytes, 0);
 		return value;
 	}
@@ -732,7 +724,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	public void WriteBytes(byte[] data, long length, bool isBytes = false)
 	{
 		if (isBytes) {
-			length *= 8;
+			length *= BITS_PER_BYTE;
 		}
 
 		int position = 0;
@@ -740,7 +732,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 		for (long i = 0; i < length;) {
 			byte value = 0;
 
-			for (int p = 0; p < 8 && i < length; i++, p++) {
+			for (int p = 0; p < BITS_PER_BYTE && i < length; i++, p++) {
 				if (!m_msb) {
 					value = (byte) (data[position] >> p & 1);
 				}
@@ -760,7 +752,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteByte(byte value)
 	{
-		WriteBytes(new byte[] { value }, 8);
+		WriteBytes(new byte[] { value }, BITS_PER_BYTE);
 	}
 
 	/// <summary>
@@ -772,8 +764,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 			bits = 0;
 		}
 
-		if (bits > 8) {
-			bits = 8;
+		if (bits > BITS_PER_BYTE) {
+			bits = BITS_PER_BYTE;
 		}
 
 		WriteBytes(new byte[] { value }, bits);
@@ -784,7 +776,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteSByte(sbyte value)
 	{
-		WriteBytes(new byte[] { (byte) value }, 8);
+		WriteBytes(new byte[] { (byte) value }, BITS_PER_BYTE);
 	}
 
 	/// <summary>
@@ -796,8 +788,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 			bits = 0;
 		}
 
-		if (bits > 8) {
-			bits = 8;
+		if (bits > BITS_PER_BYTE) {
+			bits = BITS_PER_BYTE;
 		}
 
 		WriteBytes(new byte[] { (byte) value }, bits);
@@ -808,7 +800,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteBool(bool value)
 	{
-		WriteBytes(new byte[] { value ? (byte) 1 : (byte) 0 }, 8);
+		WriteBytes(new byte[] { value ? (byte) 1 : (byte) 0 }, BITS_PER_BYTE);
 	}
 
 	/// <summary>
@@ -816,8 +808,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteChar(char value)
 	{
-		byte[] bytes = m_encoding.GetBytes(new char[] { value }, 0, 1);
-		WriteBytes(bytes, bytes.Length * 8);
+		byte[] bytes = Encoding.GetBytes(new char[] { value }, 0, 1);
+		WriteBytes(bytes, bytes.Length * BITS_PER_BYTE);
 	}
 
 	/// <summary>
@@ -825,8 +817,8 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteString(string value)
 	{
-		byte[] bytes = m_encoding.GetBytes(value);
-		WriteBytes(bytes, bytes.Length * 8);
+		byte[] bytes = Encoding.GetBytes(value);
+		WriteBytes(bytes, bytes.Length * BITS_PER_BYTE);
 	}
 
 	/// <summary>
@@ -920,14 +912,14 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="leftShift">true to left shift, false to right shift</param>
 	public void BitwiseShift(int bits, bool leftShift)
 	{
-		if (!ValidPositionWhen(8)) {
+		if (!ValidPositionWhen(BITS_PER_BYTE)) {
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
 		Seek(m_offset, 0);
 
 		if (bits != 0 && bits <= 7) {
-			byte value = (byte) m_stream.ReadByte();
+			byte value = (byte) Stream.ReadByte();
 
 			if (leftShift) {
 				value = (byte) (value << bits);
@@ -937,7 +929,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 			}
 
 			Seek(m_offset, 0);
-			m_stream.WriteByte(value);
+			Stream.WriteByte(value);
 		}
 
 		m_bit = 0;
@@ -951,7 +943,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="leftShift">true to left shift, false to right shift</param>
 	public void BitwiseShiftOnBit(int bits, bool leftShift)
 	{
-		if (!ValidPositionWhen(8)) {
+		if (!ValidPositionWhen(BITS_PER_BYTE)) {
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
@@ -982,24 +974,24 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="leftShift">true to left shift, false to right shift</param>
 	public void CircularShift(int bits, bool leftShift)
 	{
-		if (!ValidPositionWhen(8)) {
+		if (!ValidPositionWhen(BITS_PER_BYTE)) {
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
 		Seek(m_offset, 0);
 
 		if (bits != 0 && bits <= 7) {
-			byte value = (byte) m_stream.ReadByte();
+			byte value = (byte) Stream.ReadByte();
 
 			if (leftShift) {
-				value = (byte) (value << bits | value >> 8 - bits);
+				value = (byte) (value << bits | value >> BITS_PER_BYTE - bits);
 			}
 			else {
-				value = (byte) (value >> bits | value << 8 - bits);
+				value = (byte) (value >> bits | value << BITS_PER_BYTE - bits);
 			}
 
 			Seek(m_offset, 0);
-			m_stream.WriteByte(value);
+			Stream.WriteByte(value);
 		}
 
 		m_bit = 0;
@@ -1013,7 +1005,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="leftShift">true to left shift, false to right shift</param>
 	public void CircularShiftOnBit(int bits, bool leftShift)
 	{
-		if (!ValidPositionWhen(8)) {
+		if (!ValidPositionWhen(BITS_PER_BYTE)) {
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
@@ -1023,10 +1015,10 @@ public class BitStream : IDisposable, IAsyncDisposable
 			byte value = ReadByte();
 
 			if (leftShift) {
-				value = (byte) (value << bits | value >> 8 - bits);
+				value = (byte) (value << bits | value >> BITS_PER_BYTE - bits);
 			}
 			else {
-				value = (byte) (value >> bits | value << 8 - bits);
+				value = (byte) (value >> bits | value << BITS_PER_BYTE - bits);
 			}
 
 			m_offset--;
@@ -1047,7 +1039,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="x">Byte value to apply and</param>
 	public void And(byte x)
 	{
-		if (!ValidPositionWhen(8)) {
+		if (!ValidPositionWhen(BITS_PER_BYTE)) {
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
@@ -1064,7 +1056,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="x">Byte value to apply or</param>
 	public void Or(byte x)
 	{
-		if (!ValidPositionWhen(8)) {
+		if (!ValidPositionWhen(BITS_PER_BYTE)) {
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
@@ -1081,7 +1073,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <param name="x">Byte value to apply xor</param>
 	public void Xor(byte x)
 	{
-		if (!ValidPositionWhen(8)) {
+		if (!ValidPositionWhen(BITS_PER_BYTE)) {
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
@@ -1097,7 +1089,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void Not()
 	{
-		if (!ValidPositionWhen(8)) {
+		if (!ValidPositionWhen(BITS_PER_BYTE)) {
 			throw new IOException("Cannot read in an offset bigger than the length of the stream");
 		}
 
@@ -1191,13 +1183,13 @@ public class BitStream : IDisposable, IAsyncDisposable
 
 	public void Dispose()
 	{
-		m_stream?.Dispose();
+		Stream?.Dispose();
 	}
 
 	public async ValueTask DisposeAsync()
 	{
-		if (m_stream != null) {
-			await m_stream.DisposeAsync();
+		if (Stream != null) {
+			await Stream.DisposeAsync();
 		}
 	}
 }

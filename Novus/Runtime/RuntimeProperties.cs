@@ -15,6 +15,7 @@ using Novus.Runtime.VM;
 using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
 using Novus.Utilities;
+using Novus.Numerics;
 
 // ReSharper disable UnusedVariable
 

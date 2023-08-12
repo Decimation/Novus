@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Numerics;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -16,6 +17,7 @@ using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Kantan.Text;
 using Novus.Memory.Allocation;
+using Novus.Numerics;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
@@ -104,7 +106,8 @@ public static unsafe class Mem
 	///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
 	/// </summary>
 	/// <param name="name">Field name</param>
-	public static int OffsetOf<T>(string name) => OffsetOf(typeof(T), name);
+	public static int OffsetOf<T>(string name)
+		=> OffsetOf(typeof(T), name);
 
 	/// <summary>
 	///     Returns the offset of the field <paramref name="name" /> within the type <paramref name="t" />.
@@ -142,12 +145,14 @@ public static unsafe class Mem
 
 	#region CRT
 
-	public static nuint _strlen(Pointer p) => Native.strlen(p.ToPointer());
+	public static nuint _strlen(Pointer p)
+		=> Native.strlen(p.ToPointer());
 
 	/// <summary>
 	/// Size of native runtime (e.g., <see cref="NativeMemory"/>) allocations
 	/// </summary>
-	public static nuint _msize(Pointer p) => Native._msize(p.ToPointer());
+	public static nuint _msize(Pointer p)
+		=> Native._msize(p.ToPointer());
 
 	#endregion
 
@@ -185,13 +190,15 @@ public static unsafe class Mem
 	/// <summary>
 	///     <paramref name="obj" /> will be *temporarily* pinned while action is being invoked
 	/// </summary>
-	public static void InvokeWhilePinned(object obj, Action<object> action) => PinImpl(obj, action);
+	public static void InvokeWhilePinned(object obj, Action<object> action)
+		=> PinImpl(obj, action);
 
 	/// <summary>
 	///     Used for unsafe pinning of arbitrary objects.
 	///     This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
 	/// </summary>
-	public static PinningHelper GetPinningHelper(object value) => U.As<PinningHelper>(value);
+	public static PinningHelper GetPinningHelper(object value)
+		=> U.As<PinningHelper>(value);
 
 	public static void Pin(object obj)
 	{
@@ -244,9 +251,11 @@ public static unsafe class Mem
 
 	#region Cast
 
-	public static ref T ref_cast<T>(in T t) => ref U.AsRef(in t);
+	public static ref T ref_cast<T>(in T t)
+		=> ref U.AsRef(in t);
 
-	public static object as_cast(object t) => as_cast<object, object>(t);
+	public static object as_cast(object t)
+		=> as_cast<object, object>(t);
 
 	/// <summary>
 	/// Shortcut to <see cref="Unsafe.As{T,T}"/>
@@ -521,14 +530,17 @@ public static unsafe class Mem
 		return t2;
 	}
 
-	public static void Copy(Pointer src, int cb, Pointer dest) => dest.WriteAll(src.ToArray(cb));
+	public static void Copy(Pointer src, int cb, Pointer dest)
+		=> dest.WriteAll(src.ToArray(cb));
 
 	public static void Copy(Pointer src, int startIndex, int cb, Pointer dest)
 		=> dest.WriteAll(src.ToArray(startIndex, cb));
 
-	public static byte[] Copy(Pointer src, int startIndex, int cb) => src.ToArray(startIndex, cb);
+	public static byte[] Copy(Pointer src, int startIndex, int cb)
+		=> src.ToArray(startIndex, cb);
 
-	public static byte[] Copy(Pointer src, int cb) => src.ToArray(cb);
+	public static byte[] Copy(Pointer src, int cb)
+		=> src.ToArray(cb);
 
 	#endregion
 
@@ -559,7 +571,8 @@ public static unsafe class Mem
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
 	/// </summary>
-	public static int SizeOf<T>() => U.SizeOf<T>();
+	public static int SizeOf<T>()
+		=> U.SizeOf<T>();
 
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
@@ -660,7 +673,8 @@ public static unsafe class Mem
 	///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 	/// </remarks>
 	/// <returns>The size of the type in heap memory, in bytes</returns>
-	public static int HeapSizeOf<T>(T value) where T : class => HeapSizeOfInternal(value);
+	public static int HeapSizeOf<T>(T value) where T : class
+		=> HeapSizeOfInternal(value);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static int HeapSizeOfInternal<T>(T value)
@@ -813,11 +827,13 @@ public static unsafe class Mem
 		return AddressOfHeapInternal(value, OffsetOptions.Fields);
 	}
 
-	public static Pointer AddressOfData2<T>(in T value) => AddressOfData(ref ref_cast(in value));
+	public static Pointer AddressOfData2<T>(in T value)
+		=> AddressOfData(ref ref_cast(in value));
 
 	#region Field
 
-	public static Pointer AddressOfField(object obj, string name) => AddressOfField<object, byte>(obj, name);
+	public static Pointer AddressOfField(object obj, string name)
+		=> AddressOfField<object, byte>(obj, name);
 
 	public static Pointer<TField> AddressOfField<TField>(Type t, string name, [NNINN(nameof(t))] object o = null)
 	{
@@ -873,6 +889,33 @@ public static unsafe class Mem
 		Func<string, byte> func = s1 => Byte.Parse(s1.Replace("0x", null), NumberStyles.HexNumber);
 
 		return s.Split(", ").Select(func).ToArray();
+	}
+
+	public static string ToBinaryString<T>(T value, int totalBits=-1) where T : struct
+	{
+		int sizeInBytes = sizeof(T) * BitCalculator.BITS_PER_BYTE;
+
+		if (totalBits <= -1) {
+			// throw new ArgumentOutOfRangeException(nameof(totalBits), "Total bits must be at least 1.");
+			totalBits = sizeInBytes;
+		}
+
+		if (totalBits > sizeInBytes) {
+			throw new ArgumentOutOfRangeException(nameof(totalBits),
+			                                      $"Total bits must be less than or equal to {sizeInBytes}.");
+		}
+
+		ulong  numericValue = Convert.ToUInt64(value);
+		char[] bits         = new char[totalBits];
+		int    index        = totalBits - 1;
+
+		while (index >= 0) {
+			bits[index]  =   (numericValue & 1) == 1 ? '1' : '0';
+			numericValue >>= 1;
+			index--;
+		}
+
+		return new string(bits);
 	}
 
 	/*public static void Write<T>(Pointer p, T value)
@@ -943,7 +986,6 @@ public static unsafe class Mem
 
 		return (default, default);
 	}
-	
 }
 
 /// <summary>

@@ -12,6 +12,7 @@ using Novus.Runtime.VM.EE;
 using Novus.Utilities;
 using Kantan.Diagnostics;
 using Kantan.Numeric;
+using Novus.Numerics;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming

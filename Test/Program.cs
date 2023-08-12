@@ -41,7 +41,7 @@ using Novus.OS;
 using Novus.Properties;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
-using Novus.Utilities;
+using Novus.Streams;
 using Novus.Win32;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
@@ -59,6 +59,7 @@ using Novus.Runtime;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
+using Novus.Numerics;
 
 // ReSharper disable ClassNeverInstantiated.Local
 
@@ -74,71 +75,77 @@ using System.Security.Cryptography;
 
 namespace Test;
 /*
-* C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
-* C:\Windows\Microsoft.NET\Framework64\v4.0.30319
-*
-* symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
-*
-* todo: integrate pdbex
-*
-*
-*/
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
+ * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
+ *
+ * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
+ *
+ * todo: integrate pdbex
+ *
+ *
+ */
 
 /*
-* ◆ Novus				https://github.com/Decimation/Novus
-* ⨉ NeoCore			https://github.com/Decimation/NeoCore
-* ⨉ RazorSharp			https://github.com/Decimation/RazorSharp
-* 
-* ◆ Kantan				https://github.com/Decimation/Kantan
-* 
-*/
+ * ◆ Novus				https://github.com/Decimation/Novus
+ * ⨉ NeoCore			https://github.com/Decimation/NeoCore
+ * ⨉ RazorSharp			https://github.com/Decimation/RazorSharp
+ *
+ * ◆ Kantan				https://github.com/Decimation/Kantan
+ *
+ */
 /* Runtime
-*
-* https://github.com/dotnet/runtime
-*
-*
-*
-* Field
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
-*
-* Method
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
-*
-* EEClass
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
-*
-* MethodTable
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
-*
-* TypeIntPtr
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.h
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.cpp
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.inl
-*
-* Marshal Native
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
-*
-* Other
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
-* https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
-*/
-public static class Program
+ *
+ * https://github.com/dotnet/runtime
+ *
+ *
+ *
+ * Field
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
+ *
+ * Method
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
+ *
+ * EEClass
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
+ *
+ * MethodTable
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
+ *
+ * TypeIntPtr
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.inl
+ *
+ * Marshal Native
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
+ *
+ * Other
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
+ */
+public static unsafe class Program
 {
 	private static async Task Main(string[] args)
 	{
-		var r =await "https://w.wallhaven.cc/full/e7/wallhaven-e7v1zo.jpg".WithAutoRedirect(true).AllowAnyHttpStatus().GetAsync();
-		var s = await r.GetStreamAsync();
-
+		r:
+		Console.WriteLine();
+		Run();
 		Debugger.Break();
+		goto r;
+	}
+
+	static void Run()
+	{
+
 	}
 
 	static Program()
@@ -147,5 +154,4 @@ public static class Program
 		Global.Setup();
 
 	}
-	
 }

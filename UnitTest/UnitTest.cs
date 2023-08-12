@@ -19,6 +19,7 @@ using Novus.Imports;
 using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Memory.Allocation;
+using Novus.Numerics;
 using Novus.OS;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
@@ -1475,6 +1476,31 @@ public class Tests_Streams
 			var c  = br.BaseStream.ReadUntil((byte s) => s == '\0', f => (byte) f.ReadByte()).ToArray();
 			var c2 = Encoding.ASCII.GetString(c);
 			Assert.AreEqual(Encoding.ASCII.GetString(str).Trim('\0'), c2);
+		}
+	}
+
+	[Test]
+	[TestCase(new byte[] { 0b1010, 0b101010, 0b11001 })]
+	public void Test2(byte[] rg)
+	{
+		var bs  = new BitStream(new MemoryStream(rg, 0, rg.Length), true);
+		var sb  = new string[rg.Length];
+		var sb2 = new string[rg.Length];
+
+		for (int i = 0; i < rg.Length; i++) {
+			sb[i] = Mem.ToBinaryString(rg[i]);
+
+		}
+
+		int j = 0;
+
+		for (int i = 0; i < bs.Length * BitCalculator.BITS_PER_BYTE; i++) {
+			sb2[unchecked(i/ BitCalculator.BITS_PER_BYTE)] += bs.ReadBit() ? 1 : 0;
+
+		}
+
+		for (int i = 0; i < rg.Length; i++) {
+			Assert.AreEqual(sb[i], sb2[i]);
 		}
 	}
 }

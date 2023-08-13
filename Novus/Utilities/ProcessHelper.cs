@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Novus.Win32.Structures.Ntdll;
 
 // ReSharper disable UnusedMember.Global
 
@@ -29,6 +32,7 @@ public static class ProcessHelper
 	public static ProcessModule[] GetModules(this Process p)
 		=> p.Modules.Cast<ProcessModule>().Where(module => module != null).ToArray();
 
+#if DANGEROUS
 	/// <summary>
 	///     Forcefully kills a <see cref="Process" /> and ensures the process has exited.
 	/// </summary>
@@ -39,7 +43,7 @@ public static class ProcessHelper
 	{
 		Task.Run(p.WaitForExit).Wait(ms);
 		p.Dispose();
-		
+
 		try {
 			if (!p.HasExited) {
 				p.Kill();
@@ -50,6 +54,56 @@ public static class ProcessHelper
 		catch (Exception) {
 
 			return false;
+		}
+	}
+#endif
+
+	[CanBeNull]
+	public static Process GetParent()
+	{
+		return GetParent(Process.GetCurrentProcess().Handle);
+	}
+
+	[CanBeNull]
+	public static Process GetParent(int id)
+	{
+		var process = Process.GetProcessById(id);
+		return GetParent(process.Handle);
+	}
+
+	[CanBeNull]
+	public static Process GetParent(string s)
+	{
+		var process = Process.GetProcessesByName(s).First();
+		return GetParent(process.Handle);
+	}
+
+	[CanBeNull]
+	public static Process GetParent(this Process p)
+		=> GetParent(p.Handle);
+
+	[CanBeNull]
+	public static Process GetParent(IntPtr handle)
+	{
+		int returnLength;
+
+		unsafe {
+			var pbi = new ProcessBasicInformation();
+
+			var status = Native.NtQueryInformationProcess(handle, 0, &pbi,
+			                                              Marshal.SizeOf(pbi), out returnLength);
+
+			if (status != NtStatus.SUCCESS)
+				throw new Win32Exception((int) status);
+
+			try {
+				return Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
+			}
+			catch (ArgumentException) {
+
+				return null;
+			}
+
 		}
 	}
 }

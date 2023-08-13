@@ -1,4 +1,5 @@
 ﻿// global using LI = System.Runtime.InteropServices.LibraryImportAttribute;
+
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -77,9 +78,11 @@ public static unsafe partial class Native
 
 	#endregion
 
-	public static nint GetStdOutputHandle() => GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+	public static nint GetStdOutputHandle()
+		=> GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
-	public static nint OpenProcess(Process proc) => OpenProcess(ProcessAccess.All, false, proc.Id);
+	public static nint OpenProcess(Process proc)
+		=> OpenProcess(ProcessAccess.All, false, proc.Id);
 
 	public static bool Inject(string dllPath, int pid)
 	{
@@ -90,8 +93,8 @@ public static unsafe partial class Native
 		//todo: WIP
 
 		nint processHandle = OpenProcess(ProcessAccess.CreateThread |
-		                                   ProcessAccess.VmOperation | ProcessAccess.VmWrite,
-		                                   false, pid);
+		                                 ProcessAccess.VmOperation | ProcessAccess.VmWrite,
+		                                 false, pid);
 
 		if (processHandle == IntPtr.Zero) {
 			return false;
@@ -110,8 +113,8 @@ public static unsafe partial class Native
 		}
 
 		nint remoteAddress = VirtualAllocEx(processHandle, IntPtr.Zero, (uint) dllPath.Length,
-		                                      AllocationType.Commit | AllocationType.Reserve,
-		                                      MemoryProtection.ExecuteReadWrite);
+		                                    AllocationType.Commit | AllocationType.Reserve,
+		                                    MemoryProtection.ExecuteReadWrite);
 
 		if (remoteAddress == IntPtr.Zero) {
 			return false;
@@ -125,8 +128,8 @@ public static unsafe partial class Native
 		}
 
 		nint remoteThread = CreateRemoteThread(processHandle, IntPtr.Zero, 0,
-		                                         loadLibraryAddr, remoteAddress,
-		                                         0, out nint rId);
+		                                       loadLibraryAddr, remoteAddress,
+		                                       0, out nint rId);
 
 		if (remoteThread == IntPtr.Zero) {
 			return false;
@@ -163,7 +166,7 @@ public static unsafe partial class Native
 	}
 
 	public static nint CreateFile(string fileName, FileAccess access, FileShare share,
-	                                FileMode mode, FileAttributes attributes)
+	                              FileMode mode, FileAttributes attributes)
 	{
 		return CreateFile(fileName, access, share, IntPtr.Zero,
 		                  mode, attributes, IntPtr.Zero);
@@ -277,7 +280,8 @@ public static unsafe partial class Native
 		             0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 	}
 
-	public static nint FindWindow(string lpWindowName) => FindWindow(IntPtr.Zero, lpWindowName);
+	public static nint FindWindow(string lpWindowName)
+		=> FindWindow(IntPtr.Zero, lpWindowName);
 
 	public static Coord GetConsoleCursorPosition(nint hConsoleOutput)
 	{
@@ -321,7 +325,8 @@ public static unsafe partial class Native
 		FlashWindowEx(ref fInfo);
 	}
 
-	public static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
+	public static void BringConsoleToFront()
+		=> SetForegroundWindow(GetConsoleWindow());
 
 	public static string GetUnicodeName(ushort id)
 	{

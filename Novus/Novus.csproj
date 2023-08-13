@@ -41,6 +41,14 @@
 
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Resources\File types.json" />
+    <None Remove="Resources\magic.mgc" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\File types.json" />
+    <EmbeddedResource Include="Resources\magic.mgc" />
+  </ItemGroup>
+  <ItemGroup>
     <TrimmerRootAssembly Include="System.Diagnostics" />
     <TrimmerRootAssembly Include="Kantan" />
     <TrimmerRootAssembly Include="System.Runtime.Caching" />

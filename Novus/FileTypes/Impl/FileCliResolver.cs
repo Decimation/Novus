@@ -19,7 +19,7 @@ public sealed class FileCliResolver : IFileTypeResolver
 
 	public static readonly IFileTypeResolver Instance = new FileCliResolver();
 
-	public async Task<IEnumerable<FileType>> ResolveAsync(Stream m)
+	public async Task<IEnumerable<FileType>> ResolveAsync(Stream m, CancellationToken ct = default)
 	{
 
 		// IFlurlResponse res = await url.GetAsync();

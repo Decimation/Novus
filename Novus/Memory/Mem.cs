@@ -882,16 +882,16 @@ public static unsafe class Mem
 	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 
 	/// <summary>
-	/// Parses a <see cref="byte"/> array formatted as <c>0x00, 0x01, 0x02 ...</c>
+	/// Parses a <see cref="byte"/> array formatted as <c>00 01 02 ...</c>
 	/// </summary>
 	public static byte[] ReadAOBString(string s)
 	{
-		Func<string, byte> func = s1 => Byte.Parse(s1.Replace("0x", null), NumberStyles.HexNumber);
+		Func<string, byte> func = s1 => Byte.Parse(s1, NumberStyles.HexNumber);
 
-		return s.Split(", ").Select(func).ToArray();
+		return s.Split(' ').Select(func).ToArray();
 	}
 
-	public static string ToBinaryString<T>(T value, int totalBits=-1) where T : struct
+	public static string ToBinaryString<T>(T value, int totalBits = -1) where T : struct
 	{
 		int sizeInBytes = sizeof(T) * BitCalculator.BITS_PER_BYTE;
 

@@ -42,6 +42,7 @@ using Novus.Properties;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Streams;
+using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
@@ -60,6 +61,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using Novus.Numerics;
+using static System.Net.WebRequestMethods;
 
 // ReSharper disable ClassNeverInstantiated.Local
 
@@ -136,17 +138,10 @@ public static unsafe class Program
 {
 	private static async Task Main(string[] args)
 	{
-		r:
-		Console.WriteLine();
-		Run();
-		Debugger.Break();
-		goto r;
+		Console.WriteLine(Process.GetCurrentProcess().GetParent());
 	}
 
-	static void Run()
-	{
-
-	}
+	static void Run() { }
 
 	static Program()
 	{

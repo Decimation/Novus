@@ -1,7 +1,7 @@
-﻿
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.Other;
 
@@ -88,7 +88,7 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	[return: MA(UT.Bool)]
 	public static partial bool GetConsoleScreenBufferInfo(nint hConsoleOutput,
-	                                                     ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
+	                                                      ref ConsoleScreenBufferInfo lpConsoleScreenBufferInfo);
 
 	[DllImport(KERNEL32_DLL, SetLastError = true)]
 	public static extern bool WriteConsoleOutputCharacter(nint hConsoleOutput, StringBuilder lpCharacter,
@@ -123,6 +123,7 @@ public static unsafe partial class Native
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 	public static extern bool SetCurrentConsoleFontEx(nint hConsoleOutput, bool bMaximumWindow,
 	                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
+
 	[DllImport(KERNEL32_DLL)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool AllocConsole();
@@ -152,12 +153,13 @@ public static unsafe partial class Native
 
 	#region File
 
-	internal static uint GetFileSize(nint hFile) => GetFileSize(hFile, IntPtr.Zero);
+	internal static uint GetFileSize(nint hFile)
+		=> GetFileSize(hFile, IntPtr.Zero);
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial nint CreateFile(string fileName, FileAccess fileAccess, FileShare fileShare,
-	                                       nint securityAttributes, FileMode creationDisposition,
-	                                       FileAttributes flagsAndAttributes, nint template);
+	                                      nint securityAttributes, FileMode creationDisposition,
+	                                      FileAttributes flagsAndAttributes, nint template);
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial uint GetFileSize(nint hFile, nint lpFileSizeHigh);
@@ -169,12 +171,12 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
 	public static partial bool ReadProcessMemory(nint proc, nint baseAddr, nint buffer,
-	                                            nint size, out int numBytesRead);
+	                                             nint size, out int numBytesRead);
 
 	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
 	public static partial bool ReadProcessMemory(nint proc, nint baseAddr, byte[] buffer,
-	                                            nint size, out int numBytesRead);
+	                                             nint size, out int numBytesRead);
 
 	/*[DllImport(KERNEL32_DLL)]
 	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
@@ -185,13 +187,13 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
 	public static partial bool WriteProcessMemory(nint proc, nint baseAddr, nint buffer,
-	                                             int size, out int numberBytesWritten);
+	                                              int size, out int numberBytesWritten);
 
 	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", StringMarshalling = StringMarshalling.Utf16)]
 	public static partial void CopyMemoryW(nint pdst, string psrc, int cb);
 
 	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", StringMarshalling = StringMarshalling.Utf16)]
-	public static partial void CopyMemoryW(nint pdst,char[] psrc, int cb);
+	public static partial void CopyMemoryW(nint pdst, char[] psrc, int cb);
 
 	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory")]
 	public static partial void CopyMemory(nint pdst, byte[] psrc, int cb);
@@ -224,7 +226,8 @@ public static unsafe partial class Native
 	public static partial nint GetCurrentProcess();
 
 	[LibraryImport(KERNEL32_DLL)]
-	public static partial nint OpenProcess(ProcessAccess dwDesiredAccess, [MA(UT.Bool)] bool bInheritHandle, int dwProcessId);
+	public static partial nint OpenProcess(ProcessAccess dwDesiredAccess, [MA(UT.Bool)] bool bInheritHandle,
+	                                       int dwProcessId);
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	[return: MarshalAs(UT.Bool)]
@@ -236,23 +239,23 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint VirtualAllocEx(nint hProcess, nint lpAddress,
-	                                           uint dwSize, AllocationType flAllocationType,
-	                                           MemoryProtection flProtect);
+	                                          uint dwSize, AllocationType flAllocationType,
+	                                          MemoryProtection flProtect);
 
 	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
 	public static partial bool VirtualFreeEx(nint hProcess, nint lpAddress,
-	                                        int dwSize, AllocationType dwFreeType);
+	                                         int dwSize, AllocationType dwFreeType);
 
 	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
 	public static partial bool VirtualProtectEx(nint hProcess, nint lpAddress,
-	                                           uint dwSize, MemoryProtection flNewProtect,
-	                                           out MemoryProtection lpflOldProtect);
+	                                            uint dwSize, MemoryProtection flNewProtect,
+	                                            out MemoryProtection lpflOldProtect);
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial int VirtualQueryEx(nint hProcess, nint lpAddress,
-	                                        ref MemoryBasicInformation lpBuffer, uint dwLength);
+	                                         ref MemoryBasicInformation lpBuffer, uint dwLength);
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial int VirtualQuery(nint lpAddress, ref MemoryBasicInformation lpBuffer, int dwLength);
@@ -338,7 +341,7 @@ public static unsafe partial class Native
 
 	[LibraryImport(SHELL32_DLL, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial nint ShellExecute(nint hwnd, string lpOperation, string lpFile, string lpParameters,
-	                                         string lpDirectory, int nShowCmd);
+	                                        string lpDirectory, int nShowCmd);
 
 	[DllImport(SHELL32_DLL)]
 	[return: MA(UT.Bool)]
@@ -349,8 +352,8 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL)]
 	internal static partial nint CreateRemoteThread(nint hProcess, nint lpThreadAttributes, uint dwStackSize,
-	                                                 nint lpStartAddress, nint lpParameter, uint dwCreationFlags,
-	                                                 out nint lpThreadId);
+	                                                nint lpStartAddress, nint lpParameter, uint dwCreationFlags,
+	                                                out nint lpThreadId);
 
 	public const uint INFINITE       = 0xFFFFFFFF;
 	public const uint WAIT_ABANDONED = 0x00000080;
@@ -374,5 +377,5 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint GlobalSize(nint hMem);
-	
 }
+

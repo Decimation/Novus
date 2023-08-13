@@ -8,14 +8,14 @@ public interface IFileTypeResolver : IDisposable
 {
 	public IEnumerable<FileType> Resolve(byte[] rg);
 
-	public async Task<IEnumerable<FileType>> ResolveAsync(Stream m)
+	public async Task<IEnumerable<FileType>> ResolveAsync(Stream m, CancellationToken ct = default)
 	{
-		return Resolve(await m.ReadBlockAsync());
+		return Resolve(await m.ReadHeaderAsync(ct: ct));
 	}
 
 	public IEnumerable<FileType> Resolve(Stream m)
 	{
-		return Resolve(m.ReadBlock());
+		return Resolve(m.ReadHeader());
 	}
 
 	public static IFileTypeResolver Default { get; set; } = FastResolver.Instance; //todo
@@ -27,5 +27,4 @@ public interface IFileTypeResolver : IDisposable
 		|  Magic | 17,845.1 ns | 142.41 ns | 111.18 ns |
 		|   Fast |    460.9 ns |   9.21 ns |  10.97 ns |
 	 */
-
 }

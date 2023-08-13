@@ -30,6 +30,13 @@ public static partial class Native
 	public static extern NtStatus NtQueryObject(nint objectHandle, ObjectInformationClass informationClass,
 	                                            nint informationPtr, uint informationLength,
 	                                            out uint returnLength);
+
+	[DllImport(NTDLL_DLL)]
+	public static extern unsafe NtStatus NtQueryInformationProcess(IntPtr processHandle,
+	                                                               ProcessInfoClass processInformationClass,
+	                                                               void* processInformation,
+	                                                               int processInformationLength,
+	                                                               out int returnLength);
 }
 
 public enum ObjectInformationClass : int

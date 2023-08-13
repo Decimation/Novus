@@ -15,6 +15,8 @@ using Kantan.Diagnostics;
 using Kantan.Utilities;
 using Novus.Streams;
 
+// ReSharper disable PossibleNullReferenceException
+
 #nullable disable
 // ReSharper disable InconsistentNaming
 
@@ -214,7 +216,7 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public static IEnumerable<FileType> Resolve(Stream s)
 	{
-		return Resolve(s.ReadBlock());
+		return Resolve(s.ReadHeader());
 
 		/* 2-21-23
 
@@ -237,9 +239,9 @@ public readonly struct FileType : IEquatable<FileType>
 		;
 	}
 
-	public static async Task<IEnumerable<FileType>> ResolveAsync(Stream s)
+	public static async Task<IEnumerable<FileType>> ResolveAsync(Stream s, CancellationToken ct = default)
 	{
-		return Resolve(await s.ReadBlockAsync());
+		return Resolve(await s.ReadHeaderAsync(ct:ct));
 
 	}
 
@@ -266,9 +268,11 @@ public readonly struct FileType : IEquatable<FileType>
 		return (MediaType != null ? MediaType.GetHashCode() : 0);
 	}
 
-	public static bool operator ==(FileType left, FileType right) => left.Equals(right);
+	public static bool operator ==(FileType left, FileType right)
+		=> left.Equals(right);
 
-	public static bool operator !=(FileType left, FileType right) => !left.Equals(right);
+	public static bool operator !=(FileType left, FileType right)
+		=> !left.Equals(right);
 
 	public override string ToString()
 	{

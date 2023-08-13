@@ -63,7 +63,7 @@ public sealed class MagicResolver : IFileTypeResolver
 
 	public IEnumerable<FileType> Resolve(Stream stream)
 	{
-		var buf = stream.ReadBlock();
+		var buf = stream.ReadHeader();
 		return Resolve(buf);
 	}
 

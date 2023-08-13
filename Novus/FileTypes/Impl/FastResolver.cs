@@ -19,7 +19,7 @@ public sealed class FastResolver : IFileTypeResolver
 		return FileType.Resolve(rg);
 	}
 
-	public Task<IEnumerable<FileType>> ResolveAsync(Stream m)
+	public Task<IEnumerable<FileType>> ResolveAsync(Stream m, CancellationToken ct = default)
 	{
 		return FileType.ResolveAsync(m);
 	}

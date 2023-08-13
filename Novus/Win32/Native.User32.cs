@@ -74,31 +74,35 @@ public static unsafe partial class Native
 	                                      [MA(UT.LPArray), In] InputRecord[] pInputs,
 	                                      int cbSize);
 
-	[LibraryImport(USER32_DLL)]
+	[DllImport(USER32_DLL)]
 	[return: MA(UT.Bool)]
-	public static partial bool PostMessage(nint hWnd, uint msg, int wParam, int lParam);
+	public static extern bool PostMessage(nint hWnd, uint msg, int wParam, int lParam);
 
-	[LibraryImport(USER32_DLL, StringMarshalling = StringMarshalling.Utf16)]
-	public static partial nint SendMessage(nint hWnd, int msg, nint wParam,
+	[DllImport(USER32_DLL)]
+	public static extern nint SendMessage(nint hWnd, int msg, nint wParam,
 	                                       [MA(UT.LPWStr)] string lParam);
 
-	[LibraryImport(USER32_DLL, StringMarshalling = StringMarshalling.Utf16)]
-	public static partial nint SendMessage(nint hWnd, int msg, int wParam,
+	[DllImport(USER32_DLL)]
+
+	public static extern nint SendMessage(nint hWnd, int msg, int wParam,
 	                                       [MA(UT.LPWStr)] string lParam);
 
-	[LibraryImport(USER32_DLL)]
-	public static partial nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);
+	[DllImport(USER32_DLL)]
+
+	public static extern nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	// [return: MarshalAs(UnmanagedType.Bool)]
 	public static extern int GetMessage(out MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
 	                                    [Optional] uint wMsgFilterMax);
 
-	[LibraryImport(USER32_DLL, SetLastError = false)]
-	public static partial nint GetMessageExtraInfo();
+	[DllImport(USER32_DLL)]
 
-	[LibraryImport(USER32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
-	public static partial uint RegisterWindowMessage(string lpString);
+	public static extern nint GetMessageExtraInfo();
+
+	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
+
+	public static extern uint RegisterWindowMessage(string lpString);
 
 	[DllImport(USER32_DLL)]
 	public static extern nint DispatchMessage(ref MSG lpMsg);
@@ -107,12 +111,12 @@ public static unsafe partial class Native
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static extern bool TranslateMessage(ref MSG lpMsg);
 
-	[LibraryImport(USER32_DLL, SetLastError = false)]
-	public static partial void PostQuitMessage([Optional] int nExitCode);
+	[DllImport(USER32_DLL, SetLastError = false)]
+	public static extern void PostQuitMessage([Optional] int nExitCode);
 
-	[LibraryImport(USER32_DLL, SetLastError = true)]
+	[DllImport(USER32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
-	public static partial bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
+	public static extern bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
 	                                             [Optional] nint lParam);
 
 	#region Key

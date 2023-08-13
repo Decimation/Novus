@@ -43,39 +43,38 @@ public static class StreamExtensions
 
 		int length = checked((int) stream.Length);
 
-		return stream.ReadBlock(length);
+		return stream.ReadHeader(length);
 	}
 
-	public static int BlockSize { get; set; } = 0xFF;
+	public const int BlockSize = 0xFF;
 
-	public static byte[] ReadBlock(this Stream stream, int? i = null)
+	public static byte[] ReadHeader(this Stream stream, int l = BlockSize)
 	{
-		i ??= BlockSize;
-
 		stream.TrySeek();
 
-		var buffer = new byte[i.Value];
+		var buffer = new byte[l];
 
 		int read = stream.Read(buffer);
 
 		return buffer;
 	}
 
-	public static async Task<byte[]> ReadBlockAsync(this Stream m, int? l1 = null, CancellationToken ct = default)
+	public static async Task<byte[]> ReadHeaderAsync(this Stream m, int l = BlockSize, CancellationToken ct = default)
 	{
-		l1 ??= BlockSize;
-		int l = (l1.Value);
-
 		if (m.CanSeek) {
 			m.Position = 0;
 			int d = checked((int) m.Length);
-			l = d >= l1.Value ? l1.Value : d;
+			l = d >= l ? l : d;
 		}
 
 		// int l=Math.Clamp(d, d, HttpType.RSRC_HEADER_LEN);
 		var data = new byte[l];
 
-		int l2 = await m.ReadAsync(data, 0, l, ct);
+		int l2 = await m.ReadAsync(data.AsMemory(0, l), ct);
+
+		if (l2 != l) {
+			Array.Resize(ref data, l2);
+		}
 
 		return data;
 	}
@@ -91,7 +90,8 @@ public static class StreamExtensions
 		return oldPos;
 	}
 
-	public static Pointer<T> ToPointer<T>(this Span<T> s) => M.AddressOf(ref s.GetPinnableReference());
+	public static Pointer<T> ToPointer<T>(this Span<T> s)
+		=> M.AddressOf(ref s.GetPinnableReference());
 
 	[MURV]
 	public static MemoryStream Copy(this Stream inputStream, int? bufferSize = null)

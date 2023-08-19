@@ -17,6 +17,7 @@ namespace Novus.Memory;
  * Some code adapted from
  * https://github.com/ikorin24/UnmanagedArray
  */
+#if EXPERIMENTAL
 
 // TODO: WIP
 
@@ -206,3 +207,4 @@ public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 		}
 	}
 }
+#endif

@@ -35,19 +35,21 @@ public readonly struct FileType : IEquatable<FileType>
 	public byte[] Pattern { get; }
 
 	/// <summary>
-	/// <c><see cref="Name"/>/<see cref="Type"/></c>
+	/// <c><see cref="Subtype"/>/<see cref="Type"/></c>
 	/// </summary>
 	public string MediaType { get; }
-
-	/// <summary>
-	/// Second component of <see cref="MediaType"/>
-	/// </summary>
-	public string Name { get; }
 
 	/// <summary>
 	/// First component of <see cref="MediaType"/>
 	/// </summary>
 	public string Type { get; }
+
+	/// <summary>
+	/// Second component of <see cref="MediaType"/>
+	/// </summary>
+	public string Subtype { get; }
+
+	public int Offset { get; }
 
 	public bool IsPartial => Mask is null && Pattern is null && MediaType is not null;
 
@@ -55,17 +57,17 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public FileType(string mediaType) : this(null, null, mediaType) { }
 
-	public FileType(byte[] mask, byte[] pattern, [MN] string mediaType)
+	public FileType(byte[] mask, byte[] pattern, [MN] string mediaType, int offset = 0)
 	{
-		Mask    = mask;
-		Pattern = pattern;
-
+		Mask      = mask;
+		Pattern   = pattern;
+		Offset    = offset;
 		MediaType = mediaType;
 
 		if (MediaType != null) {
 			var split = MediaType.Split(MIME_TYPE_DELIM);
-			Type = split[0];
-			Name = split[1];
+			Type    = split[0];
+			Subtype = split[1];
 
 		}
 	}
@@ -84,6 +86,8 @@ public readonly struct FileType : IEquatable<FileType>
 		All   = ReadDatabase();
 		Image = All.Where(a => MT_IMAGE == a.Type).ToArray();
 		Video = All.Where(a => MT_VIDEO == a.Type).ToArray();
+
+		Trace.WriteLine($"Read {All.Length} file signatures | {Image.Length} image | {Video.Length} video");
 	}
 
 	private static readonly ObjectCache Cache = MemoryCache.Default;
@@ -109,7 +113,10 @@ public readonly struct FileType : IEquatable<FileType>
 			var sig       = o[ER.K_Pattern].ToString();
 			var mediaType = o[ER.K_Name].ToString();
 
-			var ft = new FileType(M.ReadAOBString(mask), M.ReadAOBString(sig), mediaType)
+			var jOffset = o[ER.K_Offset];
+			var offset  = jOffset == null ? 0 : int.Parse(jOffset.ToString());
+
+			var ft = new FileType(M.ReadAOBString(mask), M.ReadAOBString(sig), mediaType, offset)
 				{ };
 			rg[i] = ft;
 		}
@@ -129,7 +136,7 @@ public readonly struct FileType : IEquatable<FileType>
 		{
 			return from ft in All
 			       let mt = ft.MediaType
-			       where mt == s || ft.Name == s || s == ft.Type
+			       where mt == s || ft.Subtype == s || s == ft.Type
 			       select ft;
 		}
 	}
@@ -171,8 +178,11 @@ public readonly struct FileType : IEquatable<FileType>
 		return b is >= 0x00 and <= 0x08 or 0x0B or >= 0x0E and <= 0x1A or >= 0x1C and <= 0x1F;
 	}
 
+	public bool CheckPattern(Span<byte> input, ISet<byte> ignored = null)
+		=> CheckPattern(input, Pattern, Mask, ignored);
+
 	public static bool CheckPattern(Span<byte> input, FileType s, ISet<byte> ignored = null)
-		=> CheckPattern(input, s.Pattern, s.Mask, ignored);
+		=> s.CheckPattern(input, ignored);
 
 	/// <remarks>
 	///     <a href="https://mimesniff.spec.whatwg.org/#matching-a-mime-type-pattern">6</a>
@@ -216,7 +226,18 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public static IEnumerable<FileType> Resolve(Stream s)
 	{
-		return Resolve(s.ReadHeader());
+		var          j  = All.Max(x => x.Pattern.Length);
+		Memory<byte> rg = s.ReadHeader(l: j);
+
+		for (int i = 0; i < All.Length; i++) {
+			var ft = All[i];
+
+			if (ft.CheckPattern(rg[ft.Offset..].Span)) {
+				return new[] { ft };
+			}
+		}
+
+		return Enumerable.Empty<FileType>();
 
 		/* 2-21-23
 
@@ -241,14 +262,39 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public static async Task<IEnumerable<FileType>> ResolveAsync(Stream s, CancellationToken ct = default)
 	{
-		return Resolve(await s.ReadHeaderAsync(ct:ct));
+		// return Resolve(await s.ReadHeaderAsync(ct: ct));
 
+		// var          j  = All.Max(x => x.Pattern.Length);
+
+		/*
+		 * BenchmarkDotNet v0.13.6, Windows 10 (10.0.19043.2364/21H1/May2021Update)
+AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
+.NET SDK 7.0.304
+  [Host]     : .NET 7.0.7 (7.0.723.27404), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.7 (7.0.723.27404), X64 RyuJIT AVX2
+
+| Method |        Job |                Toolchain |     Mean |   Error |  StdDev |
+|------- |----------- |------------------------- |---------:|--------:|--------:|
+|   Fast | DefaultJob |                  Default | 396.5 ns | 7.88 ns | 9.07 ns |
+|   Fast | Job-CSEWXA | InProcessNoEmitToolchain | 414.6 ns | 6.38 ns | 5.97 ns |
+		 */
+
+		Memory<byte> rg = await s.ReadHeaderAsync(ct: ct);
+
+		for (int i = 0; i < All.Length; i++) {
+			var ft = All[i];
+
+			if (ft.CheckPattern(rg[ft.Offset..].Span)) {
+				return new[] { ft };
+			}
+		}
+
+		return Enumerable.Empty<FileType>();
 	}
 
 	public static IEnumerable<FileType> Resolve(byte[] h)
 	{
-		return All.Where(t => CheckPattern(h, t))
-			.DistinctBy(x => x.MediaType);
+		return All.Where(t => t.CheckPattern(h));
 	}
 
 	#endregion

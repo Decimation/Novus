@@ -27,6 +27,9 @@ using Flurl.Http;
 using Novus.Imports.Attributes;
 using Novus.Imports;
 using System.Linq;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 
 // ReSharper disable InconsistentNaming
 
@@ -67,7 +70,6 @@ public class Benchmarks27
 	{
 		return await UniSource.GetAsync(Values.f1);
 	}
-	
 }
 
 [RyuJitX64Job]
@@ -294,7 +296,7 @@ public class Benchmarks20
 	private ReadonlyPointer<int> b;
 
 	/*
-	 
+
 		| Method |      Mean |     Error |    StdDev | Median |
 		|------- |----------:|----------:|----------:|-------:|
 		|  Test1 | 0.0082 ns | 0.0130 ns | 0.0122 ns | 0.0 ns |
@@ -327,8 +329,8 @@ public class Benchmarks20
 	}
 }
 
-[RyuJitX64Job]
-[InProcess()]
+[SimpleJob]
+// [InProcess()]
 public class Benchmarks19
 {
 	private FileStream m_stream;
@@ -346,23 +348,100 @@ public class Benchmarks19
 		RuntimeHelpers.RunClassConstructor(typeof(FastResolver).TypeHandle);
 	}
 
+	/*
+	 *
+	 *
+	 *
+	 *
+		BenchmarkDotNet v0.13.6, Windows 10 (10.0.19043.2364/21H1/May2021Update)
+		AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
+		.NET SDK 7.0.304
+		  [Host]     : .NET 7.0.7 (7.0.723.27404), X64 RyuJIT AVX2
+		  DefaultJob : .NET 7.0.7 (7.0.723.27404), X64 RyuJIT AVX2
+
+		| Method |        Mean |    Error |   StdDev |
+		|------- |------------:|---------:|---------:|
+		|   Fast |    824.5 ns | 16.34 ns | 33.01 ns |
+		| Urlmon |  1,905.2 ns |  9.56 ns |  8.47 ns |
+		|  Magic | 16,819.5 ns | 60.01 ns | 53.20 ns |
+	 *
+	 */
+
 	[Benchmark]
-	public async void Fast()
+	public async Task Fast()
 	{
 		(await FastResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
 	}
 
 	[Benchmark]
-	public async void Urlmon()
+	public async Task Urlmon()
 	{
 		(await UrlmonResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
 	}
 
 	[Benchmark]
-	public async void Magic()
+	public async Task Magic()
 	{
 		(await MagicResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
 	}
+}
+
+public class AntiVirusFriendlyConfig : ManualConfig
+{
+	public AntiVirusFriendlyConfig()
+	{
+		AddJob(Job.Default.WithToolchain(InProcessNoEmitToolchain.Instance));
+	}
+}
+
+[Config(typeof(AntiVirusFriendlyConfig))]
+[SimpleJob]
+// [InProcess()]
+public class Benchmarks19b
+{
+	private FileStream m_stream;
+
+	private readonly Consumer m_consumer = new Consumer();
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		m_stream = File.OpenRead(@"C:\Users\Deci\Pictures\Art\0c4c80957134d4304538c27499d84dbe.jpeg");
+		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(MagicNative).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(MagicResolver).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(UrlmonResolver).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(FastResolver).TypeHandle);
+		_ = FileType.All;
+
+	}
+
+	/*
+BenchmarkDotNet v0.13.6, Windows 10 (10.0.19043.2364/21H1/May2021Update)
+AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
+.NET SDK 7.0.304
+  [Host]     : .NET 7.0.7 (7.0.723.27404), X64 RyuJIT AVX2
+  DefaultJob : .NET 7.0.7 (7.0.723.27404), X64 RyuJIT AVX2
+
+| Method |        Job |                Toolchain |     Mean |    Error |   StdDev |
+|------- |----------- |------------------------- |---------:|---------:|---------:|
+|   Fast | DefaultJob |                  Default | 820.5 ns | 13.88 ns | 12.99 ns |
+|  Fast2 | DefaultJob |                  Default | 519.4 ns |  3.76 ns |  3.14 ns |
+|   Fast | Job-MIJFFU | InProcessNoEmitToolchain | 857.1 ns | 10.94 ns |  9.13 ns |
+|  Fast2 | Job-MIJFFU | InProcessNoEmitToolchain | 565.7 ns |  2.60 ns |  2.31 ns |
+	 */
+
+	[Benchmark]
+	public async Task Fast()
+	{
+		(await FastResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+	}
+
+	/*[Benchmark]
+	public async Task Fast2()
+	{
+		(await Fast2Resolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+	}*/
 }
 
 [RyuJitX64Job]
@@ -383,7 +462,7 @@ public class Benchmarks18
 		return ms.Clone();
 	}
 }
-
+#if EXPERIMENTAL
 [RyuJitX64Job]
 public class Benchmarks17
 {
@@ -416,6 +495,16 @@ public class Benchmarks17
 		return u2[0];
 	}
 }
+[RyuJitX64Job]
+public class Benchmarks12
+{
+	[Benchmark]
+	public UArray<int> alloc()
+	{
+		return new(10);
+	}
+}
+#endif
 
 [RyuJitX64Job]
 public class Benchmarks16
@@ -517,16 +606,6 @@ public class Benchmarks13
 	public Pointer<int> AddressOfIndex()
 	{
 		return ptr.AddressOfIndex(3);
-	}
-}
-
-[RyuJitX64Job]
-public class Benchmarks12
-{
-	[Benchmark]
-	public UArray<int> alloc()
-	{
-		return new(10);
 	}
 }
 

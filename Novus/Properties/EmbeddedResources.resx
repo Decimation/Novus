@@ -145,6 +145,9 @@
   <data name="K_Name" xml:space="preserve">
     <value>name</value>
   </data>
+  <data name="K_Offset" xml:space="preserve">
+    <value>offset</value>
+  </data>
   <data name="K_Pattern" xml:space="preserve">
     <value>pattern</value>
   </data>

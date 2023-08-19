@@ -59,6 +59,10 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	public static partial nint GetStdHandle(StandardHandle nStdHandle);
+	
+	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static partial bool SetStdHandle(StandardHandle nStdHandle, IntPtr nHandle);
 
 	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Novus.Memory;
 using System;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // ReSharper disable UnusedMember.Global
 
@@ -23,7 +24,7 @@ public static class StreamExtensions
 		var list = new List<string>();
 
 		while (!stream.EndOfStream) {
-			string line = stream.ReadLine();
+			string? line = stream.ReadLine();
 
 			if (line != null) {
 				list.Add(line);
@@ -33,6 +34,21 @@ public static class StreamExtensions
 		return list.ToArray();
 	}
 
+	public static async Task<string[]> ReadAllLinesAsync(this StreamReader stream, CancellationToken ct = default)
+	{
+		var list = new List<string>();
+
+		while (!stream.EndOfStream) {
+			string? line = await stream.ReadLineAsync(ct);
+
+			if (line != null) {
+				list.Add(line);
+			}
+		}
+
+		return list.ToArray();
+	}
+#if EXTRA
 	public static byte[] ToByteArray(this Stream stream)
 	{
 		// NOTE: throws when stream is not seekable
@@ -45,24 +61,30 @@ public static class StreamExtensions
 
 		return stream.ReadHeader(length);
 	}
+#endif
 
 	public const int BlockSize = 0xFF;
 
-	public static byte[] ReadHeader(this Stream stream, int l = BlockSize)
+	public static byte[] ReadHeader(this Stream stream, int offset = 0, int l = BlockSize)
 	{
-		stream.TrySeek();
+		stream.TrySeek(offset);
 
 		var buffer = new byte[l];
 
-		int read = stream.Read(buffer);
+		int l2 = stream.Read(buffer);
+
+		if (l2 != l) {
+			Array.Resize(ref buffer, l2);
+		}
 
 		return buffer;
 	}
 
-	public static async Task<byte[]> ReadHeaderAsync(this Stream m, int l = BlockSize, CancellationToken ct = default)
+	public static async Task<byte[]> ReadHeaderAsync(this Stream m, int offset = 0, int l = BlockSize,
+	                                                 CancellationToken ct = default)
 	{
 		if (m.CanSeek) {
-			m.Position = 0;
+			m.Position = offset;
 			int d = checked((int) m.Length);
 			l = d >= l ? l : d;
 		}
@@ -94,17 +116,16 @@ public static class StreamExtensions
 		=> M.AddressOf(ref s.GetPinnableReference());
 
 	[MURV]
-	public static MemoryStream Copy(this Stream inputStream, int? bufferSize = null)
+	public static MemoryStream Copy(this Stream inputStream, int bufferSize = BlockSize)
 	{
-		bufferSize ??= BlockSize;
 
 		var ret = new MemoryStream();
 
-		var buf = new byte[bufferSize.Value];
+		var buf = new byte[bufferSize];
 
 		int cb = 0;
 
-		while ((cb = inputStream.Read(buf, 0, bufferSize.Value)) > 0)
+		while ((cb = inputStream.Read(buf, 0, bufferSize)) > 0)
 			ret.Write(buf, 0, cb);
 
 		ret.Position = 0;

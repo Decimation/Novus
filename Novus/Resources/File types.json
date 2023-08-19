@@ -33,5 +33,11 @@
 		"name": "image/bmp",
 		"pattern": "42 4D",
 		"mask": "FF FF"
+	},
+	{
+		"name": "video/mp4",
+		"pattern": "66 74 79 70 69 73 6F 6D",
+		"mask": "FF FF FF FF FF FF FF FF",
+		"offset": 4
 	}
 ]

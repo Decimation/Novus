@@ -334,6 +334,8 @@ public class Tests_Atomic
 	}
 }
 
+#if EXPERIMENTAL
+
 [TestFixture]
 [Parallelizable]
 public class Tests_UArray
@@ -350,6 +352,7 @@ public class Tests_UArray
 
 	}
 }
+#endif
 
 [TestFixture]
 [Parallelizable]

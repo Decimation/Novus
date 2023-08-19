@@ -143,6 +143,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to offset.
+        /// </summary>
+        internal static string K_Offset {
+            get {
+                return ResourceManager.GetString("K_Offset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to pattern.
         /// </summary>
         internal static string K_Pattern {

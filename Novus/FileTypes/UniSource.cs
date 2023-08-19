@@ -158,7 +158,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		}
 
 		else if (IsStream) {
-			ext = FileTypes[0].Name;
+			ext = FileTypes[0].Subtype;
 		}
 
 		// var tmp = Path.Combine(Path.GetTempPath(), fn);

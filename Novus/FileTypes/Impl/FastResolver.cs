@@ -2,11 +2,7 @@
 
 public sealed class FastResolver : IFileTypeResolver
 {
-	#region Implementation of IDisposable
-
 	public void Dispose() { }
-
-	#endregion
 
 	private FastResolver() { }
 
@@ -15,19 +11,13 @@ public sealed class FastResolver : IFileTypeResolver
 	#region Implementation of IFileTypeResolver
 
 	public IEnumerable<FileType> Resolve(byte[] rg)
-	{
-		return FileType.Resolve(rg);
-	}
+		=> FileType.Resolve(rg);
 
 	public Task<IEnumerable<FileType>> ResolveAsync(Stream m, CancellationToken ct = default)
-	{
-		return FileType.ResolveAsync(m);
-	}
+		=> FileType.ResolveAsync(m, ct);
 
 	public IEnumerable<FileType> Resolve(Stream m)
-	{
-		return FileType.Resolve(m);
-	}
+		=> FileType.Resolve(m);
 
 	#endregion
 }

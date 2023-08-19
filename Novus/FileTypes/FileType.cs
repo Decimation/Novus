@@ -37,35 +37,35 @@ public readonly struct FileType : IEquatable<FileType>
 	/// <summary>
 	/// <c><see cref="Subtype"/>/<see cref="Type"/></c>
 	/// </summary>
-	public string MediaType { get; }
+	public string MimeType { get; }
 
 	/// <summary>
-	/// First component of <see cref="MediaType"/>
+	/// First component of <see cref="MimeType"/>
 	/// </summary>
 	public string Type { get; }
 
 	/// <summary>
-	/// Second component of <see cref="MediaType"/>
+	/// Second component of <see cref="MimeType"/>
 	/// </summary>
 	public string Subtype { get; }
 
 	public int Offset { get; }
 
-	public bool IsPartial => Mask is null && Pattern is null && MediaType is not null;
+	public bool IsPartial => Mask is null && Pattern is null && MimeType is not null;
 
 	public FileType() : this(null, null, null) { }
 
 	public FileType(string mediaType) : this(null, null, mediaType) { }
 
-	public FileType(byte[] mask, byte[] pattern, [MN] string mediaType, int offset = 0)
+	public FileType(byte[] mask, byte[] pattern, [MN] string mimeType, int offset = 0)
 	{
 		Mask      = mask;
 		Pattern   = pattern;
 		Offset    = offset;
-		MediaType = mediaType;
+		MimeType = mimeType;
 
-		if (MediaType != null) {
-			var split = MediaType.Split(MIME_TYPE_DELIM);
+		if (MimeType != null) {
+			var split = MimeType.Split(MIME_TYPE_DELIM);
 			Type    = split[0];
 			Subtype = split[1];
 
@@ -135,7 +135,7 @@ public readonly struct FileType : IEquatable<FileType>
 		static IEnumerable<FileType> FindInternal(string s)
 		{
 			return from ft in All
-			       let mt = ft.MediaType
+			       let mt = ft.MimeType
 			       where mt == s || ft.Subtype == s || s == ft.Type
 			       select ft;
 		}
@@ -224,20 +224,12 @@ public readonly struct FileType : IEquatable<FileType>
 		return true;
 	}
 
-	public static IEnumerable<FileType> Resolve(Stream s)
+	public static FileType Resolve(Stream s)
 	{
-		var          j  = All.Max(x => x.Pattern.Length);
-		Memory<byte> rg = s.ReadHeader(l: j);
+		// var          j  = All.Max(x => x.Pattern.Length);
+		Memory<byte> rg = s.ReadHeader();
 
-		for (int i = 0; i < All.Length; i++) {
-			var ft = All[i];
-
-			if (ft.CheckPattern(rg[ft.Offset..].Span)) {
-				return new[] { ft };
-			}
-		}
-
-		return Enumerable.Empty<FileType>();
+		return ResolveInternal(rg)
 
 		/* 2-21-23
 
@@ -260,7 +252,7 @@ public readonly struct FileType : IEquatable<FileType>
 		;
 	}
 
-	public static async Task<IEnumerable<FileType>> ResolveAsync(Stream s, CancellationToken ct = default)
+	public static async Task<FileType> ResolveAsync(Stream s, CancellationToken ct = default)
 	{
 		// return Resolve(await s.ReadHeaderAsync(ct: ct));
 
@@ -281,27 +273,30 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 
 		Memory<byte> rg = await s.ReadHeaderAsync(ct: ct);
 
-		for (int i = 0; i < All.Length; i++) {
-			var ft = All[i];
+		return ResolveInternal(rg);
+	}
 
+	private static FileType ResolveInternal(in Memory<byte> rg)
+	{
+		foreach (FileType ft in All) {
 			if (ft.CheckPattern(rg[ft.Offset..].Span)) {
-				return new[] { ft };
+				return ft;
 			}
 		}
 
-		return Enumerable.Empty<FileType>();
+		return default;
 	}
 
-	public static IEnumerable<FileType> Resolve(byte[] h)
+	public static FileType Resolve(byte[] h)
 	{
-		return All.Where(t => t.CheckPattern(h));
+		return All.FirstOrDefault(t => t.CheckPattern(h));
 	}
 
 	#endregion
 
 	public bool Equals(FileType other)
 	{
-		return MediaType == other.MediaType;
+		return MimeType == other.MimeType;
 	}
 
 	public override bool Equals(object obj)
@@ -311,7 +306,7 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 
 	public override int GetHashCode()
 	{
-		return (MediaType != null ? MediaType.GetHashCode() : 0);
+		return (MimeType != null ? MimeType.GetHashCode() : 0);
 	}
 
 	public static bool operator ==(FileType left, FileType right)
@@ -324,7 +319,7 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 	{
 		/*return $"{nameof(Type)}: {Type} | " +
 		       $"{nameof(IsPartial)}: {IsPartial}";*/
-		return MediaType;
+		return MimeType;
 	}
 
 	#region

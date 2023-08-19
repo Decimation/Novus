@@ -30,6 +30,7 @@ using System.Linq;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
+using JetBrains.Annotations;
 
 // ReSharper disable InconsistentNaming
 
@@ -103,21 +104,21 @@ public class Benchmarks26
 	}
 
 	[Benchmark]
-	public void Urlmon()
+	public FileType Urlmon()
 	{
-		urlmon.Resolve(ss).Consume(m_consumer);
+		return urlmon.Resolve(ss);
 	}
 
 	[Benchmark]
-	public void Magic()
+	public FileType Magic()
 	{
-		magic.Resolve(ss).Consume(m_consumer);
+		return magic.Resolve(ss);
 	}
 
 	[Benchmark]
-	public void Fast()
+	public FileType Fast()
 	{
-		fast.Resolve(ss).Consume(m_consumer);
+		return fast.Resolve(ss);
 	}
 }
 
@@ -192,15 +193,15 @@ public class Benchmarks24
 	public void GlobalCleanup() { }
 
 	[Benchmark]
-	public void Test1()
+	public FileType Test1()
 	{
-		FileType.Resolve(m_stream).Consume(m_consumer);
+		return FileType.Resolve(m_stream);
 	}
 
 	[Benchmark]
-	public void Test2()
+	public FileType Test2()
 	{
-		MagicResolver.Instance.Resolve(m_stream).Consume(m_consumer);
+		return MagicResolver.Instance.Resolve(m_stream);
 	}
 }
 
@@ -330,6 +331,7 @@ public class Benchmarks20
 }
 
 [SimpleJob]
+[Config(typeof(AntiVirusFriendlyConfig))]
 // [InProcess()]
 public class Benchmarks19
 {
@@ -368,21 +370,21 @@ public class Benchmarks19
 	 */
 
 	[Benchmark]
-	public async Task Fast()
+	public async Task<FileType> Fast()
 	{
-		(await FastResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+		return (await FastResolver.Instance.ResolveAsync(m_stream));
 	}
 
 	[Benchmark]
-	public async Task Urlmon()
+	public async Task<FileType> Urlmon()
 	{
-		(await UrlmonResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+		return (await UrlmonResolver.Instance.ResolveAsync(m_stream));
 	}
 
 	[Benchmark]
-	public async Task Magic()
+	public async Task<FileType> Magic()
 	{
-		(await MagicResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+		return (await MagicResolver.Instance.ResolveAsync(m_stream));
 	}
 }
 
@@ -400,8 +402,6 @@ public class AntiVirusFriendlyConfig : ManualConfig
 public class Benchmarks19b
 {
 	private FileStream m_stream;
-
-	private readonly Consumer m_consumer = new Consumer();
 
 	[GlobalSetup]
 	public void GlobalSetup()
@@ -432,9 +432,9 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 	 */
 
 	[Benchmark]
-	public async Task Fast()
+	public async Task<FileType> Fast()
 	{
-		(await FastResolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
+		return (await FastResolver.Instance.ResolveAsync(m_stream));
 	}
 
 	/*[Benchmark]
@@ -442,6 +442,38 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 	{
 		(await Fast2Resolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
 	}*/
+}
+
+[Config(typeof(AntiVirusFriendlyConfig))]
+[SimpleJob]
+// [InProcess()]
+public class Benchmarks19c
+{
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(MagicNative).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(MagicResolver).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(UrlmonResolver).TypeHandle);
+		RuntimeHelpers.RunClassConstructor(typeof(FastResolver).TypeHandle);
+		_ = FileType.All;
+
+	}
+
+	[Benchmark]
+	[NotNull]
+	public Task<UniSource> Url1()
+	{
+		return UniSource.GetAsync("https://i.imgur.com/QtCausw.png");
+	}
+
+	[Benchmark]
+	[NotNull]
+	public Task<UniSource> File1()
+	{
+		return UniSource.GetAsync((@"C:\Users\Deci\Pictures\Art\0c4c80957134d4304538c27499d84dbe.jpeg"));
+	}
 }
 
 [RyuJitX64Job]

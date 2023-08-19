@@ -10,6 +10,6 @@ public static class Program
 		// cd .\Benchmark\ ; dotnet build -c Release ; dotnet run -c Release
 		//dotnet build -c Release ; dotnet run -c Release --project .\Benchmark\TestBenchmark.csproj
 
-		BenchmarkRunner.Run<Benchmarks19>();
+		BenchmarkRunner.Run<Benchmarks19b>();
 	}
 }

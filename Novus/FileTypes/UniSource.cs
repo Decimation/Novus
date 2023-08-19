@@ -29,7 +29,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 	public bool IsValid => IsFile || IsUri || IsStream;
 
-	public FileType[] FileTypes { get; protected set; }
+	public FileType FileType { get; protected set; }
 
 	public object Value { get; }
 
@@ -83,18 +83,17 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
 
-		var types = (await resolver.ResolveAsync(buf.Stream)).ToArray();
+		var type = (await resolver.ResolveAsync(buf.Stream, ct));
 
 		if (whitelist.Any()) {
-			var inter = types.Intersect(whitelist);
 
-			if (!inter.Any()) {
-				throw new ArgumentException($"Invalid file types: {types.QuickJoin()}", nameof(o));
+			if (!whitelist.Contains(type)) {
+				throw new ArgumentException($"Invalid file type: {type}", nameof(o));
 			}
 
 		}
 
-		buf.FileTypes = types;
+		buf.FileType = type;
 		buf.Stream.TrySeek();
 
 		return buf;
@@ -158,7 +157,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		}
 
 		else if (IsStream) {
-			ext = FileTypes[0].Subtype;
+			ext = FileType.Subtype;
 		}
 
 		// var tmp = Path.Combine(Path.GetTempPath(), fn);
@@ -201,7 +200,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		return SourceType == other.SourceType
 		       && Equals(Stream, other.Stream)
 		       && IsValid == other.IsValid
-		       && Equals(FileTypes, other.FileTypes);
+		       && Equals(FileType, other.FileType);
 	}
 
 	public override bool Equals(object obj)
@@ -227,7 +226,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			int hashCode = (int) SourceType;
 			hashCode = (hashCode * 397) ^ (Stream != null ? Stream.GetHashCode() : 0);
 			hashCode = (hashCode * 397) ^ IsValid.GetHashCode();
-			hashCode = (hashCode * 397) ^ (FileTypes != null ? FileTypes.GetHashCode() : 0);
+			hashCode = (hashCode * 397) ^ (FileType != null ? FileType.GetHashCode() : 0);
 			return hashCode;
 		}
 	}
@@ -244,7 +243,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 	public override string ToString()
 	{
-		return $"[{SourceType}] {FileTypes?.QuickJoin()}";
+		return $"[{SourceType}] {FileType}";
 	}
 }
 

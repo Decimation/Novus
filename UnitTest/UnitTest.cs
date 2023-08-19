@@ -78,9 +78,9 @@ public class Tests_FileTypes1
 	public async Task Test4(string s, FileType type)
 	{
 		var t  = await UniSource.TryGetAsync(s, IFileTypeResolver.Default);
-		var tt = t.FileTypes;
+		var tt = t.FileType;
 		// var tt = await IFileTypeResolver.Default.ResolveAsync(t.Stream);
-		Assert.Contains(type, tt);
+		Assert.AreEqual(type,tt);
 		// Assert.True(tt.Any(x => x.MediaType == type));
 		// Assert.Contains(new FileType { MediaType = type }, types.ToArray());
 	}
@@ -91,8 +91,8 @@ public class Tests_FileTypes1
 	{
 		var t = await UniSource.TryGetAsync(s, UrlmonResolver.Instance);
 		// var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
-		var tt = t.FileTypes;
-		Assert.Contains(type, tt);
+		var tt = t.FileType;
+		Assert.AreEqual(type,tt);
 
 	}
 
@@ -103,9 +103,9 @@ public class Tests_FileTypes1
 		var t = await UniSource.TryGetAsync(s, FastResolver.Instance);
 		// var tt = await MagicResolver.Instance.ResolveAsync(t.Stream);
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
-		var tt = t.FileTypes;
+		var tt = t.FileType;
 		// Assert.True(tt.Any(x => x.MediaType == type));
-		Assert.Contains(type, tt);
+		Assert.AreEqual(type,tt);
 
 	}
 
@@ -115,9 +115,9 @@ public class Tests_FileTypes1
 	{
 		var t = await UniSource.TryGetAsync(s, MagicResolver.Instance);
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
-		var tt = t.FileTypes;
+		var tt = t.FileType;
 		// Assert.True(tt.Any(x => x.MediaType == type));
-		Assert.Contains(type, tt);
+		Assert.AreEqual(type,tt);
 
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
@@ -135,9 +135,9 @@ public class Tests_UniSource
 	{
 		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default, FileType.Image);
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
-		var tt = t.FileTypes;
+		var tt = t.FileType;
 		// Assert.True(tt.Any(x => x.MediaType == type));
-		Assert.Contains(type, tt);
+		Assert.AreEqual(type,tt);
 
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
@@ -196,9 +196,9 @@ public class Tests_UniSource
 
 		var t = await UniSource.GetAsync(new MemoryStream(x), IFileTypeResolver.Default, FileType.Image);
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
-		var tt = t.FileTypes;
+		var tt = t.FileType;
 		// Assert.True(tt.Any(x => x.MediaType == type));
-		Assert.Contains(FileType.Find("png").First(), tt);
+		Assert.AreEqual(FileType.Find("png").First(), tt);
 
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
@@ -214,7 +214,7 @@ public class Tests_FileResolvers
 	{
 		var stream = File.OpenRead(s);
 		var task   = await IFileTypeResolver.Default.ResolveAsync(stream);
-		Assert.True(task.Any(x => FileType.MT_IMAGE == x.Type));
+		Assert.True(task.Type == FileType.MT_IMAGE);
 	}
 
 	/*[Test]
@@ -256,7 +256,7 @@ public class Tests_MediaTypes
 		// TestContext.WriteLine($"{r.ResponseMessage.IsSuccessStatusCode}");
 		var t  = await r.GetStreamAsync();
 		var ft = await IFileTypeResolver.Default.ResolveAsync(t);
-		Assert.True(ft.Any(f => FileType.MT_IMAGE == f.Type));
+		Assert.True(ft.Type == FileType.MT_IMAGE);
 	}
 }
 

@@ -46,10 +46,10 @@ public sealed class UrlmonResolver : IFileTypeResolver
 		return mimeRet;
 	}
 
-	public IEnumerable<FileType> Resolve(byte[] buf)
+	public FileType Resolve(byte[] buf)
 	{
 		var data = ResolveFromData(buf);
-		return new[] { new FileType(data) {  } };
+		return new FileType(data) { };
 	}
 
 	[DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]

@@ -8,16 +8,12 @@ public sealed class FastResolver : IFileTypeResolver
 
 	public static readonly IFileTypeResolver Instance = new FastResolver();
 
-	#region Implementation of IFileTypeResolver
-
-	public IEnumerable<FileType> Resolve(byte[] rg)
+	public FileType Resolve(byte[] rg)
 		=> FileType.Resolve(rg);
 
-	public Task<IEnumerable<FileType>> ResolveAsync(Stream m, CancellationToken ct = default)
+	public Task<FileType> ResolveAsync(Stream m, CancellationToken ct = default)
 		=> FileType.ResolveAsync(m, ct);
 
-	public IEnumerable<FileType> Resolve(Stream m)
+	public FileType Resolve(Stream m)
 		=> FileType.Resolve(m);
-
-	#endregion
 }

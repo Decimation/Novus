@@ -7,7 +7,7 @@ public sealed class FileCliResolver : IFileTypeResolver
 {
 	public void Dispose() { }
 
-	public IEnumerable<FileType> Resolve(byte[] rg)
+	public FileType Resolve(byte[] rg)
 	{
 		return ResolveAsync(new MemoryStream(rg)).Result; //todo
 	}
@@ -19,7 +19,7 @@ public sealed class FileCliResolver : IFileTypeResolver
 
 	public static readonly IFileTypeResolver Instance = new FileCliResolver();
 
-	public async Task<IEnumerable<FileType>> ResolveAsync(Stream m, CancellationToken ct = default)
+	public async Task<FileType> ResolveAsync(Stream m, CancellationToken ct = default)
 	{
 
 		// IFlurlResponse res = await url.GetAsync();
@@ -70,11 +70,11 @@ public sealed class FileCliResolver : IFileTypeResolver
 
 			File.Delete(s);
 
-			return new[] { new FileType(output) {  } };
+			return  new FileType(output) {  };
 		}
 		catch (Exception)
 		{
-			return null;
+			return default;
 		}
 	}
 }

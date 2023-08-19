@@ -6,14 +6,14 @@ namespace Novus.FileTypes;
 
 public interface IFileTypeResolver : IDisposable
 {
-	public IEnumerable<FileType> Resolve(byte[] rg);
+	public FileType Resolve(byte[] rg);
 
-	public async Task<IEnumerable<FileType>> ResolveAsync(Stream m, CancellationToken ct = default)
+	public async Task<FileType> ResolveAsync(Stream m, CancellationToken ct = default)
 	{
 		return Resolve(await m.ReadHeaderAsync(ct: ct));
 	}
 
-	public IEnumerable<FileType> Resolve(Stream m)
+	public FileType Resolve(Stream m)
 	{
 		return Resolve(m.ReadHeader());
 	}

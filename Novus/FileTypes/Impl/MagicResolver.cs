@@ -50,7 +50,7 @@ public sealed class MagicResolver : IFileTypeResolver
 		return mgc;
 	}
 
-	public IEnumerable<FileType> Resolve(byte[] rg)
+	public FileType Resolve(byte[] rg)
 	{
 		// var buf1 = stream.ReadBlockAsync(FileType.RSRC_HEADER_LEN);
 		// buf1.Wait();
@@ -58,10 +58,10 @@ public sealed class MagicResolver : IFileTypeResolver
 
 		var sz = MagicNative.magic_buffer(Magic, rg, rg.Length);
 		var s  = Marshal.PtrToStringAnsi(sz);
-		return new[] { new FileType(s) {  } };
+		return new FileType(s) { };
 	}
 
-	public IEnumerable<FileType> Resolve(Stream stream)
+	public FileType Resolve(Stream stream)
 	{
 		var buf = stream.ReadHeader();
 		return Resolve(buf);

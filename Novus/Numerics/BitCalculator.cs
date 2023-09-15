@@ -17,6 +17,7 @@ public static class BitCalculator
 	/*
 	 * https://github.com/rubendal/BitStream
 	 */
+
 	public static Bit GetBit<T>(this T n, T index)
 		where T : INumber<T>, IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>
 	{

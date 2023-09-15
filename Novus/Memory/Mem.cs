@@ -886,9 +886,9 @@ public static unsafe class Mem
 	/// </summary>
 	public static byte[] ReadAOBString(string s)
 	{
-		Func<string, byte> func = s1 => Byte.Parse(s1, NumberStyles.HexNumber);
-
-		return s.Split(' ').Select(func).ToArray();
+		return s.Split(Strings.Constants.SPACE)
+			.Select(s1 => Byte.Parse(s1, NumberStyles.HexNumber))
+			.ToArray();
 	}
 
 	public static string ToBinaryString<T>(T value, int totalBits = -1) where T : struct

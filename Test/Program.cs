@@ -37,6 +37,7 @@ using Novus.FileTypes.Impl;
 using Novus.Imports;
 using Novus.Imports.Attributes;
 using Novus.Memory;
+using Novus.Memory.Allocation;
 using Novus.OS;
 using Novus.Properties;
 using Novus.Runtime.Meta;
@@ -138,7 +139,45 @@ public static unsafe class Program
 {
 	private static async Task Main(string[] args)
 	{
-		Console.WriteLine(Process.GetCurrentProcess().GetParent());
+
+		var v = AllocManager.New<Clazz>(ctor: new Object[] { 3, "foo", 1 });
+		Console.WriteLine(v);
+
+		AllocManager.Free(v);
+
+	}
+
+	internal class Clazz
+	{
+		public int a;
+
+		public const int i = 123_321;
+
+		public string s;
+
+		public int prop { get; set; }
+
+		public static int sprop { get; set; }
+
+		public Clazz()
+		{
+			a = i;
+		}
+
+		public Clazz(int a, string s, int prop)
+		{
+			this.a    = a;
+			this.s    = s;
+			this.prop = prop;
+		}
+
+		public void SayHi()
+			=> Console.WriteLine("hi");
+
+		public override string ToString()
+		{
+			return $"{nameof(a)}: {a}, {nameof(s)}: {s}, {nameof(prop)}: {prop}";
+		}
 	}
 
 	static void Run() { }

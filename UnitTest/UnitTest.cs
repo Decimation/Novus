@@ -609,8 +609,8 @@ public class Tests_ReflectionHelper
 	[Test]
 	public void Test2()
 	{
-		Assert.True(typeof(IInterface).GetAllInAssembly(TypeProperties.Interface).Contains(typeof(Implement1)));
-		Assert.True(typeof(Superclass1).GetAllInAssembly(TypeProperties.Subclass).Contains(typeof(Subclass1)));
+		Assert.True(typeof(IInterface).GetAllInAssembly(InheritanceProperties.Interface).Contains(typeof(Implement1)));
+		Assert.True(typeof(Superclass1).GetAllInAssembly(InheritanceProperties.Subclass).Contains(typeof(Subclass1)));
 	}
 
 	[Test]
@@ -684,6 +684,17 @@ public class Tests_ReflectionHelper
 		Assert.AreEqual(321, b.a);
 
 	}
+
+	[Test]
+	[TestCase(typeof(string))]
+	[TestCase(typeof(Clazz))]
+	public void Test9(Type t)
+	{
+		Assert.True(t.GetRuntimeFields().SequenceEqual(t.GetAllFields()));
+		Assert.True(t.GetRuntimeMethods().SequenceEqual(t.GetAllMethods()));
+
+	}
+
 }
 
 [TestFixture]

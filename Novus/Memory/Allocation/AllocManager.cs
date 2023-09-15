@@ -5,7 +5,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
+using Novus.Runtime;
 using Novus.Runtime.Meta;
+using Novus.Runtime.VM;
 using Novus.Utilities;
 
 // ReSharper disable CommentTypo
@@ -31,13 +33,13 @@ public static class AllocManager
 
 	public static int AllocCount => Allocated.Count;
 
-	public static bool IsAllocated(Pointer<byte> ptr)
+	public static bool IsAllocated(Pointer ptr)
 	{
 		return Allocated.Contains(ptr);
 		// return Allocator.IsAllocated(ptr);
 	}
 
-	public static nuint GetSize(Pointer<byte> ptr)
+	public static nuint GetSize(Pointer ptr)
 	{
 		/*if (!IsAllocated(ptr)) {
 			return Native.INVALID2;
@@ -52,11 +54,11 @@ public static class AllocManager
 		if (!IsAllocated(ptr)) {
 			return null;
 		}
-		
+
 		Allocated.Remove(ptr);
 
-		nuint elemSize =(nuint) Mem.SizeOf<T>();
-		int cb       = (int) Mem.GetByteCount(elemSize, elemCnt);
+		nuint elemSize = (nuint) Mem.SizeOf<T>();
+		int   cb       = (int) Mem.GetByteCount(elemSize, elemCnt);
 
 		ptr = Allocator.ReAlloc(ptr.Address, (nuint) cb);
 
@@ -65,13 +67,13 @@ public static class AllocManager
 		return ptr;
 	}
 
-	private static void FreeInternal(Pointer<byte> ptr)
+	private static void FreeInternal(Pointer ptr)
 	{
 		Allocator.Free(ptr.Address);
 		Allocated.Remove(ptr);
 	}
 
-	public static void Free(Pointer<byte> ptr)
+	public static void Free(Pointer ptr)
 	{
 		if (!IsAllocated(ptr)) {
 			return;
@@ -85,7 +87,8 @@ public static class AllocManager
 	/// </summary>
 	/// <param name="cb">Number of bytes</param>
 	[MURV]
-	public static Pointer<byte> Alloc(nuint cb) => Alloc<byte>(cb);
+	public static Pointer Alloc(nuint cb)
+		=> Alloc<byte>(cb);
 
 	/// <summary>
 	/// Allocates memory for <paramref name="elemCnt"></paramref> elements of type <typeparamref name="T"/>.
@@ -96,7 +99,7 @@ public static class AllocManager
 	public static Pointer<T> Alloc<T>(nuint elemCnt)
 	{
 
-		var elemSize =(nuint) Mem.SizeOf<T>();
+		var elemSize = (nuint) Mem.SizeOf<T>();
 		var cb       = (nuint) Mem.GetByteCount(elemSize, elemCnt);
 
 		Pointer<T> h = Allocator.Alloc(cb);
@@ -150,4 +153,37 @@ public static class AllocManager
 
 		return val;
 	}*/
+	
+	public static unsafe void Free<T>(T t) where T : class
+	{
+		var ptr = M.AddressOfHeap(t);
+		ptr -= IntPtr.Size;
+		Free(ptr);
+	}
+
+	public static unsafe T New<T>(params object[] ctor) where T : class
+	{
+		var type = typeof(T);
+
+		var size = Mem.SizeOf<T>(SizeOfOptions.BaseInstance);
+		size += IntPtr.Size;
+
+		var ptr     = Alloc((nuint) size);
+		var basePtr = ptr;
+
+		ptr += sizeof(ObjHeader);
+		var mt = RuntimeProperties.ResolveTypeHandle(type);
+
+		ptr.WritePointer(mt);
+		basePtr.WritePointer(ptr);
+
+		// ref T value = ref basePtr.Cast<T>().Reference;
+		T value = basePtr.Cast<T>().Value;
+
+		if (ctor.Any()) {
+			var cc = ReflectionHelper.CallConstructor(value, ctor);
+		}
+
+		return value;
+	}
 }

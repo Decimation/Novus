@@ -26,6 +26,7 @@ using JetBrains.Annotations;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Kantan.Diagnostics;
+using Novus.Numerics;
 
 // ReSharper disable InconsistentNaming
 
@@ -50,21 +51,29 @@ public static class ReflectionHelper
 
 	#region Members
 
-	public static IEnumerable<FI> GetAllFields(this Type t) => t.GetFields(ALL_FLAGS);
+	public static IEnumerable<FI> GetAllFields(this Type t)
+		=> t.GetFields(ALL_FLAGS);
 
-	public static IEnumerable<MI> GetAllMethods(this Type t) => t.GetMethods(ALL_FLAGS);
+	public static IEnumerable<MI> GetAllMethods(this Type t)
+		=> t.GetMethods(ALL_FLAGS);
 
-	public static IEnumerable<MMI> GetAllMembers(this Type t) => t.GetMembers(ALL_FLAGS);
+	public static IEnumerable<MMI> GetAllMembers(this Type t)
+		=> t.GetMembers(ALL_FLAGS);
 
-	public static IEnumerable<MMI> GetAnyMember(this Type t, string name) => t.GetMember(name, ALL_FLAGS);
+	public static IEnumerable<MMI> GetAnyMember(this Type t, string name)
+		=> t.GetMember(name, ALL_FLAGS);
 
-	public static FI GetAnyField(this Type t, string name) => t.GetField(name, ALL_FLAGS);
+	public static FI GetAnyField(this Type t, string name)
+		=> t.GetField(name, ALL_FLAGS);
 
-	public static MI GetAnyMethod(this Type t, string name) => t.GetMethod(name, ALL_FLAGS);
+	public static MI GetAnyMethod(this Type t, string name)
+		=> t.GetMethod(name, ALL_FLAGS);
 
-	public static MI GetAnyMethod(this Type t, string name, Type[] a) => t.GetMethod(name, ALL_FLAGS, a);
+	public static MI GetAnyMethod(this Type t, string name, Type[] a)
+		=> t.GetMethod(name, ALL_FLAGS, a);
 
-	public static PI GetAnyProperty(this Type t, string name) => t.GetProperty(name, ALL_FLAGS);
+	public static PI GetAnyProperty(this Type t, string name)
+		=> t.GetProperty(name, ALL_FLAGS);
 
 	/// <summary>
 	/// Resolves the internal field from the member with name <paramref name="fname"/>.
@@ -80,7 +89,7 @@ public static class ReflectionHelper
 		else {
 			return member as FI;
 		}
-		
+
 	}
 
 	public static FI GetResolvedField(this MMI member)
@@ -100,7 +109,7 @@ public static class ReflectionHelper
 		        select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
 	}
 
-	[return: MaybeNull]
+	[return: MN]
 	public static ConstructorInfo GetConstructor(this Type type, params object[] args)
 	{
 		if (args.Length == 0) {
@@ -115,14 +124,42 @@ public static class ReflectionHelper
 		foreach (var ctor in ctors) {
 			var paramz = ctor.GetParameters();
 
-			if (paramz.Length == args.Length) {
-				if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
-					return ctor;
-				}
+			if (paramz.Length != args.Length) {
+				continue;
+			}
+
+			if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
+				return ctor;
 			}
 		}
 
 		return null;
+	}
+
+	public delegate bool IsNullObject(Type t, object o);
+
+	public static (FieldInfo Field, bool IsNull)[] GetNullMembers(this object value, IsNullObject fn = null,
+	                                                              BindingFlags flags = ALL_INSTANCE_FLAGS)
+	{
+		var fields = value.GetType().GetFields(flags);
+
+		fn ??= (_, o) => RuntimeProperties.IsNull(o);
+
+		var rg = new List<(FI Field, bool IsNull)>();
+
+		foreach (var info in fields) {
+
+			(FI Field, bool IsNull) x = new();
+
+			var v = info.GetValue(value);
+
+			x.IsNull = fn(info.FieldType, v);
+			x.Field  = info;
+
+			rg.Add(x);
+		}
+
+		return rg.ToArray();
 	}
 
 	/*public static T GetStaticValue<T>(this PI p)
@@ -142,8 +179,8 @@ public static class ReflectionHelper
 	public static IEnumerable<FI> GetAllBackingFields(this Type t)
 	{
 		var rg = t.GetRuntimeFields()
-		          .Where(f => f.Name.Contains(SN_BACKING_FIELD))
-		          .ToArray();
+			.Where(f => f.Name.Contains(SN_BACKING_FIELD))
+			.ToArray();
 		return rg;
 	}
 
@@ -155,7 +192,7 @@ public static class ReflectionHelper
 		 */
 
 		if (!pi.CanRead || !pi.GetGetMethod(nonPublic: true)
-		                      .IsDefined(typeof(CompilerGeneratedAttribute), inherit: true)) {
+			    .IsDefined(typeof(CompilerGeneratedAttribute), inherit: true)) {
 			return null;
 		}
 
@@ -171,7 +208,7 @@ public static class ReflectionHelper
 	public static FI GetBackingField(this Type t, string name)
 	{
 		var fi = t.GetRuntimeFields()
-		          .FirstOrDefault(a => Regex.IsMatch(a.Name, $@"\A<{name}>{SN_BACKING_FIELD}\Z"));
+			.FirstOrDefault(a => Regex.IsMatch(a.Name, $@"\A<{name}>{SN_BACKING_FIELD}\Z"));
 
 		return fi;
 	}
@@ -181,9 +218,11 @@ public static class ReflectionHelper
 	private const string SN_CLONE          = "<Clone>$";
 	private const string SN_FIXED_BUFFER   = "e__FixedBuffer";
 
-	public static bool IsExtensionMethod(this MI m) => m.IsDefined(typeof(ExtensionAttribute));
+	public static bool IsExtensionMethod(this MI m)
+		=> m.IsDefined(typeof(ExtensionAttribute));
 
-	public static bool IsRecord(this Type t) => t.GetMethods().Any(m => m.Name == SN_CLONE);
+	public static bool IsRecord(this Type t)
+		=> t.GetMethods().Any(m => m.Name == SN_CLONE);
 
 	public static bool IsFixedBuffer(this FI field)
 		=> Regex.IsMatch(field.FieldType.Name, $@"\A<{field.Name}>{SN_FIXED_BUFFER}\Z");
@@ -231,9 +270,11 @@ public static class ReflectionHelper
 		return t.IsInteger() && (int) Type.GetTypeCode(t) % 2 == 1;
 	}
 
-	public static bool IsUnsigned(this Type t) => !t.IsSigned();
+	public static bool IsUnsigned(this Type t)
+		=> !t.IsSigned();
 
-	public static bool IsNumeric(this Type t) => t.IsReal() || t.IsInteger();
+	public static bool IsNumeric(this Type t)
+		=> t.IsReal() || t.IsInteger();
 
 	public static bool IsInteger(this Type t)
 	{
@@ -292,7 +333,11 @@ public static class ReflectionHelper
 		return t.IsPointer || isPointer || isIntPtr;
 	}
 
-	public static bool IsEnumerableType(this Type type) => type.ImplementsInterface(nameof(IEnumerable));
+	public static bool IsEnumerableType(this Type type)
+		=> type.ImplementsInterface(nameof(IEnumerable));
+
+	public static Type GetType2<T>(this T t)
+		=> t?.GetType() ?? typeof(T);
 
 	#endregion
 
@@ -307,14 +352,10 @@ public static class ReflectionHelper
 	/// <param name="fnArgs">Method arguments</param>
 	/// <returns>Return value of the method specified by <paramref name="method"/></returns>
 	public static object CallGeneric(this MI method, Type[] args, object value, params object[] fnArgs)
-	{
-		return method.MakeGenericMethod(args).Invoke(value, fnArgs);
-	}
+		=> method.MakeGenericMethod(args).Invoke(value, fnArgs);
 
 	public static object CallGeneric(this MI method, Type arg, object value, params object[] fnArgs)
-	{
-		return CallGeneric(method, new[] { arg }, value, fnArgs);
-	}
+		=> method.CallGeneric(new[] { arg }, value, fnArgs);
 
 	/// <summary>
 	///     Runs a constructor whose parameters match <paramref name="args" />
@@ -330,8 +371,8 @@ public static class ReflectionHelper
 		/*
 		 * https://stackoverflow.com/questions/142356/most-efficient-way-to-get-default-constructor-of-a-type
 		 */
-
-		var ct = value.GetType().GetConstructor(args);
+		
+		var ct = value.GetType2().GetConstructor(args);
 
 		if (ct is { }) {
 			ct.Invoke(value, args);
@@ -345,12 +386,12 @@ public static class ReflectionHelper
 
 	#region Assemblies
 
-	public static Type[] GetAllInAssembly(this Type t1, TypeProperties p)
+	public static IEnumerable<Type> GetAllInAssembly(this Type t1, InheritanceProperties p)
 	{
 		Func<Type, bool> fn = p switch
 		{
-			TypeProperties.Subclass  => t => t.ExtendsType(t1),
-			TypeProperties.Interface => t => t.ImplementsInterface(t1),
+			InheritanceProperties.Subclass  => t => t.ExtendsType(t1),
+			InheritanceProperties.Interface => t => t.ImplementsInterface(t1),
 
 			_ => throw new ArgumentOutOfRangeException(nameof(p), p, null)
 		};
@@ -358,7 +399,7 @@ public static class ReflectionHelper
 		return GetAllInAssembly(t1, fn);
 	}
 
-	public static Type[] GetAllInAssembly(this Type t, Func<Type, bool> fn)
+	public static IEnumerable<Type> GetAllInAssembly(this Type t, Func<Type, bool> fn)
 	{
 		var assembly = Assembly.GetAssembly(t);
 
@@ -368,19 +409,18 @@ public static class ReflectionHelper
 
 		var types = asmTypes.Where(fn);
 
-		return types.ToArray();
+		return types;
 	}
 
-	public static IEnumerable<T> CreateAllInAssembly<T>(TypeProperties p)
+	public static IEnumerable<object> CreateAllInAssembly(this Type type, InheritanceProperties p)
 	{
-		return typeof(T).CreateAllInAssembly(p).Cast<T>();
+		return type.CreateAllInAssembly<object>(p);
 	}
-
-	public static IEnumerable<object> CreateAllInAssembly(this Type type, TypeProperties p)
+	public static IEnumerable<T> CreateAllInAssembly<T>(this Type type, InheritanceProperties p)
 	{
 		return type.GetAllInAssembly(p)
-		           .Select(Activator.CreateInstance)
-		           .Cast<object>();
+			.Select(Activator.CreateInstance)
+			.Cast<T>();
 	}
 
 	public static HashSet<AssemblyName> DumpDependencies()
@@ -405,10 +445,10 @@ public static class ReflectionHelper
 		return asm;
 	}
 
-	public static Assembly GetAssemblyByName(string name)
+	public static Assembly FindAssemblyByName(string name)
 	{
 		return AppDomain.CurrentDomain.GetAssemblies()
-		                .SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
+			.SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
 	}
 
 	public static IEnumerable<AssemblyName> GetUserDependencies(this Assembly asm)
@@ -422,7 +462,7 @@ public static class ReflectionHelper
 
 	#region Field ID
 
-	//todo
+	/*//todo
 	[AttributeUsage(
 		AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Class | AttributeTargets.Property)]
 	[MeansImplicitUse]
@@ -449,7 +489,7 @@ public static class ReflectionHelper
 		});
 
 		return f.ToArray();
-	}
+	}*/
 
 	#endregion
 
@@ -457,7 +497,7 @@ public static class ReflectionHelper
 	{
 		var type = t.GetType();
 
-		var f  = type.GetAnyMethod("MemberwiseClone");
+		var f  = type.GetAnyMethod(nameof(MemberwiseClone));
 		var r  = f.Invoke(t, Array.Empty<object>());
 		var t2 = Unsafe.As<T>(r);
 		return t2;
@@ -525,50 +565,24 @@ public static class ReflectionHelper
 					parameter).Compile();
 
 				getter = Expression.Lambda<Func<T>>(Expression.Call(instanceExpression, pi.GetGetMethod()))
-				                   .Compile();
+					.Compile();
 				break;
 			case FI fi:
 				setter = Expression.Lambda<Action<T>>(Expression.Assign(memberExpression, parameter), parameter)
-				                   .Compile();
+					.Compile();
 
 				getter = Expression.Lambda<Func<T>>(
-					                   Expression.Field(instanceExpression, fi))
-				                   .Compile();
+						Expression.Field(instanceExpression, fi))
+					.Compile();
 				break;
 		}
 
 		return (setter, getter);
 	}
-
-	public delegate bool IsNullObject(Type t, object o);
-
-	public static (FieldInfo Field, bool IsNull)[] GetNullMembers(this object value, IsNullObject fn = null,
-	                                                              BindingFlags flags = ALL_INSTANCE_FLAGS)
-	{
-		var fields = value.GetType().GetFields(flags);
-
-		fn ??= (_, o) => RuntimeProperties.IsNull(o);
-
-		var rg = new List<(FI Field, bool IsNull)>();
-
-		foreach (var info in fields) {
-
-			(FI Field, bool IsNull) x = new();
-
-			var v = info.GetValue(value);
-
-			x.IsNull = fn(info.FieldType, v);
-			x.Field  = info;
-
-			rg.Add(x);
-		}
-
-		return rg.ToArray();
-	}
 }
 
 [Flags]
-public enum TypeProperties
+public enum InheritanceProperties
 {
 	Subclass,
 	Interface
@@ -605,9 +619,11 @@ public static class ReflectionOperatorHelpers
 		};
 	}
 
-	public static FI fieldof<T>(Expression<Func<T>> expression) => (FI) memberof(expression);
+	public static FI fieldof<T>(Expression<Func<T>> expression)
+		=> (FI) memberof(expression);
 
-	public static PI propertyof<T>(Expression<Func<T>> expression) => (PI) memberof(expression);
+	public static PI propertyof<T>(Expression<Func<T>> expression)
+		=> (PI) memberof(expression);
 
 	public static MI methodof<T>(Expression<Func<T>> expression)
 	{

@@ -139,12 +139,26 @@ public static unsafe class Program
 {
 	private static async Task Main(string[] args)
 	{
+		var k = new KeyboardListener();
 
+		k.KeyEvent += (sender, eventArgs) =>
+		{
+			if (eventArgs.IsStroke) {
+				Console.WriteLine($"{eventArgs} ");
+
+			}
+		};
+
+		k.Start();
+
+	}
+
+	private static void TestAlloc1()
+	{
 		var v = AllocManager.New<Clazz>(ctor: new Object[] { 3, "foo", 1 });
 		Console.WriteLine(v);
 
 		AllocManager.Free(v);
-
 	}
 
 	internal class Clazz

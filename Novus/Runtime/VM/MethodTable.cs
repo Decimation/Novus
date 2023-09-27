@@ -66,6 +66,7 @@ public unsafe struct MethodTable
 
 			long l = (long) Union1;
 			return (UnionType) (l & UNION_MASK);
+
 		}
 	}
 
@@ -84,7 +85,7 @@ public unsafe struct MethodTable
 	///     <para><see cref="EEClass" /></para>
 	///     <para>Canonical <see cref="MethodTable"/></para>
 	/// </summary>
-	private void* Union1 { get; }
+	private nint Union1 { get; }
 
 	internal Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 	{
@@ -102,7 +103,7 @@ public unsafe struct MethodTable
 	///     <para><see cref="ElementTypeHandle" /></para>
 	///     <para>MultipurposeSlot1</para>
 	/// </summary>
-	private void* Union2 { get; }
+	private nint Union2 { get; }
 
 	internal Pointer<MethodTable> ElementTypeHandle => Union2;
 
@@ -111,9 +112,9 @@ public unsafe struct MethodTable
 	///     <para><see cref="InterfaceMap" /></para>
 	///     <para>MultipurposeSlot2</para>
 	/// </summary>
-	private void* Union3 { get; }
+	private nint Union3 { get; }
 
-	internal Pointer<byte> InterfaceMap => (void**) Union3;
+	internal Pointer<Pointer<byte>> InterfaceMap => (void**) Union3;
 
 	/// <summary>
 	/// <see cref="EEClass"/>

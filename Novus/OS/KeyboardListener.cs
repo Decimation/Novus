@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Novus.Win32.Structures.User32;
 
@@ -14,8 +15,8 @@ public sealed class KeyboardListener : IDisposable
 {
 	public KeyboardListener() : this(IntPtr.Zero) { }
 
-	public KeyboardListener(string windowName, ISet<VirtualKey> whitelist = null) : this(
-		Native.FindWindow(windowName), whitelist) { }
+	public KeyboardListener(string windowName, ISet<VirtualKey> whitelist = null)
+		: this(Native.FindWindow(windowName), whitelist) { }
 
 	public KeyboardListener(nint handle, ISet<VirtualKey> whitelist = null)
 	{
@@ -29,6 +30,8 @@ public sealed class KeyboardListener : IDisposable
 		ScopeHandle  = handle;
 		KeyWhitelist = whitelist ?? new HashSet<VirtualKey>();
 	}
+
+	public bool IsGlobal => ScopeHandle == nint.Zero;
 
 	public void Start()
 	{
@@ -50,19 +53,26 @@ public sealed class KeyboardListener : IDisposable
 
 	private static bool IsVkPrevious(short k)
 	{
-		unsafe {
+		/*unsafe {
 			byte* b = (byte*) &k;
 			return b[0] == K_PREV;
-		}
+		}*/
 
+		return k < 0;
 	}
 
 	private static bool IsVkDown(short keyState)
 	{
 		unsafe {
-			byte* b = (byte*) &keyState;
-			return (b[1] & K_DOWN) != 0;
+			// byte* b = (byte*) &keyState;
+			return (keyState & K_DOWN) != 0;
 		}
+	}
+
+	public static (short key, bool isDown) GetVkDownState(VirtualKey k)
+	{
+		var s = Native.GetAsyncKeyState(k);
+		return (s, IsVkDown(s));
 	}
 
 	private void HandleKey(VirtualKey keyShort)
@@ -71,27 +81,31 @@ public sealed class KeyboardListener : IDisposable
 			return;
 		}
 
-		short shift = Native.GetAsyncKeyState(VirtualKey.SHIFT);
-		short ctrl  = Native.GetAsyncKeyState(VirtualKey.CONTROL);
-		short alt   = Native.GetAsyncKeyState(VirtualKey.MENU);
+		KeyModifiers k = 0;
 
-		bool shiftDown = IsVkDown(shift);
-		bool ctrDown   = IsVkDown(ctrl);
-		bool altDown   = IsVkDown(alt);
+		/*var (lshift, lshiftD) = GetDownState(VirtualKey.LSHIFT);
+		var (rshift, rshiftD) = GetDownState(VirtualKey.RSHIFT);
 
-		ConsoleModifiers c = 0;
+		var (lctrl, lctrld) = GetDownState(VirtualKey.LCONTROL);
+		var (rctrl, rctrlD) = GetDownState(VirtualKey.RCONTROL);
 
-		if (shiftDown) {
-			c |= ConsoleModifiers.Shift;
-		}
+		var (lalt, laltD) = GetDownState(VirtualKey.LMENU);
+		var (ralt, raltD) = GetDownState(VirtualKey.RMENU);
 
-		if (altDown) {
-			c |= ConsoleModifiers.Alt;
-		}
+		var (lwin, lwinD) = GetDownState(VirtualKey.LWIN);
+		var (rwin, rwinD) = GetDownState(VirtualKey.RWIN);*/
 
-		if (ctrDown) {
-			c |= ConsoleModifiers.Control;
-		}
+		var (shift, shiftD) = GetVkDownState(VirtualKey.SHIFT);
+		var (ctrl, ctrld)   = GetVkDownState(VirtualKey.CONTROL);
+		var (alt, altD)     = GetVkDownState(VirtualKey.MENU);
+		var (lwin, lwinD)   = GetVkDownState(VirtualKey.LWIN);
+		var (rwin, rwinD)   = GetVkDownState(VirtualKey.RWIN);
+
+		if (shiftD) k |= KeyModifiers.Shift;
+		if (ctrld) k  |= KeyModifiers.Ctrl;
+		if (altD) k   |= KeyModifiers.Alt;
+		if (lwinD) k  |= KeyModifiers.LWin;
+		if (rwinD) k  |= KeyModifiers.RWin;
 
 		short key     = Native.GetAsyncKeyState(keyShort);
 		bool  keyPrev = IsVkPrevious(key);
@@ -108,7 +122,7 @@ public sealed class KeyboardListener : IDisposable
 			IsPrevious = keyPrev,
 			IsStroke   = stroke,
 			Value      = key,
-			Modifiers  = c
+			Modifiers  = k
 		};
 
 		KeyEvent?.Invoke(null, args);
@@ -126,13 +140,31 @@ public sealed class KeyboardListener : IDisposable
 
 	private void Listen()
 	{
-		while (IsActive) {
+		var rg = new byte[VK_COUNT];
 
-			if (ScopeHandle != IntPtr.Zero && Native.GetForegroundWindow() != ScopeHandle) {
-				continue;
+		while (IsActive) {
+			if (!IsGlobal) {
+				if (Native.GetForegroundWindow() != ScopeHandle) {
+					continue;
+				}
+
 			}
 
-			var rg = new byte[VK_COUNT];
+			if (Native.GetKeyboardState(rg)) {
+				for (int i = 0; i < rg.Length; i++) {
+					HandleKey((VirtualKey) i);
+				}
+
+			}
+
+			// Thread.Sleep(TimeSpan.FromMilliseconds(300));
+		}
+
+	}
+
+	private void Listen2(in byte[] rg)
+	{
+		unsafe {
 
 			Native.GetKeyboardState(rg);
 
@@ -180,13 +212,26 @@ public sealed class KeyboardListener : IDisposable
 
 	#region Flags
 
-	private const int K_DOWN = 0x80;
+	private const int K_DOWN = 0x8000;
 
 	private const int K_PREV = 1;
 
 	private const int VK_COUNT = 256;
 
 	#endregion
+}
+
+[Flags]
+public enum KeyModifiers
+{
+	None  = 0,
+	Shift = 1 << 0,
+	Ctrl  = 1 << 1,
+	Alt   = 1 << 2,
+	LWin  = 1 << 3,
+	RWin  = 1 << 4,
+
+	Win = LWin | RWin
 }
 
 public sealed class KeyEventArgs : EventArgs
@@ -201,7 +246,7 @@ public sealed class KeyEventArgs : EventArgs
 
 	public short Value { get; internal set; }
 
-	public ConsoleModifiers Modifiers { get; internal init; }
+	public KeyModifiers Modifiers { get; internal init; }
 
 	public override string ToString()
 	{

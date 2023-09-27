@@ -3,7 +3,7 @@
 
 #pragma warning disable CA1069
 namespace Novus.Win32.Structures.User32;
-public enum VirtualKey : short
+public enum VirtualKey : int
 {
 	///<summary>
 	///Left mouse button

@@ -412,15 +412,16 @@ public static class ReflectionHelper
 		return types;
 	}
 
-	public static IEnumerable<object> CreateAllInAssembly(this Type type, InheritanceProperties p)
+	public static IEnumerable<T> CreateAllInAssembly<T>(InheritanceProperties p)
 	{
-		return type.CreateAllInAssembly<object>(p);
+		return typeof(T).CreateAllInAssembly(p).Cast<T>();
 	}
-	public static IEnumerable<T> CreateAllInAssembly<T>(this Type type, InheritanceProperties p)
+
+	public static IEnumerable<object> CreateAllInAssembly(this Type type, InheritanceProperties p)
 	{
 		return type.GetAllInAssembly(p)
 			.Select(Activator.CreateInstance)
-			.Cast<T>();
+			.Cast<object>();
 	}
 
 	public static HashSet<AssemblyName> DumpDependencies()

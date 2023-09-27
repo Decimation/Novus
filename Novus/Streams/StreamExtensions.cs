@@ -48,6 +48,7 @@ public static class StreamExtensions
 
 		return list.ToArray();
 	}
+
 #if EXTRA
 	public static byte[] ToByteArray(this Stream stream)
 	{

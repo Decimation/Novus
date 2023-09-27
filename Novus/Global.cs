@@ -121,7 +121,7 @@ namespace Novus;
 ///         </item>
 ///     </list>
 /// </remarks>
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+[DAM(DAMT.All)]
 public static class Global
 {
 	/// <summary>
@@ -250,16 +250,14 @@ public static class Global
 
 	#region QWrite
 
-	private const string QWRITE_STR_FMT_ARG = "s";
-
 	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
 
-	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
+	[StringFormatMethod(nameof(s))]
 	internal static void QWrite(string s, params object[] args) => QWrite(s, DefaultQWriteFunction, args: args);
 
-	[StringFormatMethod(QWRITE_STR_FMT_ARG)]
+	[StringFormatMethod(nameof(s))]
 	internal static void QWrite(string s, Action<object> writeFunction = null, string category = null,
-	                            [CallerArgumentExpression("s")] string sz = null, params object[] args)
+	                            [CallerArgumentExpression(nameof(s))] string sz = null, params object[] args)
 	{
 		writeFunction ??= DefaultQWriteFunction;
 

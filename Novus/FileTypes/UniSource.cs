@@ -46,6 +46,26 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		SourceType = u;
 	}
 
+	public string Name
+	{
+		get
+		{
+			if (IsFile) {
+				return Path.GetFileName(Value.ToString());
+			}
+
+			if (IsUri) {
+				return ((Url) Value).GetFileName();
+			}
+
+			if (IsStream) {
+				return $"<stream {Stream.GetHashCode()}>";
+			}
+
+			throw new InvalidOperationException();
+			
+		}
+	}
 	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null, FileType[] whitelist = null,
 	                                             CancellationToken ct = default)
 	{

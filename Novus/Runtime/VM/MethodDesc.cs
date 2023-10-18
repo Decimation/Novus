@@ -112,7 +112,7 @@ public unsafe struct MethodDesc
 			// PTR_MethodDescChunk(dac_cast<TADDR>(this) -(sizeof(MethodDescChunk) + (GetMethodDescIndex() * MethodDesc::ALIGNMENT)));
 
 			var thisptr = Mem.AddressOf(ref this).Cast();
-			return (thisptr - (sizeof(MethodDescChunk) + (ChunkIndex * Alignment)));
+			return (thisptr - (sizeof(MethodDescChunk) + (ChunkIndex * Alignment))).Cast<MethodDescChunk>();
 		}
 	}
 

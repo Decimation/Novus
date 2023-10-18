@@ -31,6 +31,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using JetBrains.Annotations;
+using Kantan.Text;
 
 // ReSharper disable InconsistentNaming
 
@@ -56,6 +57,45 @@ public static class Values
 	public const string f2 =
 		@"C:\Users\Deci\Pictures\Epic anime\2B_neko_FINALE_1_12.jpg";
 }
+
+[RyuJitX64Job]
+public class Benchmarks29
+{
+	private string s1;
+
+	[GlobalSetup]
+	public void GlobalSetup() { }
+
+	[IterationSetup]
+	public void IterationSetup()
+	{
+		s1 = Strings.CreateRandom(5);
+	}
+	[Benchmark]
+	public Pointer<byte> Test4()
+	{
+		return Mem.AddressOfHeap(s1, OffsetOptions.StringData);
+	}
+
+	[Benchmark]
+	public Pointer<byte> Test3()
+	{
+		return Mem.AddressOfHeap(s1, OffsetOptions.Fields);
+	}
+
+	[Benchmark]
+	public Pointer<byte> Test2()
+	{
+		return Mem.AddressOfHeap(s1);
+	}
+
+	[Benchmark]
+	public Pointer<string> Test1()
+	{
+		return Mem.AddressOf(ref s1);
+	}
+}
+
 [RyuJitX64Job]
 public class Benchmarks28
 {
@@ -82,6 +122,7 @@ public class Benchmarks28
 	{
 		return typeof(uint).IsUnsigned();
 	}
+
 	[Benchmark]
 	public bool IsNumeric_()
 	{

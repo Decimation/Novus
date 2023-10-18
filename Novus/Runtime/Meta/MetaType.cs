@@ -255,7 +255,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
 
-	public Type RuntimeType => RuntimeProperties.ResolveType(Value.Cast());
+	public Type RuntimeType => RuntimeProperties.ResolveType(Value.Cast<MethodTable>());
 
 	public OptionalSlotsFlags SlotsFlags => Value.Reference.SlotsFlags;
 

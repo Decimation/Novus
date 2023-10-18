@@ -497,14 +497,17 @@ public unsafe class Tests_Pointer
 		Assert.AreEqual(ptr1.Reference, i);
 
 		var          rg   = new[] { 1, 2, 3 };
-		Pointer<int> ptr2 = Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
+		Pointer<int> ptr2 = (Pointer<int>)Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
 
 		fixed (int* p1 = rg) {
-			int* cpy = p1;
+			// int* cpy = p1;
 
 			for (int j = 0; j < rg.Length; j++) {
-				Assert.True(ptr2.Address == Marshal.UnsafeAddrOfPinnedArrayElement(rg, j));
-				Assert.True(cpy++ == ptr2++);
+				var p2 = &p1[j];
+				var p3 = Marshal.UnsafeAddrOfPinnedArrayElement(rg, j);
+				Assert.True(ptr2.Address == p3);
+				Assert.True(*p2 == ptr2.Value);
+				Assert.True(p2 == ptr2++);
 			}
 		}
 
@@ -1012,6 +1015,17 @@ public class Tests_Runtime
 	{
 		Assert.True(RuntimeProperties.IsNull(o));
 	}
+	[Test]
+	[TestCase("foo")]
+	[TestCase(new[] { 1, 2, 3 })]
+	public void PinTest2(object s)
+	{
+		var p = Mem.AddressOfHeap(s);
+		Mem.InvokeWhilePinned(s, o =>
+		{
+			Assert.False(AddPressure(p, o));
+		});
+	}
 
 	[Test]
 	[TestCase("foo")]
@@ -1029,20 +1043,38 @@ public class Tests_Runtime
 		Mem.Unpin(s);
 		// Assert.True(AddPressure(p, s));
 
-		Mem.InvokeWhilePinned(s, o =>
-		{
-			Assert.False(AddPressure(p, o));
-		});
 	}
-
-	private static bool AddPressure(Pointer<byte> p, object s)
+	[Test]
+	[TestCase("foo")]
+	[TestCase(new[] { 1, 2, 3 })]
+	public void PinTestInv(object s)
 	{
-		for (int i = 0; i < 1000; i++) {
-			//GC.AddMemoryPressure(100000);
-			var r = new object[1000];
 
+		//var g = GCHandle.Alloc(s, GCHandleType.Pinned);
+
+		var p = Mem.AddressOfHeap(s);
+
+		Mem.Pin(s);
+		Assert.False(AddPressure(p, s));
+
+		Mem.Unpin(s);
+		Assert.True(AddPressure(p, s));
+
+	}
+	private static bool AddPressure(Pointer<byte> p, object s, long i1 = 500_000)
+	{
+		var random = new Random();
+
+		for (int i = 0; i < i1; i++) {
+			GC.AddMemoryPressure(i1);
+			//GC.AddMemoryPressure(100000);
+			var r = new object[i1];
 			for (int j = 0; j < r.Length; j++) {
-				r[j] = new Random().Next();
+				r[j] = random.Next();
+				if (p != Mem.AddressOfHeap(s))
+				{
+					return true;
+				}
 			}
 
 			GC.Collect();

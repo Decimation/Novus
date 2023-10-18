@@ -160,8 +160,6 @@ public static unsafe class Mem
 
 	private static readonly Action<object, Action<object>> PinImpl = CreatePinImpl();
 
-	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
-
 	private static Action<object, Action<object>> CreatePinImpl()
 	{
 		var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
@@ -200,27 +198,49 @@ public static unsafe class Mem
 	public static PinningHelper GetPinningHelper(object value)
 		=> U.As<PinningHelper>(value);
 
-	public static void Pin(object obj)
+	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
+
+	public static bool IsPinned(object obj)
+		=> PinResetEvents.ContainsKey(obj);
+
+	public static bool Pin(object obj, [CanBeNull] object s = null)
 	{
 		var value = new ManualResetEvent(false);
 
-		PinResetEvents.Add(obj, value);
+		if (PinResetEvents.TryAdd(obj, value)) {
+			var b = ThreadPool.QueueUserWorkItem(_ =>
+			{
+				fixed (byte* p = &GetPinningHelper(obj).Data) {
+					value.WaitOne();
+				}
+			}, s);
 
-		ThreadPool.QueueUserWorkItem(_ =>
-		{
-			fixed (byte* p = &GetPinningHelper(obj).Data) {
-				value.WaitOne();
+			if (b) {
+				Debug.WriteLine($"Pinned obj: {obj.GetHashCode()}");
+
 			}
-		});
 
-		Debug.WriteLine($"Pinned obj: {obj.GetHashCode()}");
+			return b;
+		}
+
+		return false;
 	}
 
-	public static void Unpin(object obj)
+	public static bool Unpin(object obj)
 	{
-		PinResetEvents[obj].Set();
 
-		Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
+		if (PinResetEvents.TryGetValue(obj, out var p)) {
+			var o = p.Set();
+
+			if (o) {
+				Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
+				o = PinResetEvents.Remove(obj);
+			}
+
+			return o;
+		}
+
+		return false;
 	}
 
 	/// <summary>
@@ -835,6 +855,15 @@ public static unsafe class Mem
 	public static Pointer AddressOfField(object obj, string name)
 		=> AddressOfField<object, byte>(obj, name);
 
+	public static Pointer<TField> AddressOfField<T, TField>(in T obj, string name)
+	{
+		int offsetOf = OffsetOf(obj.GetType(), name);
+
+		Pointer p = AddressOfData2(in obj);
+
+		return (Pointer<TField>) (p + offsetOf);
+	}
+
 	public static Pointer<TField> AddressOfField<TField>(Type t, string name, [NNINN(nameof(t))] object o = null)
 	{
 		MetaField field = t.GetAnyResolvedField(name).AsMetaField();
@@ -844,22 +873,13 @@ public static unsafe class Mem
 		return p.Cast<TField>();
 	}
 
-	public static Pointer<TField> AddressOfField<T, TField>(in T obj, string name)
-	{
-		int offsetOf = OffsetOf(obj.GetType(), name);
-
-		Pointer p = AddressOfData2(in obj);
-
-		return p + offsetOf;
-	}
-
 	public static Pointer<TField> AddressOfField<T, TField>(in T obj, Expression<Func<TField>> mem)
 	{
 		int offsetOf = OffsetOf(obj.GetType(), memberof2(mem).Name);
 
 		Pointer p = AddressOfData2(in obj);
 
-		return p + offsetOf;
+		return (Pointer<TField>) (p + offsetOf);
 	}
 	/*public static ref TField ReferenceOfField<TField>(object obj, string name) =>
 		ref AddressOfField<object, TField>(obj, name).Reference;

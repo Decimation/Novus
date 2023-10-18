@@ -57,7 +57,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 {
 	private static readonly nuint s_ElementSize;
 
-	static Pointer() => s_ElementSize = (nuint) M.SizeOf<T>();
+	static Pointer()
+		=> s_ElementSize = (nuint) M.SizeOf<T>();
 
 	/// <summary>
 	///     Internal pointer value.
@@ -123,27 +124,38 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	#region Conversion
 
-	public static explicit operator Pointer<T>(ulong ul) => new((void*) ul);
+	public static explicit operator Pointer<T>(ulong ul)
+		=> new((void*) ul);
 
-	public static explicit operator nint(Pointer<T> ptr) => ptr.Address;
+	public static explicit operator nint(Pointer<T> ptr)
+		=> ptr.Address;
 
-	public static explicit operator void*(Pointer<T> ptr) => ptr.ToPointer();
+	public static explicit operator void*(Pointer<T> ptr)
+		=> ptr.ToPointer();
 
-	public static explicit operator long(Pointer<T> ptr) => ptr.ToInt64();
+	public static explicit operator long(Pointer<T> ptr)
+		=> ptr.ToInt64();
 
-	public static explicit operator ulong(Pointer<T> ptr) => ptr.ToUInt64();
+	public static explicit operator ulong(Pointer<T> ptr)
+		=> ptr.ToUInt64();
 
-	public static implicit operator Pointer<byte>(Pointer<T> ptr) => ptr.ToPointer();
+	public static explicit operator Pointer<T>(long value)
+		=> new((void*) value);
 
-	public static explicit operator Pointer<T>(long value) => new((void*) value);
+	public static implicit operator Pointer<byte>(Pointer<T> ptr)
+		=> ptr.ToPointer();
 
-	public static implicit operator Pointer<T>(void* value) => new(value);
+	public static implicit operator Pointer<T>(void* value)
+		=> new(value);
 
-	public static implicit operator Pointer<T>(nint value) => new(value);
+	public static implicit operator Pointer<T>(nint value)
+		=> new(value);
 
-	public static implicit operator Pointer<T>(Pointer<byte> ptr) => ptr.Address;
+	public static /*implicit*/ explicit operator Pointer<T>(Pointer<byte> ptr)
+		=> ptr.Address;
 
-	public static explicit operator Pointer<T>(Span<T> s) => s.ToPointer();
+	public static explicit operator Pointer<T>(Span<T> s)
+		=> s.ToPointer();
 
 	/// <summary>
 	///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to
@@ -151,14 +163,16 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	/// <typeparam name="TNew">Type to point to</typeparam>
 	/// <returns>A new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" /></returns>
-	public readonly Pointer<TNew> Cast<TNew>() => m_value;
+	public readonly Pointer<TNew> Cast<TNew>()
+		=> m_value;
 
 	/// <summary>
 	///     Creates a new <see cref="Pointer{T}" /> of type <see cref="Byte" />, pointing to
 	///     <see cref="Address" />
 	/// </summary>
 	/// <returns>A new <see cref="Pointer{T}" /> of type <see cref="Byte" /></returns>
-	public readonly Pointer<byte> Cast() => Cast<byte>();
+	public readonly Pointer<byte> Cast()
+		=> Cast<byte>();
 
 	/// <summary>
 	///     Creates a native pointer of type <typeparamref name="TUnmanaged" />, pointing to
@@ -166,26 +180,32 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	/// <returns>A native pointer of type <typeparamref name="TUnmanaged" /></returns>
 	[Pure]
-	public readonly TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged => (TUnmanaged*) m_value;
+	public readonly TUnmanaged* ToPointer<TUnmanaged>() where TUnmanaged : unmanaged
+		=> (TUnmanaged*) m_value;
 
 	/// <summary>
 	///     Creates a native <c>void*</c> pointer, pointing to <see cref="Address" />
 	/// </summary>
 	/// <returns>A native <c>void*</c> pointer</returns>
 	[Pure]
-	public readonly void* ToPointer() => m_value;
+	public readonly void* ToPointer()
+		=> m_value;
 
 	[Pure]
-	public readonly ulong ToUInt64() => (ulong) m_value;
+	public readonly ulong ToUInt64()
+		=> (ulong) m_value;
 
 	[Pure]
-	public readonly long ToInt64() => Address.ToInt64();
+	public readonly long ToInt64()
+		=> Address.ToInt64();
 
 	[Pure]
-	public readonly int ToInt32() => Address.ToInt32();
+	public readonly int ToInt32()
+		=> Address.ToInt32();
 
 	[Pure]
-	public readonly uint ToUInt32() => (uint) m_value;
+	public readonly uint ToUInt32()
+		=> (uint) m_value;
 
 	#endregion
 
@@ -222,21 +242,29 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		return unchecked((int) (long) m_value);
 	}
 
-	public static bool operator ==(Pointer<T> left, Pointer<byte> right) => left.Equals(right);
+	public static bool operator ==(Pointer<T> left, Pointer<byte> right)
+		=> left.Equals(right);
 
-	public static bool operator !=(Pointer<T> left, Pointer<byte> right) => !left.Equals(right);
+	public static bool operator !=(Pointer<T> left, Pointer<byte> right)
+		=> !left.Equals(right);
 
-	public static bool operator ==(Pointer<T> left, Pointer<T> right) => left.Equals(right);
+	public static bool operator ==(Pointer<T> left, Pointer<T> right)
+		=> left.Equals(right);
 
-	public static bool operator !=(Pointer<T> left, Pointer<T> right) => !left.Equals(right);
+	public static bool operator !=(Pointer<T> left, Pointer<T> right)
+		=> !left.Equals(right);
 
-	public static bool operator >(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() > b.ToInt64();
+	public static bool operator >(Pointer<T> ptr, Pointer<T> b)
+		=> ptr.ToInt64() > b.ToInt64();
 
-	public static bool operator >=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() >= b.ToInt64();
+	public static bool operator >=(Pointer<T> ptr, Pointer<T> b)
+		=> ptr.ToInt64() >= b.ToInt64();
 
-	public static bool operator <(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() < b.ToInt64();
+	public static bool operator <(Pointer<T> ptr, Pointer<T> b)
+		=> ptr.ToInt64() < b.ToInt64();
 
-	public static bool operator <=(Pointer<T> ptr, Pointer<T> b) => ptr.ToInt64() <= b.ToInt64();
+	public static bool operator <=(Pointer<T> ptr, Pointer<T> b)
+		=> ptr.ToInt64() <= b.ToInt64();
 
 	#endregion
 
@@ -264,11 +292,14 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes subtracted
 	/// </returns>
 	[Pure]
-	public Pointer<T> SubtractBytes(nint byteCnt = ELEM_CNT) => AddBytes(-byteCnt);
+	public Pointer<T> SubtractBytes(nint byteCnt = ELEM_CNT)
+		=> AddBytes(-byteCnt);
 
-	public static Pointer<T> operator +(Pointer<T> left, nint right) => left.Add(right);
+	public static Pointer<T> operator +(Pointer<T> left, nint right)
+		=> left.Add(right);
 
-	public static Pointer<T> operator -(Pointer<T> left, nint right) => left.Subtract(right);
+	public static Pointer<T> operator -(Pointer<T> left, nint right)
+		=> left.Subtract(right);
 
 	public static Pointer<T> operator +(Pointer<T> left, Pointer<T> right)
 		=> (void*) (left.ToInt64() + right.ToInt64());
@@ -286,7 +317,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     <see cref="Pointer{T}" />
 	/// </param>
 	/// <param name="i">Number of elements (<see cref="ElementSize" />)</param>
-	public static Pointer<T> operator +(Pointer<T> ptr, int i) => ptr.Add(i);
+	public static Pointer<T> operator +(Pointer<T> ptr, int i)
+		=> ptr.Add(i);
 
 	/// <summary>
 	///     Decrements the <see cref="Address" /> by the specified number of elements.
@@ -298,7 +330,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     <see cref="Pointer{T}" />
 	/// </param>
 	/// <param name="i">Number of elements (<see cref="ElementSize" />)</param>
-	public static Pointer<T> operator -(Pointer<T> ptr, int i) => ptr.Subtract(i);
+	public static Pointer<T> operator -(Pointer<T> ptr, int i)
+		=> ptr.Subtract(i);
 
 	/// <summary>
 	///     Increments the <see cref="Pointer{T}" /> by one element.
@@ -307,7 +340,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     <see cref="Pointer{T}" />
 	/// </param>
 	/// <returns>The offset <see cref="Address" /></returns>
-	public static Pointer<T> operator ++(Pointer<T> ptr) => ptr.Add();
+	public static Pointer<T> operator ++(Pointer<T> ptr)
+		=> ptr.Add();
 
 	/// <summary>
 	///     Decrements the <see cref="Pointer{T}" /> by one element.
@@ -316,7 +350,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     <see cref="Pointer{T}" />
 	/// </param>
 	/// <returns>The offset <see cref="Address" /></returns>
-	public static Pointer<T> operator --(Pointer<T> ptr) => ptr.Subtract();
+	public static Pointer<T> operator --(Pointer<T> ptr)
+		=> ptr.Subtract();
 
 	/// <summary>
 	///     Increment <see cref="Address" /> by the specified number of elements
@@ -326,7 +361,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
 	/// </returns>
 	[Pure]
-	public Pointer<T> Add(nint elemCnt = ELEM_CNT) => Offset(elemCnt);
+	public Pointer<T> Add(nint elemCnt = ELEM_CNT)
+		=> Offset(elemCnt);
 
 	/// <summary>
 	///     Decrement <see cref="Address" /> by the specified number of elements
@@ -336,7 +372,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
 	/// </returns>
 	[Pure]
-	public Pointer<T> Subtract(nint elemCnt = ELEM_CNT) => Add(-elemCnt);
+	public Pointer<T> Subtract(nint elemCnt = ELEM_CNT)
+		=> Add(-elemCnt);
 
 	[Pure]
 	[MImpl(MImplO.AggressiveInlining)]
@@ -347,7 +384,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	}
 
 	[Pure]
-	public readonly Pointer<T> AddressOfIndex(nint index) => Offset(index);
+	public readonly Pointer<T> AddressOfIndex(nint index)
+		=> Offset(index);
 
 	#endregion
 
@@ -359,7 +397,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <param name="value">Value to write.</param>
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	[method: MImpl(Global.IMPL_OPTIONS)]
-	public void Write(T value, nint elemOffset = OFFSET) => Unsafe.Write(Offset(elemOffset), value);
+	public void Write(T value, nint elemOffset = OFFSET)
+		=> Unsafe.Write(Offset(elemOffset), value);
 
 	/// <summary>
 	///     Reads a value of type <typeparamref name="T" /> from <see cref="Address" />.
@@ -368,7 +407,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <returns>The value read from the offset <see cref="Address" />.</returns>
 	[Pure]
 	[method: MImpl(Global.IMPL_OPTIONS)]
-	public readonly T Read(nint elemOffset = OFFSET) => Unsafe.Read<T>(Offset(elemOffset));
+	public readonly T Read(nint elemOffset = OFFSET)
+		=> Unsafe.Read<T>(Offset(elemOffset));
 
 	/// <summary>
 	///     Reinterprets <see cref="Address" /> as a reference to a value of type <typeparamref name="T" />.
@@ -377,7 +417,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 	[Pure]
 	[method: MImpl(Global.IMPL_OPTIONS)]
-	public ref T AsRef(nint elemOffset = OFFSET) => ref Unsafe.AsRef<T>(Offset(elemOffset));
+	public ref T AsRef(nint elemOffset = OFFSET)
+		=> ref Unsafe.AsRef<T>(Offset(elemOffset));
 
 	/// <summary>
 	///     Zeros <paramref name="elemCnt" /> elements.
@@ -402,7 +443,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	}
 
 	[Pure]
-	public readonly Pointer<byte> ReadPointer(nint elemOffset = OFFSET) => ReadPointer<byte>(elemOffset);
+	public readonly Pointer<byte> ReadPointer(nint elemOffset = OFFSET)
+		=> ReadPointer<byte>(elemOffset);
 
 	[Pure]
 	public readonly Pointer<TType> ReadPointer<TType>(nint elemOffset = OFFSET)
@@ -425,7 +467,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		}*/
 	}
 
-	public void Copy(Pointer<T> dest, nint elemCnt) => Copy(dest, OFFSET, elemCnt);
+	public void Copy(Pointer<T> dest, nint elemCnt)
+		=> Copy(dest, OFFSET, elemCnt);
 
 	public void Copy(T[] rg, nint startIndex, nint elemCnt)
 	{
@@ -440,7 +483,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		}
 	}
 
-	public void Copy(T[] rg) => Copy(rg, OFFSET, rg.Length);
+	public void Copy(T[] rg)
+		=> Copy(rg, OFFSET, rg.Length);
 
 	/// <summary>
 	///     Copies <paramref name="elemCnt" /> elements into an array of type <typeparamref name="T" />,
@@ -472,15 +516,18 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     the current pointer
 	/// </returns>
 	[Pure]
-	public T[] ToArray(nint elemCnt) => ToArray(OFFSET, elemCnt);
+	public T[] ToArray(nint elemCnt)
+		=> ToArray(OFFSET, elemCnt);
 
 	#endregion
 
 	#region Format
 
-	public override string ToString() => ToString(FormatHelper.HexFormatter.FMT_P);
+	public override string ToString()
+		=> ToString(FormatHelper.HexFormatter.FMT_P);
 
-	public string ToString(string format) => ToString(format, null);
+	public string ToString(string format)
+		=> ToString(format, null);
 
 	public string ToString(string? format, IFormatProvider? provider)
 	{
@@ -515,7 +562,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		// ...
 	}
 
-	public readonly MemoryBasicInformation Query() => Native.QueryMemoryPage(this);
+	public readonly MemoryBasicInformation Query()
+		=> Native.QueryMemoryPage(this);
 
 	/// <summary>
 	///     Default offset for <see cref="Pointer{T}" />

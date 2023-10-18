@@ -60,7 +60,7 @@ public static class AllocManager
 		nuint elemSize = (nuint) Mem.SizeOf<T>();
 		int   cb       = (int) Mem.GetByteCount(elemSize, elemCnt);
 
-		ptr = Allocator.ReAlloc(ptr.Address, (nuint) cb);
+		ptr = (Pointer<T>) Allocator.ReAlloc(ptr.Address, (nuint) cb);
 
 		Allocated.Add(ptr);
 
@@ -102,7 +102,7 @@ public static class AllocManager
 		var elemSize = (nuint) Mem.SizeOf<T>();
 		var cb       = (nuint) Mem.GetByteCount(elemSize, elemCnt);
 
-		Pointer<T> h = Allocator.Alloc(cb);
+		Pointer<T> h = (Pointer<T>) Allocator.Alloc(cb);
 		h.Clear((int) elemCnt);
 
 		Allocated.Add(h);

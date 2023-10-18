@@ -142,7 +142,7 @@ public unsafe struct EEClass
 	private int GetPackableField(EEClassFieldId eField)
 	{
 		uint u  = (uint) eField;
-		var  pf = new PackedFieldsReader(PackedFields, (int) EEClassFieldId.COUNT);
+		var  pf = new PackedFieldsReader(PackedFields.Cast<uint>(), (int) EEClassFieldId.COUNT);
 		return (int) (FieldsArePacked ? pf.GetPackedField(u) : pf.GetUnpackedField(u));
 	}
 

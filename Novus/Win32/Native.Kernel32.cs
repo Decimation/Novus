@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿global using ATOM = System.UInt16;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32.Structures;
@@ -12,6 +13,9 @@ namespace Novus.Win32;
 #pragma warning disable CA1401,CA2101
 public static unsafe partial class Native
 {
+	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
+	public static extern ATOM GlobalAddAtom(string lpString);
+
 	// Thread proc, to be used with Create*Thread
 	public delegate int ThreadProc(nint param);
 
@@ -59,7 +63,7 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	public static partial nint GetStdHandle(StandardHandle nStdHandle);
-	
+
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	[return: MarshalAs(UnmanagedType.Bool)]
 	public static partial bool SetStdHandle(StandardHandle nStdHandle, IntPtr nHandle);
@@ -382,4 +386,3 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint GlobalSize(nint hMem);
 }
-

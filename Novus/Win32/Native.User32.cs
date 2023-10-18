@@ -92,9 +92,16 @@ public static unsafe partial class Native
 	public static extern nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
-	// [return: MarshalAs(UnmanagedType.Bool)]
-	public static extern int GetMessage(out MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
+	[return: MarshalAs(UnmanagedType.Bool)]
+	public static extern bool GetMessage(ref MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
 	                                    [Optional] uint wMsgFilterMax);
+
+	/*
+	[DllImport(USER32_DLL, SetLastError = true)]
+	// [return: MarshalAs(UnmanagedType.Bool)]
+	public static extern int GetMessage(ref MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
+	                                    [Optional] uint wMsgFilterMax);
+	                                    */
 
 	[DllImport(USER32_DLL)]
 

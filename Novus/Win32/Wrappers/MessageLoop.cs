@@ -81,8 +81,8 @@ public class MessageLoop
 			timeoutTimerId = Native.SetTimer(uElapse: (uint)timeout.TotalMilliseconds);
 
 		Running = true;
-
-		while (Native.GetMessage(out var msg)!=0)
+		MSG msg = new MSG();
+		while (Native.GetMessage(ref msg))
 		{
 			System.Diagnostics.Debug.WriteLine($"Message loop: message={msg.message}");
 

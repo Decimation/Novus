@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -16,7 +17,7 @@ using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 
-#pragma warning disable 8603, CA1416
+#pragma warning disable 8603
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable TailRecursiveCall
@@ -451,9 +452,11 @@ public static class FileSystem
 		return withoutExtension + append + extension;
 	}
 
+	[SupportedOSPlatform(Global.OS_WIN)]
 	public static string? SymbolPath
 		=> Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
 
+	[SupportedOSPlatform(Global.OS_WIN)]
 	public static bool IsAdministrator()
 	{
 		using var identity = WindowsIdentity.GetCurrent();

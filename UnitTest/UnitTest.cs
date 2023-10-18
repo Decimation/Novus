@@ -617,6 +617,7 @@ public class Tests_ReflectionHelper
 	[TestCase(typeof(int), true, true, false)]
 	[TestCase(typeof(float), true, false, true)]
 	[TestCase(typeof(Half), true, false, true)]
+	[TestCase(typeof(Int128), true, true, false)]
 	public void Test3(Type t, bool isNum, bool isInt, bool isReal)
 	{
 		Assert.AreEqual(isNum, t.IsNumeric());
@@ -630,6 +631,9 @@ public class Tests_ReflectionHelper
 	[Test]
 	[TestCase(typeof(int), true)]
 	[TestCase(typeof(uint), false)]
+	[TestCase(typeof(Int128), true)]
+	[TestCase(typeof(UInt128), false)]
+	[TestCase(typeof(float), true)]
 	public void Test4(Type t, bool s)
 	{
 		Assert.AreEqual(s, t.IsSigned());

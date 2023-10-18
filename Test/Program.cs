@@ -139,7 +139,7 @@ public static unsafe class Program
 {
 	private static async Task Main(string[] args)
 	{
-		var k = new KeyboardListener();
+		/*var k = new KeyboardListener();
 
 		k.KeyEvent += (sender, eventArgs) =>
 		{
@@ -149,7 +149,14 @@ public static unsafe class Program
 			}
 		};
 
-		k.Start();
+		k.Start();*/
+
+	}
+
+	public static void HandleHotKey(IntPtr hWnd, int id)
+	{
+		// Handle the hotkey event
+		Console.WriteLine("Hotkey pressed. ID: " + id);
 
 	}
 

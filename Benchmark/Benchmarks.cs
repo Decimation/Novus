@@ -56,6 +56,38 @@ public static class Values
 	public const string f2 =
 		@"C:\Users\Deci\Pictures\Epic anime\2B_neko_FINALE_1_12.jpg";
 }
+[RyuJitX64Job]
+public class Benchmarks28
+{
+	[Benchmark]
+	public bool IsSigned_()
+	{
+		return typeof(int).IsSigned();
+	}
+
+	[Benchmark]
+	public bool IsReal_()
+	{
+		return typeof(uint).IsReal();
+	}
+
+	[Benchmark]
+	public bool IsInt_()
+	{
+		return typeof(int).IsInteger();
+	}
+
+	[Benchmark]
+	public bool IsUnsigned_()
+	{
+		return typeof(uint).IsUnsigned();
+	}
+	[Benchmark]
+	public bool IsNumeric_()
+	{
+		return typeof(uint).IsNumeric();
+	}
+}
 
 [RyuJitX64Job]
 public class Benchmarks27

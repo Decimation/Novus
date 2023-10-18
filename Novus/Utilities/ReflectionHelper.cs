@@ -265,26 +265,45 @@ public static class ReflectionHelper
 		return type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericType);
 	}
 
+	#region 
+
 	public static bool IsSigned(this Type t)
 	{
-		return t.IsInteger() && (int) Type.GetTypeCode(t) % 2 == 1;
+		var c = GetCodeInfo(t, out var b);
+
+		var bb = b && (int) c % 2 == 1;
+		return /*t.IsInteger() && */bb || ExtraSInt.Contains(t) || t.IsReal();
 	}
 
 	public static bool IsUnsigned(this Type t)
-		=> !t.IsSigned();
+	{
+		var c = GetCodeInfo(t, out var b);
+
+		var bb = b && (int) c % 2 == 0;
+		return /*t.IsInteger() && */bb || ExtraUInt.Contains(t);
+	}
 
 	public static bool IsNumeric(this Type t)
-		=> t.IsReal() || t.IsInteger();
+		=> t.IsInteger() || t.IsReal();
+
+	private static readonly Type[] ExtraUInt = { typeof(UInt128), typeof(nuint) };
+	private static readonly Type[] ExtraSInt = { typeof(BigInteger), typeof(Int128), typeof(nint) };
 
 	public static bool IsInteger(this Type t)
 	{
+		TypeCode c = GetCodeInfo(t, out bool b);
+
+		// var b2 = t == typeof(BigInteger) || t == typeof(Int128) || t == typeof(UInt128);
+		// var b3 = t == typeof(nint) || t == typeof(nuint);
+
+		return b || ExtraSInt.Contains(t) || ExtraUInt.Contains(t);
+	}
+
+	private static TypeCode GetCodeInfo(Type t, out bool isIntCode)
+	{
 		var c = Type.GetTypeCode(t);
-
-		var b  = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
-		var b2 = t == typeof(BigInteger);
-		var b3 = t == typeof(nint) || t == typeof(nuint);
-
-		return b || b2 || b3;
+		isIntCode = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
+		return c;
 	}
 
 	public static bool IsReal(this Type t)
@@ -298,6 +317,8 @@ public static class ReflectionHelper
 
 		return case1 || case2;
 	}
+
+	#endregion
 
 	/// <summary>
 	///     Dummy class for use with <see cref="IsUnmanaged" /> and <see cref="IsUnmanaged" />
@@ -371,7 +392,7 @@ public static class ReflectionHelper
 		/*
 		 * https://stackoverflow.com/questions/142356/most-efficient-way-to-get-default-constructor-of-a-type
 		 */
-		
+
 		var ct = value.GetType2().GetConstructor(args);
 
 		if (ct is { }) {

@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Novus.Win32.Structures.DbgHelp;
 
 // ReSharper disable InconsistentNaming
@@ -46,5 +47,6 @@ public static unsafe partial class Native
 	internal static extern ulong SymLoadModuleEx(nint hProcess, nint hFile, string imageName,
 	                                             string moduleName, ulong baseOfDll, uint dllSize, nint data,
 	                                             uint flags);
-#endregion
+
+	#endregion
 }

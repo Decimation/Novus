@@ -3,6 +3,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
@@ -28,6 +29,7 @@ namespace Novus.Win32;
 /// <summary>
 ///     Native interop; Win32 API
 /// </summary>
+[SupportedOSPlatform(Global.OS_WIN)]
 public static unsafe partial class Native
 {
 	public const int INVALID = -1;

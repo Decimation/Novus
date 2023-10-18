@@ -181,13 +181,18 @@ public static class Global
 		if (IsSetup) {
 			return;
 		}
-		
+
 		/*
 		 * Setup
 		 */
 
 		Log.LogTrace($"[{LIB_NAME}] Module init");
 		Log.LogTrace($"[{LIB_NAME}]");
+
+		if (!IsWindows) {
+			Log.LogWarning("Not on Windows!");
+			return;
+		}
 
 		// var s = Path.Combine(Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine), "coreclr.pdb");
 		//todo
@@ -236,6 +241,9 @@ public static class Global
 	[SupportedOSPlatformGuard(OS_WIN)]
 	public static readonly bool IsWindows = OperatingSystem.IsWindows();
 
+	[SupportedOSPlatformGuard(OS_LINUX)]
+	public static readonly bool IsLinux = OperatingSystem.IsLinux();
+
 	public static readonly bool IsWorkstationGC = !GCSettings.IsServerGC;
 
 	public static readonly bool IsCorrectVersion = Environment.Version == ClrVersion;
@@ -246,6 +254,7 @@ public static class Global
 		MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization;
 
 	public const string OS_WIN   = "windows";
+
 	public const string OS_LINUX = "linux";
 
 	#region QWrite
@@ -253,7 +262,8 @@ public static class Global
 	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
 
 	[StringFormatMethod(nameof(s))]
-	internal static void QWrite(string s, params object[] args) => QWrite(s, DefaultQWriteFunction, args: args);
+	internal static void QWrite(string s, params object[] args)
+		=> QWrite(s, DefaultQWriteFunction, args: args);
 
 	[StringFormatMethod(nameof(s))]
 	internal static void QWrite(string s, Action<object> writeFunction = null, string category = null,

@@ -8,6 +8,7 @@ using System.Net;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Caching;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Web;
 using CliWrap;
 using CliWrap.Buffered;
@@ -32,6 +33,7 @@ using Novus.OS;
 
 namespace Novus.Utilities;
 
+[SupportedOSPlatform(Global.OS_WIN)]
 public sealed class Win32SymbolReader : IDisposable
 {
 	private bool m_disposed;
@@ -98,7 +100,7 @@ public sealed class Win32SymbolReader : IDisposable
 		{
 			Debug.WriteLine("ERROR");
 		}
-		
+
 		var sym = new Symbol(&d);*/
 
 		return sym;

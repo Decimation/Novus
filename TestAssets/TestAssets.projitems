@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>6538ea72-f003-4d9f-877a-34686783e010</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>TestAssets</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\IInter1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyClass2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyClass3.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyStruct2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\Clazz.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\IInterface.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\Implement1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyClass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyStruct.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\Struct.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\Subclass1.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\Superclass1.cs" />
+  </ItemGroup>
+</Project>

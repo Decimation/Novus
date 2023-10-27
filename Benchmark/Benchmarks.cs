@@ -32,14 +32,16 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using JetBrains.Annotations;
 using Kantan.Text;
+using Novus.Runtime;
 
 // ReSharper disable InconsistentNaming
 
 #pragma warning disable
 namespace TestBenchmark;
 
-public class MyStruct
+public class MyClass
 {
+
 	public int   a;
 	public float f;
 
@@ -47,20 +49,51 @@ public class MyStruct
 	{
 		return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
 	}
+
+}
+
+public struct MyStruct
+{
+
+	public int   a;
+	public float f;
+
+	public override string ToString()
+	{
+		return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+	}
+
 }
 
 public static class Values
 {
+
 	public const string u1 = "https://i.imgur.com/QtCausw.png";
 	public const string f1 = @"C:\Users\Deci\Pictures\Epic anime\0c4c80957134d4304538c27499d84dbe.jpeg";
 
 	public const string f2 =
 		@"C:\Users\Deci\Pictures\Epic anime\2B_neko_FINALE_1_12.jpg";
+
+	public static object[] vals
+	{
+		get
+		{
+			return new object[]
+			{
+				new MyClass(),
+				new MyClass() { a = 123, f = 3.14f },
+				new MyStruct(),
+				new MyStruct() { a = 123, f = 3.14f }
+			};
+		}
+	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks29
 {
+
 	private string s1;
 
 	[GlobalSetup]
@@ -71,6 +104,7 @@ public class Benchmarks29
 	{
 		s1 = Strings.CreateRandom(5);
 	}
+
 	[Benchmark]
 	public Pointer<byte> Test4()
 	{
@@ -94,11 +128,13 @@ public class Benchmarks29
 	{
 		return Mem.AddressOf(ref s1);
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks28
 {
+
 	[Benchmark]
 	public bool IsSigned_()
 	{
@@ -128,11 +164,13 @@ public class Benchmarks28
 	{
 		return typeof(uint).IsNumeric();
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks27
 {
+
 	[Benchmark]
 	public async Task<UniSource> Test1()
 	{
@@ -144,11 +182,13 @@ public class Benchmarks27
 	{
 		return await UniSource.GetAsync(Values.f1);
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks26
 {
+
 	private IFileTypeResolver magic, fast, urlmon;
 	private FileStream        m_stream1;
 
@@ -193,12 +233,14 @@ public class Benchmarks26
 	{
 		return fast.Resolve(ss);
 	}
+
 }
 
 // [InProcess]
 [RyuJitX64Job]
 public unsafe class Benchmarks25
 {
+
 	private Pointer<nint> m_ptr;
 
 	[GlobalSetup]
@@ -242,11 +284,13 @@ public unsafe class Benchmarks25
 	{
 		return m_ptr++;
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks24
 {
+
 	private readonly Consumer   m_consumer = new Consumer();
 	private          string     m_path;
 	private          FileStream m_stream;
@@ -276,11 +320,13 @@ public class Benchmarks24
 	{
 		return MagicResolver.Instance.Resolve(m_stream);
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks23
 {
+
 	private readonly Consumer m_consumer = new Consumer();
 
 	[GlobalSetup]
@@ -297,11 +343,13 @@ public class Benchmarks23
 	{
 		FileType.Find("image").Consume(m_consumer);
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks22
 {
+
 	private Pointer<int> m_ptr;
 
 	[GlobalSetup]
@@ -322,11 +370,13 @@ public class Benchmarks22
 	{
 		return m_ptr.ElementSize;
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks21
 {
+
 	private int  a, b;
 	private nint fn;
 
@@ -360,11 +410,13 @@ public class Benchmarks21
 	{
 		return ((delegate*<ref int, int, int>) fn)(ref a, b);
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks20
 {
+
 	private int                  i;
 	private Pointer<int>         a;
 	private ReadonlyPointer<int> b;
@@ -401,6 +453,7 @@ public class Benchmarks20
 	{
 		return b.Value;
 	}
+
 }
 
 [SimpleJob]
@@ -408,6 +461,7 @@ public class Benchmarks20
 // [InProcess()]
 public class Benchmarks19
 {
+
 	private FileStream m_stream;
 
 	private readonly Consumer m_consumer = new Consumer();
@@ -459,14 +513,71 @@ public class Benchmarks19
 	{
 		return (await MagicResolver.Instance.ResolveAsync(m_stream));
 	}
+
 }
 
 public class AntiVirusFriendlyConfig : ManualConfig
 {
+
 	public AntiVirusFriendlyConfig()
 	{
 		AddJob(Job.Default.WithToolchain(InProcessNoEmitToolchain.Instance));
 	}
+
+}
+
+// [InProcess()]
+// [RyuJitX64Job]
+public class Benchmarks30
+{
+
+	public static object[] vals => Values.vals;
+
+	[ParamsSource(nameof(vals))]
+	public object val;
+
+	[GlobalSetup]
+	public void GlobalSetup() { }
+
+	[Benchmark]
+	public bool Test1()
+	{
+		return RuntimeProperties.IsNull(val);
+	}
+
+	[Benchmark]
+	public bool Test2()
+	{
+		return RuntimeProperties.IsDefault(val);
+	}
+
+	[Benchmark]
+	public bool Test3()
+	{
+		return RuntimeProperties.IsEmpty(val);
+	}
+
+}
+
+public class Benchmarks31
+{
+
+	static Benchmarks31()
+	{
+		RuntimeHelpers.RunClassConstructor(typeof(Values).TypeHandle);
+	}
+
+	public static object[] vals => Values.vals;
+
+	[ParamsSource(nameof(vals))]
+	public object val;
+
+	[Benchmark]
+	public bool Test1()
+	{
+		return RuntimeProperties.IsEmpty(val);
+	}
+
 }
 
 [Config(typeof(AntiVirusFriendlyConfig))]
@@ -474,6 +585,7 @@ public class AntiVirusFriendlyConfig : ManualConfig
 // [InProcess()]
 public class Benchmarks19b
 {
+
 	private FileStream m_stream;
 
 	[GlobalSetup]
@@ -515,6 +627,7 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 	{
 		(await Fast2Resolver.Instance.ResolveAsync(m_stream)).Consume(m_consumer);
 	}*/
+
 }
 
 [Config(typeof(AntiVirusFriendlyConfig))]
@@ -522,6 +635,7 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 // [InProcess()]
 public class Benchmarks19c
 {
+
 	[GlobalSetup]
 	public void GlobalSetup()
 	{
@@ -547,25 +661,28 @@ public class Benchmarks19c
 	{
 		return UniSource.GetAsync((@"C:\Users\Deci\Pictures\Art\0c4c80957134d4304538c27499d84dbe.jpeg"));
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks18
 {
-	public MyStruct ms;
+
+	public MyClass ms;
 
 	[GlobalSetup]
 	public void GlobalSetup()
 	{
-		ms = new MyStruct();
+		ms = new MyClass();
 	}
 
 	[Benchmark]
-	public MyStruct test1()
+	public MyClass test1()
 	{
 
 		return ms.Clone();
 	}
+
 }
 #if EXPERIMENTAL
 [RyuJitX64Job]
@@ -614,6 +731,7 @@ public class Benchmarks12
 [RyuJitX64Job]
 public class Benchmarks16
 {
+
 	[GlobalSetup]
 	public void setup()
 	{
@@ -626,11 +744,13 @@ public class Benchmarks16
 	{
 		return GCHeap.IsHeapPointer("foo");
 	}
+
 }
 
 [RyuJitX64Job]
 public unsafe class Benchmarks15
 {
+
 	private int[]        dest1;
 	private Pointer<int> src1;
 	private int          len;
@@ -648,11 +768,13 @@ public unsafe class Benchmarks15
 	{
 		src1.Copy(dest1, 0, (int) len);
 	}
+
 }
 
 [RyuJitX64Job]
 public unsafe class Benchmarks14
 {
+
 	private void*         src, dest;
 	private nuint         len;
 	private Pointer<byte> src1, dest1;
@@ -693,11 +815,13 @@ public unsafe class Benchmarks14
 	{
 		Unsafe.CopyBlock(dest, src, (uint) len);
 	}
+
 }
 
 [RyuJitX64Job]
 public class Benchmarks13
 {
+
 	private Pointer<int> ptr;
 
 	[GlobalSetup]
@@ -712,10 +836,12 @@ public class Benchmarks13
 	{
 		return ptr.AddressOfIndex(3);
 	}
+
 }
 
 public class Benchmarks9
 {
+
 	private nint h;
 
 	[GlobalSetup]
@@ -729,10 +855,12 @@ public class Benchmarks9
 	{
 		return Native.EnumeratePages(h);
 	}
+
 }
 
 public class Benchmarks8
 {
+
 	private object a = new { s = "foo" };
 
 	[Benchmark]
@@ -740,10 +868,12 @@ public class Benchmarks8
 	{
 		return a.GetType().IsAnonymous();
 	}
+
 }
 
 public class Benchmarks6
 {
+
 	private int a = 1, b = 1;
 
 	[Benchmark]
@@ -779,10 +909,12 @@ public class Benchmarks6
 	{
 		return a + b;
 	}
+
 }
 
 public unsafe class BenchmarksPointer2
 {
+
 	public  int          a;
 	private Pointer<int> ptr1;
 
@@ -813,10 +945,12 @@ public unsafe class BenchmarksPointer2
 	{
 		return ptr1.Reference;
 	}
+
 }
 
 public unsafe class BenchmarksPointer
 {
+
 	public  int          a;
 	private Pointer<int> ptr1;
 	private int*         ptr2;
@@ -901,10 +1035,12 @@ public unsafe class BenchmarksPointer
 	{
 		return System.Runtime.InteropServices.Marshal.ReadInt32((nint) ptr2);
 	}
+
 }
 
 public unsafe class Benchmarks4
 {
+
 	private const string DLL = @"C:\Users\Deci\VSProjects\SandboxLibrary\x64\Release\SandboxLibrary.dll";
 	private       nint _p;
 	private       delegate* unmanaged<int, int, int> _x;
@@ -932,20 +1068,24 @@ public unsafe class Benchmarks4
 		return add(1, 1);
 
 	}
+
 }
 
 public class Benchmarks3
 {
+
 	[Benchmark]
 	public byte[] Bench()
 	{
 		return SigScanner.ReadSignature("48 8B 01 A8 02 75 ? C3");
 
 	}
+
 }
 
 public unsafe class Benchmarks2
 {
+
 	private Pointer<int> p;
 	private int*         p2;
 	private int          i = 123;
@@ -971,10 +1111,12 @@ public unsafe class Benchmarks2
 	{
 		return p.Value;
 	}
+
 }
 
 public class Benchmarks
 {
+
 	[Benchmark]
 	public Symbol Bench1()
 	{
@@ -997,4 +1139,5 @@ public class Benchmarks
 	// {
 	//
 	// }
+
 }

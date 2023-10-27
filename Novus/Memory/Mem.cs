@@ -195,8 +195,8 @@ public static unsafe class Mem
 	///     Used for unsafe pinning of arbitrary objects.
 	///     This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
 	/// </summary>
-	public static PinningHelper GetPinningHelper(object value)
-		=> U.As<PinningHelper>(value);
+	public static RawData GetPinningHelper(object value)
+		=> U.As<RawData>(value);
 
 	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
 
@@ -256,7 +256,7 @@ public static unsafe class Mem
 	///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
 	///     </remarks>
 	/// </summary>
-	public sealed class PinningHelper
+	public sealed class RawData
 	{
 		/// <summary>
 		///     Represents the first field in an object.
@@ -264,7 +264,7 @@ public static unsafe class Mem
 		/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
 		public byte Data;
 
-		private PinningHelper() { }
+		private RawData() { }
 	}
 
 	#endregion
@@ -898,6 +898,12 @@ public static unsafe class Mem
 	 * https://github.com/pkrumins/bithacks.h/blob/master/bithacks.h
 	 * https://catonmat.net/low-level-bit-hacks
 	 */
+
+	/// <summary>
+	/// <see cref="RuntimeHelpers.GetRawData"/>
+	/// </summary>
+	public static ref byte GetRawData(this object obj) =>
+		ref Unsafe.As<RawData>(obj).Data;
 
 	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 

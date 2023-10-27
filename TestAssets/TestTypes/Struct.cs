@@ -1,4 +1,4 @@
-namespace UnitTest.TestTypes;
+namespace TestTypes;
 
 internal struct Struct
 {

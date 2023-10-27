@@ -19,6 +19,7 @@ using Novus.Imports.Attributes;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Wrappers;
 using System.Net;
+using System.Runtime.Versioning;
 
 // ReSharper disable UnusedMember.Local
 
@@ -37,6 +38,7 @@ namespace Novus.Imports;
 /// </summary>
 /// <seealso cref="ER"/>
 [DAM(DAMT.All)]
+[SupportedOSPlatform(Global.OS_WIN)]
 public sealed class RuntimeResource : IDisposable
 {
 	public Pointer Address => Module.Value.BaseAddress;

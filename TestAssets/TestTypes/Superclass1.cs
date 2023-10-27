@@ -1,3 +1,3 @@
-namespace UnitTest.TestTypes;
+namespace TestTypes;
 
 internal abstract class Superclass1 { }

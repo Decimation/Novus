@@ -49,6 +49,7 @@ using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
+using TestTypes;
 using static Novus.Win32.Structures.User32.WindowMessage;
 using FileSystem = Novus.OS.FileSystem;
 using FileType = Novus.FileTypes.FileType;
@@ -137,20 +138,25 @@ namespace Test;
  */
 public static unsafe class Program
 {
+
 	private static async Task Main(string[] args)
 	{
-		/*var k = new KeyboardListener();
+		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
+		Console.WriteLine(GCHeap.IsHeapPointer(o));
+		Console.WriteLine(RuntimeProperties.IsBoxed(o));
 
-		k.KeyEvent += (sender, eventArgs) =>
-		{
-			if (eventArgs.IsStroke) {
-				Console.WriteLine($"{eventArgs} ");
+		var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
+		Console.WriteLine(GCHeap.IsHeapPointer(&o2));
+		Console.WriteLine(RuntimeProperties.IsBoxed(o2));
+		Console.WriteLine(Mem.AddressOfData(ref o2));
 
-			}
-		};
+		Console.WriteLine(RuntimeProperties.Box(o2));
 
-		k.Start();*/
-		
+		var o3 = new MyStruct() { };
+		Console.WriteLine(RuntimeProperties.IsBoxed(o3));
+		Console.WriteLine(GCHeap.IsHeapPointer(&o3));
+		Console.WriteLine(RuntimeProperties.IsBoxed(RuntimeProperties.Box(o3)));
+
 	}
 
 	public static void HandleHotKey(IntPtr hWnd, int id)
@@ -170,6 +176,7 @@ public static unsafe class Program
 
 	internal class Clazz
 	{
+
 		public int a;
 
 		public const int i = 123_321;
@@ -199,6 +206,7 @@ public static unsafe class Program
 		{
 			return $"{nameof(a)}: {a}, {nameof(s)}: {s}, {nameof(prop)}: {prop}";
 		}
+
 	}
 
 	static void Run() { }
@@ -209,4 +217,5 @@ public static unsafe class Program
 		Global.Setup();
 
 	}
+
 }

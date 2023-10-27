@@ -8,8 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Novus;
-using Novus.Imports;
-using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.OS;
 using Novus.Properties;
@@ -79,28 +77,6 @@ namespace Test
 			Console.WriteLine(GCHeap.IsHeapPointer("foo"));
 		}
 
-		public unsafe class MyClass2
-		{
-			public const string s =
-				"H:\\Archives & Backups\\Computer Science\\Code\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
-
-			[ImportUnmanaged(s, nameof(doSomething2), ImportType.Offset, Value = "1090")]
-			public static readonly delegate* unmanaged<int, void> doSomething2;
-
-			public static readonly RuntimeResource _rr;
-
-			static MyClass2()
-			{
-				_rr = RuntimeResource.LoadModule(MyClass2.s);
-				_rr.LoadImports(typeof(MyClass2));
-			}
-		}
-
-		public interface IPtr<T>
-		{
-			static abstract ref T Ref { get; }
-		}
-
 		private static void Test4()
 		{
 			bool c = Clipboard.Open();
@@ -116,7 +92,7 @@ namespace Test
 
 		private static void Test3()
 		{
-			var type = new MyStruct();
+			var type = new MyStruct2();
 
 			foreach (var nullMember in ReflectionHelper.GetNullMembers(type)) {
 				Console.WriteLine($"{nullMember.Field.Name} {nullMember.IsNull}");
@@ -131,30 +107,6 @@ namespace Test
 		private static int fn()
 		{
 			return 1;
-		}
-
-		private struct MyStruct
-		{
-			public int a;
-
-			public float f { get; set; }
-
-			public override string ToString()
-			{
-				return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
-			}
-		}
-
-		private class MyClass
-		{
-			public int a;
-
-			public float f { get; set; }
-
-			public override string ToString()
-			{
-				return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
-			}
 		}
 
 		private static int MyThreadProc(nint param)

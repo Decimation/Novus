@@ -1,3 +1,3 @@
-namespace UnitTest.TestTypes;
+namespace TestTypes;
 
 internal class Implement1 : IInterface { }

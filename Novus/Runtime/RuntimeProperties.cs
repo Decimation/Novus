@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -39,6 +41,7 @@ namespace Novus.Runtime;
 /// <seealso cref="RuntimeInformation" />
 public static unsafe class RuntimeProperties
 {
+
 	// https://github.com/dotnet/runtime/blob/master/src/coreclr/src/vm/object.h
 
 	static RuntimeProperties()
@@ -70,10 +73,27 @@ public static unsafe class RuntimeProperties
 	[field: ImportManaged(typeof(RuntimeHelpers), "GetRawObjectDataSize")]
 	private static delegate* managed<object, int> Func_GetRawObjDataSize { get; }
 
+	[field: ImportManaged(typeof(RuntimeHelpers), "GetElementSize")]
+	private static delegate* managed<object, int> Func_GetElementSize { get; }
+
 	/// <summary>
 	/// Equals <see cref="Mem.SizeOf()"/> with <see cref="SizeOfOptions.Data"/>
 	/// </summary>
-	public static int GetRawObjDataSize(object o) => Func_GetRawObjDataSize(o);
+	/// <see cref="RuntimeHelpers.GetRawObjectDataSize"/>
+	public static int GetRawObjDataSize(object o)
+		=> Func_GetRawObjDataSize(o);
+
+	/// <summary>
+	/// Equals <see cref="MetaType.ComponentSize"/>
+	/// </summary>
+	/// <see cref="RuntimeHelpers.GetElementSize"/>
+	public static int GetElementSize(object o)
+		=> Func_GetElementSize(o);
+
+	/// <see cref="RuntimeHelpers.GetObjectValue"/>
+	[CanBeNull]
+	public static object Box([CanBeNull] object o)
+		=> RuntimeHelpers.GetObjectValue(o);
 
 	#region Metadata
 
@@ -81,7 +101,7 @@ public static unsafe class RuntimeProperties
 	///     Reads <see cref="TypeHandle" /> as <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from
 	///     <paramref name="value" />
 	/// </summary>
-	public static Pointer<MethodTable> ReadTypeHandle<T>(T value)
+	public static Pointer<MethodTable> ReadTypeHandle<T>(in T value)
 	{
 		/*var type = value.GetType();
 		return ResolveTypeHandle(type);*/
@@ -111,7 +131,8 @@ public static unsafe class RuntimeProperties
 	///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 	/// </summary>
 	/// <remarks>Inverse of <see cref="ResolveTypeHandle(System.Type)" /></remarks>
-	public static Type ResolveType(Pointer<MethodTable> handle) => Func_GetTypeFromHandle(handle.Address);
+	public static Type ResolveType(Pointer<MethodTable> handle)
+		=> Func_GetTypeFromHandle(handle.Address);
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
@@ -132,21 +153,27 @@ public static unsafe class RuntimeProperties
 	///     Determines whether <paramref name="value" /> is pinnable.
 	/// </summary>
 	/// <returns><c>true</c> if pinnable; <c>false</c> otherwise</returns>
-	public static bool IsPinnable([CBN] object value) => Func_IsPinnable(value);
+	public static bool IsPinnable([CBN] object value)
+		=> Func_IsPinnable(value);
 
 	/// <summary>
 	///     Determines whether <paramref name="obj" /> is blittable; that is, whether it has identical data representation in
 	///     both managed and unmanaged memory.
 	/// </summary>
 	/// <returns><c>true</c> if blittable; <c>false</c> otherwise</returns>
-	public static bool IsBlittable<T>(T obj) => obj.GetMetaType().IsBlittable;
+	public static bool IsBlittable<T>(T obj)
+		=> obj.GetMetaType().IsBlittable;
 
 	public static bool IsNullable<T>(T obj)
 	{
 		//https://stackoverflow.com/questions/374651/how-to-check-if-an-object-is-nullable
 
-		if (obj == null) {
+		/*if (obj == null) {
 			return true; // obvious
+		}*/
+
+		if (IsDefault(obj)) {
+			return true;
 		}
 
 		var type = typeof(T);
@@ -165,22 +192,29 @@ public static unsafe class RuntimeProperties
 	/// <summary>
 	///     Determines whether the value of <paramref name="value" /> is <c>default</c>.
 	/// </summary>
-	public static bool IsDefault<T>([CBN] T value) => EqualityComparer<T>.Default.Equals(value, default);
+	public static bool IsDefault<T>([CBN] in T value)
+		=> EqualityComparer<T>.Default.Equals(value, default);
 
-	public static bool IsUnmanaged<T>([NN] T value) => value.GetType().IsUnmanaged();
+	public static bool IsUnmanaged<T>([NN] T value)
+		=> value.GetType().IsUnmanaged();
 
-	public static bool IsStruct<T>([NN] T value) => value.GetType().IsValueType;
+	public static bool IsStruct<T>([NN] T value)
+		=> value.GetType().IsValueType;
 
-	public static bool IsArray<T>([NN] T value) => value is Array;
+	public static bool IsArray<T>([NN] T value)
+		=> value is Array;
 
-	public static bool IsString<T>([NN] T value) => value is string;
+	public static bool IsString<T>([NN] T value)
+		=> value is string;
 
 	/// <summary>
 	///     Determines whether <paramref name="value" /> is boxed.
 	/// </summary>
 	/// <returns><c>true</c> if boxed; <c>false</c> otherwise</returns>
-	public static bool IsBoxed<T>([CBN] T value)
+	/// <remarks>Heuristic; not always correct</remarks>
+	public static bool IsBoxed<T>([CanBeNull] in T value)
 	{
+		// return !typeof(T).IsValueType && (value != null) && value.GetType().IsValueType;
 		return (typeof(T).IsInterface || typeof(T) == typeof(object))
 		       && value != null && IsStruct(value);
 	}
@@ -189,30 +223,38 @@ public static unsafe class RuntimeProperties
 	///     Determines whether the memory of <paramref name="t" /> is null; that is,
 	///     all of its fields are <c>null</c>.
 	/// </summary>
+	[Obsolete]
 	public static bool IsNull<T>(T t)
 	{
-		if (t == null) {
+		if (!typeof(T).IsValueType && t == null) {
 			return true;
 		}
 
 		var ptr = Mem.AddressOfData(ref t);
 		int s   = Mem.SizeOf(t, SizeOfOptions.BaseFields);
 
-		bool b = ptr.ToArray(s).All(x => x == 0);
+		for (int i = 0; i < s; i++) {
+			if (ptr[i] != 0) {
+				return false;
+			}
+		}
 
-		return b;
+		return true;
 	}
 
 	/// <summary>
-	///     Heuristically determines whether <paramref name="value" /> is empty.
-	///     This always returns <c>true</c> if <paramref name="value" /> is <c>null</c> or nil.
+	///     Heuristically determines whether <paramref name="value" /> is <em>empty</em>.
+	///     This always returns <c>true</c> if <paramref name="value" /> is <c>null</c> or <c>default</c>.
+	/// Uses predicates in <see cref="EmptyPredicates"/>.
 	/// </summary>
 	/// <remarks>
-	///     Blank is defined as one of the following:
-	///     <c>null</c>,
-	///     nil (<see cref="IsDefault{T}" />),
-	///     non-unique,
-	///     or unmodified
+	///     <em>Empty</em> is defined as one of the following:
+	/// <list type="bullet">
+	/// <item><c>null</c></item>
+	/// <item><c>default</c> (<see cref="IsDefault{T}"/>),</item>
+	/// <item>non-unique,</item>
+	/// <item>or unmodified</item>
+	/// </list>
 	/// </remarks>
 	/// <example>
 	///     If <paramref name="value" /> is a <see cref="string" />, this function returns <c>true</c> if the
@@ -221,14 +263,14 @@ public static unsafe class RuntimeProperties
 	/// <param name="value">Value to check for</param>
 	/// <typeparam name="T">Type of <paramref name="value" /></typeparam>
 	/// <returns>
-	///     <c>true</c> if <paramref name="value" /> is <c>null</c> or nil; or
-	///     if <paramref name="value" /> is heuristically determined to be blank.
+	///     <c>true</c> if <paramref name="value" /> is <c>null</c> or <c>default</c>; or
+	///     if <paramref name="value" /> is heuristically determined to be <em>empty</em>.
 	/// </returns>
 	public static bool IsEmpty<T>([CBN] T value)
 	{
-		if (IsDefault(value)) {
+		/*if (IsDefault(value)) {
 			return true;
-		}
+		}*/
 
 		//if (IsBoxed(value)) {
 		//	return false;
@@ -239,12 +281,14 @@ public static unsafe class RuntimeProperties
 
 		bool test = value switch
 		{
-			IList list => list.Count == 0,
-			string str => String.IsNullOrWhiteSpace(str),
-			_          => false
+			string str    => String.IsNullOrWhiteSpace(str),
+			IList list    => list.Count == 0,
+			IEnumerable e => !e.Cast<object>().Any(),
+			_             => IsDefault(value)
 		};
 
 		return test;
+
 	}
 
 	#endregion
@@ -332,5 +376,7 @@ public static unsafe class RuntimeProperties
 
 	#endregion
 
-	public static CorElementType GetCorElementType(this Type t) => Func_GetCorType(t);
+	public static CorElementType GetCorElementType(this Type t)
+		=> Func_GetCorType(t);
+
 }

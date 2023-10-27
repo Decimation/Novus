@@ -30,15 +30,15 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using NUnit.Framework;
+using TestTypes;
 using NUnit.Framework.Internal;
-using UnitTest.TestTypes;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 
 // ReSharper disable StringLiteralTypo
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-#pragma warning disable 0649, IDE0044, CA1822, IDE1006, CA2211, IDE0052, CS1998,CS0612
+#pragma warning disable 0649, IDE0044, CA1822, IDE1006, CA2211, IDE0052, CS1998, CS0612
 #pragma warning disable SYSLIB0014
 
 namespace UnitTest;
@@ -46,6 +46,7 @@ namespace UnitTest;
 [SetUpFixture]
 public class SetupTrace
 {
+
 	[OneTimeSetUp]
 	public void StartTest()
 	{
@@ -57,12 +58,14 @@ public class SetupTrace
 	{
 		Trace.Flush();
 	}
+
 }
 
 [TestFixture]
 [Parallelizable]
 public class Tests_FileTypes1
 {
+
 	public static object[] _rg =
 	{
 		// new[] { @"http://www.zerochan.net/2750747", null },
@@ -80,7 +83,7 @@ public class Tests_FileTypes1
 		var t  = await UniSource.TryGetAsync(s, IFileTypeResolver.Default);
 		var tt = t.FileType;
 		// var tt = await IFileTypeResolver.Default.ResolveAsync(t.Stream);
-		Assert.AreEqual(type,tt);
+		Assert.AreEqual(type, tt);
 		// Assert.True(tt.Any(x => x.MediaType == type));
 		// Assert.Contains(new FileType { MediaType = type }, types.ToArray());
 	}
@@ -92,7 +95,7 @@ public class Tests_FileTypes1
 		var t = await UniSource.TryGetAsync(s, UrlmonResolver.Instance);
 		// var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
 		var tt = t.FileType;
-		Assert.AreEqual(type,tt);
+		Assert.AreEqual(type, tt);
 
 	}
 
@@ -105,7 +108,7 @@ public class Tests_FileTypes1
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 		var tt = t.FileType;
 		// Assert.True(tt.Any(x => x.MediaType == type));
-		Assert.AreEqual(type,tt);
+		Assert.AreEqual(type, tt);
 
 	}
 
@@ -117,16 +120,18 @@ public class Tests_FileTypes1
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileType;
 		// Assert.True(tt.Any(x => x.MediaType == type));
-		Assert.AreEqual(type,tt);
+		Assert.AreEqual(type, tt);
 
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
+
 }
 
 [TestFixture]
 [Parallelizable]
 public class Tests_UniSource
 {
+
 	private static object[] _rg = Tests_FileTypes1._rg;
 
 	[Test]
@@ -137,7 +142,7 @@ public class Tests_UniSource
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileType;
 		// Assert.True(tt.Any(x => x.MediaType == type));
-		Assert.AreEqual(type,tt);
+		Assert.AreEqual(type, tt);
 
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
@@ -202,12 +207,14 @@ public class Tests_UniSource
 
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 	}
+
 }
 
 [TestFixture]
 [Parallelizable]
 public class Tests_FileResolvers
 {
+
 	[Test]
 	[TestCase(@"C:\Users\Deci\Pictures\NSFW\17EA29A6-8966-4801-A508-AC89FABE714D.png")]
 	public async Task Test1(string s)
@@ -229,12 +236,14 @@ public class Tests_FileResolvers
 
 	    Assert.True(result.Any(x=>x.ResolvedTypes.Select(x=>x.Type).Contains(s2)));
 	}*/
+
 }
 
 [TestFixture]
 [Parallelizable]
 public class Tests_MediaTypes
 {
+
 	[Test]
 	[TestCase("http://s1.zerochan.net/atago.(azur.lane).600.2750747.jpg")]
 	// [TestCase("https://www.zerochan.net/2750747", "http://static.zerochan.net/atago.(azur.lane).full.2750747.png")]
@@ -258,12 +267,14 @@ public class Tests_MediaTypes
 		var ft = await IFileTypeResolver.Default.ResolveAsync(t);
 		Assert.True(ft.Type == FileType.MT_IMAGE);
 	}
+
 }
 
 [TestFixture]
 [Parallelizable]
 public unsafe class Tests_DynamicLibrary
 {
+
 	[Test]
 	public void Test1()
 	{
@@ -285,11 +296,13 @@ public unsafe class Tests_DynamicLibrary
 		Assert.AreEqual(expected, actual);
 		Assert.AreEqual(expected, actual2);
 	}
+
 }
 
 [TestFixture]
 public class Tests_GCHeap
 {
+
 	[Test]
 	public unsafe void GCTest()
 	{
@@ -315,11 +328,13 @@ public class Tests_GCHeap
 		Assert.True(GCHeap.IsHeapPointer(o));
 
 	}
+
 }
 
 [TestFixture]
 public class Tests_Atomic
 {
+
 	[Test]
 	public void Test1()
 	{
@@ -332,10 +347,10 @@ public class Tests_Atomic
 		Assert.AreEqual(AtomicHelper.Exchange(ref a, b), b);
 
 	}
+
 }
 
 #if EXPERIMENTAL
-
 [TestFixture]
 [Parallelizable]
 public class Tests_UArray
@@ -343,7 +358,7 @@ public class Tests_UArray
 	[Test]
 	public void Test1()
 	{
-		var u  = new UArray<int>(6);
+		var u = new UArray<int>(6);
 		var rg = new[] { 1, 2, 3, 4, 5, 6 };
 		u.CopyFrom(rg);
 		Assert.True(u.SequenceEqual(rg));
@@ -358,6 +373,7 @@ public class Tests_UArray
 [Parallelizable]
 public unsafe class Tests_NativeUtilities
 {
+
 	[Test]
 	public void NativeLibTest()
 	{
@@ -366,12 +382,14 @@ public unsafe class Tests_NativeUtilities
 		var a = NativeMemory.Alloc(i);
 		Assert.AreEqual(Mem._msize(a), i);
 	}
+
 }
 
 [TestFixture]
 [Parallelizable]
 public unsafe class Tests_Pointer
 {
+
 	[Test]
 	public void Test5()
 	{
@@ -497,29 +515,31 @@ public unsafe class Tests_Pointer
 		Assert.AreEqual(ptr1.Reference, i);
 
 		var          rg   = new[] { 1, 2, 3 };
-		Pointer<int> ptr2 = (Pointer<int>)Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
+		var          mem  = rg.AsMemory();
+		var          pin  = mem.Pin();
+		Pointer<int> ptr2 = (Pointer<int>) Mem.AddressOfHeap(rg, OffsetOptions.ArrayData);
+		int*         pinp = (int*) pin.Pointer;
+		Assert.AreEqual(ptr2.Address, (nint) pinp);
 
-		fixed (int* p1 = rg) {
-			// int* cpy = p1;
-
-			for (int j = 0; j < rg.Length; j++) {
-				var p2 = &p1[j];
-				var p3 = Marshal.UnsafeAddrOfPinnedArrayElement(rg, j);
-				Assert.True(ptr2.Address == p3);
-				Assert.True(*p2 == ptr2.Value);
-				Assert.True(p2 == ptr2++);
-			}
+		for (int j = 0; j < mem.Length; j++) {
+			var p2 = &pinp[j];
+			var p3 = Marshal.UnsafeAddrOfPinnedArrayElement(rg, j);
+			Assert.True(ptr2.Address == p3);
+			Assert.True(*p2 == ptr2.Value);
+			Assert.True(p2 == ptr2++);
 		}
 
 	}
+
 }
 
 [TestFixture]
 [Parallelizable]
 public unsafe class Tests_Resources
 {
+
 	private const string s =
-		"C:\\Users\\Deci\\VSProjects\\SandboxLibrary\\x64\\Release\\SandboxLibrary.dll";
+		@"C:\Users\Deci\VSProjects\SandboxLibrary\x64\Release\SandboxLibrary.dll";
 
 	private const string s2 = "SandboxLibrary.dll";
 
@@ -538,12 +558,14 @@ public unsafe class Tests_Resources
 		Assert.AreEqual(c, 2);
 
 	}
+
 }
 
 [TestFixture]
 [Parallelizable]
 public unsafe class Tests_Resources2
 {
+
 	[Test]
 	public void Test()
 	{
@@ -553,20 +575,24 @@ public unsafe class Tests_Resources2
 		Assert.AreEqual(r.FindImport(new ImportClrAttribute("g_pGCHeap", ImportType.Symbol)), Mem.Nullptr);
 
 	}
+
 }
 
 [TestFixture]
 [Parallelizable]
 public class Tests_Magic
 {
+
 	[Test]
 	public void Test1() { }
+
 }
 
 [TestFixture]
 [Parallelizable]
 public class Tests_Native
 {
+
 	[Test]
 	[TestCase(@"C:\Symbols\coreclr.pdb")]
 	public void SymbolsTest(string sss)
@@ -597,11 +623,31 @@ public class Tests_Native
 	{
 		Assert.AreEqual(Native.GetUnicodeName(id), s);
 	}
+
+}
+
+[TestFixture]
+public class Tests_RT
+{
+
+	[Test]
+	public void Test1()
+	{
+		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
+		Assert.True(GCHeap.IsHeapPointer(o));
+
+		var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
+		Assert.True(GCHeap.IsHeapPointer(Mem.AddressOfData(ref o2)));
+		Assert.True(RuntimeProperties.IsBoxed(o2));
+
+	}
+
 }
 
 [TestFixture]
 public class Tests_ReflectionHelper
 {
+
 	[Test]
 	public void Test1()
 	{
@@ -707,6 +753,7 @@ public class Tests_ReflectionHelper
 [TestFixture]
 public class Tests_Metadata
 {
+
 	[Test]
 	[TestCase(typeof(string), ("_firstChar"))]
 	public void FieldTest(Type t, string n)
@@ -920,11 +967,20 @@ public class Tests_Metadata
 		string s = "";
 		Console.WriteLine(s);
 	}
+
 }
 
-[TestFixture]
+[TestFixture()]
 public class Tests_Runtime
 {
+
+	[SetUp]
+	public void Setup()
+	{
+		TestExecutionContext.CurrentContext.IsSingleThreaded = false;
+		TestExecutionContext.CurrentContext.ParallelScope    = ParallelScope.Fixtures;
+	}
+
 	[Test]
 	public void PinnableBlittableTest()
 	{
@@ -1015,12 +1071,20 @@ public class Tests_Runtime
 	{
 		Assert.True(RuntimeProperties.IsNull(o));
 	}
+
+}
+
+[TestFixture]
+public class Tests_Runtime2
+{
+
 	[Test]
 	[TestCase("foo")]
 	[TestCase(new[] { 1, 2, 3 })]
 	public void PinTest2(object s)
 	{
 		var p = Mem.AddressOfHeap(s);
+
 		Mem.InvokeWhilePinned(s, o =>
 		{
 			Assert.False(AddPressure(p, o));
@@ -1044,6 +1108,7 @@ public class Tests_Runtime
 		// Assert.True(AddPressure(p, s));
 
 	}
+
 	[Test]
 	[TestCase("foo")]
 	[TestCase(new[] { 1, 2, 3 })]
@@ -1061,7 +1126,8 @@ public class Tests_Runtime
 		Assert.True(AddPressure(p, s));
 
 	}
-	private static bool AddPressure(Pointer<byte> p, object s, long i1 = 500_000)
+
+	private static bool AddPressure(Pointer<byte> p, object s, long i1 = 5_000)
 	{
 		var random = new Random();
 
@@ -1069,10 +1135,11 @@ public class Tests_Runtime
 			GC.AddMemoryPressure(i1);
 			//GC.AddMemoryPressure(100000);
 			var r = new object[i1];
+
 			for (int j = 0; j < r.Length; j++) {
 				r[j] = random.Next();
-				if (p != Mem.AddressOfHeap(s))
-				{
+
+				if (p != Mem.AddressOfHeap(s)) {
 					return true;
 				}
 			}
@@ -1082,15 +1149,19 @@ public class Tests_Runtime
 			if (p != Mem.AddressOfHeap(s)) {
 				return true;
 			}
+
+			// GC.RemoveMemoryPressure(i1);
 		}
 
 		return false;
 	}
+
 }
 
 [TestFixture]
 public class Tests_FileSystem
 {
+
 	[Test]
 	[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Koala.jpg", 3)]
 	[TestCase("C:\\Users\\Deci\\Pictures\\Sample\\Deserts.jpg", 4)]
@@ -1120,11 +1191,13 @@ public class Tests_FileSystem
 		var fs4 = FileSystem.GetTempFileName();
 		Assert.True(File.Exists(fs4));
 	}
+
 }
 
 [TestFixture]
 public class Tests_Allocator
 {
+
 	[Test]
 	public void AllocatorTest()
 	{
@@ -1159,11 +1232,13 @@ public class Tests_Allocator
 
 	    Assert.AreEqual(s.a, Clazz.i);
 	}*/
+
 }
 
 [TestFixture]
 public class Tests_Mem
 {
+
 	[SetUp]
 	public void Setup() { }
 
@@ -1512,11 +1587,13 @@ public class Tests_Mem
 
 		AllocManager.Free(p2);
 	}
+
 }
 
 [TestFixture]
 public class Tests_Streams
 {
+
 	[Test]
 	public unsafe void Test1()
 	{
@@ -1558,7 +1635,7 @@ public class Tests_Streams
 	[Test]
 	public unsafe void Test3()
 	{
-		var ms = new MyStruct() { a = 321, b = 0xBEEF};
+		var ms = new MyStruct() { a = 321, b = 0xBEEF };
 
 		var bs = new BitStream(
 			new UnmanagedMemoryStream(Mem.AddressOf(ref ms).ToPointer<byte>(), Mem.SizeOf<MyStruct>()), true);
@@ -1578,11 +1655,11 @@ public class Tests_Streams
 		sbyte  b = (sbyte)Random.Shared.Next();
 		short  c = (short)Random.Shared.Next();
 		ushort d = (ushort)Random.Shared.Next();*/
-		int    e = (int)Random.Shared.Next();
+		int e = (int) Random.Shared.Next();
 		/*uint   f = (uint)Random.Shared.Next();
 		long   g = Random.Shared.Next();
 		ulong    h = (ulong) Random.Shared.Next();*/
-		
+
 		var bs = new BitStream(
 			new UnmanagedMemoryStream(Mem.AddressOf(ref e).ToPointer<byte>(), Mem.SizeOf<int>()), true);
 
@@ -1612,9 +1689,12 @@ public class Tests_Streams
 		Assert.AreEqual(bs.Read<string>(), s2);
 
 	}
+
 }
 
 static class static_clazz
 {
+
 	public static int i;
+
 }

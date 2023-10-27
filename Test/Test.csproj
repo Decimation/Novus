@@ -55,4 +55,6 @@
     </Reference>
   </ItemGroup>
 
+  <Import Project="..\TestAssets\TestAssets.projitems" Label="Shared" />
+
 </Project>

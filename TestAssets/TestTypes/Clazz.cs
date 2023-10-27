@@ -1,10 +1,15 @@
-using System;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable CA1822
 // ReSharper disable LocalizableElement
+
+using System;
+using System.Runtime.CompilerServices;
+
 #pragma warning disable CA1822
-namespace UnitTest.TestTypes;
+[assembly: InternalsVisibleTo("Test")]
+[assembly: InternalsVisibleTo("UnitTest")]
+namespace TestTypes;
 
 internal class Clazz
 {

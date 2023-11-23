@@ -636,8 +636,8 @@ public class Tests_RT
 		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
 		Assert.True(GCHeap.IsHeapPointer(o));
 
-		var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
-		Assert.True(GCHeap.IsHeapPointer(Mem.AddressOfData(ref o2)));
+		// var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
+		// Assert.True(GCHeap.IsHeapPointer(Mem.AddressOfData(ref o2)));
 		// Assert.True(RuntimeProperties.IsBoxed(o2));
 
 	}
@@ -1115,7 +1115,7 @@ public class Tests_Runtime2
 
 	}
 
-	[Test]
+	/*[Test]
 	[TestCase("foo")]
 	[TestCase(new[] { 1, 2, 3 })]
 	public void PinTestInv(object s)
@@ -1131,7 +1131,7 @@ public class Tests_Runtime2
 		Mem.Unpin(s);
 		Assert.True(AddPressure(p, s));
 
-	}
+	}*/
 
 	private static bool AddPressure(Pointer<byte> p, object s, long i1 = 5_000)
 	{

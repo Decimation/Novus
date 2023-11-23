@@ -42,7 +42,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,7 +51,7 @@
 
   <ItemGroup>
     <Reference Include="Kantan">
-      <HintPath>..\..\Kantan\Kantan\bin\Release\net7.0\Kantan.dll</HintPath>
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
     </Reference>
   </ItemGroup>
 

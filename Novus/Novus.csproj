@@ -66,26 +66,26 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.6.4" />
-    <PackageReference Include="Flurl.Http" Version="4.0.0-pre3" />
-    <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="7.0.0" />
+    <PackageReference Include="CliWrap" Version="3.6.5-test" />
+    <PackageReference Include="Flurl.Http" Version="4.0.0-pre6" />
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="8.0.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="6.0.0-preview.5.21301.5" />
     <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Reflection" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
-    <PackageReference Include="System.Reflection.Metadata" Version="7.0.2" />
-    <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
     <PackageReference Include="System.Runtime.Handles" Version="4.3.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
-    <PackageReference Include="System.Windows.Extensions" Version="7.0.0" />
+    <PackageReference Include="System.Windows.Extensions" Version="8.0.0" />
 
     <!-- ??? -->
     <!--<PackageReference Include="Kantan" Version="1.2.2" />-->
@@ -112,10 +112,10 @@
 
   <ItemGroup>
     <Reference Include="Kantan">
-      <HintPath>..\..\Kantan\Kantan\bin\Release\net7.0\Kantan.dll</HintPath>
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
     </Reference>
     <Reference Include="Kantan.Net">
-      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net7.0\Kantan.Net.dll</HintPath>
+      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net8.0\Kantan.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
 

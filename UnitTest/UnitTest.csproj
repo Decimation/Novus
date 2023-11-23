@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0-preview-23531-01" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <Reference Include="Kantan">
-      <HintPath>..\..\Kantan\Kantan\bin\Release\net7.0\Kantan.dll</HintPath>
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
     </Reference>
   </ItemGroup>
 

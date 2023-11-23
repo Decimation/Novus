@@ -30,14 +30,13 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 
 	public int SlotNumber => Value.Reference.SlotNumber;
 
-
 	public bool IsRuntimeSupplied => Classification is MethodClassification.FCall or MethodClassification.Array;
 
 	public bool IsNoMetadata => Classification == MethodClassification.Dynamic;
 
 	public bool HasILHeader => IsIL && !IsUnboxingStub && RVA > default(long);
 
-	private bool IsUnboxingStub => CodeFlags.HasFlag(CodeFlags.IsUnboxingStub);
+	private bool IsUnboxingStub => (Flags3 & (ushort) CodeFlags.IsUnboxingStub) != 0;
 
 	public bool IsIL => Classification is MethodClassification.IL or MethodClassification.Instantiated;
 
@@ -61,26 +60,15 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 
 	public MethodProperties Properties => Value.Reference.Properties;
 
-	public CodeFlags CodeFlags => Value.Reference.CodeFlags;
+	// public CodeFlags CodeFlags => Value.Reference.CodeFlags;
 
-	public ParamFlags ParameterTypes => Value.Reference.Flags3AndTokenRemainder;
+	public ushort Flags3 => Value.Reference.Flags3AndTokenRemainder;
 
 	public MethodAttributes Attributes => Info.Attributes;
-
 
 	public override MethodInfo Info => (MethodInfo) (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
 
 	public void Reset() => Value.Reference.Reset();
-
-	public Pointer<byte> EntryPoint
-	{
-		get => Info.MethodHandle.GetFunctionPointer();
-		set
-		{
-			Reset();
-			Value.Reference.SetEntryPoint(value.ToPointer());
-		}
-	}
 
 	public void Prepare() => RuntimeHelpers.PrepareMethod(Info.MethodHandle);
 

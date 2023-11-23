@@ -19,6 +19,7 @@ namespace Novus.Runtime.VM;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct MethodTable
 {
+
 	static MethodTable()
 	{
 		Global.Clr.LoadImports(typeof(MethodTable));
@@ -58,14 +59,13 @@ public unsafe struct MethodTable
 	///     Describes what the union at offset of <see cref="Union1" />
 	///     contains.
 	/// </summary>
-	internal UnionType UnionType
+	internal LowBits LowBits
 	{
 		get
 		{
-			const long UNION_MASK = 3;
 
 			long l = (long) Union1;
-			return (UnionType) (l & UNION_MASK);
+			return (LowBits) (l & UNION_MASK);
 
 		}
 	}
@@ -75,9 +75,30 @@ public unsafe struct MethodTable
 		get
 		{
 			fixed (MethodTable* p = &this) {
-				return Func_GetClass(p);
+				var addr    = Union1;
+				var lowBits = union_getLowBits(addr);
+
+				if (lowBits == LowBits.EEClass) {
+					return (Pointer<EEClass>) addr;
+				}
+				else {
+					var canon = union_getPointer(addr);
+					return (Pointer<EEClass>) ((Pointer<MethodTable>) canon).Reference.Union1;
+				}
 			}
 		}
+	}
+
+	const nint UNION_MASK = 1;
+
+	internal static LowBits union_getLowBits(nint pCanonMT)
+	{
+		return (LowBits) (pCanonMT & (UNION_MASK));
+	}
+
+	internal static nint union_getPointer(nint pCanonMT)
+	{
+		return (pCanonMT & ~((nint) UNION_MASK));
 	}
 
 	/// <summary>
@@ -117,18 +138,16 @@ public unsafe struct MethodTable
 	internal Pointer<Pointer<byte>> InterfaceMap => (void**) Union3;
 
 	/// <summary>
-	/// <see cref="EEClass"/>
-	/// </summary>
-	[field: ImportClr("Sig_GetEEClass")]
-	private static delegate* unmanaged[Thiscall]<MethodTable*, EEClass*> Func_GetClass { get; }
-
-	/// <summary>
 	/// <see cref="NativeLayoutInfo"/>
 	/// </summary>
 	[field: ImportClr("Sig_GetNativeLayoutInfo")]
-	private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
+	private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo
+	{
+		get;
+	}
 
 	//
+
 }
 
 /// <summary>
@@ -140,6 +159,7 @@ public unsafe struct MethodTable
 [Flags]
 public enum TypeFlags : uint
 {
+
 	Mask             = 0x000F0000,
 	Class            = 0x00000000,
 	Unused1          = 0x00010000,
@@ -246,6 +266,7 @@ public enum TypeFlags : uint
 	///     Types that require non-trivial interface cast have this bit set in the category
 	/// </summary>
 	NonTrivialInterfaceCast = Array | ComObject | ICastable
+
 }
 
 /// <summary>
@@ -257,6 +278,7 @@ public enum TypeFlags : uint
 [Flags]
 public enum OptionalSlotsFlags : ushort
 {
+
 	MultipurposeSlotsMask    = 0x001F,
 	HasPerInstInfo           = 0x0001,
 	HasInterfaceMap          = 0x0002,
@@ -279,6 +301,7 @@ public enum OptionalSlotsFlags : ushort
 	HasBoxedRegularStatics                = 0x2000,
 	HasSingleNonVirtualSlot               = 0x4000,
 	DependsOnEquivalentOrForwardedStructs = 0x8000
+
 }
 
 /// <summary>
@@ -290,6 +313,7 @@ public enum OptionalSlotsFlags : ushort
 [Flags]
 public enum GenericsFlags : ushort
 {
+
 	// We are overloading the low 2 bytes of m_dwFlags to be a component size for Strings
 	// and Arrays and some set of flags which we can be assured are of a specified state
 	// for Strings / Arrays, currently these will be a bunch of generics flags which don't
@@ -341,16 +365,18 @@ public enum GenericsFlags : ushort
 	                    (HasVariance & 0) |
 	                    (HasDefaultCtor & 0) |
 	                    (HasPreciseInitCctors & 0)
+
 }
 
 /// <summary>
 ///     The value of lowest two bits describe what the union contains
 ///     <remarks>
-///         Use with <see cref="UnionType" />
+///         Use with <see cref="LowBits" />
 ///     </remarks>
 /// </summary>
-public enum UnionType
+public enum LowBits
 {
+
 	/// <summary>
 	///     0 - pointer to <see cref="EEClass" />
 	///     This <see cref="MethodTable" /> is the canonical method table.
@@ -358,18 +384,8 @@ public enum UnionType
 	EEClass = 0,
 
 	/// <summary>
-	///     1 - not used
-	/// </summary>
-	Invalid = 1,
-
-	/// <summary>
 	///     2 - pointer to canonical <see cref="MethodTable" />.
 	/// </summary>
-	MethodTable = 2,
+	MethodTable = 1,
 
-	/// <summary>
-	///     3 - pointer to indirection cell that points to canonical <see cref="MethodTable" />.
-	///     (used only if FEATURE_PREJIT is defined)
-	/// </summary>
-	Indirection = 3
 }

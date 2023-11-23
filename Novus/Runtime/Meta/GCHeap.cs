@@ -38,7 +38,7 @@ public static unsafe class GCHeap
 
 	/*public static bool IsHeapPointer(object o, bool smallHeapOnly = false)
 		=> IsHeapPointer(Mem.AddressOfHeap(o), smallHeapOnly);*/
-
+	
 	public static bool IsHeapPointer(in Pointer<byte> ptr, bool smallHeapOnly = false)
 		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 

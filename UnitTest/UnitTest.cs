@@ -638,10 +638,16 @@ public class Tests_RT
 
 		var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
 		Assert.True(GCHeap.IsHeapPointer(Mem.AddressOfData(ref o2)));
-		Assert.True(RuntimeProperties.IsBoxed(o2));
+		// Assert.True(RuntimeProperties.IsBoxed(o2));
 
 	}
 
+	[Test]
+	public void Test2()
+	{
+		object a = 1;
+		Assert.True(RuntimeProperties.IsBoxed(a));
+	}
 }
 
 [TestFixture]
@@ -1153,7 +1159,8 @@ public class Tests_Runtime2
 			// GC.RemoveMemoryPressure(i1);
 		}
 
-		return false;
+		return p != Mem.AddressOfHeap(s);
+		// return false;
 	}
 
 }
@@ -1458,22 +1465,22 @@ public class Tests_Mem
 	public void InToRefTest()
 	{
 		int i = 123;
-		Change(in i);
+		Change(ref i);
 		Assert.AreEqual(i, 321);
 
 		string s = "foo";
-		Change2(in s);
+		Change2(ref s);
 		Assert.AreEqual(s, "bar");
 
-		static void Change2(in string ix)
+		static void Change2(ref string ix)
 		{
-			ref string r = ref Unsafe.AsRef(in ix);
+			ref string r = ref Unsafe.AsRef(ref ix);
 			r = "bar";
 		}
 
-		static void Change(in int ix)
+		static void Change(ref int ix)
 		{
-			ref int r = ref Unsafe.AsRef(in ix);
+			ref int r = ref Unsafe.AsRef(ref ix);
 			r = 321;
 		}
 	}

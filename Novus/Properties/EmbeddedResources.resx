@@ -158,11 +158,7 @@
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>7.0.7</value>
-  </data>
-  <data name="Sig_GetEEClass" xml:space="preserve">
-    <value>48 8B 41 28 A8 01 74 08 48 83 E0 FE 48 8B 40 28 C3</value>
-    <comment>MethodTable::GetClass</comment>
+    <value>8.0.0</value>
   </data>
   <data name="Sig_GetIL" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 44 0F B6 41</value>
@@ -197,7 +193,7 @@
     <comment>FieldDesc::GetCurrentStaticAddress</comment>
   </data>
   <data name="Sig_IsPointingToNativeCode" xml:space="preserve">
-    <value>40 53 48 83 EC 20 8A 41 03</value>
+    <value>40 53 48 83 EC 20 B8 ? ? ? ? 48 8B D9 66 85 01</value>
     <comment>MethodDesc::IsPointingToNativeCode</comment>
   </data>
   <data name="Sig_Reset" xml:space="preserve">

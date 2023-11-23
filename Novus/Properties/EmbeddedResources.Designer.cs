@@ -180,20 +180,11 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 7.0.7.
+        ///   Looks up a localized string similar to 8.0.0.
         /// </summary>
         internal static string RequiredVersion {
             get {
                 return ResourceManager.GetString("RequiredVersion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to 48 8B 41 28 A8 01 74 08 48 83 E0 FE 48 8B 40 28 C3.
-        /// </summary>
-        internal static string Sig_GetEEClass {
-            get {
-                return ResourceManager.GetString("Sig_GetEEClass", resourceCulture);
             }
         }
         
@@ -270,7 +261,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8A 41 03.
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 B8 ? ? ? ? 48 8B D9 66 85 01.
         /// </summary>
         internal static string Sig_IsPointingToNativeCode {
             get {

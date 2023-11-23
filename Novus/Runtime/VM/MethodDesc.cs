@@ -16,19 +16,22 @@ namespace Novus.Runtime.VM;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct MethodDesc
 {
+
 	static MethodDesc()
 	{
 		Global.Clr.LoadImports(typeof(MethodDesc));
 	}
 
-	internal MethodClassification Classification =>
-		(MethodClassification) ((ushort) Properties & (ushort) MethodProperties.Classification);
+	internal MethodClassification Classification
+		=> (MethodClassification) ((ushort) Properties & (ushort) MethodProperties.Classification);
 
-	internal ParamFlags Flags3AndTokenRemainder { get; }
+	internal ushort Flags3AndTokenRemainder { get; }
 
 	internal byte ChunkIndex { get; }
 
-	internal CodeFlags CodeFlags { get; }
+	internal byte MethodIndex { get; }
+
+	// internal CodeFlags CodeFlags { get; }
 
 	internal ushort SlotNumber { get; }
 
@@ -123,20 +126,7 @@ public unsafe struct MethodDesc
 		}
 	}
 
-	internal bool SetEntryPoint(void* v)
-	{
-		fixed (MethodDesc* p = &this) {
-			return Func_SetEntryPoint(p, v) != 0;
-		}
-	}
-
 	internal Pointer<MethodTable> MethodTable => MethodDescChunk.Reference.MethodTable;
-
-	/// <summary>
-	/// <see cref="SetEntryPoint"/>
-	/// </summary>
-	[field: ImportClr("Sig_SetEntryPoint")]
-	private static delegate* unmanaged[Thiscall]<MethodDesc*, void*, int> Func_SetEntryPoint { get; }
 
 	/// <summary>
 	/// <see cref="MethodDesc.IsPointingToNativeCode"/>
@@ -173,9 +163,10 @@ public unsafe struct MethodDesc
 	/// </summary>
 	[field: ImportClr("Sig_GetIL")]
 	private static delegate* unmanaged[Thiscall]<MethodDesc*, int, CorILMethod*> Func_GetILHeader { get; }
+
 }
 
-/// <summary>
+/*/// <summary>
 ///     Describes <see cref="MethodDesc" /> JIT/entry point status
 /// </summary>
 [Flags]
@@ -203,6 +194,18 @@ public enum CodeFlags : byte
 	///     Jit may expand method as an intrinsic
 	/// </summary>
 	IsJitIntrinsic = 0x10
+}*/
+
+[Flags]
+public enum CodeFlags : ushort
+{
+
+	TokenRemainderMask             = 0x0FFF,
+	HasStableEntryPoint            = 0x1000,
+	HasPrecode                     = 0x2000,
+	IsUnboxingStub                 = 0x4000,
+	IsEligibleForTieredCompilation = 0x8000,
+
 }
 
 /// <summary>
@@ -211,6 +214,7 @@ public enum CodeFlags : byte
 [Flags]
 public enum ParamFlags : ushort
 {
+
 	TokenRemainderMask = 0x3FFF,
 
 	// These are separate to allow the flags space available and used to be obvious here
@@ -232,6 +236,7 @@ public enum ParamFlags : ushort
 	///     Indicates that we have verified that there are no equivalent valuetype parameters for this method
 	/// </summary>
 	DoesNotHaveEquivalentValueTypeParameters = 0x8000
+
 }
 
 /// <summary>
@@ -239,6 +244,7 @@ public enum ParamFlags : ushort
 /// </summary>
 public enum MethodClassification
 {
+
 	/// <summary>
 	///     IL
 	/// </summary>
@@ -290,6 +296,7 @@ public enum MethodClassification
 	Dynamic = 7,
 
 	Count
+
 }
 
 /// <summary>
@@ -298,6 +305,7 @@ public enum MethodClassification
 [Flags]
 public enum MethodProperties : ushort
 {
+
 	/// <summary>
 	///     Method is <see cref="MethodClassification.IL" />, <see cref="MethodClassification.FCall" /> etc., see
 	///     <see cref="MethodClassification" /> above.
@@ -359,4 +367,5 @@ public enum MethodProperties : ushort
 	///     Does the method's slot number require all 16 bits
 	/// </summary>
 	RequiresFullSlotNumber = 0x8000
+
 }

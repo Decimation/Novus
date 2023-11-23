@@ -33,7 +33,7 @@ internal unsafe struct CorILMethodFat
 		get
 		{
 			fixed (CorILMethodFat* value = &this) {
-				return (*(byte*) value & (int) CorILMethodFlags.FatFormat) == (int) CorILMethodFlags.FatFormat;
+				return (*(byte*) value & (int) CorILMethodFlags.FormatMask) == (int) CorILMethodFlags.FatFormat;
 			}
 		}
 	}

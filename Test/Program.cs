@@ -141,6 +141,20 @@ public static unsafe class Program
 
 	private static async Task Main(string[] args)
 	{
+		Console.WriteLine(Global.IsCorrectVersion);
+		int  i = 1;
+		int* p = &i;
+		Console.WriteLine((Pointer<int>)p);
+		Console.WriteLine(Mem.AddressOf(ref i));
+
+		Console.WriteLine(GCHeap.IsHeapPointer((Pointer<int>)p));
+		var s = stackalloc int[1];
+		Console.WriteLine(GCHeap.IsHeapPointer((Pointer<int>)s));
+		
+	}
+
+	private static void Test2()
+	{
 		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
 		Console.WriteLine(GCHeap.IsHeapPointer(o));
 		Console.WriteLine(RuntimeProperties.IsBoxed(o));
@@ -156,7 +170,11 @@ public static unsafe class Program
 		Console.WriteLine(RuntimeProperties.IsBoxed(o3));
 		Console.WriteLine(GCHeap.IsHeapPointer(&o3));
 		Console.WriteLine(RuntimeProperties.IsBoxed(RuntimeProperties.Box(o3)));
+		Console.WriteLine(GCHeap.IsHeapPointer(Mem.AddressOf(ref o3)));
 
+		int i = 1;
+		Console.WriteLine(GCHeap.IsHeapPointer(&i));
+		Console.WriteLine(GCHeap.IsHeapPointer(Mem.AddressOf(ref i)));
 	}
 
 	public static void HandleHotKey(IntPtr hWnd, int id)

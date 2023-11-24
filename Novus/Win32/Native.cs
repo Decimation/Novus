@@ -32,6 +32,7 @@ namespace Novus.Win32;
 [SupportedOSPlatform(Global.OS_WIN)]
 public static unsafe partial class Native
 {
+
 	public const int INVALID = -1;
 
 	public const nuint U_INVALID = 0xFFFFFFFF;
@@ -509,4 +510,5 @@ public static unsafe partial class Native
 			return c.ToString();
 		}
 	}*/
+
 }

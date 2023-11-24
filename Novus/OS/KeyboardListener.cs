@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using Novus.Win32.Structures.User32;
 
@@ -11,6 +12,7 @@ using Novus.Win32.Structures.User32;
 
 namespace Novus.OS;
 
+[SupportedOSPlatform(Global.OS_WIN)]
 public sealed class KeyboardListener : IDisposable
 {
 	public KeyboardListener() : this(IntPtr.Zero) { }

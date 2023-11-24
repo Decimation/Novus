@@ -18,6 +18,7 @@ using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 
 #pragma warning disable 8603
+#pragma warning disable CA1416 //todo
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable TailRecursiveCall

@@ -139,20 +139,33 @@ namespace Test;
 public static unsafe class Program
 {
 
+	public delegate ref int Del(in int o);
+
 	private static async Task Main(string[] args)
 	{
-		Console.WriteLine(Global.IsCorrectVersion);
-		int  i = 1;
-		int* p = &i;
-		Console.WriteLine((Pointer<int>)p);
-		Console.WriteLine(Mem.AddressOf(ref i));
-
-		Console.WriteLine(GCHeap.IsHeapPointer((Pointer<int>)p));
-		var s = stackalloc int[1];
-		Console.WriteLine(GCHeap.IsHeapPointer((Pointer<int>)s));
-		
+		t1();
 	}
 
+	static void t1()
+	{
+		DynamicMethod d = new DynamicMethod("ref_cast2", null, new[] { typeof(int).MakeByRefType() },
+		                                    typeof(int).MakeByRefType());
+
+		var il = d.GetILGenerator();
+		il.Emit(OpCodes.Ret);
+		var     f  = (Del)d.CreateDelegate(typeof(Del));
+		int     i  = 0;
+		Console.WriteLine(i);
+		ref int rf = ref f(in i);
+		t2(ref rf);
+		Console.WriteLine(i);
+
+	}
+
+	static void t2(ref int r)
+	{
+		r = 321;
+	}
 	private static void Test2()
 	{
 		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));

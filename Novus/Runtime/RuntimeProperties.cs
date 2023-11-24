@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -223,7 +224,6 @@ public static unsafe class RuntimeProperties
 	///     Determines whether the memory of <paramref name="t" /> is null; that is,
 	///     all of its fields are <c>null</c>.
 	/// </summary>
-	[Obsolete]
 	public static bool IsNull<T>(T t)
 	{
 		if (!typeof(T).IsValueType && t == null) {

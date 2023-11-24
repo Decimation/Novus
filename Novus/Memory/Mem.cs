@@ -42,6 +42,7 @@ using Novus.Win32.Wrappers;
 
 #pragma warning disable IDE0059
 #pragma warning disable IDE1006
+#pragma warning disable CA1416 //todo
 
 namespace Novus.Memory;
 
@@ -271,8 +272,8 @@ public static unsafe class Mem
 
 	#region Cast
 
-	public static ref T ref_cast<T>(in T t)
-		=> ref U.AsRef(in t);
+	/*public static ref T ref_cast<T>( in T t)
+		=> ref U.AsRef(ref t);*/
 
 	public static object as_cast(object t)
 		=> as_cast<object, object>(t);
@@ -847,19 +848,19 @@ public static unsafe class Mem
 		return AddressOfHeapInternal(value, OffsetOptions.Fields);
 	}
 
-	public static Pointer AddressOfData2<T>(in T value)
-		=> AddressOfData(ref ref_cast(in value));
+	/*public static Pointer AddressOfData2<T>(in T value)
+		=> AddressOfData(ref ref_cast(in value));*/
 
 	#region Field
 
 	public static Pointer AddressOfField(object obj, string name)
-		=> AddressOfField<object, byte>(obj, name);
+		=> AddressOfField<object, byte>(ref obj, name);
 
-	public static Pointer<TField> AddressOfField<T, TField>(in T obj, string name)
+	public static Pointer<TField> AddressOfField<T, TField>(ref T obj, string name)
 	{
 		int offsetOf = OffsetOf(obj.GetType(), name);
 
-		Pointer p = AddressOfData2(in obj);
+		Pointer p = AddressOfData(ref obj);
 
 		return (Pointer<TField>) (p + offsetOf);
 	}
@@ -873,11 +874,11 @@ public static unsafe class Mem
 		return p.Cast<TField>();
 	}
 
-	public static Pointer<TField> AddressOfField<T, TField>(in T obj, Expression<Func<TField>> mem)
+	public static Pointer<TField> AddressOfField<T, TField>(ref T obj, Expression<Func<TField>> mem)
 	{
 		int offsetOf = OffsetOf(obj.GetType(), memberof2(mem).Name);
 
-		Pointer p = AddressOfData2(in obj);
+		Pointer p = AddressOfData(ref obj);
 
 		return (Pointer<TField>) (p + offsetOf);
 	}

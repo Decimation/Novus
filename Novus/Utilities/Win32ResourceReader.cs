@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Versioning;
 using System.Text;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
@@ -10,6 +11,7 @@ namespace Novus.Utilities;
  * https://stackoverflow.com/questions/2087682/finding-out-unicode-character-name-in-net
  */
 
+[SupportedOSPlatform(Global.OS_WIN)]
 public sealed class Win32ResourceReader : IDisposable
 {
 	private nint m_hModule;

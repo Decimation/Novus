@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -13,6 +14,7 @@ namespace Novus.Win32;
 //TODO: WIP
 //https://github.com/aayush-pokharel/ClipboardMonitor
 
+[SupportedOSPlatform(Global.OS_WIN)]
 public static class Clipboard
 {
 	public static bool IsOpen { get; private set; }

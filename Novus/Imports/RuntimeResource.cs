@@ -41,6 +41,7 @@ namespace Novus.Imports;
 [SupportedOSPlatform(Global.OS_WIN)]
 public sealed class RuntimeResource : IDisposable
 {
+
 	public Pointer Address => Module.Value.BaseAddress;
 
 	public Lazy<ProcessModule> Module { get; }
@@ -67,7 +68,7 @@ public sealed class RuntimeResource : IDisposable
 
 		Module  = new(() => p.FindModule(moduleName));
 		Scanner = new Lazy<SigScanner>(() => new SigScanner(Module.Value));
-		
+
 		Symbols      = new Lazy<Win32SymbolReader>(() => File.Exists(pdb) ? new Win32SymbolReader(pdb) : null);
 		LoadedModule = false;
 	}
@@ -124,7 +125,8 @@ public sealed class RuntimeResource : IDisposable
 		}
 	}
 
-	public bool IsLoaded(Type t) => m_loadedTypes.Contains(t);
+	public bool IsLoaded(Type t)
+		=> m_loadedTypes.Contains(t);
 
 	public void Unload(Type t)
 	{
@@ -260,8 +262,21 @@ public sealed class RuntimeResource : IDisposable
 
 					if (throwOnErr) {
 						unsafe {
+							var  unmg         = field.FieldType.IsUnmanagedFunctionPointer;
+							var  fnPtr        = field.FieldType.GetFunctionPointerReturnType();
+							Type modifiedType = field.GetModifiedFieldType();
+
+							var types = field.FieldType.GetFunctionPointerParameterTypes();
+							var    dyn                           = new DynamicMethod("__eerr", fnPtr, types);
+							var    gen                           =dyn.GetILGenerator();
+
+							for (int i = 0; i <types.Length ; i++) {
+								gen.Emit(OpCodes.Ldarg, i);
+								gen.Emit(OpCodes.Newobj, fnPtr);
+								gen.Emit(OpCodes.Ret);
+							}
 							//todo
-							addr = (nint) (delegate* managed<void>) &ErrorFunction;
+							addr = (nint) dyn.MethodHandle.GetFunctionPointer() ;
 
 							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
 							var fnPtr=dyn.MethodHandle.GetFunctionPointer();
@@ -384,9 +399,11 @@ public sealed class RuntimeResource : IDisposable
 		return Address + (nint.TryParse(s, NumberStyles.HexNumber, null, out var l) ? l : nint.Parse(s));
 	}
 
-	public Pointer GetExport(string name) => NativeLibrary.GetExport(Module.Value.BaseAddress, name);
+	public Pointer GetExport(string name)
+		=> NativeLibrary.GetExport(Module.Value.BaseAddress, name);
 
-	public Pointer GetSignature(string signature) => Scanner.Value.FindSignature(signature);
+	public Pointer GetSignature(string signature)
+		=> Scanner.Value.FindSignature(signature);
 
 	public Pointer GetSymbol(string name, Type t = null, bool absolute = false)
 	{
@@ -436,4 +453,5 @@ public sealed class RuntimeResource : IDisposable
 	{
 		return $"{Module.Value.ModuleName} ({Scanner.Value.Address})";
 	}
+
 }

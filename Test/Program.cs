@@ -90,13 +90,14 @@ namespace Test;
  */
 
 /*
- * ◆ Novus				https://github.com/Decimation/Novus
+ * 🌟 Novus				https://github.com/Decimation/Novus
  * ⨉ NeoCore			https://github.com/Decimation/NeoCore
  * ⨉ RazorSharp			https://github.com/Decimation/RazorSharp
  *
  * ◆ Kantan				https://github.com/Decimation/Kantan
  *
  */
+
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -143,8 +144,12 @@ public static unsafe class Program
 
 	private static async Task Main(string[] args)
 	{
-		t1();
+		Global.Clr.LoadImports(typeof(Program), false);
+		Console.WriteLine(butt(1));
 	}
+
+	[ImportUnmanaged("test", ImportType.Offset)]
+	public static delegate* unmanaged <int, int> butt;
 
 	static void t1()
 	{
@@ -153,8 +158,8 @@ public static unsafe class Program
 
 		var il = d.GetILGenerator();
 		il.Emit(OpCodes.Ret);
-		var     f  = (Del)d.CreateDelegate(typeof(Del));
-		int     i  = 0;
+		var f = (Del) d.CreateDelegate(typeof(Del));
+		int i = 0;
 		Console.WriteLine(i);
 		ref int rf = ref f(in i);
 		t2(ref rf);
@@ -166,6 +171,7 @@ public static unsafe class Program
 	{
 		r = 321;
 	}
+
 	private static void Test2()
 	{
 		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));

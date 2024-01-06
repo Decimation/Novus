@@ -185,7 +185,7 @@
     <comment>MethodDesc::GetRVA</comment>
   </data>
   <data name="Sig_GetSize" xml:space="preserve">
-    <value>40 53 48 83 EC 20 8B 41 0C 48 8D 15</value>
+    <value>40 53 48 83 EC 20 8B 41 0C 48 8D 1D</value>
     <comment>FieldDesc::GetSize</comment>
   </data>
   <data name="Sig_GetStaticAddr" xml:space="preserve">

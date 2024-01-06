@@ -23,6 +23,7 @@ namespace Novus.FileTypes;
 /// </summary>
 public class UniSource : IDisposable, IEquatable<UniSource>
 {
+
 	public UniSourceType SourceType { get; }
 
 	public Stream Stream { get; }
@@ -63,10 +64,12 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			}
 
 			throw new InvalidOperationException();
-			
+
 		}
 	}
-	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null, FileType[] whitelist = null,
+
+	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null,
+	                                             FileType[] whitelist = null,
 	                                             CancellationToken ct = default)
 	{
 		UniSource buf = null;
@@ -127,7 +130,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 				          {
 					          User_Agent = ER.UserAgent,
 				          })
-				          .GetAsync( cancellationToken: ct);
+				          .GetAsync(cancellationToken: ct);
 
 			if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
 				throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
@@ -163,13 +166,13 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 	[ItemCanBeNull]
 	public async Task<string> TryDownloadAsync()
 	{
-		string fn  = null, ext = null;
+		string fn = null, ext = null;
 
 		if (IsUri) {
 			var url = (Url) Value;
-			fn  = url.GetFileName();
+			fn = url.GetFileName();
 			// fn = Path.Combine(Path.GetTempPath(), fn);
-			
+
 		}
 		else if (IsFile) {
 			Debug.Assert(File.Exists(Value.ToString()));
@@ -181,7 +184,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		}
 
 		// var tmp = Path.Combine(Path.GetTempPath(), fn);
-		var tmp  = FS.GetTempFileName(fn, ext);
+		var tmp = FS.GetTempFileName(fn, ext);
 		// tmp = FS.SanitizeFilename(tmp);
 
 		var path = await WriteStreamToFileAsync(tmp);
@@ -265,12 +268,15 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 	{
 		return $"[{SourceType}] {FileType}";
 	}
+
 }
 
 public enum UniSourceType
 {
+
 	NA,
 	File,
 	Uri,
 	Stream
+
 }

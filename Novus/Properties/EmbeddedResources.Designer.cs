@@ -61,16 +61,6 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] coreclr {
-            get {
-                object obj = ResourceManager.GetObject("coreclr", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to cmd.exe.
         /// </summary>
         internal static string E_Cmd {

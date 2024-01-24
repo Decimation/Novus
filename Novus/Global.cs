@@ -174,10 +174,20 @@ public static class Global
 
 	}
 
+	[CanBeNull]
 	public static string GetPdbFile()
 	{
-		var pdbFile = Path.Join(DataFolder, CLR_PDB);
-		File.WriteAllBytes(pdbFile, EmbeddedResources.coreclr);
+		// var pdbFile = Path.Join(DataFolder, CLR_PDB);
+		// File.WriteAllBytes(pdbFile, EmbeddedResources.coreclr);
+
+		var nt = Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
+
+		if (nt == null) {
+			return null;
+		}
+
+		var pdbFile = Path.Combine(nt, CLR_PDB);
+
 		return pdbFile;
 	}
 
@@ -203,7 +213,6 @@ public static class Global
 			return;
 		}
 
-		// var s = Path.Combine(Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine), "coreclr.pdb");
 		//todo
 		Clr = new RuntimeResource(CLR_MODULE, ClrPdb);
 

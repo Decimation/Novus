@@ -8,8 +8,9 @@ namespace Novus.Memory;
 
 public readonly struct ReadonlyPointer<T>
 {
-	private const MethodImplOptions OPT = MethodImplOptions.AggressiveInlining |
-	                                      MethodImplOptions.AggressiveOptimization;
+
+	private const MImplO OPT = MethodImplOptions.AggressiveInlining |
+	                           MethodImplOptions.AggressiveOptimization;
 
 	private readonly Pointer<T> m_value;
 
@@ -18,18 +19,23 @@ public readonly struct ReadonlyPointer<T>
 		m_value = value;
 	}
 
-	public static implicit operator ReadonlyPointer<T>(Pointer<T> p) => new(p);
+	public static implicit operator ReadonlyPointer<T>(Pointer<T> p)
+		=> new(p);
 
 	public ref T Reference
 	{
-		[method: MImp(OPT)] get => ref m_value.Reference;
+		[method: MImp(OPT)]
+		get => ref m_value.Reference;
 	}
 
 	public T Value
 	{
-		[method: MImp(OPT)] get => m_value.Value;
+		[method: MImp(OPT)]
+		get => m_value.Value;
 	}
 
 	[MImp(OPT)]
-	public ReadonlyPointer<T> Cast() => m_value;
+	public ReadonlyPointer<T> Cast()
+		=> m_value;
+
 }

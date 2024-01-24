@@ -134,12 +134,14 @@ public static class Global
 	/// </summary>
 	public const string CLR_MODULE = "coreclr.dll";
 
+	public const string CLR_PDB = "coreclr.pdb";
+
 	/// <summary>
 	///     Runtime CLR version
 	/// </summary>
 	public static readonly Version ClrVersion = Version.Parse(EmbeddedResources.RequiredVersion);
 
-	public static string ClrPdb { get; set; } = @"C:\Symbols\coreclr.pdb";
+	public static string ClrPdb { get; set; } = GetPdbFile();
 
 	/// <summary>
 	///     Runtime CLR resources
@@ -170,6 +172,13 @@ public static class Global
 			Directory.CreateDirectory(DataFolder);
 		}
 
+	}
+
+	public static string GetPdbFile()
+	{
+		var pdbFile = Path.Join(DataFolder, CLR_PDB);
+		File.WriteAllBytes(pdbFile, EmbeddedResources.coreclr);
+		return pdbFile;
 	}
 
 	/// <summary>

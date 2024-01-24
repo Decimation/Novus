@@ -144,12 +144,8 @@ public static unsafe class Program
 
 	private static async Task Main(string[] args)
 	{
-		Global.Clr.LoadImports(typeof(Program), false);
-		Console.WriteLine(butt(1));
+		Console.WriteLine("Hello");
 	}
-
-	[ImportUnmanaged("test", ImportType.Offset)]
-	public static delegate* unmanaged <int, int> butt;
 
 	static void t1()
 	{

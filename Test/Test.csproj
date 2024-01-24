@@ -25,9 +25,12 @@
       HAA0303,
       HAA0101,
       CS1591,
-      
+
+      <!-- CA1416: Validate platform compatibility -->
       CA1416
+
     </NoWarn>
+
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 

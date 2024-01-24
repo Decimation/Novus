@@ -286,8 +286,8 @@ public static class ReflectionHelper
 	public static bool IsNumeric(this Type t)
 		=> t.IsInteger() || t.IsReal();
 
-	private static readonly Type[] ExtraUInt = { typeof(UInt128), typeof(nuint) };
-	private static readonly Type[] ExtraSInt = { typeof(BigInteger), typeof(Int128), typeof(nint) };
+	private static readonly Type[] ExtraUInt = [typeof(UInt128), typeof(nuint)];
+	private static readonly Type[] ExtraSInt = [typeof(BigInteger), typeof(Int128), typeof(nint)];
 
 	public static bool IsInteger(this Type t)
 	{
@@ -376,7 +376,7 @@ public static class ReflectionHelper
 		=> method.MakeGenericMethod(args).Invoke(value, fnArgs);
 
 	public static object CallGeneric(this MI method, Type arg, object value, params object[] fnArgs)
-		=> method.CallGeneric(new[] { arg }, value, fnArgs);
+		=> method.CallGeneric([arg], value, fnArgs);
 
 	/// <summary>
 	///     Runs a constructor whose parameters match <paramref name="args" />
@@ -395,7 +395,7 @@ public static class ReflectionHelper
 
 		var ct = value.GetType2().GetConstructor(args);
 
-		if (ct is { }) {
+		if (ct is not null) {
 			ct.Invoke(value, args);
 			return true;
 		}
@@ -441,8 +441,7 @@ public static class ReflectionHelper
 	public static IEnumerable<object> CreateAllInAssembly(this Type type, InheritanceProperties p)
 	{
 		return type.GetAllInAssembly(p)
-			.Select(Activator.CreateInstance)
-			.Cast<object>();
+			.Select(Activator.CreateInstance);
 	}
 
 	public static HashSet<AssemblyName> DumpDependencies()

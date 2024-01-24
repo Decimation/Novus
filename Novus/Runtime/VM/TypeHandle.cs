@@ -1,4 +1,4 @@
-﻿global using TADDR = nuint;
+﻿// global using TADDR = nuint;
 using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.Imports.Attributes;

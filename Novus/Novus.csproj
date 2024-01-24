@@ -9,7 +9,7 @@
     <!-- <EnablePreviewFeatures>true</EnablePreviewFeatures> -->
 
     <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute>
-    <NoWarn>CS1591,IDE0079,CA2255,IDE0005,CA1401,IDE0059;IDE0049</NoWarn>
+    <NoWarn>CS1591,IDE0079,CA2255,IDE0005,CA1401,IDE0059;IDE0049;IDE0290</NoWarn>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Low-level utilities and tools for working with the CLR and memory.</Description>

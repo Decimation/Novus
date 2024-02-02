@@ -13,5 +13,5 @@ public sealed class ImportException : Exception
 	public ImportException() { }
 
 	/// <inheritdoc />
-	public ImportException([CanBeNull] string message) : base(message) { }
+	public ImportException([CBN] string message) : base(message) { }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
@@ -18,12 +19,12 @@ public static class Program
 		// cd .\Benchmark\ ; dotnet build -c Release ; dotnet run -c Release
 		//dotnet build -c Release ; dotnet run -c Release --project .\Benchmark\TestBenchmark.csproj
 
-		var cfg = ManualConfig.CreateMinimumViable()
-			.AddExporter(new HtmlExporter())
-			.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()))
-			.AddJob(Job.Default);
+		var cfg = DefaultConfig.Instance
+			// .AddExporter(new HtmlExporter())
+			.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()) {})
+			.AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));
 
-		BenchmarkRunner.Run<Benchmarks31>(cfg);
+		BenchmarkRunner.Run<Benchmarks_Pointer>(cfg);
 	}
 
 }

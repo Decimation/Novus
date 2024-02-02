@@ -13,6 +13,9 @@ using Novus.Win32;
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable FieldCanBeMadeReadOnly.Local
 #pragma warning disable CA1069
+#pragma warning disable IDE1006
+#pragma warning disable CA1416, IDE0251
+
 namespace Novus.Runtime.VM;
 
 [NativeStructure]
@@ -89,7 +92,7 @@ public unsafe struct MethodTable
 		}
 	}
 
-	const nint UNION_MASK = 1;
+	private const nint UNION_MASK = 1;
 
 	internal static LowBits union_getLowBits(nint pCanonMT)
 	{

@@ -31,6 +31,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 using JetBrains.Annotations;
+using Kantan.Collections;
 using Kantan.Text;
 using Novus.Runtime;
 
@@ -458,6 +459,7 @@ public class Benchmarks20
 
 [SimpleJob]
 [Config(typeof(AntiVirusFriendlyConfig))]
+
 // [InProcess()]
 public class Benchmarks19
 {
@@ -582,6 +584,7 @@ public class Benchmarks31
 
 [Config(typeof(AntiVirusFriendlyConfig))]
 [SimpleJob]
+
 // [InProcess()]
 public class Benchmarks19b
 {
@@ -632,6 +635,7 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 
 [Config(typeof(AntiVirusFriendlyConfig))]
 [SimpleJob]
+
 // [InProcess()]
 public class Benchmarks19c
 {
@@ -1083,6 +1087,26 @@ public class Benchmarks3
 
 }
 
+public class Benchmarks3a
+{
+
+	[Benchmark]
+	public Pointer<byte> Test1()
+	{
+		return m_scanner.FindSignature("77 0 61");
+	}
+
+	private SigScanner m_scanner;
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		var proc = Process.GetProcessesByName("notepad")[0];
+		m_scanner = new SigScanner(proc, proc.MainModule);
+	}
+
+}
+
 public unsafe class Benchmarks2
 {
 
@@ -1110,6 +1134,33 @@ public unsafe class Benchmarks2
 	public int Bench1()
 	{
 		return p.Value;
+	}
+
+}
+
+public unsafe class Benchmarks_Pointer
+{
+
+	private const int CNT = 2048;
+
+	private Pointer<byte> m_ptr, m_ptr2;
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+
+		m_ptr  = NativeMemory.Alloc(CNT, sizeof(byte));
+		m_ptr2 = NativeMemory.Alloc(CNT, sizeof(byte));
+
+		var s = m_ptr.ToSpan(CNT);
+
+		Random.Shared.NextBytes(s);
+	}
+
+	[Benchmark]
+	public void Copy1()
+	{
+		m_ptr.Copy(m_ptr2, CNT);
 	}
 
 }

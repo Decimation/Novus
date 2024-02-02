@@ -2,8 +2,10 @@
 using System;
 using System.Reflection;
 using Novus.Memory;
+using Novus.Win32;
 
 // ReSharper disable UnusedMemberInSuper.Global
+#pragma warning disable CA1416
 
 namespace Novus.Runtime.Meta.Base;
 

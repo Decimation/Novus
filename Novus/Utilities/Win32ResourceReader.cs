@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.Versioning;
 using System.Text;
+using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 

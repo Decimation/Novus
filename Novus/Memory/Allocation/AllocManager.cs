@@ -156,7 +156,7 @@ public static class AllocManager
 	
 	public static unsafe void Free<T>(T t) where T : class
 	{
-		var ptr = M.AddressOfHeap(t);
+		var ptr = Mem.AddressOfHeap(t);
 		ptr -= IntPtr.Size;
 		Free(ptr);
 	}

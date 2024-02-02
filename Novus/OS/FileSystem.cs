@@ -45,11 +45,12 @@ namespace Novus.OS;
 /// <seealso cref="OperatingSystem"/>
 public static class FileSystem
 {
+
 	#region KnownFolder
 
 	/// <remarks><a href="https://stackoverflow.com/questions/10667012/getting-downloads-folder-in-c">Adapted from here</a></remarks>
 	private static readonly string[] KnownFolderGuids =
-	{
+	[
 		"{56784854-C6CB-462B-8169-88E350ACB882}", // Contacts
 		"{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}", // Desktop
 		"{FDD39AD0-238F-46AF-ADB4-6C85480369C7}", // Documents
@@ -60,8 +61,8 @@ public static class FileSystem
 		"{33E28130-4E1E-4676-835A-98395C3BC3BB}", // Pictures
 		"{4C5C32FF-BB9D-43B0-B5B4-2D72E54EAAA4}", // SavedGames
 		"{7D1D3A04-DEBB-4115-95CF-2F29DA2920DA}", // SavedSearches
-		"{18989B1D-99B5-455B-841C-AB7C74E4DDFC}", // Videos
-	};
+		"{18989B1D-99B5-455B-841C-AB7C74E4DDFC}"  // Videos
+	];
 
 	/// <summary>
 	/// Gets the current path to the specified known folder as currently configured. This does
@@ -283,7 +284,7 @@ public static class FileSystem
 		if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
 			return false;
 
-		SHFILEOPSTRUCT fileOp = new SHFILEOPSTRUCT
+		var fileOp = new SHFILEOPSTRUCT
 		{
 			wFunc = Native.FO_DELETE,
 			pFrom = filePath + '\0', // The path should be null-terminated
@@ -327,6 +328,7 @@ public static class FileSystem
 			}
 
 			return null;
+
 			// throw new FileNotFoundException(new FileNotFoundException().Message, f);
 		}
 
@@ -467,6 +469,7 @@ public static class FileSystem
 		return principal.IsInRole(WindowsBuiltInRole.Administrator);
 
 	}
+
 }
 
 /// <summary>
@@ -476,6 +479,7 @@ public static class FileSystem
 /// </summary>
 public enum KnownFolder
 {
+
 	Contacts,
 	Desktop,
 	Documents,
@@ -487,4 +491,5 @@ public enum KnownFolder
 	SavedGames,
 	SavedSearches,
 	Videos
+
 }

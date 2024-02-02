@@ -168,8 +168,8 @@ public static unsafe partial class Native
 		return sd.hWnd;
 	}
 
-	public static nint CreateFile(string fileName, FileAccess access, FileShare share,
-	                              FileMode mode, FileAttributes attributes)
+	public static nint CreateFile(string fileName, FileAccess access, FileShare share, FileMode mode,
+	                              FileAttributes attributes)
 	{
 		return CreateFile(fileName, access, share, IntPtr.Zero,
 		                  mode, attributes, IntPtr.Zero);
@@ -490,12 +490,14 @@ public static unsafe partial class Native
 
 			if (result == NtStatus.SUCCESS || tries > 5)
 				break;
+
 			//throw new Exception("Unhandled NtStatus " + result);
 			break;
 		}
 
 		if (result == NtStatus.SUCCESS)
 			return infoPtr; //don't forget to free the pointer with Marshal.FreeHGlobal after you're done with it
+
 		Marshal.FreeHGlobal(infoPtr); //free pointer when not Successful
 
 		return IntPtr.Zero;

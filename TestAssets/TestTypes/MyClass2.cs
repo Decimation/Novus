@@ -13,7 +13,7 @@ public unsafe class MyClass2
 
 	static MyClass2()
 	{
-		_rr = RuntimeResource.LoadModule(MyClass2.s);
+		_rr = RuntimeResource.LoadModule(MyClass2.s, out _);
 		_rr.LoadImports(typeof(MyClass2));
 	}
 }

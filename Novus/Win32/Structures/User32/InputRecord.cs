@@ -10,7 +10,7 @@ namespace Novus.Win32.Structures.User32;
 public struct InputRecord
 {
 	public InputType  type;
-	public InputUnion U;
+	public InputUnion Unsafe;
 }
 
 /// <summary>

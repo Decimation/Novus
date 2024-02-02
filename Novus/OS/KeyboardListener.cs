@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
+using Novus.Win32;
 using Novus.Win32.Structures.User32;
 
 // ReSharper disable UnusedMember.Global

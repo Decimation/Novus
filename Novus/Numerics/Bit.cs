@@ -2,6 +2,7 @@
 // 2023-08-11 @ 11:16 PM
 
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Novus.Numerics;
 
@@ -17,7 +18,7 @@ public struct Bit
 
 	public static Bit Create<T>(T t) where T : IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>, INumber<T>
 	{
-		return new Bit(U.As<T, int>(ref t));
+		return new Bit(Unsafe.As<T, int>(ref t));
 	}
 
 	public static implicit operator Bit(int value)

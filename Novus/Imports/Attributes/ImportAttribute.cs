@@ -28,7 +28,7 @@ public abstract class ImportAttribute : Attribute
 
 	public ImportManageType ManageType { get; set; }
 
-	[CanBeNull]
+	[CBN]
 	public Type Resolver { get; set; }
 
 	public bool AbsoluteMatch { get; set; }

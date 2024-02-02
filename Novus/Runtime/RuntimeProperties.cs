@@ -66,7 +66,7 @@ public static unsafe class RuntimeProperties
 	private static delegate* managed<nint, Type> Func_GetTypeFromHandle { get; }
 
 	/// <summary>
-	///     <see cref="ReadTypeHandle{T}" />
+	///     <see cref="GetMethodTable{T}" />
 	/// </summary>
 	[field: ImportManaged(typeof(RuntimeHelpers), "GetMethodTable")]
 	private static delegate* managed<object, MethodTable*> Func_GetMethodTable { get; }
@@ -91,18 +91,13 @@ public static unsafe class RuntimeProperties
 	public static int GetElementSize(object o)
 		=> Func_GetElementSize(o);
 
-	/// <see cref="RuntimeHelpers.GetObjectValue"/>
-	[CanBeNull]
-	public static object Box([CanBeNull] object o)
-		=> RuntimeHelpers.GetObjectValue(o);
-
 	#region Metadata
 
 	/// <summary>
 	///     Reads <see cref="TypeHandle" /> as <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from
 	///     <paramref name="value" />
 	/// </summary>
-	public static Pointer<MethodTable> ReadTypeHandle<T>(in T value)
+	public static Pointer<MethodTable> GetMethodTable<T>(in T value)
 	{
 		/*var type = value.GetType();
 		return ResolveTypeHandle(type);*/
@@ -115,7 +110,7 @@ public static unsafe class RuntimeProperties
 	/// <param name="member">Reflection type</param>
 	/// <returns>A pointer to the corresponding structure</returns>
 	/// <exception cref="InvalidOperationException">The type of <see cref="MemberInfo" /> doesn't have a handle</exception>
-	public static Pointer<byte> ResolveHandle(MemberInfo member)
+	public static Pointer<byte> ResolveMetadataHandle(MemberInfo member)
 	{
 		Require.ArgumentNotNull(member, nameof(member));
 
@@ -149,6 +144,11 @@ public static unsafe class RuntimeProperties
 	#endregion
 
 	#region Comparison & Properties
+
+	/// <see cref="RuntimeHelpers.GetObjectValue"/>
+	[CBN]
+	public static object Box([CBN] object o)
+		=> RuntimeHelpers.GetObjectValue(o);
 
 	/// <summary>
 	///     Determines whether <paramref name="value" /> is pinnable.
@@ -213,7 +213,7 @@ public static unsafe class RuntimeProperties
 	/// </summary>
 	/// <returns><c>true</c> if boxed; <c>false</c> otherwise</returns>
 	/// <remarks>Heuristic; not always correct</remarks>
-	public static bool IsBoxed<T>([CanBeNull] in T value)
+	public static bool IsBoxed<T>([CBN] in T value)
 	{
 		// return !typeof(T).IsValueType && (value != null) && value.GetType().IsValueType;
 		return (typeof(T).IsInterface || typeof(T) == typeof(object))

@@ -2775,13 +2775,13 @@ public enum NtStatus : uint
 
 	/// <summary>
 	/// The maximum number of secrets that can be stored in a single system was exceeded. The length and number 
-	/// of secrets is limited to satisfy U.S. State Department export restrictions.
+	/// of secrets is limited to satisfy Unsafe.S. State Department export restrictions.
 	/// </summary>
 	TOO_MANY_SECRETS = 0xC0000156,
 
 	/// <summary>
 	/// The length of a secret exceeds the maximum allowable length. The length and number of secrets is limited 
-	/// to satisfy U.S. State Department export restrictions.
+	/// to satisfy Unsafe.S. State Department export restrictions.
 	/// </summary>
 	SECRET_TOO_LONG = 0xC0000157,
 

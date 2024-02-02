@@ -16,6 +16,7 @@ using Novus.Win32.Wrappers;
 // ReSharper disable UnusedMember.Global
 
 namespace Novus.Runtime.Meta;
+#pragma warning disable CA1416
 
 /// <summary>
 /// GC heap
@@ -52,7 +53,7 @@ public static unsafe class GCHeap
 		Require.Assert(!type.RuntimeType.IsValueType);
 
 		var ptr = (void*) AllocObject(type.Value);
-		var obj = U.Read<object>(&ptr);
+		var obj = Unsafe.Read<object>(&ptr);
 
 		ReflectionHelper.CallConstructor(obj, args);
 
@@ -63,7 +64,7 @@ public static unsafe class GCHeap
 	public static T AllocObject<T>(params object[] args) where T : class
 	{
 		var ptr = AllocObject(typeof(T), args);
-		var obj = U.As<T>(ptr);
+		var obj = Unsafe.As<T>(ptr);
 
 		return obj;
 	}

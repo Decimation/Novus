@@ -66,8 +66,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CliWrap" Version="3.6.5-test" />
-    <PackageReference Include="Flurl.Http" Version="4.0.0" />
+    <PackageReference Include="CliWrap" Version="3.6.6" />
+    <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />

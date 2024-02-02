@@ -22,6 +22,7 @@ using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
+using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Wrappers;
 
@@ -79,6 +80,7 @@ namespace Novus.Memory;
 /// <seealso cref="System.Runtime.CompilerServices" />
 public static unsafe class Mem
 {
+
 	/// <summary>
 	///     Address size
 	/// </summary>
@@ -176,6 +178,7 @@ public static unsafe class Mem
 		// store first argument obj in the pinned local variable
 		il.Emit(OpCodes.Ldarg_0);
 		il.Emit(OpCodes.Stloc_0);
+
 		// invoke the delegate
 		il.Emit(OpCodes.Ldarg_1);
 		il.Emit(OpCodes.Ldarg_0);
@@ -196,15 +199,15 @@ public static unsafe class Mem
 	///     Used for unsafe pinning of arbitrary objects.
 	///     This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
 	/// </summary>
-	public static RawData GetPinningHelper(object value)
-		=> U.As<RawData>(value);
+	public static PinHelperProxy GetPinningHelper(object value)
+		=> Unsafe.As<PinHelperProxy>(value);
 
 	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
 
 	public static bool IsPinned(object obj)
 		=> PinResetEvents.ContainsKey(obj);
 
-	public static bool Pin(object obj, [CanBeNull] object s = null)
+	public static bool Pin(object obj, [CBN] object s = null)
 	{
 		var value = new ManualResetEvent(false);
 
@@ -257,15 +260,17 @@ public static unsafe class Mem
 	///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
 	///     </remarks>
 	/// </summary>
-	public sealed class RawData
+	public sealed class PinHelperProxy
 	{
+
 		/// <summary>
 		///     Represents the first field in an object.
 		/// </summary>
 		/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
 		public byte Data;
 
-		private RawData() { }
+		private PinHelperProxy() { }
+
 	}
 
 	#endregion
@@ -273,9 +278,9 @@ public static unsafe class Mem
 	#region Cast
 
 	/*public static ref T ref_cast<T>( in T t)
-		=> ref U.AsRef(ref t);*/
+		=> ref Unsafe.AsRef(ref t);*/
 
-	public static object as_cast(object t)
+	/*public static object as_cast(object t)
 		=> as_cast<object, object>(t);
 
 	/// <summary>
@@ -289,11 +294,11 @@ public static unsafe class Mem
 	{
 		// var ptr  = Mem.AddressOfHeap(t);
 		// var ptr2 = ptr.Cast<T2>();
-		// var t2   = U.As<T2>(ptr2.Reference);
+		// var t2   = Unsafe.As<T2>(ptr2.Reference);
 
-		var t2 = U.As<TTo>(t);
+		var t2 = Unsafe.As<TTo>(t);
 		return t2;
-	}
+	}*/
 
 	public static ref TTo reinterpret_cast<TFrom, TTo>(ref TFrom t)
 		=> ref reinterpret_cast<TFrom, TTo>(new Pointer<TFrom>(ref t));
@@ -316,7 +321,7 @@ public static unsafe class Mem
 	/// </summary>
 	public static void WriteProcessMemory<T>(Process proc, Pointer baseAddr, T value)
 	{
-		int dwSize = U.SizeOf<T>();
+		int dwSize = Unsafe.SizeOf<T>();
 		var ptr    = AddressOf(ref value);
 
 		WriteProcessMemory(proc, baseAddr.Address, ptr.Address, dwSize);
@@ -385,7 +390,7 @@ public static unsafe class Mem
 	{
 		T value = default!;
 
-		int size = U.SizeOf<T>();
+		int size = Unsafe.SizeOf<T>();
 
 		Pointer<T> ptr = AddressOf(ref value);
 
@@ -397,7 +402,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
-	[CanBeNull]
+	[CBN]
 	public static object ReadProcessMemory(Process proc, Pointer addr, MetaType mt)
 	{
 		//todo
@@ -417,7 +422,7 @@ public static unsafe class Mem
 		}
 		else {
 			fixed (byte* ptr = rg) {
-				val = U.Read<object>(ptr);
+				val = Unsafe.Read<object>(ptr);
 			}
 		}
 
@@ -429,6 +434,7 @@ public static unsafe class Mem
 	public static object ReadStructure(Type t, byte[] rg, int ofs = 0)
 	{
 		var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
+
 		//var stackAlloc = stackalloc byte[byteArray.Length];
 
 		nint   objAddr = handle.AddrOfPinnedObject() + ofs;
@@ -473,31 +479,11 @@ public static unsafe class Mem
 
 			if (!typeof(T).IsValueType) {
 				p2 += Size;
-				return U.Read<T>(&p2);
+				return Unsafe.Read<T>(&p2);
 			}
 
-			return U.Read<T>(p2);
+			return Unsafe.Read<T>(p2);
 		}
-	}
-
-	/// <summary>
-	///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
-	///     hex number format
-	/// </summary>
-	/// <seealso cref="SigScanner.ReadSignature" />
-	public static byte[] ReadBinaryString(string s)
-	{
-		var rg = new List<byte>();
-
-		string[] bytes = s.Split(Strings.Constants.SPACE);
-
-		foreach (string b in bytes) {
-			var n = Byte.Parse(b, NumberStyles.HexNumber);
-
-			rg.Add(n);
-		}
-
-		return rg.ToArray();
 	}
 
 	/*public static byte[] GetStringBytes(string s)
@@ -593,7 +579,7 @@ public static unsafe class Mem
 	///     Calculates the size of <typeparamref name="T" />
 	/// </summary>
 	public static int SizeOf<T>()
-		=> U.SizeOf<T>();
+		=> Unsafe.SizeOf<T>();
 
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
@@ -636,10 +622,13 @@ public static unsafe class Mem
 		var mt = new MetaType(value.GetType());
 
 		switch (options) {
-			case SizeOfOptions.BaseFields:   return mt.InstanceFieldsSize;
+			case SizeOfOptions.BaseFields: return mt.InstanceFieldsSize;
+
 			case SizeOfOptions.BaseInstance: return mt.BaseSize;
-			case SizeOfOptions.BaseData:     return mt.BaseDataSize;
-			case SizeOfOptions.Heap:         return HeapSizeOfInternal(value);
+
+			case SizeOfOptions.BaseData: return mt.BaseDataSize;
+
+			case SizeOfOptions.Heap: return HeapSizeOfInternal(value);
 
 			case SizeOfOptions.Data:
 				if (RuntimeProperties.IsStruct(value)) {
@@ -705,7 +694,7 @@ public static unsafe class Mem
 
 		// By manually reading the MethodTable*, we can calculate the size correctly if the reference
 		// is boxed or cloaked
-		var metaType = (MetaType) RuntimeProperties.ReadTypeHandle(value);
+		var metaType = (MetaType) RuntimeProperties.GetMethodTable(value);
 
 		// Value of GetSizeField()
 
@@ -754,7 +743,7 @@ public static unsafe class Mem
 		/*var tr = __makeref(t);
 		return *(IntPtr*) (&tr);*/
 
-		return U.AsPointer(ref value);
+		return Unsafe.AsPointer(ref value);
 	}
 
 	public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer ptr)
@@ -903,24 +892,55 @@ public static unsafe class Mem
 	/// <summary>
 	/// <see cref="RuntimeHelpers.GetRawData"/>
 	/// </summary>
-	public static ref byte GetRawData(this object obj) =>
-		ref Unsafe.As<RawData>(obj).Data;
+	public static ref byte GetRawData(this object obj)
+	{
+
+		/*
+		 * internal static ref byte GetRawData(this object obj) =>
+					ref Unsafe.As<RawData>(obj).Data;
+		 */
+
+		return ref Unsafe.As<PinHelperProxy>(obj).Data;
+
+	}
 
 	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 
 	/// <summary>
 	/// Parses a <see cref="byte"/> array formatted as <c>00 01 02 ...</c>
 	/// </summary>
-	public static byte[] ReadAOBString(string s)
+	public static byte[] ParseAOBString(string s)
 	{
 		return s.Split(Strings.Constants.SPACE)
 			.Select(s1 => Byte.Parse(s1, NumberStyles.HexNumber))
 			.ToArray();
 	}
 
+	/// <summary>
+	///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
+	///     hex number format
+	/// </summary>
+	/// <seealso cref="SigScanner.ReadSignature" />
+	public static byte[] ReadBinaryString(string s)
+	{
+		var rg = new List<byte>();
+
+		string[] bytes = s.Split(Strings.Constants.SPACE);
+
+		foreach (string b in bytes) {
+			var n = Byte.Parse(b, NumberStyles.HexNumber);
+
+			rg.Add(n);
+		}
+
+		return rg.ToArray();
+	}
+
 	public static string ToBinaryString<T>(T value, int totalBits = -1) where T : struct
 	{
-		int sizeInBytes = sizeof(T) * BitCalculator.BITS_PER_BYTE;
+		// int sizeInBytes = sizeof(T) * BitCalculator.BITS_PER_BYTE;
+
+		int sizeInBytes = SizeOf<T>(SizeOfOptions.Intrinsic) * BitCalculator.BITS_PER_BYTE;
 
 		if (totalBits <= -1) {
 			// throw new ArgumentOutOfRangeException(nameof(totalBits), "Total bits must be at least 1.");
@@ -999,6 +1019,7 @@ public static unsafe class Mem
 			}
 
 			var pe = Native.GetPESectionInfo(m.hModule);
+
 			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
 
 			foreach (var e in pe) {
@@ -1013,6 +1034,7 @@ public static unsafe class Mem
 
 		return (default, default);
 	}
+
 }
 
 /// <summary>
@@ -1020,6 +1042,7 @@ public static unsafe class Mem
 /// </summary>
 public enum OffsetOptions
 {
+
 	/// <summary>
 	///     Return the pointer offset by <c>-</c><see cref="Size" />,
 	///     so it points to the object's <see cref="ObjHeader" />.
@@ -1058,4 +1081,5 @@ public enum OffsetOptions
 	///     points to the <see cref="TypeHandle" />
 	/// </summary>
 	None
+
 }

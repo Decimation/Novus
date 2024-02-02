@@ -51,7 +51,7 @@ public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 
 	static UArray()
 	{
-		s_elementSize = (nuint) U.SizeOf<T>();
+		s_elementSize = (nuint) Unsafe.SizeOf<T>();
 	}
 
 	public static implicit operator Pointer<T>(UArray<T> value) => value.Address;
@@ -88,13 +88,13 @@ public readonly unsafe struct UArray<T> : IDisposable, IEnumerable<T>, IPinnable
 	{
 		AllocManager.Free(Address);
 
-		var ptr = M.AddressOfField<UArray<T>, Pointer<T>>(in this, nameof(Address));
+		var ptr = Mem.AddressOfField<UArray<T>, Pointer<T>>(in this, nameof(Address));
 
 		ptr.Write(Mem.Nullptr);
 
 		/*fixed (UArray<T>* p = &this) {
 			//hack
-			U.Write<Pointer<Pointer<T>>>(p, Mem.Nullptr);
+			Unsafe.Write<Pointer<Pointer<T>>>(p, Mem.Nullptr);
 		}*/
 
 	}

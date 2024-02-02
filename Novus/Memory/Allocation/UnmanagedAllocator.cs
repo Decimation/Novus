@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+using Novus.Win32;
+#pragma warning disable CA1416
 
 // ReSharper disable UnusedMember.Global
 

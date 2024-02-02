@@ -66,8 +66,21 @@ public sealed class RuntimeResource : IDisposable
 	{
 		ModuleName = moduleName;
 
-		Module  = new(() => p.FindModule(moduleName));
-		Scanner = new Lazy<SigScanner>(() => new SigScanner(Module.Value));
+		Module = new(() =>
+		{
+			var mod = p.FindModule(moduleName);
+
+			return mod;
+		});
+
+		Scanner = new Lazy<SigScanner>(() =>
+		{
+			if (!Module.IsValueCreated) {
+				Debug.WriteLine($"{Scanner} accessed before {Module} was init");	
+			}
+
+			return new SigScanner(Module.Value);
+		});
 
 		Symbols      = new Lazy<Win32SymbolReader>(() => File.Exists(pdb) ? new Win32SymbolReader(pdb) : null);
 		LoadedModule = false;
@@ -77,14 +90,14 @@ public sealed class RuntimeResource : IDisposable
 	/// Loads a module and creates a <see cref="RuntimeResource"/> from it.
 	/// </summary>
 	[MURV]
-	public static RuntimeResource LoadModule(string moduleFile)
+	public static RuntimeResource LoadModule(string moduleFile, out nint h)
 	{
 		var f = new FileInfo(moduleFile);
 
 		Debug.WriteLine($"Loading {f.Name}", nameof(LoadModule));
 
 		//var l = Native.LoadLibrary(f.FullName);
-		var l = NativeLibrary.Load(f.FullName);
+		h = NativeLibrary.Load(f.FullName);
 
 		var r = new RuntimeResource(f.Name)
 		{
@@ -192,16 +205,13 @@ public sealed class RuntimeResource : IDisposable
 
 	}
 
-	private readonly List<Type> m_loadedTypes = new();
+	private readonly List<Type> m_loadedTypes = [];
 
-	private readonly HashSet<ResourceManager> m_managers = new()
-	{
-		ER.ResourceManager
-	};
+	private readonly HashSet<ResourceManager> m_managers = [ER.ResourceManager];
 
 	private object GetObject(ImportAttribute attr)
 	{
-		if (attr is ImportUnmanagedAttribute { Value: { } } unmanaged) {
+		if (attr is ImportUnmanagedAttribute { Value: not null } unmanaged) {
 			return unmanaged.Value;
 		}
 
@@ -267,16 +277,17 @@ public sealed class RuntimeResource : IDisposable
 							Type modifiedType = field.GetModifiedFieldType();
 
 							var types = field.FieldType.GetFunctionPointerParameterTypes();
-							var    dyn                           = new DynamicMethod("__eerr", fnPtr, types);
-							var    gen                           =dyn.GetILGenerator();
+							var dyn   = new DynamicMethod("__eerr", fnPtr, types);
+							var gen   = dyn.GetILGenerator();
 
-							for (int i = 0; i <types.Length ; i++) {
+							for (int i = 0; i < types.Length; i++) {
 								gen.Emit(OpCodes.Ldarg, i);
 								gen.Emit(OpCodes.Newobj, fnPtr);
 								gen.Emit(OpCodes.Ret);
 							}
+
 							//todo
-							addr = (nint) dyn.MethodHandle.GetFunctionPointer() ;
+							addr = (nint) dyn.MethodHandle.GetFunctionPointer();
 
 							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
 							var fnPtr=dyn.MethodHandle.GetFunctionPointer();
@@ -319,7 +330,7 @@ public sealed class RuntimeResource : IDisposable
 
 	#endregion Import
 
-	public static ResourceManager GetManager(Assembly assembly, [CanBeNull] string rsrcName = "EmbeddedResources")
+	public static ResourceManager GetManager(Assembly assembly, [CBN] string rsrcName = "EmbeddedResources")
 	{
 		string name = null;
 

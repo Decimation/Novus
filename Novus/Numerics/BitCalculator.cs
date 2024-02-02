@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Novus.Memory;
 
 namespace Novus.Numerics;
 
@@ -28,10 +29,10 @@ public static class BitCalculator
 		where T : INumber<T>, IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>
 	{
 		if (leftShift) {
-			n = n << bits | n >> T.CreateChecked(M.SizeOf<T>() * BITS_PER_BYTE) - bits;
+			n = n << bits | n >> T.CreateChecked(Mem.SizeOf<T>() * BITS_PER_BYTE) - bits;
 		}
 		else {
-			n = n >> bits | n << T.CreateChecked(M.SizeOf<T>() * BITS_PER_BYTE) - bits;
+			n = n >> bits | n << T.CreateChecked(Mem.SizeOf<T>() * BITS_PER_BYTE) - bits;
 		}
 
 		return n;

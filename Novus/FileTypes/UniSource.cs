@@ -75,7 +75,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		UniSource buf = null;
 
 		resolver  ??= IFileTypeResolver.Default;
-		whitelist ??= Array.Empty<FileType>();
+		whitelist ??= [];
 
 		if (o is string os) {
 			os = os.CleanString();
@@ -85,24 +85,20 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		var uh = UniHandler.GetUniType(o, out var o2);
 		var s  = o.ToString();
 
-		switch (uh) {
-			case UniSourceType.Uri:
+		buf = uh switch
+		{
+			UniSourceType.Uri =>
+
 				// Debug.Assert(o == o2);
 				// Debug.Assert(s == o2);
-				buf = await HandleUri(s, ct);
-				break;
-			case UniSourceType.Stream:
-				buf = new UniSource(o, o as Stream, UniSourceType.Stream);
-				break;
-			case UniSourceType.File:
-				// s = s.CleanString();
+				await HandleUri(s, ct),
+			UniSourceType.Stream => new UniSource(o, o as Stream, UniSourceType.Stream),
+			UniSourceType.File =>
 
-				buf = new UniSource(o, File.OpenRead(s), UniSourceType.File)
-					{ };
-				break;
-			default:
-				throw new ArgumentException();
-		}
+				// s = s.CleanString();
+				new UniSource(o, File.OpenRead(s), UniSourceType.File) { },
+			_ => throw new ArgumentException()
+		};
 
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
 
@@ -171,6 +167,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 		if (IsUri) {
 			var url = (Url) Value;
 			fn = url.GetFileName();
+
 			// fn = Path.Combine(Path.GetTempPath(), fn);
 
 		}
@@ -185,6 +182,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 
 		// var tmp = Path.Combine(Path.GetTempPath(), fn);
 		var tmp = FS.GetTempFileName(fn, ext);
+
 		// tmp = FS.SanitizeFilename(tmp);
 
 		var path = await WriteStreamToFileAsync(tmp);
@@ -249,7 +247,7 @@ public class UniSource : IDisposable, IEquatable<UniSource>
 			int hashCode = (int) SourceType;
 			hashCode = (hashCode * 397) ^ (Stream != null ? Stream.GetHashCode() : 0);
 			hashCode = (hashCode * 397) ^ IsValid.GetHashCode();
-			hashCode = (hashCode * 397) ^ (FileType != null ? FileType.GetHashCode() : 0);
+			hashCode = (hashCode * 397) ^ (FileType == default ? 0 : FileType.GetHashCode());
 			return hashCode;
 		}
 	}

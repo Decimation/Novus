@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -19,6 +20,7 @@ namespace Novus.Memory;
 /// </remarks>
 public sealed class SigScanner
 {
+
 	/*
 	 * Signature scanning
 	 *
@@ -38,8 +40,8 @@ public sealed class SigScanner
 	/// <summary>
 	/// Memory of the module
 	/// </summary>
-	public byte[] Buffer { get; }
-		
+	public Memory<byte> Buffer { get; }
+
 	/// <summary>
 	/// Module pointer
 	/// </summary>
@@ -61,11 +63,14 @@ public sealed class SigScanner
 		Buffer = Mem.ReadProcessMemory(proc, Address, (nint) Size);
 	}
 
-	public SigScanner(ProcessModule module) : this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
+	public SigScanner(ProcessModule module)
+		: this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
 
-	public SigScanner(Span<byte> m) : this((Pointer)m, (ulong) m.Length) { }
+	public SigScanner(Span<byte> m)
+		: this((Pointer) m, (ulong) m.Length) { }
 
-	public SigScanner(Pointer<byte> p, ulong c) : this(p, c, p.ToArray((int) c)) { }
+	public SigScanner(Pointer<byte> p, ulong c)
+		: this(p, c, p.ToArray((int) c)) { }
 
 	public SigScanner(Pointer<byte> ptr, ulong size, byte[] buffer)
 	{
@@ -95,11 +100,15 @@ public sealed class SigScanner
 	private bool PatternCheck(int nOffset, IReadOnlyList<byte> arrPattern)
 	{
 		// ReSharper disable once LoopCanBeConvertedToQuery
-		for (int i = 0; i < arrPattern.Count; i++) {
+		var span = Buffer.Span;
+
+		int l = arrPattern.Count;
+
+		for (int i = 0; i < l; i++) {
 			if (arrPattern[i] == UNKNOWN_BYTE)
 				continue;
 
-			if (arrPattern[i] != Buffer[nOffset + i])
+			if (arrPattern[i] != span[nOffset + i])
 				return false;
 		}
 
@@ -121,7 +130,7 @@ public sealed class SigScanner
 		//todo: Convert.To/FromHexString
 		string[] strByteArr = pattern.Split(' ');
 
-		byte[] patternBytes = new byte[strByteArr.Length];
+		var patternBytes = new byte[strByteArr.Length];
 
 		for (int i = 0; i < strByteArr.Length; i++) {
 			patternBytes[i] = strByteArr[i] == UNKNOWN_STR
@@ -132,7 +141,8 @@ public sealed class SigScanner
 		return patternBytes;
 	}
 
-	public Pointer<byte> FindSignature(string pattern) => FindSignature(ReadSignature(pattern));
+	public Pointer<byte> FindSignature(string pattern)
+		=> FindSignature(ReadSignature(pattern));
 
 	/// <summary>
 	/// Searches for the location of a signature within the module
@@ -141,8 +151,13 @@ public sealed class SigScanner
 	/// <returns>Address of the located signature; <see cref="Mem.Nullptr"/> if the signature was not found</returns>
 	public Pointer<byte> FindSignature(byte[] pattern)
 	{
-		for (int i = 0; i < Buffer.Length; i++) {
-			if (Buffer[i] != pattern[0])
+
+		var span = Buffer.Span;
+		int l    = Buffer.Length;
+		var b    = pattern[0];
+
+		for (int i = 0; i < l; i++) {
+			if (span[i] != b)
 				continue;
 
 			if (PatternCheck(i, pattern)) {
@@ -154,4 +169,5 @@ public sealed class SigScanner
 
 		return Mem.Nullptr;
 	}
+
 }

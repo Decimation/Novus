@@ -14,6 +14,7 @@ using Novus.Win32;
 // ReSharper disable StructCanBeMadeReadOnly
 
 namespace Novus.Runtime.VM;
+#pragma warning disable CA1416, IDE0251
 
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]

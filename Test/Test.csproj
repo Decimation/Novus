@@ -25,6 +25,9 @@
       HAA0303,
       HAA0101,
       CS1591,
+      CS0219,
+      IDE0059,
+      IDE1006,
 
       <!-- CA1416: Validate platform compatibility -->
       CA1416

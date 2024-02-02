@@ -201,7 +201,7 @@ public static unsafe class Program
 
 	private static void TestAlloc1()
 	{
-		var v = AllocManager.New<Clazz>(ctor: new Object[] { 3, "foo", 1 });
+		var v = AllocManager.New<Clazz>(ctor: [3, "foo", 1]);
 		Console.WriteLine(v);
 
 		AllocManager.Free(v);

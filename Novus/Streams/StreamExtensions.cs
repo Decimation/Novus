@@ -114,7 +114,7 @@ public static class StreamExtensions
 	}
 
 	public static Pointer<T> ToPointer<T>(this Span<T> s)
-		=> M.AddressOf(ref s.GetPinnableReference());
+		=> Mem.AddressOf(ref s.GetPinnableReference());
 
 	[MURV]
 	public static MemoryStream Copy(this Stream inputStream, int bufferSize = BlockSize)
@@ -176,11 +176,11 @@ public static class StreamExtensions
 
 	public static T ReadAny<T>(this Stream br)
 	{
-		var s   = M.SizeOf<T>();
+		var s   = Mem.SizeOf<T>();
 		var rg2 = new byte[s];
 		var rg  = br.Read(rg2);
 
-		return M.ReadFromBytes<T>(rg2);
+		return Mem.ReadFromBytes<T>(rg2);
 	}
 
 	public static LinkedList<T> ReadUntil<T>(this Stream s, Predicate<T> pred, Func<Stream, T> read,
@@ -207,10 +207,10 @@ public static class BinaryReaderExtensions
 {
 	public static T ReadAny<T>(this BinaryReader br)
 	{
-		var s  = M.SizeOf<T>();
+		var s  = Mem.SizeOf<T>();
 		var rg = br.ReadBytes(s);
 
-		return M.ReadFromBytes<T>(rg);
+		return Mem.ReadFromBytes<T>(rg);
 	}
 
 	public static string ReadCString(this BinaryReader br, int count)

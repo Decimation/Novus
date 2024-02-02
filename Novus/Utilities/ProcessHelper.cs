@@ -8,9 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Novus.Win32;
 using Novus.Win32.Structures.Ntdll;
 
 // ReSharper disable UnusedMember.Global
+#pragma warning disable CA1416
 
 namespace Novus.Utilities;
 
@@ -25,12 +27,12 @@ public static class ProcessHelper
 	///     <see cref="ProcessModule.ModuleName" />
 	/// </param>
 	/// <returns>The found <see cref="ProcessModule" />; <c>null</c> otherwise</returns>
-	[CanBeNull]
+	[CBN]
 	public static ProcessModule FindModule(this Process p, string moduleName)
 		=> p.GetModules().FirstOrDefault(module => module.ModuleName == moduleName);
 
-	public static ProcessModule[] GetModules(this Process p)
-		=> p.Modules.Cast<ProcessModule>().Where(module => module != null).ToArray();
+	public static IEnumerable<ProcessModule> GetModules(this Process p)
+		=> p.Modules.Cast<ProcessModule>();
 
 #if DANGEROUS
 	/// <summary>
@@ -58,31 +60,31 @@ public static class ProcessHelper
 	}
 #endif
 
-	[CanBeNull]
+	[CBN]
 	public static Process GetParent()
 	{
 		return GetParent(Process.GetCurrentProcess().Handle);
 	}
 
-	[CanBeNull]
+	[CBN]
 	public static Process GetParent(int id)
 	{
 		var process = Process.GetProcessById(id);
 		return GetParent(process.Handle);
 	}
 
-	[CanBeNull]
+	[CBN]
 	public static Process GetParent(string s)
 	{
 		var process = Process.GetProcessesByName(s).First();
 		return GetParent(process.Handle);
 	}
 
-	[CanBeNull]
+	[CBN]
 	public static Process GetParent(this Process p)
 		=> GetParent(p.Handle);
 
-	[CanBeNull]
+	[CBN]
 	public static Process GetParent(IntPtr handle)
 	{
 		int returnLength;

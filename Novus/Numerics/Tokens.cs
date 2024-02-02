@@ -1,5 +1,6 @@
 ﻿using System;
 using Novus.Memory;
+using Novus.Win32;
 
 // ReSharper disable IdentifierTypo
 
@@ -8,6 +9,7 @@ using Novus.Memory;
 // ReSharper disable UnusedMember.Global
 #pragma warning disable CA1069
 namespace Novus.Numerics;
+#pragma warning disable CA1416
 
 public static class Tokens
 {
@@ -26,7 +28,7 @@ public static class Tokens
 	/// <para>https://github.com/dotnet/coreclr/blob/master/src/vm/invokeutil.h</para>
 	/// </summary>
 	public static readonly int[] PrimitiveAttributes =
-	{
+	[
 		0x00,                  // ELEMENT_TYPE_END
 		0x00,                  // ELEMENT_TYPE_VOID
 		PT_PRIMITIVE | 0x0004, // ELEMENT_TYPE_BOOLEAN
@@ -40,8 +42,8 @@ public static class Tokens
 		PT_PRIMITIVE | 0x3400, // ELEMENT_TYPE_I8   (W = I8, R4, R8)
 		PT_PRIMITIVE | 0x3800, // ELEMENT_TYPE_U8   (W = U8, R4, R8)
 		PT_PRIMITIVE | 0x3000, // ELEMENT_TYPE_R4   (W = R4, R8)
-		PT_PRIMITIVE | 0x2000, // ELEMENT_TYPE_R8   (W = R8) 
-	};
+		PT_PRIMITIVE | 0x2000  // ELEMENT_TYPE_R8   (W = R8) 
+	];
 
 	public static bool IsPrimitiveType(CorElementType type)
 	{
@@ -57,7 +59,7 @@ public static class Tokens
 		// return (PT_Primitive & PrimitiveAttributes[type]);
 
 		if (type >= PRIMITIVE_TABLE_SIZE) {
-			return CorElementType.I == type || CorElementType.U == type;
+			return CorElementType.I == type || CorElementType.Unsafe == type;
 		}
 
 		return (PT_PRIMITIVE & PrimitiveAttributes[(byte) type]) != 0;
@@ -97,7 +99,7 @@ public static class Tokens
 	public static bool IsPrimitive(this CorElementType cet)
 	{
 		return cet is >= CorElementType.Boolean and <= CorElementType.R8
-			       or CorElementType.I or CorElementType.U
+			       or CorElementType.I or CorElementType.Unsafe
 			       or CorElementType.Ptr or CorElementType.FnPtr;
 	}
 
@@ -147,7 +149,7 @@ public static class Tokens
 			case CorElementType.Class:
 			case CorElementType.Array:
 			case CorElementType.I:
-			case CorElementType.U:
+			case CorElementType.Unsafe:
 			case CorElementType.FnPtr:
 			case CorElementType.Object:
 			case CorElementType.SzArray:
@@ -164,7 +166,7 @@ public static class Tokens
 				return Native.INVALID;
 
 			case CorElementType.TypedByRef:
-				return M.Size * 2;
+				return Mem.Size * 2;
 
 			case CorElementType.Max:
 			case CorElementType.Modifier:
@@ -300,7 +302,7 @@ public enum CorElementType : byte
 	GenericInst = 0x15,
 	TypedByRef  = 0x16,
 	I           = 0x18,
-	U           = 0x19,
+	Unsafe           = 0x19,
 	FnPtr       = 0x1B,
 	Object      = 0x1C,
 	SzArray     = 0x1D,

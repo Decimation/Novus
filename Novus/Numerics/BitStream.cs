@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
+using Novus.Memory;
 using static System.Net.WebRequestMethods;
 using static Novus.Numerics.BitCalculator;
 using File = System.IO.File;
@@ -133,7 +134,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// Creates a <see cref="BitStream"/> using a byte[]
 	/// </summary>
 	/// <param name="buffer">byte[] to use</param>
-	/// <param name="encoding">Encoding to use with chars/param>
+	/// <param name="encoding">Encoding to use with chars</param>
 	/// <param name="msb">true if Most Significant Bit will be used, if false LSB will be used</param>
 	public static BitStream Create(byte[] buffer, Encoding encoding, bool msb = false)
 	{
@@ -400,7 +401,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <summary>
 	/// Writes a bit in the current position
 	/// </summary>
-	/// <param name="data">Bit to write, it data is not 0 or 1 data = data & 1</param>
+	/// <param name="data">Bit to write, it data is not 0 or 1 data = data &amp; 1</param>
 	public void WriteBit(Bit data)
 	{
 		Stream.Seek(m_offset, SeekOrigin.Begin);
@@ -514,12 +515,12 @@ public class BitStream : IDisposable, IAsyncDisposable
 
 	public T Read<T>()
 	{
-		var          size  = M.SizeOf<T>();
+		var          size  = Mem.SizeOf<T>();
 		var          bsize = size * BITS_PER_BYTE;
 		T            val   = default;
 		Memory<byte> rg    = ReadBytes(size, true);
 		using var    mh    = rg.Pin();
-		var          ptr   = M.AddressOf(ref val).Cast();
+		var          ptr   = Mem.AddressOf(ref val).Cast();
 
 		unsafe {
 			NativeMemory.Copy(mh.Pointer, (void*) ptr.ToPointer(), (nuint) size);
@@ -531,10 +532,10 @@ public class BitStream : IDisposable, IAsyncDisposable
 
 	public void Write<T>(T t)
 	{
-		var size  = M.SizeOf<T>();
+		var size  = Mem.SizeOf<T>();
 		var bsize = size * BITS_PER_BYTE;
 		var rg    = new byte[size];
-		var ptr   = M.AddressOf(ref t).Cast();
+		var ptr   = Mem.AddressOf(ref t).Cast();
 		ptr.Copy(rg);
 		WriteBytes(rg, rg.Length, true);
 	}
@@ -592,7 +593,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public bool ReadBool()
 	{
-		return ReadBytes(BITS_PER_BYTE)[0] == 0 ? false : true;
+		return ReadBytes(BITS_PER_BYTE)[0] != 0;
 	}
 
 	/// <summary>
@@ -800,7 +801,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteBool(bool value)
 	{
-		WriteBytes(new byte[] { value ? (byte) 1 : (byte) 0 }, BITS_PER_BYTE);
+		WriteBytes([value ? (byte) 1 : (byte) 0], BITS_PER_BYTE);
 	}
 
 	/// <summary>

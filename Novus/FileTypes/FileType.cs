@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
+using Novus.Memory;
 using Novus.Streams;
 
 // ReSharper disable PossibleNullReferenceException
@@ -116,7 +117,7 @@ public readonly struct FileType : IEquatable<FileType>
 			var jOffset = o[ER.K_Offset];
 			var offset  = jOffset == null ? 0 : int.Parse(jOffset.ToString());
 
-			var ft = new FileType(M.ReadAOBString(mask), M.ReadAOBString(sig), mediaType, offset)
+			var ft = new FileType(Mem.ParseAOBString(mask), Mem.ParseAOBString(sig), mediaType, offset)
 				{ };
 			rg[i] = ft;
 		}

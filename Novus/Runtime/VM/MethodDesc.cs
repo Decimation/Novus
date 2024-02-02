@@ -12,6 +12,8 @@ using Novus.Win32;
 
 namespace Novus.Runtime.VM;
 
+#pragma warning disable CA1416
+
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct MethodDesc

@@ -2,11 +2,14 @@
 // 2023-08-03 @ 1:10 PM
 
 using Novus.FileTypes;
+using Novus.Memory;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using NUnit.Framework;
+using System;
 // ReSharper disable InconsistentNaming
 #pragma warning disable 0649, CS1998, CS0612
+#pragma warning disable CA1416
 
 namespace UnitTest;
 
@@ -22,7 +25,7 @@ public class Tests_Other
 			new InputRecord
 			{
 				type = InputType.Keyboard,
-				U = new InputUnion
+				Unsafe = new InputUnion
 				{
 					ki = new KeyboardInput
 					{
@@ -53,4 +56,96 @@ public class Tests_FileTypes
 			TestContext.WriteLine($"{ft}");
 		}
 	}
+}
+
+[TestFixture]
+public class Tests_Runtime2
+{
+
+	[Test]
+	[TestCase("foo")]
+	[TestCase(new[] { 1, 2, 3 })]
+	public void PinTest2(object s)
+	{
+		var p = Mem.AddressOfHeap(s);
+
+		Mem.InvokeWhilePinned(s, o =>
+		{
+			Assert.False(AddPressure(p, o));
+		});
+	}
+
+	[Test]
+	[TestCase("foo")]
+	[TestCase(new[] { 1, 2, 3 })]
+	public void PinTest(object s)
+	{
+
+		//var g = GCHandle.Alloc(s, GCHandleType.Pinned);
+
+		var p = Mem.AddressOfHeap(s);
+
+		Mem.Pin(s);
+		Assert.False(AddPressure(p, s));
+
+		Mem.Unpin(s);
+
+		// Assert.True(AddPressure(p, s));
+
+	}
+
+	/*[Test]
+	[TestCase("foo")]
+	[TestCase(new[] { 1, 2, 3 })]
+	public void PinTestInv(object s)
+	{
+
+		//var g = GCHandle.Alloc(s, GCHandleType.Pinned);
+
+		var p = Mem.AddressOfHeap(s);
+
+		Mem.Pin(s);
+		Assert.False(AddPressure(p, s));
+
+		Mem.Unpin(s);
+		Assert.True(AddPressure(p, s));
+
+	}*/
+
+	private static bool AddPressure(Pointer<byte> p, object s, long i1 = 5_000)
+	{
+		var random = new Random();
+
+		for (int i = 0; i < i1; i++)
+		{
+			GC.AddMemoryPressure(i1);
+
+			//GC.AddMemoryPressure(100000);
+			var r = new object[i1];
+
+			for (int j = 0; j < r.Length; j++)
+			{
+				r[j] = random.Next();
+
+				if (p != Mem.AddressOfHeap(s))
+				{
+					return true;
+				}
+			}
+
+			GC.Collect();
+
+			if (p != Mem.AddressOfHeap(s))
+			{
+				return true;
+			}
+
+			// GC.RemoveMemoryPressure(i1);
+		}
+
+		return p != Mem.AddressOfHeap(s);
+
+		// return false;
+	}
+
 }

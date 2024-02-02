@@ -326,7 +326,7 @@ public enum VirtualKey : int
 	KEY_L = 0x4C,
 
 	///<summary>
-	///M key
+	///Mem key
 	///</summary>
 	KEY_M = 0x4D,
 
@@ -366,7 +366,7 @@ public enum VirtualKey : int
 	KEY_T = 0x54,
 
 	///<summary>
-	///U key
+	///Unsafe key
 	///</summary>
 	KEY_U = 0x55,
 
@@ -952,7 +952,7 @@ public enum VKeys
 	KEY_J = 0x4A, // J key
 	KEY_K = 0x4B, // K key
 	KEY_L = 0x4C, // L key
-	KEY_M = 0x4D, // M key
+	KEY_M = 0x4D, // Mem key
 	KEY_N = 0x4E, // N key
 	KEY_O = 0x4F, // O key
 	KEY_P = 0x50, // P key
@@ -960,7 +960,7 @@ public enum VKeys
 	KEY_R = 0x52, // R key
 	KEY_S = 0x53, // S key
 	KEY_T = 0x54, // T key
-	KEY_U = 0x55, // U key
+	KEY_U = 0x55, // Unsafe key
 	KEY_V = 0x56, // V key
 	KEY_W = 0x57, // W key
 	KEY_X = 0x58, // X key

@@ -20,6 +20,7 @@ using Novus.Properties;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Wrappers;
 using Novus.OS;
+using Novus.Win32;
 
 // ReSharper disable UnusedParameter.Local
 

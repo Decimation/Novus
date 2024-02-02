@@ -4,6 +4,7 @@ using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Novus.Runtime.Meta;
+using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 #nullable enable
@@ -14,6 +15,8 @@ using JetBrains.Annotations;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Streams;
+
+// ReSharper disable UseSymbolAlias
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StaticMemberInGenericType
@@ -55,10 +58,11 @@ namespace Novus.Memory;
 /// <seealso cref="Unsafe" />
 public unsafe struct Pointer<T> : IFormattable, IPinnable
 {
+
 	private static readonly nuint s_ElementSize;
 
 	static Pointer()
-		=> s_ElementSize = (nuint) M.SizeOf<T>();
+		=> s_ElementSize = (nuint) Mem.SizeOf<T>();
 
 	/// <summary>
 	///     Internal pointer value.
@@ -76,7 +80,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public ref T this[nint index]
 	{
 		[method: MImpl(Global.IMPL_OPTIONS)]
-		get { return ref AsRef(index); }
+		get => ref AsRef(index);
 	}
 
 	/// <summary>
@@ -85,7 +89,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public ref T Reference
 	{
 		[method: MImpl(Global.IMPL_OPTIONS)]
-		get { return ref AsRef(); }
+		get => ref AsRef();
 	}
 
 	/// <summary>
@@ -173,6 +177,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <returns>A new <see cref="Pointer{T}" /> of type <see cref="Byte" /></returns>
 	public readonly Pointer<byte> Cast()
 		=> Cast<byte>();
+
+	public readonly Span<T> ToSpan(int n)
+		=> new(m_value, n);
 
 	/// <summary>
 	///     Creates a native pointer of type <typeparamref name="TUnmanaged" />, pointing to
@@ -278,7 +285,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes added
 	/// </returns>
 	[Pure]
-	public Pointer<T> AddBytes(nint byteCnt = ELEM_CNT)
+	public readonly Pointer<T> AddBytes(nint byteCnt = ELEM_CNT)
 	{
 		nint val = Address + byteCnt;
 		return (void*) val;
@@ -292,7 +299,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes subtracted
 	/// </returns>
 	[Pure]
-	public Pointer<T> SubtractBytes(nint byteCnt = ELEM_CNT)
+	public readonly Pointer<T> SubtractBytes(nint byteCnt = ELEM_CNT)
 		=> AddBytes(-byteCnt);
 
 	public static Pointer<T> operator +(Pointer<T> left, nint right)
@@ -361,7 +368,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
 	/// </returns>
 	[Pure]
-	public Pointer<T> Add(nint elemCnt = ELEM_CNT)
+	public readonly Pointer<T> Add(nint elemCnt = ELEM_CNT)
 		=> Offset(elemCnt);
 
 	/// <summary>
@@ -372,7 +379,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
 	/// </returns>
 	[Pure]
-	public Pointer<T> Subtract(nint elemCnt = ELEM_CNT)
+	public readonly Pointer<T> Subtract(nint elemCnt = ELEM_CNT)
 		=> Add(-elemCnt);
 
 	[Pure]
@@ -380,10 +387,11 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	private readonly void* Offset(nint elemCnt)
 	{
 		// return (void*) ((long) m_value + (long) Mem.GetByteCount(ElementSize, elemCnt));
-		return U.Add<T>(m_value, (int) elemCnt);
+		return Unsafe.Add<T>(m_value, (int) elemCnt);
 	}
 
 	[Pure]
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public readonly Pointer<T> AddressOfIndex(nint index)
 		=> Offset(index);
 
@@ -397,7 +405,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <param name="value">Value to write.</param>
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	[method: MImpl(Global.IMPL_OPTIONS)]
-	public void Write(T value, nint elemOffset = OFFSET)
+	public readonly void Write(T value, nint elemOffset = OFFSET)
 		=> Unsafe.Write(Offset(elemOffset), value);
 
 	/// <summary>
@@ -450,10 +458,10 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public readonly Pointer<TType> ReadPointer<TType>(nint elemOffset = OFFSET)
 		=> Cast<Pointer<TType>>().Read(elemOffset);
 
-	public void WritePointer<TType>(Pointer<TType> ptr, nint elemOffset = OFFSET)
+	public readonly void WritePointer<TType>(Pointer<TType> ptr, nint elemOffset = OFFSET)
 		=> Cast<Pointer<TType>>().Write(ptr, elemOffset);
 
-	public void Copy(Pointer<T> dest, nint startIndex, nint elemCnt)
+	public readonly void Copy(Pointer<T> dest, nint startIndex, nint elemCnt)
 	{
 		//|  Copy3 | 7.428 ns | 0.0473 ns | 0.0395 ns |
 
@@ -467,7 +475,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		}*/
 	}
 
-	public void Copy(Pointer<T> dest, nint elemCnt)
+	public readonly void Copy(Pointer<T> dest, nint elemCnt)
 		=> Copy(dest, OFFSET, elemCnt);
 
 	public void Copy(T[] rg, nint startIndex, nint elemCnt)
@@ -523,13 +531,13 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	#region Format
 
-	public override string ToString()
+	public readonly override string ToString()
 		=> ToString(FormatHelper.HexFormatter.FMT_P);
 
-	public string ToString(string format)
+	public readonly string ToString(string format)
 		=> ToString(format, null);
 
-	public string ToString(string? format, IFormatProvider? provider)
+	public readonly string ToString(string? format, IFormatProvider? provider)
 	{
 		//if (String.IsNullOrEmpty(format))
 		//	format = FMT_HEX;
@@ -557,13 +565,13 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		return handle;
 	}
 
-	public void Unpin()
+	public readonly void Unpin()
 	{
 		// ...
 	}
 
-	public readonly MemoryBasicInformation Query()
-		=> Native.QueryMemoryPage(this);
+	/*public readonly MemoryBasicInformation Query()
+		=> Native.QueryMemoryPage(this);*/
 
 	/// <summary>
 	///     Default offset for <see cref="Pointer{T}" />
@@ -576,4 +584,5 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	///     Default increment/decrement/element count for <see cref="Pointer{T}" />
 	/// </summary>
 	private const nint ELEM_CNT = 1;
+
 }

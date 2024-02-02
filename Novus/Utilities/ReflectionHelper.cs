@@ -323,7 +323,7 @@ public static class ReflectionHelper
 	/// <summary>
 	///     Dummy class for use with <see cref="IsUnmanaged" /> and <see cref="IsUnmanaged" />
 	/// </summary>
-	private sealed class U<T> where T : unmanaged { }
+	private sealed class Unsafe<T> where T : unmanaged { }
 
 	/// <summary>
 	///     Determines whether this type fits the <c>unmanaged</c> type constraint.
@@ -332,7 +332,7 @@ public static class ReflectionHelper
 	{
 		try {
 			// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
-			typeof(U<>).MakeGenericType(t);
+			typeof(Unsafe<>).MakeGenericType(t);
 			return true;
 		}
 		catch {

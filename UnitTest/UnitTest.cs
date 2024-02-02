@@ -43,8 +43,8 @@ using static Novus.Utilities.ReflectionOperatorHelpers;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-#pragma warning disable 0649, IDE0044, CA1822, IDE1006, CA2211, IDE0052, CS1998, CS0612, CA1861, IDE0300
-#pragma warning disable SYSLIB0014
+#pragma warning disable 0649, IDE0044, CA1822, IDE1006, CA2211, IDE0052, CS1998, CS0612, CA1861, IDE0300, CS0219
+#pragma warning disable SYSLIB0014, IDE0300, IDE0302
 #pragma warning disable CA1416 //todo
 
 namespace UnitTest;
@@ -88,8 +88,10 @@ public class Tests_FileTypes1
 	{
 		var t  = await UniSource.TryGetAsync(s, IFileTypeResolver.Default);
 		var tt = t.FileType;
+
 		// var tt = await IFileTypeResolver.Default.ResolveAsync(t.Stream);
 		Assert.AreEqual(type, tt);
+
 		// Assert.True(tt.Any(x => x.MediaType == type));
 		// Assert.Contains(new FileType { MediaType = type }, types.ToArray());
 	}
@@ -99,6 +101,7 @@ public class Tests_FileTypes1
 	public async Task Test1(string s, FileType type)
 	{
 		var t = await UniSource.TryGetAsync(s, UrlmonResolver.Instance);
+
 		// var tt = await (IFileTypeResolver.Default.ResolveAsync(t.Stream));
 		var tt = t.FileType;
 		Assert.AreEqual(type, tt);
@@ -110,9 +113,11 @@ public class Tests_FileTypes1
 	public async Task Test2(string s, FileType type)
 	{
 		var t = await UniSource.TryGetAsync(s, FastResolver.Instance);
+
 		// var tt = await MagicResolver.Instance.ResolveAsync(t.Stream);
 		// Assert.Contains(new FileType { MediaType = type }, tt.ToList());
 		var tt = t.FileType;
+
 		// Assert.True(tt.Any(x => x.MediaType == type));
 		Assert.AreEqual(type, tt);
 
@@ -123,8 +128,10 @@ public class Tests_FileTypes1
 	public async Task Test3(string s, FileType type)
 	{
 		var t = await UniSource.TryGetAsync(s, MagicResolver.Instance);
+
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileType;
+
 		// Assert.True(tt.Any(x => x.MediaType == type));
 		Assert.AreEqual(type, tt);
 
@@ -145,8 +152,10 @@ public class Tests_UniSource
 	public async Task Test3(string s, FileType type)
 	{
 		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default, FileType.Image);
+
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileType;
+
 		// Assert.True(tt.Any(x => x.MediaType == type));
 		Assert.AreEqual(type, tt);
 
@@ -206,8 +215,10 @@ public class Tests_UniSource
 		};
 
 		var t = await UniSource.GetAsync(new MemoryStream(x), IFileTypeResolver.Default, FileType.Image);
+
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileType;
+
 		// Assert.True(tt.Any(x => x.MediaType == type));
 		Assert.AreEqual(FileType.Find("png").First(), tt);
 
@@ -252,6 +263,7 @@ public class Tests_MediaTypes
 
 	[Test]
 	[TestCase("http://s1.zerochan.net/atago.(azur.lane).600.2750747.jpg")]
+
 	// [TestCase("https://www.zerochan.net/2750747", "http://static.zerochan.net/atago.(azur.lane).full.2750747.png")]
 	// [TestCase(@"C:\Users\Deci\Pictures\NSFW\17EA29A6-8966-4801-A508-AC89FABE714D.png", true, false)]
 	// [TestCase("http://s1.zerochan.net/atago.(azur.lane).600.2750747.jpg", false, true)]
@@ -556,7 +568,7 @@ public unsafe class Tests_Resources
 	public void Test()
 	{
 
-		using var r = RuntimeResource.LoadModule(s);
+		using var r = RuntimeResource.LoadModule(s, out _);
 		r.LoadImports(typeof(Tests_Resources));
 
 		int c = doSomething(1, 1);
@@ -654,6 +666,7 @@ public class Tests_RT
 		object a = 1;
 		Assert.True(RuntimeProperties.IsBoxed(a));
 	}
+
 }
 
 [TestFixture]
@@ -1087,91 +1100,6 @@ public class Tests_Runtime
 }
 
 [TestFixture]
-public class Tests_Runtime2
-{
-
-	[Test]
-	[TestCase("foo")]
-	[TestCase(new[] { 1, 2, 3 })]
-	public void PinTest2(object s)
-	{
-		var p = Mem.AddressOfHeap(s);
-
-		Mem.InvokeWhilePinned(s, o =>
-		{
-			Assert.False(AddPressure(p, o));
-		});
-	}
-
-	[Test]
-	[TestCase("foo")]
-	[TestCase(new[] { 1, 2, 3 })]
-	public void PinTest(object s)
-	{
-
-		//var g = GCHandle.Alloc(s, GCHandleType.Pinned);
-
-		var p = Mem.AddressOfHeap(s);
-
-		Mem.Pin(s);
-		Assert.False(AddPressure(p, s));
-
-		Mem.Unpin(s);
-		// Assert.True(AddPressure(p, s));
-
-	}
-
-	/*[Test]
-	[TestCase("foo")]
-	[TestCase(new[] { 1, 2, 3 })]
-	public void PinTestInv(object s)
-	{
-
-		//var g = GCHandle.Alloc(s, GCHandleType.Pinned);
-
-		var p = Mem.AddressOfHeap(s);
-
-		Mem.Pin(s);
-		Assert.False(AddPressure(p, s));
-
-		Mem.Unpin(s);
-		Assert.True(AddPressure(p, s));
-
-	}*/
-
-	private static bool AddPressure(Pointer<byte> p, object s, long i1 = 5_000)
-	{
-		var random = new Random();
-
-		for (int i = 0; i < i1; i++) {
-			GC.AddMemoryPressure(i1);
-			//GC.AddMemoryPressure(100000);
-			var r = new object[i1];
-
-			for (int j = 0; j < r.Length; j++) {
-				r[j] = random.Next();
-
-				if (p != Mem.AddressOfHeap(s)) {
-					return true;
-				}
-			}
-
-			GC.Collect();
-
-			if (p != Mem.AddressOfHeap(s)) {
-				return true;
-			}
-
-			// GC.RemoveMemoryPressure(i1);
-		}
-
-		return p != Mem.AddressOfHeap(s);
-		// return false;
-	}
-
-}
-
-[TestFixture]
 public class Tests_FileSystem
 {
 
@@ -1496,7 +1424,7 @@ public class Tests_Mem
 	{
 		var a = new Clazz { s = "a" };
 
-		var pointer = Mem.AddressOfField<Clazz, string>( ref a, "s");
+		var pointer = Mem.AddressOfField<Clazz, string>(ref a, "s");
 
 		Assert.AreEqual(a.s, pointer.Value);
 
@@ -1712,5 +1640,34 @@ static class static_clazz
 {
 
 	public static int i;
+
+}
+
+[TestFixture]
+public class Tests_AgainstRuntimeHelpers
+{
+
+	public static readonly object[] src = new object[]
+	{
+		new[] { 1, 2, 3 },
+		new[] { "foo" },
+		'g',
+		"foo",
+		321,
+		new MyClass2(),
+		new MyStruct()
+	};
+
+	[Test]
+	[TestCaseSource(nameof(src))]
+	public void Test1(object o)
+	{
+		var mth = typeof(RuntimeHelpers).GetMethod("GetRawData", 
+		                                           ReflectionHelper.ALL_FLAGS, new[] { typeof(object) });
+
+		Assert.AreEqual(mth.Invoke(null, new object[] { o }), o.GetRawData());
+		Assert.AreEqual(RuntimeProperties.GetRawObjDataSize(o), Mem.SizeOf(o, SizeOfOptions.Data));
+		Assert.AreEqual(RuntimeProperties.GetElementSize(o), o.GetMetaType().ComponentSize);
+	}
 
 }

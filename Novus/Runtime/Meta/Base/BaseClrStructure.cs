@@ -2,6 +2,9 @@
 using System;
 using System.Reflection;
 using Novus.Memory;
+using Novus.Win32;
+
+#pragma warning disable CA1416
 
 // ReSharper disable UnusedMember.Global
 
@@ -32,7 +35,7 @@ public abstract unsafe class BaseClrStructure<TClr> where TClr : unmanaged
 		Value = ptr;
 	}
 
-	protected BaseClrStructure(MemberInfo member) : this(RuntimeProperties.ResolveHandle(member).Cast<TClr>()) { }
+	protected BaseClrStructure(MemberInfo member) : this(RuntimeProperties.ResolveMetadataHandle(member).Cast<TClr>()) { }
 
 	public override string ToString()
 	{

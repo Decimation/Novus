@@ -3,7 +3,7 @@
 
 namespace Novus.FileTypes.Uni;
 
-public class UniSourceStream : UniSource, IUniSource<Stream>
+public class UniSourceStream : UniSource, IUniSource
 {
 
 	public override bool IsUri => false;
@@ -32,12 +32,11 @@ public class UniSourceStream : UniSource, IUniSource<Stream>
 		return path;
 	}
 
-	public static bool IsType(object o, out Stream t2)
+	public static bool IsType(object o, out object t2)
 	{
 		t2 = Stream.Null;
 
-		if (o is Stream sz)
-		{
+		if (o is Stream sz) {
 			t2 = sz;
 		}
 

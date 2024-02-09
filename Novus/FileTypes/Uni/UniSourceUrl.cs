@@ -8,7 +8,7 @@ using Kantan.Net.Utilities;
 
 namespace Novus.FileTypes.Uni;
 
-public class UniSourceUrl : UniSource, IUniSource<Url>
+public class UniSourceUrl : UniSource, IUniSource
 {
 
 	public override bool IsUri => true;
@@ -62,16 +62,16 @@ public class UniSourceUrl : UniSource, IUniSource<Url>
 		return buf;
 	}
 
-	public static bool IsType(object o, out Url u)
+	public static bool IsType(object o, out object u)
 	{
-		u = o switch
+		Url ux2 = o switch
 		{
 			Url u2   => u2,
 			string s => s,
 			_        => null
 		};
-
-		return Url.IsValid(u);
+		u = ux2;
+		return Url.IsValid(ux2);
 	}
 
 }

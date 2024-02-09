@@ -52,6 +52,7 @@ using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
 using TestTypes;
 using static Novus.Win32.Structures.User32.WindowMessage;
+using File = System.IO.File;
 using FileSystem = Novus.OS.FileSystem;
 using FileType = Novus.FileTypes.FileType;
 #pragma warning disable IDE0005, CS0436, CS0469
@@ -139,7 +140,7 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
-public static unsafe class Program
+public static  class Program
 {
 
 	public delegate ref int Del(in int o);
@@ -150,12 +151,13 @@ public static unsafe class Program
 			Console.WriteLine(@delegate);
 		}
 
-		var m = new MemoryStream([1, 2, 3]);
 		var f = @"C:\Users\Deci\Pictures\Epic anime\0c4c80957134d4304538c27499d84dbe.jpeg";
+		var m = new MemoryStream(File.ReadAllBytes(f));
 		var u = (Url) "https://us.rule34.xxx//images/4777/eb5d308334c52a2ecd4b0b06846454e4.jpeg?5440124";
 
-		foreach (var v in new object[]{m,f,u}) {
-			Console.WriteLine(UniSource.GetUniType(v, out var v2));
+		foreach (var v in new object[] { m, f, u }) {
+			var async = await UniSource.GetAsync(v);
+			Console.WriteLine(async);
 		}
 
 		;
@@ -182,7 +184,7 @@ public static unsafe class Program
 		r = 321;
 	}
 
-	private static void Test2()
+	private static unsafe void Test2()
 	{
 		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
 		Console.WriteLine(GCHeap.IsHeapPointer(o));

@@ -3,7 +3,7 @@
 
 namespace Novus.FileTypes.Uni;
 
-public interface IUniSource<TOut>
+public interface IUniSource
 {
 
 	static IUniSource()
@@ -14,6 +14,8 @@ public interface IUniSource<TOut>
 
 	// public TOut Val { get; }
 
-	public static abstract bool IsType(object o, out TOut t2);
+	public delegate bool IsTypePredicate(object a, out object b);
+
+	public static abstract bool IsType(object o, out object t2);
 
 }

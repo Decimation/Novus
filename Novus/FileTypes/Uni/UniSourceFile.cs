@@ -3,7 +3,7 @@
 
 namespace Novus.FileTypes.Uni;
 
-public class UniSourceFile : UniSource, IUniSource<FileInfo>
+public class UniSourceFile : UniSource, IUniSource
 {
 
 	public override UniSourceType SourceType => UniSourceType.File;
@@ -26,20 +26,18 @@ public class UniSourceFile : UniSource, IUniSource<FileInfo>
 	{
 		var fileName = Value.ToString();
 
-		if (File.Exists(fileName))
-		{
+		if (!File.Exists(fileName)) {
 			throw new FileNotFoundException(fileName: fileName, message: "Not found");
 		}
 
 		return Task.FromResult(fileName);
 	}
 
-	public static bool IsType(object o, out FileInfo f)
+	public static bool IsType(object o, out object f)
 	{
 		f = null;
 
-		if (o is string { } s && File.Exists(s))
-		{
+		if (o is string { } s && File.Exists(s)) {
 			f = new FileInfo(s);
 		}
 

@@ -20,7 +20,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 								  IEqualityOperators<UniSource, UniSource, bool>
 {
 
-	public static List<Delegate> Register { get; } =
+	public static List<IUniSource.IsTypePredicate> Register { get; } =
 		[UniSourceStream.IsType, UniSourceFile.IsType, UniSourceUrl.IsType];
 
 	static UniSource() { }
@@ -73,23 +73,22 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 			o  = os;
 		}
 
-		var uh = GetUniType(o, out var o2);
-		var s  = o.ToString();
+		// var uh = GetUniType(o, out var o2);
+		var    s  = o.ToString();
+		object o2 = null;
 
-		buf = uh switch
-		{
-			UniSourceType.Uri =>
-
-				// Debug.Assert(o == o2);
-				// Debug.Assert(s == o2);
-				await UniSourceUrl.HandleUri(s, ct),
-			UniSourceType.Stream => new UniSourceStream(o as Stream),
-			UniSourceType.File =>
-
-				// s = s.CleanString();
-				new UniSourceFile(File.OpenRead(s), o) { },
-			_ => throw new ArgumentException()
-		};
+		if (UniSourceFile.IsType(o, out o2)) {
+			buf = new UniSourceFile(File.OpenRead(s), o) { };
+		}
+		else if (UniSourceUrl.IsType(o, out o2)) {
+			buf = await UniSourceUrl.HandleUri(s, ct);
+		}
+		else if (UniSourceStream.IsType(o, out o2)) {
+			buf = new UniSourceStream(o as Stream);
+		}
+		else {
+			throw new ArgumentException();
+		}
 
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
 
@@ -116,7 +115,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 													CancellationToken ct = default)
 	{
 		try {
-			return await GetAsync(value, resolver);
+			return await GetAsync(value, resolver, ct);
 		}
 		catch (FlurlHttpException e) {
 			Debug.WriteLine($"HTTP: {e.Message}", nameof(TryGetAsync));
@@ -175,20 +174,6 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 	public static bool operator !=(UniSource left, UniSource right)
 	{
 		return !Equals(left, right);
-	}
-
-	public static UniSourceType GetUniType(object o, out object o2)
-	{
-		o2 = null;
-
-		foreach (Delegate @delegate in Register) {
-			var x = (bool) @delegate.DynamicInvoke(o, o2);
-
-			if (x) {
-			}
-		}
-
-		return UniSourceType.NA;
 	}
 
 }

@@ -28,6 +28,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Flurl;
 using Flurl.Http;
 using Kantan.Collections;
 using Kantan.Text;
@@ -64,6 +65,7 @@ using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using Novus.Numerics;
 using static System.Net.WebRequestMethods;
+using Novus.FileTypes.Uni;
 
 // ReSharper disable ClassNeverInstantiated.Local
 
@@ -144,7 +146,19 @@ public static unsafe class Program
 
 	private static async Task Main(string[] args)
 	{
-		Console.WriteLine("Hello");
+		foreach (Delegate @delegate in UniSource.Register) {
+			Console.WriteLine(@delegate);
+		}
+
+		var m = new MemoryStream([1, 2, 3]);
+		var f = @"C:\Users\Deci\Pictures\Epic anime\0c4c80957134d4304538c27499d84dbe.jpeg";
+		var u = (Url) "https://us.rule34.xxx//images/4777/eb5d308334c52a2ecd4b0b06846454e4.jpeg?5440124";
+
+		foreach (var v in new object[]{m,f,u}) {
+			Console.WriteLine(UniSource.GetUniType(v, out var v2));
+		}
+
+		;
 	}
 
 	static void t1()

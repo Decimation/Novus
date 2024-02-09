@@ -28,3 +28,4 @@ public interface IFileTypeResolver : IDisposable
 		|   Fast |    460.9 ns |   9.21 ns |  10.97 ns |
 	 */
 }
+

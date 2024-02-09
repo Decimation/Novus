@@ -34,6 +34,7 @@ using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
 using Novus.Runtime;
+using Novus.FileTypes.Uni;
 
 // ReSharper disable InconsistentNaming
 

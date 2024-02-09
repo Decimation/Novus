@@ -407,6 +407,14 @@ public static class ReflectionHelper
 
 	#region Assemblies
 
+	public static Type[] GetImplementations(this Type type)
+	{
+		var types = type.Assembly.GetTypes()
+			.Where(p => type.IsAssignableFrom(p) && p.IsClass)
+			.ToArray();
+		return types;
+	}
+
 	public static IEnumerable<Type> GetAllInAssembly(this Type t1, InheritanceProperties p)
 	{
 		Func<Type, bool> fn = p switch
@@ -600,6 +608,7 @@ public static class ReflectionHelper
 
 		return (setter, getter);
 	}
+
 }
 
 [Flags]

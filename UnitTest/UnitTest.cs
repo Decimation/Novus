@@ -38,6 +38,7 @@ using NUnit.Framework;
 using TestTypes;
 using NUnit.Framework.Internal;
 using static Novus.Utilities.ReflectionOperatorHelpers;
+using Novus.FileTypes.Uni;
 
 // ReSharper disable StringLiteralTypo
 
@@ -151,7 +152,7 @@ public class Tests_UniSource
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test3(string s, FileType type)
 	{
-		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default, FileType.Image);
+		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default);
 
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileType;
@@ -166,7 +167,7 @@ public class Tests_UniSource
 	[TestCaseSource(nameof(_rg))]
 	public async Task Test1(string s, FileType type)
 	{
-		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default, FileType.Image);
+		var t = await UniSource.GetAsync(s, IFileTypeResolver.Default);
 		var f = await t.TryDownloadAsync();
 		TestContext.WriteLine($"{f}");
 
@@ -177,7 +178,7 @@ public class Tests_UniSource
 	{
 		const string png = @"C:\Users\Deci\Pictures\1mcvbqv39yta1.png";
 		var          str = File.OpenRead(png);
-		var          t   = await UniSource.GetAsync(str, IFileTypeResolver.Default, FileType.Image);
+		var          t   = await UniSource.GetAsync(str, IFileTypeResolver.Default);
 		var          f   = await t.TryDownloadAsync();
 		TestContext.WriteLine($"{f}");
 
@@ -214,7 +215,7 @@ public class Tests_UniSource
 			0x30, 0x31, 0x2F, 0x32, 0x36, 0x2D, 0x31, 0x35, 0x3A, 0x34, 0x31, 0x3A, 0x32, 0x30, 0x20, 0x20
 		};
 
-		var t = await UniSource.GetAsync(new MemoryStream(x), IFileTypeResolver.Default, FileType.Image);
+		var t = await UniSource.GetAsync(new MemoryStream(x), IFileTypeResolver.Default);
 
 		// var tt = await FastResolver.Instance.ResolveAsync(t.Stream);
 		var tt = t.FileType;

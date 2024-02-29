@@ -1,4 +1,5 @@
 ﻿#pragma warning disable IDE1006
+
 // ReSharper disable RedundantUsingDirective.Global
 global using MI = System.Reflection.MethodInfo;
 global using PI = System.Reflection.PropertyInfo;
@@ -37,6 +38,7 @@ namespace Novus.Utilities;
 
 public static class ReflectionHelper
 {
+
 	/// <summary>
 	///     <see cref="ALL_INSTANCE_FLAGS" /> and <see cref="BindingFlags.Static" />
 	/// </summary>
@@ -104,9 +106,10 @@ public static class ReflectionHelper
 	public static (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>(this Type t)
 		where TAttribute : Attribute
 	{
-		return (from member in t.GetAllMembers()
-		        where Attribute.IsDefined(member, typeof(TAttribute))
-		        select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
+		return (
+			       from member in t.GetAllMembers()
+			       where Attribute.IsDefined(member, typeof(TAttribute))
+			       select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
 	}
 
 	[return: MN]
@@ -265,7 +268,7 @@ public static class ReflectionHelper
 		return type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericType);
 	}
 
-	#region 
+	#region
 
 	public static bool IsSigned(this Type t)
 	{
@@ -596,6 +599,7 @@ public static class ReflectionHelper
 				getter = Expression.Lambda<Func<T>>(Expression.Call(instanceExpression, pi.GetGetMethod()))
 					.Compile();
 				break;
+
 			case FI fi:
 				setter = Expression.Lambda<Action<T>>(Expression.Assign(memberExpression, parameter), parameter)
 					.Compile();
@@ -614,12 +618,15 @@ public static class ReflectionHelper
 [Flags]
 public enum InheritanceProperties
 {
+
 	Subclass,
 	Interface
+
 }
 
 public static class ReflectionOperatorHelpers
 {
+
 	public static MMI memberof<T>(Expression<Func<T>> expression)
 	{
 		if (expression.Body is ConstantExpression) {
@@ -666,4 +673,5 @@ public static class ReflectionOperatorHelpers
 		var body = (MethodCallExpression) expression.Body;
 		return body.Method;
 	}
+
 }

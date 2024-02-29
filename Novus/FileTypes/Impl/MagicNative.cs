@@ -10,59 +10,59 @@ public static partial class MagicNative
 	private const string MAGIC_LIB_PATH = "libmagic-1";
 
 	[LibraryImport(MAGIC_LIB_PATH, StringMarshalling = StringMarshalling.Utf8)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial nint magic_open(MagicOpenFlags flags);
 
 	[LibraryImport(MAGIC_LIB_PATH, StringMarshalling = StringMarshalling.Utf8)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial int magic_load(nint mc, string filename);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial void magic_close(nint magic_cookie);
 
 	[LibraryImport(MAGIC_LIB_PATH, StringMarshalling = StringMarshalling.Utf8)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial nint magic_file(nint magic_cookie, string filename);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial nint magic_buffer(nint magic_cookie, byte[] buffer, int length);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial nint magic_buffer(nint magic_cookie, nint buffer, int length);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial nint magic_error(nint magic_cookie);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial MagicOpenFlags magic_getflags(nint magic_cookie);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial int magic_setflags(nint magic_cookie, MagicOpenFlags flags);
 
 	[LibraryImport(MAGIC_LIB_PATH, StringMarshalling = StringMarshalling.Utf8)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial int magic_check(nint magic_cookie, string dbPath);
 
 	[LibraryImport(MAGIC_LIB_PATH, StringMarshalling = StringMarshalling.Utf8)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial int magic_compile(nint magic_cookie, string dbPath);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial int magic_getparam(nint magic_cookie, MagicParams param, out int value);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial int magic_setparam(nint magic_cookie, MagicParams param, ref int value);
 
 	[LibraryImport(MAGIC_LIB_PATH)]
-	[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial int magic_version();
 }
 

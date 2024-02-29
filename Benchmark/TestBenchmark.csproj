@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
   </ItemGroup>
   <PropertyGroup>
     <EnablePreviewFeatures>true</EnablePreviewFeatures>

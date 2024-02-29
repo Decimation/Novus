@@ -19,6 +19,7 @@ using Novus.Streams;
 // ReSharper disable PossibleNullReferenceException
 
 #nullable disable
+
 // ReSharper disable InconsistentNaming
 
 namespace Novus.FileTypes;
@@ -29,6 +30,7 @@ namespace Novus.FileTypes;
 [DAM(DAMT.All)]
 public readonly struct FileType : IEquatable<FileType>
 {
+
 	[MN]
 	public byte[] Mask { get; }
 
@@ -60,9 +62,9 @@ public readonly struct FileType : IEquatable<FileType>
 
 	public FileType(byte[] mask, byte[] pattern, [MN] string mimeType, int offset = 0)
 	{
-		Mask      = mask;
-		Pattern   = pattern;
-		Offset    = offset;
+		Mask     = mask;
+		Pattern  = pattern;
+		Offset   = offset;
 		MimeType = mimeType;
 
 		if (MimeType != null) {
@@ -93,9 +95,17 @@ public readonly struct FileType : IEquatable<FileType>
 
 	private static readonly ObjectCache Cache = MemoryCache.Default;
 
-	public static readonly FileType[] All;
-	public static readonly FileType[] Image;
-	public static readonly FileType[] Video;
+	public static readonly  FileType[] All;
+	public static readonly  FileType[] Image;
+	public static readonly  FileType[] Video;
+
+	#region 
+
+	private static readonly byte[]     s_seq1A = [0xFE, 0xFF];
+	private static readonly byte[]     s_seq1B = [0xFF, 0xFE];
+	private static readonly byte[]     s_seq2  = [0xEF, 0xBB, 0xBF];
+
+	#endregion
 
 	/// <summary>
 	///     Reads <see cref="FileType" /> from <see cref="ER.File_types" />
@@ -128,6 +138,7 @@ public readonly struct FileType : IEquatable<FileType>
 	public static IEnumerable<FileType> Find(string name)
 	{
 		var query = Cache.AddOrGetExisting(name, FindInternal(name), new CacheItemPolicy() { })
+
 		            // ReSharper disable once ConstantNullCoalescingCondition
 		            ?? Cache[name];
 
@@ -135,10 +146,11 @@ public readonly struct FileType : IEquatable<FileType>
 
 		static IEnumerable<FileType> FindInternal(string s)
 		{
-			return from ft in All
-			       let mt = ft.MimeType
-			       where mt == s || ft.Subtype == s || s == ft.Type
-			       select ft;
+			return
+				from ft in All
+				let mt = ft.MimeType
+				where mt == s || ft.Subtype == s || s == ft.Type
+				select ft;
 		}
 	}
 
@@ -153,14 +165,12 @@ public readonly struct FileType : IEquatable<FileType>
 	/// </remarks>
 	public static string IsBinaryResource(byte[] input)
 	{
-		byte[] seq1a = { 0xFE, 0xFF };
-		byte[] seq1b = { 0xFF, 0xFE };
-		byte[] seq2  = { 0xEF, 0xBB, 0xBF };
 
 		switch (input) {
-			case { Length: >= 2 } when input.SequenceEqual(seq1a) || input.SequenceEqual(seq1b):
+			case { Length: >= 2 } when input.SequenceEqual(s_seq1A) || input.SequenceEqual(s_seq1B):
 				return MT_TEXT_PLAIN;
-			case { Length: >= 3 } when input.SequenceEqual(seq2):
+
+			case { Length: >= 3 } when input.SequenceEqual(s_seq2):
 				return MT_TEXT_PLAIN;
 		}
 
@@ -231,26 +241,25 @@ public readonly struct FileType : IEquatable<FileType>
 		Memory<byte> rg = s.ReadHeader();
 
 		return ResolveInternal(rg)
+			/* 2-21-23
 
-		/* 2-21-23
+			| Method |      Mean |     Error |    StdDev |
+			|------- |----------:|----------:|----------:|
+			| Urlmon |  2.118 us | 0.0135 us | 0.0119 us |
+			|  Magic | 17.918 us | 0.2329 us | 0.2179 us |
+			|   Fast | 18.167 us | 0.0823 us | 0.0729 us |
+			 */
+			/*return All.Where(t =>
+				{
 
-		| Method |      Mean |     Error |    StdDev |
-		|------- |----------:|----------:|----------:|
-		| Urlmon |  2.118 us | 0.0135 us | 0.0119 us |
-		|  Magic | 17.918 us | 0.2329 us | 0.2179 us |
-		|   Fast | 18.167 us | 0.0823 us | 0.0729 us |
-		 */
-		/*return All.Where(t =>
-			{
-
-				unsafe {
-					Span<byte> sp = stackalloc byte[256];
-					int        i  = s.Read(sp);
-					return CheckPattern(sp, t);
-				}
-			})
-			.DistinctBy(x => x.MediaType)*/
-		;
+					unsafe {
+						Span<byte> sp = stackalloc byte[256];
+						int        i  = s.Read(sp);
+						return CheckPattern(sp, t);
+					}
+				})
+				.DistinctBy(x => x.MediaType)*/
+			;
 	}
 
 	public static async Task<FileType> ResolveAsync(Stream s, CancellationToken ct = default)
@@ -338,4 +347,5 @@ AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores
 	private const char MIME_TYPE_DELIM = '/';
 
 	#endregion
+
 }

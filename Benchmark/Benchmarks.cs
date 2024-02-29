@@ -484,6 +484,37 @@ public class Benchmarks19
 	 *
 	 *
 	 *
+	 *| Method | Job        | Toolchain                | Mean       | Error    | StdDev   | Gen0   | Allocated |
+	   |------- |----------- |------------------------- |-----------:|---------:|---------:|-------:|----------:|
+	   | Fast   | DefaultJob | Default                  |   142.3 ns |  2.65 ns |  2.35 ns | 0.0570 |     896 B |
+	   | Urlmon | DefaultJob | Default                  |   936.7 ns | 13.75 ns | 12.86 ns | 0.0458 |     728 B |
+	   | Magic  | DefaultJob | Default                  | 7,212.9 ns | 81.40 ns | 76.14 ns | 0.0458 |     728 B |
+	   | Fast   | Job-DFDSZU | InProcessNoEmitToolchain |   146.6 ns |  2.73 ns |  2.42 ns | 0.0570 |     896 B |
+	   | Urlmon | Job-DFDSZU | InProcessNoEmitToolchain | 1,017.9 ns | 13.93 ns | 13.03 ns | 0.0458 |     728 B |
+	   | Magic  | Job-DFDSZU | InProcessNoEmitToolchain | 7,208.3 ns | 54.54 ns | 51.02 ns | 0.0458 |     728 B |
+	   | Fast   | Job-PTBGOE | Default                  |   144.7 ns |  2.75 ns |  2.57 ns | 0.0570 |     896 B |
+	   | Urlmon | Job-PTBGOE | Default                  |   949.9 ns | 10.08 ns |  9.43 ns | 0.0458 |     728 B |
+	   | Magic  | Job-PTBGOE | Default                  | 7,293.7 ns | 60.08 ns | 56.20 ns | 0.0458 |     728 B |
+	   
+	   // * Hints *
+	   Outliers
+	     Benchmarks19.Fast: Default                            -> 1 outlier  was  removed (173.32 ns)
+	     Benchmarks19.Fast: Toolchain=InProcessNoEmitToolchain -> 1 outlier  was  removed (162.49 ns)
+	   
+	   // * Legends *
+	     Mean      : Arithmetic mean of all measurements
+	     Error     : Half of 99.9% confidence interval
+	     StdDev    : Standard deviation of all measurements
+	     Gen0      : GC Generation 0 collects per 1000 operations
+	     Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+	     1 ns      : 1 Nanosecond (0.000000001 sec)
+	 *
+	 */
+
+	/*
+	 *
+	 *
+	 *
 	 *
 		BenchmarkDotNet v0.13.6, Windows 10 (10.0.19043.2364/21H1/May2021Update)
 		AMD Ryzen 7 2700X, 1 CPU, 16 logical and 8 physical cores

@@ -24,7 +24,7 @@ public static class Program
 			.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()) {})
 			.AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));
 
-		BenchmarkRunner.Run<Benchmarks_Pointer>(cfg);
+		BenchmarkRunner.Run<Benchmarks19>(cfg);
 	}
 
 }

@@ -42,7 +42,7 @@ public class UniSourceUrl : UniSource, IUniSource
 		return path;
 	}
 
-	public static async Task<UniSource> HandleUri(Url value, CancellationToken ct)
+	public static async Task<UniSource> HandleUriAsync(Url value, CancellationToken ct)
 	{
 		// value = value.CleanString();
 

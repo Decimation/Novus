@@ -12,6 +12,7 @@ namespace Novus.Streams;
 
 public static class StreamExtensions
 {
+
 	/*public static void Write<T>(this Span<T> s, params T[] v)
 	{
 		for (int i = 0; i < v.Length; i++) {
@@ -19,7 +20,7 @@ public static class StreamExtensions
 		}
 	}*/
 
-	public static string[] ReadAllLines(this StreamReader stream)
+	public static string[] ReadLinesToEnd(this StreamReader stream)
 	{
 		var list = new List<string>();
 
@@ -34,7 +35,7 @@ public static class StreamExtensions
 		return list.ToArray();
 	}
 
-	public static async Task<string[]> ReadAllLinesAsync(this StreamReader stream, CancellationToken ct = default)
+	public static async Task<string[]> ReadLinesToEndAsync(this StreamReader stream, CancellationToken ct = default)
 	{
 		var list = new List<string>();
 
@@ -61,6 +62,23 @@ public static class StreamExtensions
 		int length = checked((int) stream.Length);
 
 		return stream.ReadHeader(length);
+	}
+
+	public static MemoryStream Copy(this Stream inputStream, int bufferSize = BlockSize)
+	{
+
+		var ret = new MemoryStream();
+
+		var buf = new byte[bufferSize];
+
+		int cb = 0;
+
+		while ((cb = inputStream.Read(buf, 0, bufferSize)) > 0)
+			ret.Write(buf, 0, cb);
+
+		ret.Position = 0;
+
+		return ret;
 	}
 #endif
 
@@ -115,24 +133,6 @@ public static class StreamExtensions
 
 	public static Pointer<T> ToPointer<T>(this Span<T> s)
 		=> Mem.AddressOf(ref s.GetPinnableReference());
-
-	[MURV]
-	public static MemoryStream Copy(this Stream inputStream, int bufferSize = BlockSize)
-	{
-
-		var ret = new MemoryStream();
-
-		var buf = new byte[bufferSize];
-
-		int cb = 0;
-
-		while ((cb = inputStream.Read(buf, 0, bufferSize)) > 0)
-			ret.Write(buf, 0, cb);
-
-		ret.Position = 0;
-
-		return ret;
-	}
 
 	public static void ReadFully(this Stream stream, byte[] buffer)
 	{
@@ -198,13 +198,15 @@ public static class StreamExtensions
 			}
 		}
 
-		ret:
+	ret:
 		return ll;
 	}
+
 }
 
 public static class BinaryReaderExtensions
 {
+
 	public static T ReadAny<T>(this BinaryReader br)
 	{
 		var s  = Mem.SizeOf<T>();
@@ -219,4 +221,5 @@ public static class BinaryReaderExtensions
 
 		return s;
 	}
+
 }

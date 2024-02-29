@@ -17,7 +17,7 @@ using Novus.Utilities;
 namespace Novus.FileTypes.Uni;
 
 public abstract class UniSource : IDisposable, IEquatable<UniSource>,
-								  IEqualityOperators<UniSource, UniSource, bool>
+                                  IEqualityOperators<UniSource, UniSource, bool>
 {
 
 	public static List<IUniSource.IsTypePredicate> Register { get; } =
@@ -60,7 +60,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 	}
 
 	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null,
-												 CancellationToken ct = default)
+	                                             CancellationToken ct = default)
 	{
 		UniSource buf = null;
 
@@ -81,13 +81,13 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 			buf = new UniSourceFile(File.OpenRead(s), o) { };
 		}
 		else if (UniSourceUrl.IsType(o, out o2)) {
-			buf = await UniSourceUrl.HandleUri(s, ct);
+			buf = await UniSourceUrl.HandleUriAsync(s, ct);
 		}
 		else if (UniSourceStream.IsType(o, out o2)) {
 			buf = new UniSourceStream(o as Stream);
 		}
 		else {
-			throw new ArgumentException();
+			throw new ArgumentException(null, nameof(o));
 		}
 
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
@@ -112,7 +112,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 	}
 
 	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
-													CancellationToken ct = default)
+	                                                CancellationToken ct = default)
 	{
 		try {
 			return await GetAsync(value, resolver, ct);
@@ -136,7 +136,8 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 
 	public async Task<string> WriteStreamToFileAsync(string tmp)
 	{
-		var fs = new FileStream(tmp, FileMode.Create) { };
+		var fs = new FileStream(tmp, FileMode.Create)
+			{ };
 		await Stream.CopyToAsync(fs);
 		await fs.FlushAsync();
 		fs.Dispose();

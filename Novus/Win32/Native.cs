@@ -432,17 +432,11 @@ public static unsafe partial class Native
 		while (lpMem < maxAddr) {
 			int result = VirtualQueryEx(handle, (nint) lpMem, ref mbi, sizeOf);
 
-			/*var b = m.State == AllocationType.Commit &&
-					m.Type is MemType.MEM_MAPPED or MemType.MEM_PRIVATE;*/
+			if (mbi.AllocationBase!= IntPtr.Zero&&mbi.AllocationBase == mbi.BaseAddress) {
+				ll.AddLast(mbi);
+			}
 
-			ll.AddLast(mbi);
-
-			long address = (long) mbi.BaseAddress + (long) mbi.RegionSize;
-
-			if (lpMem == address)
-				break;
-
-			lpMem = address;
+			lpMem += mbi.RegionSize;
 
 		}
 

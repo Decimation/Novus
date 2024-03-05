@@ -7,10 +7,11 @@ namespace Novus.Win32.Structures.Kernel32;
 [StructLayout(LayoutKind.Sequential)]
 public struct MemoryBasicInformation
 {
-	public nint           BaseAddress;
-	public nint           AllocationBase;
+
+	public nint             BaseAddress;
+	public nint             AllocationBase;
 	public MemoryProtection AllocationProtect;
-	public nint           RegionSize;
+	public nint             RegionSize;
 	public AllocationType   State;
 	public MemoryProtection Protect;
 	public MemType          Type;
@@ -33,7 +34,7 @@ public struct MemoryBasicInformation
 		get
 		{
 			const MemoryProtection mask = MemoryProtection.ExecuteReadWrite | MemoryProtection.ExecuteWriteCopy |
-			                              MemoryProtection.ReadWrite | MemoryProtection.WriteCopy;
+			                              MemoryProtection.ReadWrite        | MemoryProtection.WriteCopy;
 
 			return !((Protect & MemoryProtection.GuardOrNoAccess) != 0 || (Protect & mask) == 0);
 		}
@@ -45,7 +46,7 @@ public struct MemoryBasicInformation
 		get
 		{
 			const MemoryProtection mask = MemoryProtection.ExecuteRead | MemoryProtection.ExecuteReadWrite |
-			                              MemoryProtection.ReadOnly | MemoryProtection.ReadWrite;
+			                              MemoryProtection.ReadOnly    | MemoryProtection.ReadWrite;
 
 			return !((Protect & MemoryProtection.GuardOrNoAccess) != 0 || (Protect & mask) == 0);
 		}
@@ -54,19 +55,22 @@ public struct MemoryBasicInformation
 	/// <inheritdoc />
 	public override string ToString()
 	{
-		return $"{nameof(BaseAddress)}: {BaseAddress:X},\n" +
-		       $"{nameof(AllocationBase)}: {AllocationBase:X},\n" +
+		return $"{nameof(BaseAddress)}: {BaseAddress:X},\n"           +
+		       $"{nameof(AllocationBase)}: {AllocationBase:X},\n"     +
 		       $"{nameof(AllocationProtect)}: {AllocationProtect},\n" +
-		       $"{nameof(RegionSize)}: {RegionSize},\n" +
-		       $"{nameof(State)}: {State},\n" +
-		       $"{nameof(Protect)}: {Protect},\n" +
+		       $"{nameof(RegionSize)}: {RegionSize},\n"               +
+		       $"{nameof(State)}: {State},\n"                         +
+		       $"{nameof(Protect)}: {Protect},\n"                     +
 		       $"{nameof(Type)}: {Type}";
 	}
+
 }
 
 public enum MemType : uint
 {
+
 	MEM_IMAGE   = 0x1000000,
 	MEM_MAPPED  = 0x40000,
 	MEM_PRIVATE = 0x20000
+
 }

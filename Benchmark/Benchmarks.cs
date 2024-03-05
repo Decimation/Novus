@@ -1129,14 +1129,16 @@ public class Benchmarks3b
 	{
 		return m_scanner.FindSignature(m_sig);
 	}
+
 	[Benchmark]
 	public Pointer<byte> Test1b()
 	{
-		return m_scanner.FindSignature2(m_sig);
+		return m_scanner.FindSignature(m_sig);
 	}
 
 	private SigScanner m_scanner;
 	private byte[]     m_sig;
+
 	[GlobalSetup]
 	public void GlobalSetup()
 	{

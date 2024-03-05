@@ -159,8 +159,10 @@ public static class Program
 			return true;
 		});
 
-		foreach (var vBasicInformation in Native.EnumeratePages(Native.OpenProcess(id))) {
-			Console.WriteLine(vBasicInformation);
+		var list = Native.EnumeratePages(Native.OpenProcess(id)).ToArray();
+
+		for (int l = 0; l < list.Length; l++) {
+			Console.WriteLine($"{l} {list[l]}");
 		}
 
 		/*var mod = Native.EnumProcessModules((uint) id.Id);

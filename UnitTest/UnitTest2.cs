@@ -167,7 +167,7 @@ public class Tests_SigScanner
 		var     s    = new SigScanner(proc, proc.FindModule(Global.CLR_MODULE));
 
 		Assert.AreEqual(s.FindSignature(EmbeddedResources.Sig_GetIL),
-		                s.FindSignature2(SigScanner.ReadSignature(EmbeddedResources.Sig_GetIL)));
+		                s.FindSignature(SigScanner.ReadSignature(EmbeddedResources.Sig_GetIL)));
 	}
 
 }

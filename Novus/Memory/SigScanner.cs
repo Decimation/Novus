@@ -85,21 +85,6 @@ public sealed class SigScanner
 	public static Pointer<byte>[] ScanProcess(string sig)
 		=> ScanProcess(Process.GetCurrentProcess(), sig);
 
-	/*public static Pointer[] ScanProcess(Process p, string sig)
-	{
-		var page = p.GetModules();
-
-		var scanners = page.Select(s =>
-		{
-			return new Lazy<SigScanner>(() => new SigScanner(p, s));
-		}).ToArray();
-
-		/*var pointers = scanners.Select(s => s.Value.FindSignature(sig));
-		return pointers.FirstOrDefault(p => !p.IsNull);#1#
-
-		return scanners.Select(t => t.Value.FindSignature(sig)).Where(ptr => !ptr.IsNull).ToArray();
-	}*/
-
 	public static Pointer[] ScanProcess(Process p, string sig)
 		=> ScanProcess(p, ReadSignature(sig));
 
@@ -123,8 +108,6 @@ public sealed class SigScanner
 			});
 
 		});
-		/*var pointers = scanners.Select(s => s.Value.FindSignature(sig));
-		return pointers.FirstOrDefault(p => !p.IsNull);*/
 
 		return [.. buf];
 	}
@@ -178,12 +161,7 @@ public sealed class SigScanner
 	public Pointer<byte> FindSignature(string pattern)
 		=> FindSignature(ReadSignature(pattern));
 
-	/// <summary>
-	/// Searches for the location of a signature within the module
-	/// </summary>
-	/// <param name="pattern">Signature</param>
-	/// <returns>Address of the located signature; <see cref="Mem.Nullptr"/> if the signature was not found</returns>
-	public Pointer<byte> FindSignature(byte[] pattern)
+	/*public Pointer<byte> FindSignature(byte[] pattern)
 	{
 		var span = Buffer.Span;
 		int l    = Buffer.Length;
@@ -201,9 +179,14 @@ public sealed class SigScanner
 		}
 
 		return Mem.Nullptr;
-	}
+	}*/
 
-	public Pointer<byte> FindSignature2(byte[] pattern)
+	/// <summary>
+	/// Searches for the location of a signature within the module
+	/// </summary>
+	/// <param name="pattern">Signature</param>
+	/// <returns>Address of the located signature; <see cref="Mem.Nullptr"/> if the signature was not found</returns>
+	public Pointer<byte> FindSignature(byte[] pattern)
 	{
 		Pointer p = Mem.Nullptr;
 
@@ -212,6 +195,7 @@ public sealed class SigScanner
 			p = p2;
 			return false;
 		});
+
 		return p;
 	}
 
@@ -241,28 +225,5 @@ public sealed class SigScanner
 
 		return false;
 	}
-
-	/*public IEnumerable<Pointer> FindSignatures(byte[] pattern)
-	{
-		var span = Buffer.Span;
-		int l    = Buffer.Length;
-		var b    = pattern[0];
-		var buf  = new ConcurrentBag<Pointer>();
-
-		// Requires.Range(ofs < l, nameof(ofs));
-
-		for (int i = 0; i < l; i++) {
-			if (span[i] != b)
-				continue;
-
-			if (PatternCheck(i, pattern)) {
-				Pointer<byte> p = Address + i;
-
-				buf.Add(p);
-			}
-		}
-
-		return buf;
-	}*/
 
 }

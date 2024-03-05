@@ -49,6 +49,7 @@ using Novus.Win32;
 // [assembly: InternalsVisibleTo("Ultrakiller")]
 [assembly: InternalsVisibleTo("Test")]
 [assembly: InternalsVisibleTo("TestBenchmark")]
+[assembly: InternalsVisibleTo("UnitTest")]
 #nullable disable
 
 namespace Novus;

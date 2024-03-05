@@ -4,6 +4,7 @@ global using ER = Novus.Properties.EmbeddedResources;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Kantan.Utilities;
+using Microsoft;
 using Novus.Properties;
 using Novus.Streams;
 
@@ -26,7 +27,7 @@ public sealed class MagicResolver : IFileTypeResolver
 
 	public IntPtr Magic { get; }
 
-	public static readonly IFileTypeResolver Instance = new MagicResolver();
+	public static IFileTypeResolver Instance { get; set; } = new MagicResolver();
 
 	public MagicResolver(string mgc = null)
 	{
@@ -39,11 +40,7 @@ public sealed class MagicResolver : IFileTypeResolver
 	private static string GetMagicFile()
 	{
 		var mgc = Path.Combine(Global.DataFolder, EmbeddedResources.F_Magic);
-
-		if (!File.Exists(mgc)) {
-			File.WriteAllBytes(mgc, EmbeddedResources.magic);
-			Debug.WriteLine($"populating {mgc}");
-		}
+		Assumes.True(File.Exists(mgc));
 
 		Debug.WriteLine($"magic file: {mgc}");
 

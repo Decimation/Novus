@@ -21,7 +21,6 @@ public sealed class UnmanagedAllocator : IAllocator
 
 	public nint GetSize(Pointer ptr) => (nint) Native.LocalSize(ptr.Address);
 
-	[MURV]
 	public Pointer ReAlloc(Pointer ptr, nuint cb)
 	{
 		ptr = Marshal.ReAllocHGlobal(ptr.Address, (nint) (uint) cb);
@@ -30,6 +29,5 @@ public sealed class UnmanagedAllocator : IAllocator
 
 	public void Free(Pointer ptr) => Marshal.FreeHGlobal(ptr.Address);
 
-	[MURV]
 	public Pointer Alloc(nuint cb) => Marshal.AllocHGlobal((int) cb);
 }

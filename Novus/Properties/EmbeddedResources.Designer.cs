@@ -161,16 +161,6 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] magic {
-            get {
-                object obj = ResourceManager.GetObject("magic", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to https://msdl.microsoft.com/download/symbols/.
         /// </summary>
         internal static string MicrosoftSymbolServer {
@@ -180,7 +170,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 8.0.1.
+        ///   Looks up a localized string similar to 8.0.2.
         /// </summary>
         internal static string RequiredVersion {
             get {

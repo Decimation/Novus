@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -35,6 +36,7 @@ using Kantan.Collections;
 using Kantan.Text;
 using Novus.Runtime;
 using Novus.FileTypes.Uni;
+using Novus.Properties;
 
 // ReSharper disable InconsistentNaming
 
@@ -495,12 +497,12 @@ public class Benchmarks19
 	   | Fast   | Job-PTBGOE | Default                  |   144.7 ns |  2.75 ns |  2.57 ns | 0.0570 |     896 B |
 	   | Urlmon | Job-PTBGOE | Default                  |   949.9 ns | 10.08 ns |  9.43 ns | 0.0458 |     728 B |
 	   | Magic  | Job-PTBGOE | Default                  | 7,293.7 ns | 60.08 ns | 56.20 ns | 0.0458 |     728 B |
-	   
+
 	   // * Hints *
 	   Outliers
 	     Benchmarks19.Fast: Default                            -> 1 outlier  was  removed (173.32 ns)
 	     Benchmarks19.Fast: Toolchain=InProcessNoEmitToolchain -> 1 outlier  was  removed (162.49 ns)
-	   
+
 	   // * Legends *
 	     Mean      : Arithmetic mean of all measurements
 	     Error     : Half of 99.9% confidence interval
@@ -1116,6 +1118,39 @@ public class Benchmarks3
 		return SigScanner.ReadSignature("48 8B 01 A8 02 75 ? C3");
 
 	}
+
+}
+
+public class Benchmarks3b
+{
+
+	[Benchmark]
+	public Pointer<byte> Test1()
+	{
+		return m_scanner.FindSignature(m_sig);
+	}
+	[Benchmark]
+	public Pointer<byte> Test1b()
+	{
+		return m_scanner.FindSignature2(m_sig);
+	}
+
+	private SigScanner m_scanner;
+	private byte[]     m_sig;
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+		var process = Process.GetCurrentProcess();
+		m_scanner = new SigScanner(process, process.FindModule(Global.CLR_MODULE));
+		m_sig     = SigScanner.ReadSignature(EmbeddedResources.Sig_GetIL);
+	}
+/*
+ *
+ *| Method | Mean     | Error   | StdDev  | Allocated |
+   |------- |---------:|--------:|--------:|----------:|
+   | Test1  | 158.9 us | 0.46 us | 0.38 us |     816 B |
+ *
+ */
 
 }
 

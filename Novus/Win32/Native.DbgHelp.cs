@@ -11,7 +11,7 @@ public static unsafe partial class Native
 #pragma warning disable SYSLIB1054
 
 	[DllImport(DBGHELP_DLL)]
-	private static extern ImageNtHeaders* ImageNtHeader(nint hModule);
+	private static extern ImageNtHeaders* ImageNtHeader([In] nint hModule);
 
 	#region Symbols
 

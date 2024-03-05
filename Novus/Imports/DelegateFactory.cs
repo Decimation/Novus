@@ -1,6 +1,7 @@
 ﻿// Deci Novus DelegateFactory.cs
 // $File.CreatedYear-$File.CreatedMonth-9 @ 2:34
 
+#nullable enable
 namespace Novus.Imports;
 
 using System.Reflection;

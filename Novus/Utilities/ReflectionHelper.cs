@@ -83,13 +83,16 @@ public static class ReflectionHelper
 	/// <remarks>Returns the backing field if <paramref name="fname"/> is a property; otherwise returns the normal field</remarks>
 	public static FI GetAnyResolvedField(this Type t, string fname)
 	{
-		var member = t.GetAnyMember(fname).FirstOrDefault();
+		var infos = t.GetAnyMember(fname);
+		var           member      = infos.FirstOrDefault();
 
-		if (member is PropertyInfo { MemberType: MemberTypes.Property } prop) {
-			return prop.GetBackingField();
-		}
-		else {
-			return member as FI;
+		switch (member) {
+			case PropertyInfo { MemberType: MemberTypes.Property } prop:
+				return prop.GetBackingField();
+			case FieldInfo fi:
+				return fi;
+			default:
+				return null;
 		}
 
 	}
@@ -139,30 +142,23 @@ public static class ReflectionHelper
 		return null;
 	}
 
-	public delegate bool IsNullObject(Type t, object o);
-
-	public static (FieldInfo Field, bool IsNull)[] GetNullMembers(this object value, IsNullObject fn = null,
-	                                                              BindingFlags flags = ALL_INSTANCE_FLAGS)
+	public static Dictionary<FieldInfo,bool> GetNullMembers(this object value, Func<Type, object, bool> fn = null,
+	                                                       BindingFlags flags = ALL_INSTANCE_FLAGS)
 	{
 		var fields = value.GetType().GetFields(flags);
 
 		fn ??= (_, o) => RuntimeProperties.IsNull(o);
 
-		var rg = new List<(FI Field, bool IsNull)>();
+		var rg = new Dictionary<FI,bool>();
 
 		foreach (var info in fields) {
 
-			(FI Field, bool IsNull) x = new();
-
 			var v = info.GetValue(value);
 
-			x.IsNull = fn(info.FieldType, v);
-			x.Field  = info;
-
-			rg.Add(x);
+			rg.Add(info, fn(info.FieldType, v));
 		}
 
-		return rg.ToArray();
+		return rg;
 	}
 
 	/*public static T GetStaticValue<T>(this PI p)
@@ -354,13 +350,13 @@ public static class ReflectionHelper
 
 		bool isIntPtr = t == typeof(nint) || t == typeof(nuint);
 
-		return t.IsPointer || isPointer || isIntPtr;
+		return t.IsPointer || isPointer || isIntPtr || t.IsUnmanagedFunctionPointer;
 	}
 
 	public static bool IsEnumerableType(this Type type)
 		=> type.ImplementsInterface(nameof(IEnumerable));
 
-	public static Type GetType2<T>(this T t)
+	public static Type GetType2<T>([CBN] this T t)
 		=> t?.GetType() ?? typeof(T);
 
 	#endregion
@@ -455,8 +451,10 @@ public static class ReflectionHelper
 			.Select(Activator.CreateInstance);
 	}
 
-	public static HashSet<AssemblyName> DumpDependencies()
+	public static HashSet<AssemblyName> DumpDependencies([CanBeNull] Assembly asm2)
 	{
+
+		/*
 		var rg = new[]
 		{
 			//
@@ -465,14 +463,15 @@ public static class ReflectionHelper
 			//
 			Assembly.GetCallingAssembly()
 		};
+		*/
+		asm2??= Assembly.GetCallingAssembly();
 
 		var asm = new HashSet<AssemblyName>();
 
-		foreach (var assembly in rg) {
+		var dependencies = GetUserDependencies(asm2);
+		asm.UnionWith(dependencies);
 
-			var dependencies = GetUserDependencies(assembly);
-			asm.UnionWith(dependencies);
-		}
+		// foreach (var assembly in rg) { }
 
 		return asm;
 	}

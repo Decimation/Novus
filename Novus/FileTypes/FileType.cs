@@ -95,15 +95,15 @@ public readonly struct FileType : IEquatable<FileType>
 
 	private static readonly ObjectCache Cache = MemoryCache.Default;
 
-	public static readonly  FileType[] All;
-	public static readonly  FileType[] Image;
-	public static readonly  FileType[] Video;
+	public static readonly FileType[] All;
+	public static readonly FileType[] Image;
+	public static readonly FileType[] Video;
 
-	#region 
+	#region
 
-	private static readonly byte[]     s_seq1A = [0xFE, 0xFF];
-	private static readonly byte[]     s_seq1B = [0xFF, 0xFE];
-	private static readonly byte[]     s_seq2  = [0xEF, 0xBB, 0xBF];
+	private static readonly byte[] s_seq1A = [0xFE, 0xFF];
+	private static readonly byte[] s_seq1B = [0xFF, 0xFE];
+	private static readonly byte[] s_seq2  = [0xEF, 0xBB, 0xBF];
 
 	#endregion
 
@@ -144,14 +144,15 @@ public readonly struct FileType : IEquatable<FileType>
 
 		return (IEnumerable<FileType>) query;
 
-		static IEnumerable<FileType> FindInternal(string s)
-		{
-			return
-				from ft in All
-				let mt = ft.MimeType
-				where mt == s || ft.Subtype == s || s == ft.Type
-				select ft;
-		}
+	}
+
+	public static IEnumerable<FileType> FindInternal(string s)
+	{
+		return
+			from ft in All
+			let mt = ft.MimeType
+			where mt == s || ft.Subtype == s || s == ft.Type
+			select ft;
 	}
 
 	#endregion

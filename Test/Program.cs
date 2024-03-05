@@ -5,6 +5,7 @@
 global using Native = Novus.Win32.Native;
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -51,10 +52,6 @@ using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
 using TestTypes;
-using static Novus.Win32.Structures.User32.WindowMessage;
-using File = System.IO.File;
-using FileSystem = Novus.OS.FileSystem;
-using FileType = Novus.FileTypes.FileType;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
 using System.Collections.Generic;
@@ -65,7 +62,6 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using Novus.Numerics;
-using static System.Net.WebRequestMethods;
 using Novus.FileTypes.Uni;
 
 // ReSharper disable ClassNeverInstantiated.Local
@@ -140,27 +136,44 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
-public static  class Program
+public static class Program
 {
 
 	public delegate ref int Del(in int o);
 
 	private static async Task Main(string[] args)
 	{
-		foreach (Delegate @delegate in UniSource.Register) {
-			Console.WriteLine(@delegate);
+		var     processesByName = Process.GetProcessesByName("notepad");
+		Process id              = processesByName[0];
+		Console.WriteLine(id);
+
+		const string s1 = "42 00 55 00";
+
+		byte[] bytes = [0x42, 0, 0x55, 0];
+
+		var a = new SigScanner(id, id.MainModule);
+
+		a.FindSignatures(bytes, pointer =>
+		{
+			Console.WriteLine(pointer);
+			return true;
+		});
+
+		foreach (var vBasicInformation in Native.EnumeratePages(Native.OpenProcess(id))) {
+			Console.WriteLine(vBasicInformation);
 		}
 
-		var f = @"C:\Users\Deci\Pictures\Epic anime\0c4c80957134d4304538c27499d84dbe.jpeg";
-		var m = new MemoryStream(File.ReadAllBytes(f));
-		var u = (Url) "https://us.rule34.xxx//images/4777/eb5d308334c52a2ecd4b0b06846454e4.jpeg?5440124";
+		/*var mod = Native.EnumProcessModules((uint) id.Id);
 
-		foreach (var v in new object[] { m, f, u }) {
-			var async = await UniSource.GetAsync(v);
-			Console.WriteLine(async);
-		}
+		foreach (ModuleEntry32 m in mod) {
+			var pe = Native.GetPESectionInfo(m.hModule);
 
-		;
+			foreach (ImageSectionInfo info in pe) {
+				Console.WriteLine(info);
+
+			}
+		}*/
+
 	}
 
 	static void t1()

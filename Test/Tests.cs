@@ -94,8 +94,8 @@ namespace Test
 		{
 			var type = new MyStruct2();
 
-			foreach (var nullMember in ReflectionHelper.GetNullMembers(type)) {
-				Console.WriteLine($"{nullMember.Field.Name} {nullMember.IsNull}");
+			foreach (var nullMember in type.GetNullMembers()) {
+				Console.WriteLine($"{nullMember.Key.Name} {nullMember}");
 			}
 		}
 

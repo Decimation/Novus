@@ -17,7 +17,7 @@ using Novus.Utilities;
 namespace Novus.FileTypes.Uni;
 
 public abstract class UniSource : IDisposable, IEquatable<UniSource>,
-                                  IEqualityOperators<UniSource, UniSource, bool>
+								  IEqualityOperators<UniSource, UniSource, bool>
 {
 
 	public static List<IUniSource.IsTypePredicate> Register { get; } =
@@ -60,7 +60,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 	}
 
 	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null,
-	                                             CancellationToken ct = default)
+												 CancellationToken ct = default)
 	{
 		UniSource buf = null;
 
@@ -112,7 +112,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 	}
 
 	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
-	                                                CancellationToken ct = default)
+													CancellationToken ct = default)
 	{
 		try {
 			return await GetAsync(value, resolver, ct);

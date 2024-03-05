@@ -1,6 +1,7 @@
 ﻿global using MImp = System.Runtime.CompilerServices.MethodImplAttribute;
 global using MImplO = System.Runtime.CompilerServices.MethodImplOptions;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Novus.Memory;
 

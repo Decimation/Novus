@@ -746,8 +746,8 @@ public class Tests_ReflectionHelper
 		var b = new Struct();
 
 		var f = a.GetNullMembers();
-		Assert.AreEqual(3, f.Length);
-		Assert.AreEqual(1, b.GetNullMembers().Length);
+		Assert.AreEqual(3, f.Count);
+		Assert.AreEqual(1, b.GetNullMembers().Count);
 	}
 
 	[Test]

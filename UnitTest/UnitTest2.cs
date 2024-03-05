@@ -7,6 +7,11 @@ using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using NUnit.Framework;
 using System;
+using System.Diagnostics;
+using Novus;
+using Novus.Properties;
+using Novus.Utilities;
+
 // ReSharper disable InconsistentNaming
 #pragma warning disable 0649, CS1998, CS0612
 #pragma warning disable CA1416
@@ -17,6 +22,7 @@ namespace UnitTest;
 [Parallelizable]
 public class Tests_Other
 {
+
 	[Test]
 	public static void SendInputTest()
 	{
@@ -44,11 +50,14 @@ public class Tests_Other
 			Assert.Pass();
 		}
 	}
+
 }
+
 [TestFixture]
 [Parallelizable]
 public class Tests_FileTypes
 {
+
 	[Test]
 	public void Test1()
 	{
@@ -56,6 +65,7 @@ public class Tests_FileTypes
 			TestContext.WriteLine($"{ft}");
 		}
 	}
+
 }
 
 [TestFixture]
@@ -116,27 +126,23 @@ public class Tests_Runtime2
 	{
 		var random = new Random();
 
-		for (int i = 0; i < i1; i++)
-		{
+		for (int i = 0; i < i1; i++) {
 			GC.AddMemoryPressure(i1);
 
 			//GC.AddMemoryPressure(100000);
 			var r = new object[i1];
 
-			for (int j = 0; j < r.Length; j++)
-			{
+			for (int j = 0; j < r.Length; j++) {
 				r[j] = random.Next();
 
-				if (p != Mem.AddressOfHeap(s))
-				{
+				if (p != Mem.AddressOfHeap(s)) {
 					return true;
 				}
 			}
 
 			GC.Collect();
 
-			if (p != Mem.AddressOfHeap(s))
-			{
+			if (p != Mem.AddressOfHeap(s)) {
 				return true;
 			}
 
@@ -146,6 +152,22 @@ public class Tests_Runtime2
 		return p != Mem.AddressOfHeap(s);
 
 		// return false;
+	}
+
+}
+
+[TestFixture]
+public class Tests_SigScanner
+{
+
+	[Test]
+	public void Test1()
+	{
+		Process proc = Process.GetCurrentProcess();
+		var     s    = new SigScanner(proc, proc.FindModule(Global.CLR_MODULE));
+
+		Assert.AreEqual(s.FindSignature(EmbeddedResources.Sig_GetIL),
+		                s.FindSignature2(SigScanner.ReadSignature(EmbeddedResources.Sig_GetIL)));
 	}
 
 }

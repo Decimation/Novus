@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft;
 using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -79,9 +82,11 @@ public sealed class SigScanner
 		Address = ptr;
 	}
 
-	public static Pointer<byte>[] ScanProcess(string sig, Process p = null)
+	public static Pointer<byte>[] ScanProcess(string sig)
+		=> ScanProcess(Process.GetCurrentProcess(), sig);
+
+	/*public static Pointer[] ScanProcess(Process p, string sig)
 	{
-		p ??= Process.GetCurrentProcess();
 		var page = p.GetModules();
 
 		var scanners = page.Select(s =>
@@ -90,9 +95,38 @@ public sealed class SigScanner
 		}).ToArray();
 
 		/*var pointers = scanners.Select(s => s.Value.FindSignature(sig));
-		return pointers.FirstOrDefault(p => !p.IsNull);*/
+		return pointers.FirstOrDefault(p => !p.IsNull);#1#
 
 		return scanners.Select(t => t.Value.FindSignature(sig)).Where(ptr => !ptr.IsNull).ToArray();
+	}*/
+
+	public static Pointer[] ScanProcess(Process p, string sig)
+		=> ScanProcess(p, ReadSignature(sig));
+
+	public static Pointer[] ScanProcess(Process p, byte[] s)
+	{
+		var buf = new ConcurrentBag<Pointer>();
+
+		var modules = p.GetModules();
+
+		Parallel.ForEach(modules, (module, token) =>
+		{
+			var ss = new SigScanner(p, module);
+
+			var px = ss.FindSignatures(s, pointer =>
+			{
+				if (!pointer.IsNull) {
+					buf.Add(pointer);
+				}
+
+				return true;
+			});
+
+		});
+		/*var pointers = scanners.Select(s => s.Value.FindSignature(sig));
+		return pointers.FirstOrDefault(p => !p.IsNull);*/
+
+		return [.. buf];
 	}
 
 	#endregion
@@ -151,7 +185,6 @@ public sealed class SigScanner
 	/// <returns>Address of the located signature; <see cref="Mem.Nullptr"/> if the signature was not found</returns>
 	public Pointer<byte> FindSignature(byte[] pattern)
 	{
-
 		var span = Buffer.Span;
 		int l    = Buffer.Length;
 		var b    = pattern[0];
@@ -169,5 +202,67 @@ public sealed class SigScanner
 
 		return Mem.Nullptr;
 	}
+
+	public Pointer<byte> FindSignature2(byte[] pattern)
+	{
+		Pointer p = Mem.Nullptr;
+
+		FindSignatures(pattern, p2 =>
+		{
+			p = p2;
+			return false;
+		});
+		return p;
+	}
+
+	public bool FindSignatures(byte[] pattern, Func<Pointer<byte>, bool> callback)
+	{
+		var span = Buffer.Span;
+		int l    = Buffer.Length;
+		var b    = pattern[0];
+
+		// Requires.Range(ofs < l, nameof(ofs));
+
+		for (int i = 0; i < l; i++) {
+			if (span[i] != b)
+				continue;
+
+			if (PatternCheck(i, pattern)) {
+				Pointer<byte> p = Address + i;
+
+				if (callback(p)) {
+					continue;
+				}
+				else {
+					break;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/*public IEnumerable<Pointer> FindSignatures(byte[] pattern)
+	{
+		var span = Buffer.Span;
+		int l    = Buffer.Length;
+		var b    = pattern[0];
+		var buf  = new ConcurrentBag<Pointer>();
+
+		// Requires.Range(ofs < l, nameof(ofs));
+
+		for (int i = 0; i < l; i++) {
+			if (span[i] != b)
+				continue;
+
+			if (PatternCheck(i, pattern)) {
+				Pointer<byte> p = Address + i;
+
+				buf.Add(p);
+			}
+		}
+
+		return buf;
+	}*/
 
 }

@@ -349,6 +349,16 @@ public static unsafe class Mem
 		}
 	}
 
+	/// <summary>
+	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
+	/// </summary>
+	public static void WriteProcessMemory(Process proc, Pointer addr, ReadOnlySpan<byte> value)
+	{
+		fixed (byte* rg = value) {
+			WriteProcessMemory(proc, addr, (nint) rg, value.Length);
+		}
+	}
+
 	#endregion
 
 	#region Read
@@ -892,6 +902,7 @@ public static unsafe class Mem
 	/// <summary>
 	/// <see cref="RuntimeHelpers.GetRawData"/>
 	/// </summary>
+	[MURV]
 	public static ref byte GetRawData(this object obj)
 	{
 

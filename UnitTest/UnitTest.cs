@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Flurl.Http;
+using Kantan.Net.Utilities;
 using Kantan.Text;
 using Novus;
 using Novus.FileTypes;
@@ -179,6 +180,18 @@ public class Tests_UniSource
 		const string png = @"C:\Users\Deci\Pictures\1mcvbqv39yta1.png";
 		var          str = File.OpenRead(png);
 		var          t   = await UniSource.GetAsync(str, IFileTypeResolver.Default);
+		var          f   = await t.TryDownloadAsync();
+		TestContext.WriteLine($"{f}");
+
+	}
+	[Test]
+	public async Task Test1c()
+	{
+		const string png = @"https://i.imgur.com/QtCausw.png";
+
+		var r = await HttpUtilities.GetFinalRedirectAsync(png);
+
+		var          t   = await UniSource.GetAsync(png, IFileTypeResolver.Default);
 		var          f   = await t.TryDownloadAsync();
 		TestContext.WriteLine($"{f}");
 

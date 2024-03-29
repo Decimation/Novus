@@ -89,7 +89,6 @@ public sealed class RuntimeResource : IDisposable
 	/// <summary>
 	/// Loads a module and creates a <see cref="RuntimeResource"/> from it.
 	/// </summary>
-	[MURV]
 	public static RuntimeResource LoadModule(string moduleFile, out nint h)
 	{
 		var f = new FileInfo(moduleFile);

@@ -280,7 +280,8 @@ public static class Global
 	public const string OS_WIN = "windows";
 
 	public const string OS_LINUX = "linux";
-
+#if EXTRA
+	
 	#region QWrite
 
 	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
@@ -337,5 +338,6 @@ public static class Global
 	}
 
 	#endregion
+#endif
 
 }

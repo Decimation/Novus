@@ -33,6 +33,9 @@
     <Reference Include="Kantan">
       <HintPath>..\..\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
     </Reference>
+    <Reference Include="Kantan.Net">
+      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net8.0\Kantan.Net.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <Import Project="..\TestAssets\TestAssets.projitems" Label="Shared" />

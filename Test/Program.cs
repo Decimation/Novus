@@ -143,38 +143,8 @@ public static class Program
 
 	private static async Task Main(string[] args)
 	{
-		var     processesByName = Process.GetProcessesByName("notepad");
-		Process id              = processesByName[0];
-		Console.WriteLine(id);
 
-		const string s1 = "42 00 55 00";
-
-		byte[] bytes = [0x42, 0, 0x55, 0];
-
-		var a = new SigScanner(id, id.MainModule);
-
-		a.FindSignatures(bytes, pointer =>
-		{
-			Console.WriteLine(pointer);
-			return true;
-		});
-
-		var list = Native.EnumeratePages(Native.OpenProcess(id)).ToArray();
-
-		for (int l = 0; l < list.Length; l++) {
-			Console.WriteLine($"{l} {list[l]}");
-		}
-
-		/*var mod = Native.EnumProcessModules((uint) id.Id);
-
-		foreach (ModuleEntry32 m in mod) {
-			var pe = Native.GetPESectionInfo(m.hModule);
-
-			foreach (ImageSectionInfo info in pe) {
-				Console.WriteLine(info);
-
-			}
-		}*/
+		Console.WriteLine();
 
 	}
 

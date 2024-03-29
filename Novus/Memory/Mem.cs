@@ -460,7 +460,7 @@ public static unsafe class Mem
 	/// </summary>
 	public static byte[] GetBytes<T>(T value)
 	{
-		if (typeof(T).IsValueType) {
+		/*if (typeof(T).IsValueType) {
 			var ptr = AddressOf(ref value);
 			var cb  = SizeOf<T>();
 			var rg  = new byte[cb];
@@ -470,6 +470,12 @@ public static unsafe class Mem
 			}
 
 			return rg;
+		}*/
+		
+		if (typeof(T).IsValueType) {
+			var x    = AddressOfData(ref value);
+			var size = SizeOf<T>();
+			return x.ToArray(size);
 		}
 
 		TryGetAddressOfHeap(value, OffsetOptions.Header, out var ptr2);
@@ -484,16 +490,19 @@ public static unsafe class Mem
 	/// </summary>
 	public static T ReadFromBytes<T>(byte[] rg)
 	{
-		fixed (byte* p = rg) {
-			var p2 = p;
+		Memory<byte> asMemory = rg.AsMemory();
 
-			if (!typeof(T).IsValueType) {
-				p2 += Size;
-				return Unsafe.Read<T>(&p2);
-			}
+		using var pin = asMemory.Pin();
 
-			return Unsafe.Read<T>(p2);
+		var p2 = (byte*) pin.Pointer;
+
+		if (!typeof(T).IsValueType) {
+			p2 += Size;
+			return Unsafe.Read<T>(&p2);
 		}
+
+		return Unsafe.Read<T>(p2);
+
 	}
 
 	/*public static byte[] GetStringBytes(string s)
@@ -996,7 +1005,7 @@ public static unsafe class Mem
 	/// <param name="p2">Original base pointer</param>
 	/// <returns>An instance of type <typeparamref name="T"/> allocated within <paramref name="p"/></returns>
 	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
-	public static ref T New<T>(ref Pointer<byte> p, out Pointer<byte> p2)
+	public static ref T New<T>(ref Pointer p, out Pointer p2)
 	{
 		p2 = p;
 		p.Cast<ObjHeader>().Write(default);
@@ -1018,7 +1027,7 @@ public static unsafe class Mem
 		return ref sp.GetPinnableReference();
 	}
 
-	public static (ModuleEntry32, ImageSectionInfo) Locate(Pointer<byte> ptr, Process proc)
+	public static (ModuleEntry32, ImageSectionInfo) Locate(Pointer ptr, Process proc)
 	{
 		var modules = Native.EnumProcessModules((uint) proc.Id);
 
@@ -1044,6 +1053,16 @@ public static unsafe class Mem
 		}
 
 		return (default, default);
+	}
+
+	public static Pointer<T> ToPointer<T>(this Span<T> s)
+		=> s.ToPointer(ref Unsafe.NullRef<T>());
+
+	public static Pointer<T> ToPointer<T>(this Span<T> s, ref T t)
+	{
+		t = ref s.GetPinnableReference();
+
+		return Mem.AddressOf(ref t);
 	}
 
 }

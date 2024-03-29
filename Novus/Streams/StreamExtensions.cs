@@ -131,27 +131,10 @@ public static class StreamExtensions
 		return oldPos;
 	}
 
-	public static Pointer<T> ToPointer<T>(this Span<T> s)
-		=> Mem.AddressOf(ref s.GetPinnableReference());
-
 	public static void ReadFully(this Stream stream, byte[] buffer)
 	{
-		int offset = 0;
-		int readBytes;
-
-		do {
-			// If you are using Socket directly instead of a Stream:
-			//readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
-			//                           SocketFlags.None);
-
-			readBytes = stream.Read(buffer, offset, buffer.Length - offset);
-
-			offset += readBytes;
-		} while (readBytes > 0 && offset < buffer.Length);
-
-		if (offset < buffer.Length) {
-			throw new EndOfStreamException();
-		}
+		// todo
+		Task.Run(() => ReadFullyAsync(stream, buffer));
 	}
 
 	public static async Task ReadFullyAsync(this Stream stream, byte[] buffer, CancellationToken ct = default)
@@ -193,7 +176,7 @@ public static class StreamExtensions
 		while (!pred(t = read(s))) {
 			ll.AddLast(t);
 
-			if (token.IsCancellationRequested || !max.HasValue && ll.Count >= max) {
+			if (token.IsCancellationRequested || (!max.HasValue && ll.Count >= max)) {
 				goto ret;
 			}
 		}

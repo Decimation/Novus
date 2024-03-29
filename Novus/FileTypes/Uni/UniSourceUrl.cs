@@ -57,7 +57,13 @@ public class UniSourceUrl : UniSource, IUniSource
 			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
 		}
 
-		var buf = new UniSourceUrl(await res.GetStreamAsync(), value)
+		var stream = await res.GetStreamAsync();
+
+		/*if (stream.CanSeek && stream.Length < FileTypes.FileType.RSRC_HEADER_LEN) {
+
+		}*/
+
+		var buf = new UniSourceUrl(stream, value)
 			{ };
 		return buf;
 	}
@@ -73,5 +79,12 @@ public class UniSourceUrl : UniSource, IUniSource
 		u = ux2;
 		return Url.IsValid(ux2);
 	}
+
+}
+
+public interface IUniParser
+{
+
+	public Task<UniSource> Parse(object value, CancellationToken d = default);
 
 }

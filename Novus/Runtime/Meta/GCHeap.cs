@@ -1,15 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Runtime.VM;
-using Novus.Utilities;
 using Novus.Win32;
-using Novus.Win32.Wrappers;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable InconsistentNaming
@@ -40,7 +35,7 @@ public static unsafe class GCHeap
 	/*public static bool IsHeapPointer(object o, bool smallHeapOnly = false)
 		=> IsHeapPointer(Mem.AddressOfHeap(o), smallHeapOnly);*/
 	
-	public static bool IsHeapPointer(in Pointer<byte> ptr, bool smallHeapOnly = false)
+	public static bool IsHeapPointer(in Pointer ptr, bool smallHeapOnly = false)
 		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
 	[Obsolete]
@@ -55,7 +50,7 @@ public static unsafe class GCHeap
 		var ptr = (void*) AllocObject(type.Value);
 		var obj = Unsafe.Read<object>(&ptr);
 
-		ReflectionHelper.CallConstructor(obj, args);
+		RH.CallConstructor(obj, args);
 
 		return obj;
 	}
@@ -87,13 +82,13 @@ public static unsafe class GCHeap
 	/// <summary>
 	/// <see cref="IsHeapPointer"/>
 	/// </summary>
-	[field: ImportClr("Sym_IsHeapPointer", ImportType.Symbol)]
+	[field: ImportClr("Sig_IsHeapPointer")]
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
 
 	/// <summary>
 	/// <see cref="AllocObject{T}"/>
 	/// </summary>
-	[field: ImportClr("Sym_AllocObject", ImportType.Symbol, AbsoluteMatch = true)]
+	[field: ImportClr("Sig_AllocObject")]
 	private static delegate* unmanaged<MethodTable*, BOOL, void*> Func_AllocObject { get; }
 
 }

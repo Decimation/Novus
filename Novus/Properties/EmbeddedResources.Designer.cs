@@ -170,11 +170,20 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 8.0.3.
+        ///   Looks up a localized string similar to 8.0.4.
         /// </summary>
         internal static string RequiredVersion {
             get {
                 return ResourceManager.GetString("RequiredVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05.
+        /// </summary>
+        internal static string Sig_AllocObject {
+            get {
+                return ResourceManager.GetString("Sig_AllocObject", resourceCulture);
             }
         }
         
@@ -251,6 +260,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 48 83 EC 28 48 8B CA 41 0F B6 D0 E8 ? ? ? ? 48 85 C0 0F 95 C0 48 83 C4 28 C3 CC CC CC CC CC 4C 8B 02 33 C9 49 83 E0 F8 41 39 08 7D 0B 8B 4A 08 41 0F B7 00 48 0F AF C8 41 8B 40 04 48 03 C1 48 3B 05 ? ? ? ? 0F 93 C0 C3 CC CC CC CC CC 40 53.
+        /// </summary>
+        internal static string Sig_IsHeapPointer {
+            get {
+                return ResourceManager.GetString("Sig_IsHeapPointer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 40 53 48 83 EC 20 B8 ? ? ? ? 48 8B D9 66 85 01.
         /// </summary>
         internal static string Sig_IsPointingToNativeCode {
@@ -274,15 +292,6 @@ namespace Novus.Properties {
         internal static string Sig_SetEntryPoint {
             get {
                 return ResourceManager.GetString("Sig_SetEntryPoint", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to AllocateObject.
-        /// </summary>
-        internal static string Sym_AllocObject {
-            get {
-                return ResourceManager.GetString("Sym_AllocObject", resourceCulture);
             }
         }
         

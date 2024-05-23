@@ -15,6 +15,7 @@ using Novus.Win32;
 
 namespace Novus.Runtime.VM;
 #pragma warning disable CA1416, IDE0251
+// #pragma warning disable IDE0251
 
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]

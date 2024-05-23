@@ -1,0 +1,126 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+    <Authors>Read Stanton (Decimation)</Authors>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
+    <!-- <EnablePreviewFeatures>true</EnablePreviewFeatures> -->
+
+    <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute>
+    <NoWarn>CS1591,IDE0079,CA2255,IDE0005,CA1401,IDE0059;IDE0049;IDE0290</NoWarn>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Low-level utilities and tools for working with the CLR and memory.</Description>
+    <PackageProjectUrl>https://github.com/Decimation/Novus</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Decimation/Novus</RepositoryUrl>
+    <PackageTags>clr low-level memory hack library</PackageTags>
+    <PackageIcon>icon64.png</PackageIcon>
+    <Version>1.0.4</Version>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishSingleFile>true</PublishSingleFile>
+    <!-- <PublishTrimmed>true</PublishTrimmed> -->
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
+
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE;DEBUG</DefineConstants>
+
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE;DEBUG;TEST</DefineConstants>
+
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Resources\File types.json" />
+    <None Remove="Resources\magic.mgc" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\File types.json" />
+    <EmbeddedResource Include="Resources\magic.mgc" />
+  </ItemGroup>
+  <ItemGroup>
+    <TrimmerRootAssembly Include="System.Diagnostics" />
+    <TrimmerRootAssembly Include="Kantan" />
+    <TrimmerRootAssembly Include="System.Runtime.Caching" />
+    <TrimmerRootAssembly Include="System.Configuration" />
+    <!-- <TrimmerRootAssembly Include="System.Management" /> -->
+  </ItemGroup>
+  <ItemGroup>
+
+    <!-- ??? -->
+
+    <Compile Update="Properties\EmbeddedResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EmbeddedResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.6" />
+    <PackageReference Include="Flurl.Http" Version="4.0.2" />
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="8.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
+    <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Reflection" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="8.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
+    <PackageReference Include="System.Runtime.Handles" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+    <PackageReference Include="System.Windows.Extensions" Version="8.0.0" />
+
+    <!-- ??? -->
+    <!--<PackageReference Include="Kantan" Version="1.2.2" />-->
+
+    <!--<Reference Include="Functions">
+      <HintPath>Native\Functions.dll</HintPath>
+    </Reference>-->
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\EmbeddedResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>EmbeddedResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\icon64.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Kantan">
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
+    </Reference>
+    <Reference Include="Kantan.Net">
+      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net8.0\Kantan.Net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Imports\NewFolder\" />
+  </ItemGroup>
+
+</Project>

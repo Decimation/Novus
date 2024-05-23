@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // ReSharper disable AssignNullToNotNullAttribute
 // ReSharper disable PossibleNullReferenceException
 
-namespace Novus.Imports;
+namespace Novus.Imports.Dynamic;
 //https://github.com/bytecode77/bytecode-api/tree/master/BytecodeApi/IO/Interop
 
 /// <summary>
@@ -15,6 +15,7 @@ namespace Novus.Imports;
 /// </summary>
 public sealed class DynamicLibrary
 {
+
 	/// <summary>
 	/// Gets the name of the DLL that is supplied in the constructor of <see cref="DynamicLibrary" />.
 	/// </summary>
@@ -72,7 +73,7 @@ public sealed class DynamicLibrary
 		var typeBuilder = AssemblyBuilder
 			.DefineDynamicAssembly(new AssemblyName(assemblyName + nameof(DynamicLibrary)), AssemblyBuilderAccess.Run)
 			.DefineDynamicModule(assemblyName + "Module")
-			.DefineType(assemblyName + "Imports", TypeAttributes.Class | TypeAttributes.Public);
+			.DefineType(assemblyName          + "Imports", TypeAttributes.Class | TypeAttributes.Public);
 
 		typeBuilder
 			.DefinePInvokeMethod(name, DllName, name, MethodAttributes.Static | MethodAttributes.Public,
@@ -94,4 +95,5 @@ public sealed class DynamicLibrary
 	{
 		return Path.GetFileName(DllName);
 	}
+
 }

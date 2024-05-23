@@ -7,6 +7,7 @@ using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using Microsoft.Extensions.Logging;
+using Perfolizer.Horology;
 
 #pragma warning disable IDE0060
 namespace TestBenchmark;
@@ -21,10 +22,10 @@ public static class Program
 
 		var cfg = DefaultConfig.Instance
 			// .AddExporter(new HtmlExporter())
-			.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()) {})
+			// .AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()) {})
 			.AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));
 
-		BenchmarkRunner.Run<Benchmarks3b>(cfg);
+		BenchmarkRunner.Run<Benchmarks26>(cfg);
 	}
 
 }

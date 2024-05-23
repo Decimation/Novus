@@ -164,7 +164,7 @@ public class Tests_SigScanner
 	public void Test1()
 	{
 		Process proc = Process.GetCurrentProcess();
-		var     s    = new SigScanner(proc, proc.FindModule(Global.CLR_MODULE));
+		var     s    = SigScanner.FromProcess(proc, proc.FindModule(Global.CLR_MODULE));
 
 		Assert.AreEqual(s.FindSignature(EmbeddedResources.Sig_GetIL),
 		                s.FindSignature(SigScanner.ReadSignature(EmbeddedResources.Sig_GetIL)));

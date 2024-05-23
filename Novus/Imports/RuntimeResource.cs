@@ -178,9 +178,7 @@ public sealed class RuntimeResource : IDisposable
 
 		var mgr = GetManager(t.Assembly);
 
-		if (!m_managers.Contains(mgr)) {
-			m_managers.Add(mgr);
-		}
+		m_managers.Add(mgr);
 
 		Debug.WriteLine($"Loading type {t.Name}", nameof(LoadImports));
 

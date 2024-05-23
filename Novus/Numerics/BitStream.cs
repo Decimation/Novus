@@ -536,7 +536,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 		var bsize = size * BITS_PER_BYTE;
 		var rg    = new byte[size];
 		var ptr   = Mem.AddressOf(ref t).Cast();
-		ptr.Copy(rg);
+		ptr.CopyTo(rg);
 		WriteBytes(rg, rg.Length, true);
 	}
 

@@ -18,7 +18,7 @@ using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 
 #pragma warning disable 8603
-#pragma warning disable CA1416 //todo
+// #pragma warning disable CA1416 //todo
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable TailRecursiveCall
@@ -49,6 +49,7 @@ public static class FileSystem
 	#region KnownFolder
 
 	/// <remarks><a href="https://stackoverflow.com/questions/10667012/getting-downloads-folder-in-c">Adapted from here</a></remarks>
+	[SupportedOSPlatform(Global.OS_WIN)]
 	private static readonly string[] KnownFolderGuids =
 	[
 		"{56784854-C6CB-462B-8169-88E350ACB882}", // Contacts
@@ -72,6 +73,7 @@ public static class FileSystem
 	/// <returns>The default path of the known folder.</returns>
 	/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 	///     could not be retrieved.</exception>
+	[SupportedOSPlatform(Global.OS_WIN)]
 	public static string GetPath(KnownFolder knownFolder)
 		=> GetPath(knownFolder, false);
 
@@ -85,9 +87,11 @@ public static class FileSystem
 	/// <returns>The default path of the known folder.</returns>
 	/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 	///     could not be retrieved.</exception>
+	[SupportedOSPlatform(Global.OS_WIN)]
 	public static string GetPath(KnownFolder knownFolder, bool defaultUser)
 		=> GetPath(knownFolder, KnownFolderFlags.DontVerify, defaultUser);
 
+	[SupportedOSPlatform(Global.OS_WIN)]
 	private static string GetPath(KnownFolder knownFolder, KnownFolderFlags flags, bool defaultUser)
 	{
 		int result = Native.SHGetKnownFolderPath(new Guid(KnownFolderGuids[(int) knownFolder]),
@@ -109,6 +113,7 @@ public static class FileSystem
 	public static string GetRootDirectory()
 		=> Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
 
+	[SupportedOSPlatform(Global.OS_WIN)]
 	public static string GetShortPath(string dir)
 	{
 		unsafe {
@@ -279,6 +284,7 @@ public static class FileSystem
 		}
 	}
 
+	[SupportedOSPlatform(Global.OS_WIN)]
 	public static bool SendFileToRecycleBin(string filePath)
 	{
 		if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
@@ -470,6 +476,22 @@ public static class FileSystem
 
 	}
 
+	public static bool IsRoot
+	{
+		get
+		{
+			if (OperatingSystem.IsLinux()) {
+				return Environment.UserName == "root";
+			}
+			else if (OperatingSystem.IsWindows()) {
+				return IsAdministrator();
+
+			}
+
+			throw new InvalidOperationException();
+
+		}
+	}
 }
 
 /// <summary>

@@ -57,15 +57,6 @@ public sealed class SigScanner
 
 	#region Constructors
 
-	public SigScanner(Process proc, ProcessModule module)
-	{
-		Address = module.BaseAddress;
-
-		Size = (ulong) module.ModuleMemorySize;
-
-		Buffer = Mem.ReadProcessMemory(proc, Address, (nint) Size);
-	}
-
 	public SigScanner(ProcessModule module)
 		: this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
 
@@ -82,7 +73,16 @@ public sealed class SigScanner
 		Address = ptr;
 	}
 
-	public static Pointer<byte>[] ScanProcess(string sig)
+	public static SigScanner FromProcess(Process proc, ProcessModule module)
+	{
+		var ptr = module.BaseAddress;
+		var size = (ulong) module.ModuleMemorySize;
+		var buffer = Mem.ReadProcessMemory(proc, ptr, (nint) size);
+
+		return new SigScanner(ptr, size, buffer);
+	}
+
+	public static Pointer[] ScanCurrentProcess(string sig)
 		=> ScanProcess(Process.GetCurrentProcess(), sig);
 
 	public static Pointer[] ScanProcess(Process p, string sig)
@@ -96,7 +96,7 @@ public sealed class SigScanner
 
 		Parallel.ForEach(modules, (module, token) =>
 		{
-			var ss = new SigScanner(p, module);
+			var ss = FromProcess(p, module);
 
 			var px = ss.FindSignatures(s, pointer =>
 			{

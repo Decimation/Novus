@@ -189,7 +189,9 @@ public class Benchmarks27
 
 }
 
-[RyuJitX64Job]
+// [RyuJitX64Job]
+// [IterationCount()]
+[MinIterationTime(100)]
 public class Benchmarks26
 {
 
@@ -198,12 +200,10 @@ public class Benchmarks26
 
 	private Consumer m_consumer;
 
-	private Stream m_stream3;
+	// public object[] s => new[] { m_stream1, m_stream3 };
 
-	public static object[] s;
-
-	[ParamsSource(nameof(s))]
-	public Stream ss;
+	// [ParamsSource(nameof(s))]
+	// public Stream ss;
 
 	[GlobalSetup]
 	public async void GlobalSetup()
@@ -213,29 +213,29 @@ public class Benchmarks26
 		urlmon = UrlmonResolver.Instance;
 
 		m_stream1  = File.OpenRead(Values.f2);
-		m_stream3  = await Values.f2.GetStreamAsync();
+		
 		m_consumer = new Consumer();
 
-		s = new[] { m_stream1, m_stream3 };
+		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
 
 	}
 
 	[Benchmark]
 	public FileType Urlmon()
 	{
-		return urlmon.Resolve(ss);
+		return urlmon.Resolve(m_stream1);
 	}
 
 	[Benchmark]
 	public FileType Magic()
 	{
-		return magic.Resolve(ss);
+		return magic.Resolve(m_stream1);
 	}
 
 	[Benchmark]
 	public FileType Fast()
 	{
-		return fast.Resolve(ss);
+		return fast.Resolve(m_stream1);
 	}
 
 }
@@ -804,7 +804,7 @@ public unsafe class Benchmarks15
 	[Benchmark]
 	public void Copy3()
 	{
-		src1.Copy(dest1, 0, (int) len);
+		src1.CopyTo(dest1, 0, (int) len);
 	}
 
 }
@@ -845,7 +845,7 @@ public unsafe class Benchmarks14
 	[Benchmark]
 	public void Copy3()
 	{
-		src1.Copy(dest1, (int) len);
+		src1.CopyTo(dest1, (int) len);
 	}
 
 	[Benchmark]
@@ -1143,7 +1143,7 @@ public class Benchmarks3b
 	public void GlobalSetup()
 	{
 		var process = Process.GetCurrentProcess();
-		m_scanner = new SigScanner(process, process.FindModule(Global.CLR_MODULE));
+		m_scanner = SigScanner.FromProcess(process, process.FindModule(Global.CLR_MODULE));
 		m_sig     = SigScanner.ReadSignature(EmbeddedResources.Sig_GetIL);
 	}
 /*
@@ -1171,7 +1171,7 @@ public class Benchmarks3a
 	public void GlobalSetup()
 	{
 		var proc = Process.GetProcessesByName("notepad")[0];
-		m_scanner = new SigScanner(proc, proc.MainModule);
+		m_scanner = SigScanner.FromProcess(proc, proc.MainModule);
 	}
 
 }
@@ -1229,7 +1229,7 @@ public unsafe class Benchmarks_Pointer
 	[Benchmark]
 	public void Copy1()
 	{
-		m_ptr.Copy(m_ptr2, CNT);
+		m_ptr.CopyTo(m_ptr2, CNT);
 	}
 
 }

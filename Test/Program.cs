@@ -122,10 +122,10 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
  *
- * TypeIntPtr
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.h
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.cpp
- * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typeIntPtr.inl
+ * TypeHandle
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.inl
  *
  * Marshal Native
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h

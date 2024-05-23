@@ -461,7 +461,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public readonly void WritePointer<TType>(Pointer<TType> ptr, nint elemOffset = OFFSET)
 		=> Cast<Pointer<TType>>().Write(ptr, elemOffset);
 
-	public readonly void Copy(Pointer<T> dest, nint startIndex, nint elemCnt)
+	public readonly void CopyTo(Pointer<T> dest, nint startIndex, nint elemCnt)
 	{
 		//|  Copy3 | 7.428 ns | 0.0473 ns | 0.0395 ns |
 
@@ -475,10 +475,10 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		}*/
 	}
 
-	public readonly void Copy(Pointer<T> dest, nint elemCnt)
-		=> Copy(dest, OFFSET, elemCnt);
+	public readonly void CopyTo(Pointer<T> dest, nint elemCnt)
+		=> CopyTo(dest, OFFSET, elemCnt);
 
-	public void Copy(T[] rg, nint startIndex, nint elemCnt)
+	public void CopyTo(T[] rg, nint startIndex, nint elemCnt)
 	{
 		/*var       s   = rg.AsMemory();
 		using var pin = s.Pin();
@@ -491,8 +491,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		}
 	}
 
-	public void Copy(T[] rg)
-		=> Copy(rg, OFFSET, rg.Length);
+	public void CopyTo(T[] rg)
+		=> CopyTo(rg, OFFSET, rg.Length);
 
 	/// <summary>
 	///     Copies <paramref name="elemCnt" /> elements into an array of type <typeparamref name="T" />,
@@ -509,7 +509,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	{
 		var rg = new T[elemCnt];
 
-		Copy(rg, startIndex, elemCnt);
+		CopyTo(rg, startIndex, elemCnt);
 
 		return rg;
 	}

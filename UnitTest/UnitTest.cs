@@ -40,6 +40,7 @@ using TestTypes;
 using NUnit.Framework.Internal;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using Novus.FileTypes.Uni;
+using Novus.Imports.Dynamic;
 
 // ReSharper disable StringLiteralTypo
 
@@ -452,14 +453,14 @@ public unsafe class Tests_Pointer
 
 		var rg2 = new[] { 1, 2, 3, 4 };
 		p1.WriteAll(rg2);
-		p1.Copy(p2, rg2.Length);
+		p1.CopyTo(p2, rg2.Length);
 
 		for (int i = 0; i < rg2.Length; i++) {
 			Assert.True(p1[i] == p2[i]);
 		}
 
 		p2.Clear(rg2.Length);
-		p1.Copy(p2, 1, rg2.Length - 1);
+		p1.CopyTo(p2, 1, rg2.Length - 1);
 		var rg1 = new[] { 2, 3, 4 };
 
 		for (int i = 1; i < rg1.Length - 1; i++) {
@@ -476,7 +477,7 @@ public unsafe class Tests_Pointer
 		var          rg4 = new int[4];
 
 		p1.WriteAll(rg2);
-		p1.Copy(rg4);
+		p1.CopyTo(rg4);
 		Assert.True(rg2.SequenceEqual(rg4));
 		var rg3 = p1.ToArray(1, rg4.Length - 1);
 		Assert.True(rg3.SequenceEqual(new[] { 2, 3, 4 }));

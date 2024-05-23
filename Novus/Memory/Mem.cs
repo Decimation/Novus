@@ -43,7 +43,7 @@ using Novus.Win32.Wrappers;
 
 #pragma warning disable IDE0059
 #pragma warning disable IDE1006
-#pragma warning disable CA1416 //todo
+// #pragma warning disable CA1416 //todo
 
 namespace Novus.Memory;
 

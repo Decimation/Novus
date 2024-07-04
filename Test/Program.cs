@@ -97,6 +97,10 @@ namespace Test;
  *
  */
 
+/*
+ * https://github.com/IS4Code/SharpUtils
+ */
+
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -136,16 +140,37 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
+
 public static class Program
 {
 
 	public delegate ref int Del(in int o);
 
-	private static async Task Main(string[] args)
+	[UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = nameof(Clazz2.Func))]
+	public static extern int Func1(Clazz2 c);
+
+	private static unsafe void Main(string[] args)
 	{
 
-		Console.WriteLine();
+	}
 
+	private static unsafe void Test3()
+	{
+		Clazz2 o = (Clazz2) RuntimeHelpers.GetUninitializedObject(typeof(Clazz2));
+
+		var f = Func1(o);
+
+		Console.WriteLine(f);
+		delegate*<Clazz2, int> fn = &Func1;
+
+		Console.WriteLine((Pointer<byte>) fn);
+
+		delegate* <int> fn2 = ((&Clazz2.Func));
+
+		Console.WriteLine((Pointer<byte>) fn2);
+		Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+		// Debugger.Break();
+		Console.ReadLine();
 	}
 
 	static void t1()
@@ -193,19 +218,22 @@ public static class Program
 		Console.WriteLine(GCHeap.IsHeapPointer(Mem.AddressOf(ref i)));
 	}
 
-	public static void HandleHotKey(IntPtr hWnd, int id)
-	{
-		// Handle the hotkey event
-		Console.WriteLine("Hotkey pressed. ID: " + id);
-
-	}
-
 	private static void TestAlloc1()
 	{
 		var v = AllocManager.New<Clazz>(ctor: [3, "foo", 1]);
 		Console.WriteLine(v);
 
 		AllocManager.Free(v);
+	}
+
+	public class Clazz2
+	{
+
+		public static unsafe int Func()
+		{
+			return default;
+		}
+
 	}
 
 	internal class Clazz

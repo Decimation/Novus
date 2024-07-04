@@ -185,13 +185,7 @@ public static class Global
 		// var pdbFile = Path.Join(DataFolder, CLR_PDB);
 		// File.WriteAllBytes(pdbFile, EmbeddedResources.coreclr);
 
-		var nt = Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
-
-		if (nt == null) {
-			return null;
-		}
-
-		var pdbFile = Path.Combine(nt, CLR_PDB);
+		var pdbFile = Win32SymbolReader.EnumerateSymbolPath(CLR_PDB).FirstOrDefault();
 
 		return pdbFile;
 	}
@@ -281,7 +275,6 @@ public static class Global
 
 	public const string OS_LINUX = "linux";
 #if EXTRA
-	
 	#region QWrite
 
 	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;

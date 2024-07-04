@@ -627,7 +627,7 @@ public class Tests_Native
 {
 
 	[Test]
-	[TestCase(@"C:\Symbols\coreclr.pdb")]
+	[TestCase(@"H:\Cache\Symbols\coreclr.pdb\5434162F63744BCC8E47D830C76BF45E1\coreclr.pdb")]
 	public void SymbolsTest(string sss)
 	{
 		var m = new Win32SymbolReader(sss);

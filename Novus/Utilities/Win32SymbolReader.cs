@@ -61,7 +61,7 @@ public sealed class Win32SymbolReader : IDisposable
 		m_modBase  = LoadModule();
 		m_disposed = false;
 
-		Symbols = new();
+		Symbols = [];
 		LoadAll();
 	}
 
@@ -288,4 +288,19 @@ public sealed class Win32SymbolReader : IDisposable
 
 		return pdbFilePath;
 	}
+
+	public static IEnumerable<string> EnumerateSymbolPath(string pattern)
+	{
+		var nt = Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
+
+		var enumerate = Directory.EnumerateFiles(nt, pattern,
+		                                         new EnumerationOptions()
+		                                         {
+			                                         MatchType             = MatchType.Simple, 
+			                                         RecurseSubdirectories = true,
+			                                         MaxRecursionDepth     = 3
+		                                         });
+		return enumerate;
+	}
+
 }

@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Numerics;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
@@ -43,6 +44,7 @@ using Novus.Win32.Wrappers;
 
 #pragma warning disable IDE0059
 #pragma warning disable IDE1006
+
 // #pragma warning disable CA1416 //todo
 
 namespace Novus.Memory;
@@ -277,8 +279,14 @@ public static unsafe class Mem
 
 	#region Cast
 
-	/*public static ref T ref_cast<T>( in T t)
+	/*public static ref T ref_cast<T>(in T t)
 		=> ref Unsafe.AsRef(ref t);*/
+	public static ref T ref_cast<T>(in T t)
+	{
+		
+		return ref Unsafe.NullRef<T>();
+		// return ref Unsafe.AsRef(ref t);
+	}
 
 	/*public static object as_cast(object t)
 		=> as_cast<object, object>(t);
@@ -471,7 +479,7 @@ public static unsafe class Mem
 
 			return rg;
 		}*/
-		
+
 		if (typeof(T).IsValueType) {
 			var x    = AddressOfData(ref value);
 			var size = SizeOf<T>();

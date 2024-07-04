@@ -212,8 +212,8 @@ public class Benchmarks26
 		fast   = FastResolver.Instance;
 		urlmon = UrlmonResolver.Instance;
 
-		m_stream1  = File.OpenRead(Values.f2);
-		
+		m_stream1 = File.OpenRead(Values.f2);
+
 		m_consumer = new Consumer();
 
 		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
@@ -1234,6 +1234,61 @@ public unsafe class Benchmarks_Pointer
 
 }
 
+public unsafe class Benchmarks_Pointer2
+{
+
+	private IntPtr       m_ptr;
+	private Pointer<int> m_ptr2;
+	private int*         m_ptr3;
+
+	[GlobalSetup]
+	public void GlobalSetup()
+	{
+
+		m_ptr2 = m_ptr = (nint) NativeMemory.Alloc(32, sizeof(int));
+		m_ptr3 = m_ptr2.ToPointer<int>();
+
+	}
+
+	[GlobalCleanup]
+	public void GlobalCleanup()
+	{
+
+		NativeMemory.Free(m_ptr.ToPointer());
+	}
+
+	[Benchmark]
+	public int Marshal1()
+	{
+		return Marshal.ReadInt32(m_ptr);
+	}
+
+	[Benchmark]
+	public int Pointer1()
+	{
+		return m_ptr2.Reference;
+	}
+
+	[Benchmark]
+	public int Pointer2()
+	{
+		return m_ptr2.Value;
+	}
+
+	[Benchmark]
+	public int Native1()
+	{
+		return *m_ptr3;
+	}
+
+	[Benchmark]
+	public int Unsafe1()
+	{
+		return Unsafe.Read<int>(m_ptr3);
+	}
+
+}
+
 public class Benchmarks
 {
 
@@ -1259,5 +1314,16 @@ public class Benchmarks
 	// {
 	//
 	// }
+
+}
+
+public class Benchmarks_Import
+{
+
+	[Benchmark]
+	public void Bench1()
+	{
+		Global.Setup();
+	}
 
 }

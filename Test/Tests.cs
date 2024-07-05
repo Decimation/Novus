@@ -3,24 +3,95 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Novus;
 using Novus.Memory;
+using Novus.Memory.Allocation;
 using Novus.OS;
 using Novus.Properties;
+using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
+using TestTypes;
 
 namespace Test
 {
-	internal class Tests
+	public static class Tests2
 	{
+
+		public delegate ref int Del(in int o);
+
+		[UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = nameof(Clazz2.Func))]
+		public static extern int Func1(Clazz2 c);
+
+		static void t2(ref int r)
+		{
+			r = 321;
+		}
+
+		public static unsafe void Test2()
+		{
+			var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
+			Console.WriteLine(GCHeap.IsHeapPointer(o));
+			Console.WriteLine(RuntimeProperties.IsBoxed(o));
+
+			var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
+			Console.WriteLine(GCHeap.IsHeapPointer(&o2));
+			Console.WriteLine(RuntimeProperties.IsBoxed(o2));
+			Console.WriteLine(Mem.AddressOfData(ref o2));
+
+			Console.WriteLine(RuntimeProperties.Box(o2));
+
+			var o3 = new MyStruct() { };
+			Console.WriteLine(RuntimeProperties.IsBoxed(o3));
+			Console.WriteLine(GCHeap.IsHeapPointer(&o3));
+			Console.WriteLine(RuntimeProperties.IsBoxed(RuntimeProperties.Box(o3)));
+			Console.WriteLine(GCHeap.IsHeapPointer(Mem.AddressOf(ref o3)));
+
+			int i = 1;
+			Console.WriteLine(GCHeap.IsHeapPointer(&i));
+			Console.WriteLine(GCHeap.IsHeapPointer(Mem.AddressOf(ref i)));
+		}
+
+		public static unsafe void Test3()
+		{
+			Clazz2 o = (Clazz2) RuntimeHelpers.GetUninitializedObject(typeof(Clazz2));
+
+			var f = Func1(o);
+
+			Console.WriteLine(f);
+			delegate*<Clazz2, int> fn = &Func1;
+
+			Console.WriteLine((Pointer<byte>) fn);
+
+			delegate* <int> fn2 = ((&Clazz2.Func));
+
+			Console.WriteLine((Pointer<byte>) fn2);
+			Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
+
+			// Debugger.Break();
+			Console.ReadLine();
+		}
+
+		public static void TestAlloc1()
+		{
+			var v = AllocManager.New<Clazz3>(ctor: [3, "foo", 1]);
+			Console.WriteLine(v);
+
+			AllocManager.Free(v);
+		}
+
+	}
+		internal class Tests1
+	{
+
 		private static readonly IntPtr HWND_MESSAGE       = new IntPtr(-3);
 		private const           int    WM_CLIPBOARDUPDATE = 0x031D;
 
@@ -47,6 +118,7 @@ namespace Test
 
 				if (clipboardData != IntPtr.Zero) {
 					string clipboardText = Marshal.PtrToStringUni(clipboardData);
+
 					// ...
 					Console.WriteLine(clipboardText);
 				}
@@ -185,6 +257,7 @@ namespace Test
 		private static void Test1()
 		{
 			dynamic o = new ExpandoObject();
+
 			// o.a = (Func<int>) (() => { return 1; });
 			var dictionary = (IDictionary<string, object>) o;
 			dictionary.Add("a", 1);
@@ -208,5 +281,7 @@ namespace Test
 			kl.Start();
 			Thread.Sleep(TimeSpan.FromSeconds(10));
 		}
+
 	}
+
 }

@@ -96,11 +96,9 @@ namespace Test;
  * ◆ Kantan				https://github.com/Decimation/Kantan
  *
  */
-
 /*
  * https://github.com/IS4Code/SharpUtils
  */
-
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -141,142 +139,18 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
 
-public static class Program
+public static unsafe class Program
 {
-
-	public delegate ref int Del(in int o);
-
-	[UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = nameof(Clazz2.Func))]
-	public static extern int Func1(Clazz2 c);
-
-	private static unsafe void Main(string[] args)
-	{
-
-	}
-
-	private static unsafe void Test3()
-	{
-		Clazz2 o = (Clazz2) RuntimeHelpers.GetUninitializedObject(typeof(Clazz2));
-
-		var f = Func1(o);
-
-		Console.WriteLine(f);
-		delegate*<Clazz2, int> fn = &Func1;
-
-		Console.WriteLine((Pointer<byte>) fn);
-
-		delegate* <int> fn2 = ((&Clazz2.Func));
-
-		Console.WriteLine((Pointer<byte>) fn2);
-		Console.WriteLine(Thread.CurrentThread.ManagedThreadId);
-		// Debugger.Break();
-		Console.ReadLine();
-	}
-
-	static void t1()
-	{
-		DynamicMethod d = new DynamicMethod("ref_cast2", null, new[] { typeof(int).MakeByRefType() },
-		                                    typeof(int).MakeByRefType());
-
-		var il = d.GetILGenerator();
-		il.Emit(OpCodes.Ret);
-		var f = (Del) d.CreateDelegate(typeof(Del));
-		int i = 0;
-		Console.WriteLine(i);
-		ref int rf = ref f(in i);
-		t2(ref rf);
-		Console.WriteLine(i);
-
-	}
-
-	static void t2(ref int r)
-	{
-		r = 321;
-	}
-
-	private static unsafe void Test2()
-	{
-		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
-		Console.WriteLine(GCHeap.IsHeapPointer(o));
-		Console.WriteLine(RuntimeProperties.IsBoxed(o));
-
-		var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
-		Console.WriteLine(GCHeap.IsHeapPointer(&o2));
-		Console.WriteLine(RuntimeProperties.IsBoxed(o2));
-		Console.WriteLine(Mem.AddressOfData(ref o2));
-
-		Console.WriteLine(RuntimeProperties.Box(o2));
-
-		var o3 = new MyStruct() { };
-		Console.WriteLine(RuntimeProperties.IsBoxed(o3));
-		Console.WriteLine(GCHeap.IsHeapPointer(&o3));
-		Console.WriteLine(RuntimeProperties.IsBoxed(RuntimeProperties.Box(o3)));
-		Console.WriteLine(GCHeap.IsHeapPointer(Mem.AddressOf(ref o3)));
-
-		int i = 1;
-		Console.WriteLine(GCHeap.IsHeapPointer(&i));
-		Console.WriteLine(GCHeap.IsHeapPointer(Mem.AddressOf(ref i)));
-	}
-
-	private static void TestAlloc1()
-	{
-		var v = AllocManager.New<Clazz>(ctor: [3, "foo", 1]);
-		Console.WriteLine(v);
-
-		AllocManager.Free(v);
-	}
-
-	public class Clazz2
-	{
-
-		public static unsafe int Func()
-		{
-			return default;
-		}
-
-	}
-
-	internal class Clazz
-	{
-
-		public int a;
-
-		public const int i = 123_321;
-
-		public string s;
-
-		public int prop { get; set; }
-
-		public static int sprop { get; set; }
-
-		public Clazz()
-		{
-			a = i;
-		}
-
-		public Clazz(int a, string s, int prop)
-		{
-			this.a    = a;
-			this.s    = s;
-			this.prop = prop;
-		}
-
-		public void SayHi()
-			=> Console.WriteLine("hi");
-
-		public override string ToString()
-		{
-			return $"{nameof(a)}: {a}, {nameof(s)}: {s}, {nameof(prop)}: {prop}";
-		}
-
-	}
-
-	static void Run() { }
 
 	static Program()
 	{
 		Global.Clr.LoadImports(typeof(Program));
 		Global.Setup();
+
+	}
+
+	private static unsafe void Main(string[] args)
+	{
 
 	}
 

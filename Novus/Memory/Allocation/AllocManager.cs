@@ -161,6 +161,9 @@ public static class AllocManager
 		Free(ptr);
 	}
 
+	/// <summary>
+	/// <seealso cref="Mem.AllocInline{T}"/>
+	/// </summary>
 	public static unsafe T New<T>(params object[] ctor) where T : class
 	{
 		var type = typeof(T);

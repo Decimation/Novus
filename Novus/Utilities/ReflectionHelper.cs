@@ -626,6 +626,15 @@ public enum InheritanceProperties
 public static class ReflectionOperatorHelpers
 {
 
+	public static Expression GetExpressionForProperty<T>(PropertyInfo property)
+	{
+		var parameter          = Expression.Parameter(typeof(T));
+		var propertyExpression = Expression.Property(parameter, property);
+		var lambdaExpression   = Expression.Lambda(propertyExpression, parameter);
+
+		return lambdaExpression;
+	}
+
 	public static MMI memberof<T>(Expression<Func<T>> expression)
 	{
 		if (expression.Body is ConstantExpression) {

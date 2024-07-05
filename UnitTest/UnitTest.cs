@@ -185,6 +185,7 @@ public class Tests_UniSource
 		TestContext.WriteLine($"{f}");
 
 	}
+
 	[Test]
 	public async Task Test1c()
 	{
@@ -192,8 +193,8 @@ public class Tests_UniSource
 
 		var r = await HttpUtilities.GetFinalRedirectAsync(png);
 
-		var          t   = await UniSource.GetAsync(png, IFileTypeResolver.Default);
-		var          f   = await t.TryDownloadAsync();
+		var t = await UniSource.GetAsync(png, IFileTypeResolver.Default);
+		var f = await t.TryDownloadAsync();
 		TestContext.WriteLine($"{f}");
 
 	}
@@ -426,7 +427,7 @@ public unsafe class Tests_Pointer
 	[Test]
 	public void Test5()
 	{
-		Span<int> s = stackalloc int[4] { 1, 2, 3, 4 };
+				var s = stackalloc int[4] { 1, 2, 3, 4 };
 		var       p = (Pointer<int>) s;
 		Assert.AreEqual(s[0], p[0]);
 		p++;
@@ -501,8 +502,8 @@ public unsafe class Tests_Pointer
 	{
 		Span<int> s = stackalloc int[r.Length];
 		r.CopyTo(s);
-
-		var p = s.ToPointer();
+		ref int rg = ref Unsafe.NullRef<int>();
+		var     p  = s.ToPointer(ref rg);
 
 		for (int i = 0; i < r.Length; i++) {
 			Assert.AreEqual(s[i], p[i]);
@@ -558,8 +559,8 @@ public unsafe class Tests_Pointer
 			var p2 = &pinp[j];
 			var p3 = Marshal.UnsafeAddrOfPinnedArrayElement(rg, j);
 			Assert.True(ptr2.Address == p3);
-			Assert.True(*p2 == ptr2.Value);
-			Assert.True(p2 == ptr2++);
+			Assert.True(*p2          == ptr2.Value);
+			Assert.True(p2           == ptr2++);
 		}
 
 	}
@@ -680,6 +681,23 @@ public class Tests_RT
 	{
 		object a = 1;
 		Assert.True(RuntimeProperties.IsBoxed(a));
+	}
+
+	[Test]
+	public unsafe void Test3()
+	{
+		var rg   = stackalloc byte[Mem.SizeOf<Clazz>(SizeOfOptions.BaseInstance)];
+		var inst = Mem.AllocInline<Clazz>(rg, out var ptr2);
+
+		inst.a = 321;
+		inst.s = "butt";
+
+		rg = null;
+
+		GC.Collect();
+
+		Assert.False(GCHeap.IsHeapPointer(inst));
+		Assert.False(GCHeap.IsHeapPointer(ptr2));
 	}
 
 }
@@ -1512,7 +1530,7 @@ public class Tests_Mem
 
 		Pointer<byte> p = stackalloc byte[sizeOf];
 
-		ref var d = ref Mem.New<MyClass>(ref p, out var p2);
+		var d = Mem.AllocInline<MyClass>(p, out var p2);
 
 		const int i = 123;
 
@@ -1531,7 +1549,7 @@ public class Tests_Mem
 
 		Pointer<byte> p = AllocManager.Alloc((nuint) sizeOf);
 
-		ref var d = ref Mem.New<MyClass>(ref p, out var p2);
+		var d = Mem.AllocInline<MyClass>(p, out var p2);
 
 		const int    i = 123;
 		const string s = "foo";
@@ -1677,7 +1695,7 @@ public class Tests_AgainstRuntimeHelpers
 	[TestCaseSource(nameof(src))]
 	public void Test1(object o)
 	{
-		var mth = typeof(RuntimeHelpers).GetMethod("GetRawData", 
+		var mth = typeof(RuntimeHelpers).GetMethod("GetRawData",
 		                                           ReflectionHelper.ALL_FLAGS, new[] { typeof(object) });
 
 		Assert.AreEqual(mth.Invoke(null, new object[] { o }), o.GetRawData());

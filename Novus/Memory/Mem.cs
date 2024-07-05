@@ -281,11 +281,10 @@ public static unsafe class Mem
 
 	/*public static ref T ref_cast<T>(in T t)
 		=> ref Unsafe.AsRef(ref t);*/
+
 	public static ref T ref_cast<T>(in T t)
 	{
-		
-		return ref Unsafe.NullRef<T>();
-		// return ref Unsafe.AsRef(ref t);
+		return ref Unsafe.AsRef(t);
 	}
 
 	/*public static object as_cast(object t)
@@ -898,6 +897,7 @@ public static unsafe class Mem
 
 		return (Pointer<TField>) (p + offsetOf);
 	}
+
 	/*public static ref TField ReferenceOfField<TField>(object obj, string name) =>
 		ref AddressOfField<object, TField>(obj, name).Reference;
 
@@ -1007,20 +1007,21 @@ public static unsafe class Mem
 	/// Allocates an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="p"/>.
 	/// The allocated memory size must be at least &gt;= value returned by <see cref="SizeOfOptions.BaseInstance"/>
 	/// <see cref="Mem.SizeOf{T}()"/>
+	/// <seealso cref="AllocManager.AllocInline{T}"/>
 	/// </summary>
 	/// <typeparam name="T">Type to allocate</typeparam>
 	/// <param name="p">Memory within which to allocate the instance</param>
 	/// <param name="p2">Original base pointer</param>
 	/// <returns>An instance of type <typeparamref name="T"/> allocated within <paramref name="p"/></returns>
 	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
-	public static ref T New<T>(ref Pointer p, out Pointer p2)
+	public static T AllocInline<T>(Pointer p, out Pointer p2) where T : class
 	{
 		p2 = p;
 		p.Cast<ObjHeader>().Write(default);
 		p += Size;
 		p.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
 
-		return ref AddressOf(ref p).Cast<T>().Reference;
+		return AddressOf(ref p).Cast<T>().Reference;
 	}
 
 	public static ref T ReadRef<T>(this Memory<T> sp, out MemoryHandle mh)
@@ -1030,10 +1031,12 @@ public static unsafe class Mem
 		return ref p.Reference;
 	}
 
+	/*
 	public static ref T ReadRef<T>(this Span<T> sp)
 	{
 		return ref sp.GetPinnableReference();
 	}
+	*/
 
 	public static (ModuleEntry32, ImageSectionInfo) Locate(Pointer ptr, Process proc)
 	{
@@ -1063,8 +1066,8 @@ public static unsafe class Mem
 		return (default, default);
 	}
 
-	public static Pointer<T> ToPointer<T>(this Span<T> s)
-		=> s.ToPointer(ref Unsafe.NullRef<T>());
+	/*public static Pointer<T> ToPointer<T>(this Span<T> s)
+		=> s.ToPointer(ref s.GetPinnableReference());*/
 
 	public static Pointer<T> ToPointer<T>(this Span<T> s, ref T t)
 	{

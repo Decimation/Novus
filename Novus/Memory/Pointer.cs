@@ -158,8 +158,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public static /*implicit*/ explicit operator Pointer<T>(Pointer<byte> ptr)
 		=> ptr.Address;
 
-	public static explicit operator Pointer<T>(Span<T> s)
-		=> s.ToPointer();
+	/*public static explicit operator Pointer<T>(Span<T> s)
+		=> s.ToPointer();*/
 
 	/// <summary>
 	///     Creates a new <see cref="Pointer{T}" /> of type <typeparamref name="TNew" />, pointing to

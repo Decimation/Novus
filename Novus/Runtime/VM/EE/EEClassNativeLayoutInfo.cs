@@ -11,10 +11,10 @@ namespace Novus.Runtime.VM.EE;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct EEClassNativeLayoutInfo
 {
-	internal byte   Alignment     { get; }
-	internal bool   IsMarshalable { get; }
-	private  ushort Padding       { get; }
-	internal uint   Size          { get; }
-	internal uint   NumFields     { get; }
-	internal void*  Descriptor    { get; }
+	internal byte   Alignment     { get; set; }
+	internal bool   IsMarshalable { get; set; }
+	private  ushort Padding       { get; set; }
+	internal uint   Size          { get; set; }
+	internal uint   NumFields     { get; set; }
+	internal void*  Descriptor    { get; set; }
 }

@@ -28,25 +28,25 @@ public unsafe struct MethodTable
 		Global.Clr.LoadImports(typeof(MethodTable));
 	}
 
-	internal short ComponentSize { get; }
+	internal short ComponentSize { get;set; }
 
-	internal GenericsFlags GenericsFlags { get; }
+	internal GenericsFlags GenericsFlags { get; set; }
 
-	internal int BaseSize { get; }
+	internal int BaseSize { get; set; }
 
-	internal OptionalSlotsFlags SlotsFlags { get; }
+	internal OptionalSlotsFlags SlotsFlags { get; set; }
 
-	internal short RawToken { get; }
+	internal short RawToken { get; set; }
 
-	internal short NumVirtuals { get; }
+	internal short NumVirtuals { get; set; }
 
-	internal short NumInterfaces { get; }
+	internal short NumInterfaces { get; set; }
 
-	internal MethodTable* Parent { get; }
+	internal MethodTable* Parent { get; set; }
 
-	internal void* Module { get; }
+	internal void* Module { get; set; }
 
-	internal void* WriteableData { get; }
+	internal void* WriteableData { get; set; }
 
 	internal TypeFlags TypeFlags
 	{
@@ -109,7 +109,7 @@ public unsafe struct MethodTable
 	///     <para><see cref="EEClass" /></para>
 	///     <para>Canonical <see cref="MethodTable"/></para>
 	/// </summary>
-	private nint Union1 { get; }
+	private nint Union1 { get; set; }
 
 	internal Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 	{
@@ -127,7 +127,7 @@ public unsafe struct MethodTable
 	///     <para><see cref="ElementTypeHandle" /></para>
 	///     <para>MultipurposeSlot1</para>
 	/// </summary>
-	private nint Union2 { get; }
+	private nint Union2 { get; set; }
 
 	internal Pointer<MethodTable> ElementTypeHandle => Union2;
 
@@ -136,7 +136,7 @@ public unsafe struct MethodTable
 	///     <para><see cref="InterfaceMap" /></para>
 	///     <para>MultipurposeSlot2</para>
 	/// </summary>
-	private nint Union3 { get; }
+	private nint Union3 { get; set; }
 
 	internal Pointer<Pointer<byte>> InterfaceMap => (void**) Union3;
 
@@ -146,7 +146,7 @@ public unsafe struct MethodTable
 	[field: ImportClr("Sig_GetNativeLayoutInfo")]
 	private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo
 	{
-		get;
+		get; 
 	}
 
 	//

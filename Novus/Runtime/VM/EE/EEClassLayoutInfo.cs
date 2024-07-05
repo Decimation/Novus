@@ -14,7 +14,7 @@ namespace Novus.Runtime.VM.EE;
 public unsafe struct EEClassLayoutInfo
 {
 		
-	internal int ManagedSize { get; }
+	internal int ManagedSize { get; set; }
 
 	// 1,2,4 or 8: this is equal to the largest of the alignment requirements
 	// of each of the EEClass's members. If the NStruct extends another NStruct,
@@ -26,10 +26,10 @@ public unsafe struct EEClassLayoutInfo
 
 	// Alias: ManagedLargestAlignmentRequirementOfAllMembers
 
-	internal byte ManagedMaxAlignReqOfAll { get; }
+	internal byte ManagedMaxAlignReqOfAll { get; set; }
 
-	internal LayoutFlags Flags { get; }
+	internal LayoutFlags Flags { get; set; }
 
-	internal byte PackingSize { get; }
+	internal byte PackingSize { get; set; }
 
 }

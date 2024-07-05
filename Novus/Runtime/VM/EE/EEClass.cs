@@ -20,25 +20,25 @@ namespace Novus.Runtime.VM.EE;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct EEClass
 {
-	internal void* GuidInfo { get; }
+	internal void* GuidInfo { get; set; }
 
-	internal void* OptionalFields { get; }
+	internal void* OptionalFields { get; set; }
 
-	internal MethodTable* MethodTable { get; }
+	internal MethodTable* MethodTable { get; set; }
 
 	/// <summary>
 	/// Relative <see cref="Pointer{T}"/> to <see cref="FieldDesc"/>
 	/// </summary>
-	internal FieldDesc* FieldDescList { get; }
+	internal FieldDesc* FieldDescList { get; set; }
 
-	internal void* Chunks { get; }
+	internal void* Chunks { get; set; }
 
 	/// <summary>
 	///     <para>Union 1</para>
 	///     <para><see cref="ObjectHandleDelegate" /></para>
 	///     <para><see cref="InterfaceType" /></para>
 	/// </summary>
-	private void* Union1 { get; }
+	private void* Union1 { get; set; }
 
 	internal void* ObjectHandleDelegate => Union1;
 
@@ -51,19 +51,19 @@ public unsafe struct EEClass
 		}
 	}
 
-	internal void* CCWTemplate { get; }
+	internal void* CCWTemplate { get; set; }
 
-	internal TypeAttributes Attributes { get; }
+	internal TypeAttributes Attributes { get; set; }
 
-	internal VMFlags VMFlags { get; }
+	internal VMFlags VMFlags { get; set; }
 
-	internal CorElementType NormType { get; }
+	internal CorElementType NormType { get; set; }
 
-	internal bool FieldsArePacked { get; }
+	internal bool FieldsArePacked { get; set; }
 
-	internal byte FixedEEClassFields { get; }
+	internal byte FixedEEClassFields { get; set; }
 
-	internal byte BaseSizePadding { get; }
+	internal byte BaseSizePadding { get; set; }
 
 	// internal Pointer<FieldDesc> FieldList
 	// {

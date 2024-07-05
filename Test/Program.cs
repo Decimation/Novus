@@ -151,6 +151,55 @@ public static unsafe class Program
 
 	private static unsafe void Main(string[] args)
 	{
+		var gc = GCHeap.GlobalHeap;
+		Console.WriteLine(gc.ReadPointer());
+		Console.WriteLine(gc);
+
+		var rg = GC.AllocateArray<int>(1_000_000);
+
+		Console.WriteLine(GC.GetGCMemoryInfo());
+		Console.WriteLine(GC.GetTotalAllocatedBytes());
+		GC.Collect();
+
+		/*var rg = GC.AllocateArray<int>(1_000_000);
+
+		Console.WriteLine(GC.GetGCMemoryInfo());
+		Console.WriteLine(GC.GetTotalAllocatedBytes());
+		gc.WritePointer(Mem.Nullptr);
+		GC.Collect();
+
+		Console.WriteLine(GC.GetGCMemoryInfo());
+		Console.WriteLine(GC.GetTotalAllocatedBytes());
+
+		GC.Collect();
+
+		Console.WriteLine(gc.ReadPointer());
+		Console.WriteLine(gc);*/
+
+		/*var symbol1s22 = Global.Clr.GetSymbol("g_pGCHeap");
+		Console.WriteLine(symbol1s22);
+		Console.WriteLine(symbol1s22.ReadPointer());
+		symbol1s22.WritePointer(Mem.Nullptr);
+		Console.WriteLine(GC.GetGCMemoryInfo());
+		Console.WriteLine(GC.GetTotalAllocatedBytes());
+		GC.Collect();
+		rg = GC.AllocateArray<int>(1_000_000);
+		GC.Collect();
+		Console.WriteLine(symbol1s22.ReadPointer());*/
+
+		var mt = typeof(string).AsMetaType();
+		mt.Value.Reference.BaseSize = -1;
+		Console.WriteLine(mt);
+		var s = "foo";
+
+		Console.WriteLine("butt");
+
+		for (int i = 0; i < 123; i++) {
+			Debug.Assert(i++ == --i);
+		}
+
+		Console.WriteLine(typeof(string).TypeHandle.Value);
+		Console.WriteLine(RuntimeProperties.GetMethodTable(s).Reference.BaseSize);
 
 	}
 

@@ -16,24 +16,24 @@ public unsafe struct MethodDescChunk
 	/// <summary>
 	/// Relative fixup <see cref="Pointer{T}"/>
 	/// </summary>
-	private Pointer<MethodTable> MethodTableStub { get; }
+	private Pointer<MethodTable> MethodTableStub { get; set; }
 
 	/// <summary>
 	/// Relative <see cref="Pointer{T}"/> to <see cref="MethodDescChunk"/>
 	/// </summary>
-	private Pointer<byte> Next { get; }
+	private Pointer<byte> Next { get; set; }
 
 	/// <summary>
 	/// The size of this chunk minus 1 (in multiples of MethodDesc::ALIGNMENT)
 	/// </summary>
-	internal byte Size { get; }
+	internal byte Size { get; set; }
 
 	/// <summary>
 	/// The number of <see cref="MethodDesc"/> in this chunk minus 1
 	/// </summary>
-	internal byte Count { get; }
+	internal byte Count { get; set; }
 
-	internal ChunkFlags FlagsAndTokenRange { get; }
+	internal ChunkFlags FlagsAndTokenRange { get; set; }
 
 	// Followed by array of method descs...
 

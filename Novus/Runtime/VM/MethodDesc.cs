@@ -27,23 +27,23 @@ public unsafe struct MethodDesc
 	internal MethodClassification Classification
 		=> (MethodClassification) ((ushort) Properties & (ushort) MethodProperties.Classification);
 
-	internal ushort Flags3AndTokenRemainder { get; }
+	internal ushort Flags3AndTokenRemainder { get; set; }
 
-	internal byte ChunkIndex { get; }
+	internal byte ChunkIndex { get; set; }
 
-	internal byte MethodIndex { get; }
+	internal byte MethodIndex { get; set; }
 
-	// internal CodeFlags CodeFlags { get; }
+	// internal CodeFlags CodeFlags { get; set; }
 
-	internal ushort SlotNumber { get; }
+	internal ushort SlotNumber { get; set; }
 
-	internal MethodProperties Properties { get; }
+	internal MethodProperties Properties { get; set; }
 
 	/// <summary>
 	///     Valid only if the function is non-virtual,
 	///     non-abstract, non-generic (size of this <see cref="MethodDesc"/> <c>== 16</c>)
 	/// </summary>
-	internal void* Function { get; }
+	internal void* Function { get; set; }
 
 	internal bool IsPointingToNativeCode
 	{

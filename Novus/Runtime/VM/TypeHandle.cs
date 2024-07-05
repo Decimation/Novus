@@ -22,7 +22,7 @@ public unsafe struct TypeHandle
 		Global.Clr.LoadImports(typeof(TypeHandle));
 	}
 
-	private void* Value { get; }
+	private void* Value { get;set; }
 
 	internal Pointer<MethodTable> MethodTable
 	{

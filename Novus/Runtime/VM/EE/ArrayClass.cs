@@ -13,10 +13,10 @@ namespace Novus.Runtime.VM.EE;
 [StructLayout(LayoutKind.Sequential)]
 public struct ArrayClass
 {
-	internal byte Rank { get; }
+	internal byte Rank { get; set; }
 
 	/// <summary>
 	/// Cache of <see cref="MethodTable.ElementTypeHandle"/>
 	/// </summary>
-	internal CorElementType ElementType { get; }
+	internal CorElementType ElementType { get; set; }
 }

@@ -26,7 +26,7 @@ public unsafe struct FieldDesc
 		Global.Clr.LoadImports(typeof(FieldDesc));
 	}
 
-	private Pointer<MethodTable> EnclosingMethodTableStub { get; }
+	private Pointer<MethodTable> EnclosingMethodTableStub { get; set; }
 
 	/// <summary>
 	/// <c>DWORD</c> #1
@@ -37,14 +37,14 @@ public unsafe struct FieldDesc
 	///     <para>unsigned m_prot : 3;</para>
 	///     <para>unsigned m_requiresFullMbValue : 1;</para>
 	/// </summary>
-	private uint UInt1 { get; }
+	private uint UInt1 { get; set; }
 
 	/// <summary>
 	/// <c>DWORD</c> #2
 	///     <para>unsigned m_dwOffset : 27;</para>
 	///     <para>unsigned m_type : 5;</para>
 	/// </summary>
-	private uint UInt2 { get; }
+	private uint UInt2 { get; set; }
 
 	internal int Size
 	{

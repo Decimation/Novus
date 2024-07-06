@@ -37,6 +37,7 @@ namespace Novus.Utilities;
 [SupportedOSPlatform(Global.OS_WIN)]
 public sealed class Win32SymbolReader : IDisposable
 {
+
 	private bool m_disposed;
 
 	private ulong m_modBase;
@@ -209,6 +210,7 @@ public sealed class Win32SymbolReader : IDisposable
 		var bcr = await cmd.ExecuteBufferedAsync();
 
 		var error = bcr.StandardError;
+
 		// var error = process.StandardError.ReadToEnd();
 
 		// var ee    = process.StandardOutput.ReadToEnd();
@@ -278,13 +280,14 @@ public sealed class Win32SymbolReader : IDisposable
 		}
 
 		var uriString = ER.MicrosoftSymbolServer +
-		                $"{fileName}/" +
+		                $"{fileName}/"           +
 		                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
 
 		await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
+
 		// wc.DownloadFile(new Uri(uriString), pdbFilePath);
 
-		ret:
+	ret:
 
 		return pdbFilePath;
 	}
@@ -296,7 +299,7 @@ public sealed class Win32SymbolReader : IDisposable
 		var enumerate = Directory.EnumerateFiles(nt, pattern,
 		                                         new EnumerationOptions()
 		                                         {
-			                                         MatchType             = MatchType.Simple, 
+			                                         MatchType             = MatchType.Simple,
 			                                         RecurseSubdirectories = true,
 			                                         MaxRecursionDepth     = 3
 		                                         });

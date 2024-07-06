@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Runtime.Caching;
@@ -10,9 +11,10 @@ using System.Threading.Tasks;
 
 namespace Novus.Utilities;
 
-[Obsolete]
+[Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 public static class AtomicHelper
 {
+
 	private static readonly Dictionary<Type, nint> Cache = new();
 
 	private static nint GetExchangeFunction<T>()
@@ -65,4 +67,5 @@ public static class AtomicHelper
 
 		return ptr;
 	}
+
 }

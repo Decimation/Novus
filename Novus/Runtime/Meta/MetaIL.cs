@@ -23,7 +23,6 @@ public class MetaIL : BaseClrStructure<CorILMethod>
 	 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/CoreClr/Meta/MetaIL.cs
 	 */
 
-
 	public MetaIL(Pointer<CorILMethod> ptr) : base(ptr) { }
 
 	public bool IsFat => Value.Reference.Fat.IsFat;
@@ -32,16 +31,15 @@ public class MetaIL : BaseClrStructure<CorILMethod>
 
 	public CorILMethodFlags Flags => IsFat ? Value.Reference.Fat.Flags : throw new NotImplementedException();
 
-
 	public int CodeSize => IsFat ? Value.Reference.Fat.CodeSize : Value.Reference.Tiny.CodeSize;
-
 
 	public Pointer<byte> Code => IsFat ? Value.Reference.Fat.Code : Value.Reference.Tiny.Code;
 
 	/// <summary>
 	/// Equals <see cref="MethodBody.GetILAsByteArray"/>
 	/// </summary>
-	public byte[] CodeIL => IsFat ? Value.Reference.Fat.CodeIL : Value.Reference.Tiny.CodeIL;
+	public byte[] GetCodeIL()
+		=> IsFat ? Value.Reference.Fat.GetCodeIL() : Value.Reference.Tiny.GetCodeIL();
 
 	/// <summary>
 	/// Equals <see cref="MethodBody.MaxStackSize"/>

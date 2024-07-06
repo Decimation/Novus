@@ -891,7 +891,7 @@ public static unsafe class Mem
 
 	public static Pointer<TField> AddressOfField<T, TField>(ref T obj, Expression<Func<TField>> mem)
 	{
-		int offsetOf = OffsetOf(obj.GetType(), memberof2(mem).Name);
+		int offsetOf = OffsetOf(obj.GetType(), member_of2(mem).Name);
 
 		Pointer p = AddressOfData(ref obj);
 

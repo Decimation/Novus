@@ -16,10 +16,10 @@ public struct ModuleEntry32
 	public uint modBaseSize;
 	public nint hModule;
 
-	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 256)]
+	[MA(UT.ByValTStr, SizeConst = 256)]
 	public string szModule;
 
-	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+	[MA(UT.ByValTStr, SizeConst = 260)]
 	public string szExePath;
 
 	public override string ToString()

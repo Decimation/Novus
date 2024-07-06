@@ -15,7 +15,7 @@ internal struct ImageSectionHeader
 {
 	private const int IMAGE_SIZEOF_SHORT_NAME = 8;
 
-	[field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = IMAGE_SIZEOF_SHORT_NAME)]
+	[field: MA(UT.ByValTStr, SizeConst = IMAGE_SIZEOF_SHORT_NAME)]
 	[field: FieldOffset(0)]
 	public string Name { get; }
 

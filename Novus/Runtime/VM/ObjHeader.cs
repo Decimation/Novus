@@ -9,5 +9,7 @@ namespace Novus.Runtime.VM;
 [StructLayout(LayoutKind.Sequential)]
 public struct ObjHeader
 {
-	private nint Value { get;set; }
+
+	private nint Value { get; set; }
+
 }

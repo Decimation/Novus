@@ -6,6 +6,7 @@ using Novus.Win32.Structures.User32;
 using InputRecord = Novus.Win32.Structures.User32.InputRecord;
 
 #pragma warning disable SYSLIB1054
+
 // ReSharper disable IdentifierTypo
 
 // ReSharper disable UnusedMember.Global
@@ -16,6 +17,7 @@ namespace Novus.Win32;
 #pragma warning disable CA1401, CA2101
 public static unsafe partial class Native
 {
+
 	[DllImport(COMDLG32_DLL)]
 	public static extern int CommDlgExtendedError();
 
@@ -31,8 +33,8 @@ public static unsafe partial class Native
 	public static extern int GetDlgItem(nint hDlg, int nIDDlgItem);
 
 	[DllImport(COMDLG32_DLL, CharSet = CharSet.Auto, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
-	public static extern bool GetOpenFileName([In,Out] ref OpenFileName lpofn);
+	[return: MA(UT.Bool)]
+	public static extern bool GetOpenFileName([In] [Out] ref OpenFileName lpofn);
 
 	[DllImport(USER32_DLL)]
 	public static extern nint GetParent(nint hWnd);
@@ -41,7 +43,7 @@ public static unsafe partial class Native
 	public static extern bool GetWindowRect(nint hWnd, ref RECT lpRect);
 
 	[DllImport(USER32_DLL)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool SetWindowPos(nint hWnd, nint hWndInsertAfter, int X, int Y, int cx, int cy,
 	                                       WindowFlags uFlags);
 
@@ -71,7 +73,7 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL)]
 	internal static extern uint SendInput(uint nInputs,
-	                                      [MA(UT.LPArray), In] InputRecord[] pInputs,
+	                                      [MA(UT.LPArray)] [In] InputRecord[] pInputs,
 	                                      int cbSize);
 
 	[DllImport(USER32_DLL)]
@@ -80,21 +82,19 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL)]
 	public static extern nint SendMessage(nint hWnd, int msg, nint wParam,
-	                                       [MA(UT.LPWStr)] string lParam);
+	                                      [MA(UT.LPWStr)] string lParam);
 
 	[DllImport(USER32_DLL)]
-
 	public static extern nint SendMessage(nint hWnd, int msg, int wParam,
-	                                       [MA(UT.LPWStr)] string lParam);
+	                                      [MA(UT.LPWStr)] string lParam);
 
 	[DllImport(USER32_DLL)]
-
 	public static extern nint SendMessage(nint hWnd, int msg, nint wParam, nint lParam);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool GetMessage(ref MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
-	                                    [Optional] uint wMsgFilterMax);
+	                                     [Optional] uint wMsgFilterMax);
 
 	/*
 	[DllImport(USER32_DLL, SetLastError = true)]
@@ -104,27 +104,25 @@ public static unsafe partial class Native
 	                                    */
 
 	[DllImport(USER32_DLL)]
-
 	public static extern nint GetMessageExtraInfo();
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
-
 	public static extern uint RegisterWindowMessage(string lpString);
 
 	[DllImport(USER32_DLL)]
 	public static extern nint DispatchMessage(ref MSG lpMsg);
 
 	[DllImport(USER32_DLL, SetLastError = false)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool TranslateMessage(ref MSG lpMsg);
 
 	[DllImport(USER32_DLL, SetLastError = false)]
 	public static extern void PostQuitMessage([Optional] int nExitCode);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
-	                                             [Optional] nint lParam);
+	                                            [Optional] nint lParam);
 
 	#region Key
 
@@ -136,17 +134,17 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL)]
 	[return: MA(UT.Bool)]
-	public static extern bool GetKeyboardState([MA(UT.LPArray), In] byte[] r);
+	public static extern bool GetKeyboardState([MA(UT.LPArray)] [In] byte[] r);
 
 	[DllImport(USER32_DLL, SetLastError = false, ExactSpelling = true)]
 	public static extern void keybd_event(byte bVk, byte bScan, KEYEVENTF dwFlags, nint dwExtraInfo = default);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool RegisterHotKey(nint hWnd, int id, HotKeyModifiers fsModifiers, uint vk);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool UnregisterHotKey(nint hWnd, int id);
 
 	#endregion
@@ -167,15 +165,17 @@ public static unsafe partial class Native
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	private class SearchData
 	{
+
 		public string Wndclass;
 		public string Title;
 		public nint   hWnd;
+
 	}
 
 	private delegate bool EnumWindowsProc(nint hWnd, ref SearchData data);
 
 	[DllImport(USER32_DLL)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, ref SearchData data);
 
 	[DllImport(USER32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
@@ -206,19 +206,19 @@ public static unsafe partial class Native
 	public static partial nint SetClipboardData(uint uFormat, void* hMem);
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static partial bool OpenClipboard(nint hWndNewOwner);
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static partial bool CloseClipboard();
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static partial bool EmptyClipboard();
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static partial bool IsClipboardFormatAvailable(uint uFormat);
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
@@ -231,11 +231,11 @@ public static unsafe partial class Native
 	public static partial int GetClipboardSequenceNumber();
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static partial bool AddClipboardFormatListener(IntPtr hwnd);
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static partial bool RemoveClipboardFormatListener(IntPtr hwnd);
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
@@ -249,15 +249,15 @@ public static unsafe partial class Native
 	public static partial IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool KillTimer([Optional] nint hWnd, nint uIDEvent);
 
 	[UnmanagedFunctionPointer(CallingConvention.Winapi)]
-	public delegate void Timerproc(nint hwnd, uint uMsg, nint idEvent, uint dwTime);
+	public delegate void TimerProc(nint hwnd, uint uMsg, nint idEvent, uint dwTime);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	public static extern nint SetTimer([Optional] nint hWnd, [Optional] nint nIDEvent, [Optional] uint uElapse,
-	                                   [Optional] Timerproc lpTimerFunc);
+	                                   [Optional] TimerProc lpTimerFunc);
 
 	public const int MF_BYCOMMAND = 0x00000000;
 
@@ -273,21 +273,25 @@ public static unsafe partial class Native
 	public unsafe delegate IntPtr WndProc(IntPtr hWnd, WindowMessage msg, void* wParam, void* lParam);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.U2)]
+	[return: MA(UT.U2)]
 	public static extern short RegisterClassEx(ref WNDCLASSEX lpwcx);
+
 }
 
 public enum SysCommand : uint
 {
+
 	SC_CLOSE    = 0xF060,
 	SC_MINIMIZE = 0xF020,
 	SC_MAXIMIZE = 0xF030,
 	SC_SIZE     = 0xF000,
+
 }
 
 [Flags]
 public enum KEYEVENTF
 {
+
 	/// <summary>If specified, the scan code was preceded by a prefix byte having the value 0xE0 (224).</summary>
 	KEYEVENTF_EXTENDEDKEY = 0x0001,
 
@@ -302,11 +306,13 @@ public enum KEYEVENTF
 
 	/// <summary>If specified, wScan identifies the key and wVk is ignored.</summary>
 	KEYEVENTF_SCANCODE = 0x0008,
+
 }
 
 [Flags]
 public enum HotKeyModifiers
 {
+
 	/// <summary>Nothing held down.</summary>
 	MOD_NONE = 0,
 
@@ -330,11 +336,13 @@ public enum HotKeyModifiers
 	/// <para>Windows Vista: This flag is not supported.</para>
 	/// </summary>
 	MOD_NOREPEAT = 0x4000,
+
 }
 
 //todo
 public enum ClipboardFormat : uint
 {
+
 	CF_TEXT        = 1,
 	CF_UNICODETEXT = 13,
 	CF_OEMTEXT     = 7,
@@ -348,16 +356,19 @@ public enum ClipboardFormat : uint
 
 	// PNG=49273,
 
-	PNG = 49299,
+	PNG  = 49299,
 	PNG2 = 49496,
+
 }
 
 public enum HandleWindowPosition
 {
+
 	HWND_BOTTOM    = 1,
 	HWND_NOTOPMOST = -2,
 	HWND_TOP       = 0,
 	HWND_TOPMOST   = -1,
+
 }
 
 /// <summary>
@@ -371,12 +382,15 @@ public enum HandleWindowPosition
 /// </remarks>
 public enum BOOL
 {
+
 	FALSE = 0,
 	TRUE  = 1
+
 }
 
 public enum WindowFlags
 {
+
 	TOPMOST_FLAGS = SWP_NOMOVE | SWP_NOSIZE,
 
 	SWP_ASYNCWINDOWPOS = 0x4000,
@@ -394,11 +408,13 @@ public enum WindowFlags
 	SWP_NOSIZE         = 0x0001,
 	SWP_NOZORDER       = 0x0004,
 	SWP_SHOWWINDOW     = 0x0040,
+
 }
 
 [Flags]
 public enum ClassStyles : uint
 {
+
 	/// <summary>
 	/// Aligns the window's client area on a byte boundary (in the x direction). This style
 	/// affects the width of the window and its horizontal placement on the display.
@@ -481,15 +497,17 @@ public enum ClassStyles : uint
 	/// client area.
 	/// </summary>
 	CS_VREDRAW = 0x0001,
+
 }
 
 public unsafe partial struct WNDCLASSEX
 {
+
 	public int cbSize;
 
 	public ClassStyles style;
 
-	[MarshalAs(UnmanagedType.FunctionPtr)]
+	[MA(UT.FunctionPtr)]
 	public Native.WndProc lpfnWndProc;
 
 	public int cbClsExtra;
@@ -516,11 +534,13 @@ public unsafe partial struct WNDCLASSEX
 		nw.cbSize = Marshal.SizeOf(typeof(WNDCLASSEX));
 		return nw;
 	}
+
 }
 
 [Flags]
 public enum WindowStylesEx : uint
 {
+
 	/// <summary>
 	/// Specifies a window that accepts drag-drop files.
 	/// </summary>
@@ -701,4 +721,5 @@ public enum WindowStylesEx : uint
 	/// have visible content or that use mechanisms other than surfaces to provide their visual.
 	/// </summary>
 	WS_EX_NOREDIRECTIONBITMAP = 0x00200000,
+
 }

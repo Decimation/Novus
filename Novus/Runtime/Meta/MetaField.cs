@@ -19,6 +19,7 @@ namespace Novus.Runtime.Meta;
 /// </summary>
 public unsafe class MetaField : EmbeddedClrStructure<FieldDesc>
 {
+
 	private const int FIELD_OFFSET_MAX = (1 << 27) - 1;
 
 	private const int FIELD_OFFSET_NEW_ENC = FIELD_OFFSET_MAX - 4;
@@ -65,7 +66,10 @@ public unsafe class MetaField : EmbeddedClrStructure<FieldDesc>
 		}
 	}
 
-	public static implicit operator MetaField(Pointer<FieldDesc> ptr) => new(ptr);
+	public static implicit operator MetaField(Pointer<FieldDesc> ptr)
+		=> new(ptr);
 
-	public static implicit operator MetaField(FieldInfo t) => new(t);
+	public static implicit operator MetaField(FieldInfo t)
+		=> new(t);
+
 }

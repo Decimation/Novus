@@ -20,23 +20,23 @@ public struct ShellExecuteInfo
 	/// <summary>
 	/// <see cref="ShellExecuteVerbs"/>; <see cref="ProcessStartInfo.Verb"/>
 	/// </summary>
-	[MarshalAs(UnmanagedType.LPTStr)]
+	[MA(UT.LPTStr)]
 	public string lpVerb;
 
-	[MarshalAs(UnmanagedType.LPTStr)]
+	[MA(UT.LPTStr)]
 	public string lpFile;
 
-	[MarshalAs(UnmanagedType.LPTStr)]
+	[MA(UT.LPTStr)]
 	public string lpParameters;
 
-	[MarshalAs(UnmanagedType.LPTStr)]
+	[MA(UT.LPTStr)]
 	public string lpDirectory;
 
 	public int    nShow;
 	public nint hInstApp;
 	public nint lpIDList;
 
-	[MarshalAs(UnmanagedType.LPTStr)]
+	[MA(UT.LPTStr)]
 	public string lpClass;
 
 	public nint hkeyClass;

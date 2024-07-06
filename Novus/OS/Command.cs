@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Kantan.Text;
@@ -13,9 +14,12 @@ namespace Novus.OS;
 /// <summary>
 ///     Utilities for working with the command prompt.
 /// </summary>
-[Obsolete($"Use {nameof(CliWrap)}")]
+
+[Experimental(Global.DIAG_ID_EXPERIMENTAL)]
+// [Obsolete($"Use {nameof(CliWrap)}")]
 public static class Command
 {
+
 	/// <summary>
 	///     Creates a <see cref="System.Diagnostics.Process" /> to execute <paramref name="args" /> with the command prompt.
 	/// </summary>
@@ -90,4 +94,5 @@ public static class Command
 
 		return proc;
 	}
+
 }

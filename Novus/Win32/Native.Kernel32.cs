@@ -1,6 +1,7 @@
 ﻿global using ATOM = System.UInt16;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
@@ -13,6 +14,7 @@ namespace Novus.Win32;
 #pragma warning disable CA1401,CA2101
 public static unsafe partial class Native
 {
+
 	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
 	public static extern ATOM GlobalAddAtom(string lpString);
 
@@ -65,7 +67,7 @@ public static unsafe partial class Native
 	public static partial nint GetStdHandle(StandardHandle nStdHandle);
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static partial bool SetStdHandle(StandardHandle nStdHandle, IntPtr nHandle);
 
 	[LibraryImport(KERNEL32_DLL)]
@@ -115,7 +117,7 @@ public static unsafe partial class Native
 	internal static extern bool WriteConsoleOutput(nint hConsoleOutput,
 	                                               /* This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
 	                                               whose size is specified by the dwBufferSize parameter.*/
-	                                               [MarshalAs(UnmanagedType.LPArray), In] CharInfo[,] lpBuffer,
+	                                               [MA(UT.LPArray)] [In] CharInfo[,] lpBuffer,
 	                                               Coord dwBufferSize,
 	                                               Coord dwBufferCoord,
 	                                               ref SmallRect lpWriteRegion);
@@ -133,15 +135,15 @@ public static unsafe partial class Native
 	                                                  ref ConsoleFontInfo lpConsoleCurrentFont);
 
 	[DllImport(KERNEL32_DLL)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool AllocConsole();
 
 	[DllImport(KERNEL32_DLL)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool FreeConsole();
 
 	[DllImport(KERNEL32_DLL)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool AttachConsole(int dwProcessId);
 
 	#endregion
@@ -238,7 +240,7 @@ public static unsafe partial class Native
 	                                       int dwProcessId);
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
-	[return: MarshalAs(UT.Bool)]
+	[return: MA(UT.Bool)]
 	public static partial bool CloseHandle(nint obj);
 
 	#endregion
@@ -274,6 +276,7 @@ public static unsafe partial class Native
 
 	public enum CodePages
 	{
+
 		CP_IBM437 = 437,
 
 		/// <summary>The system default Windows ANSI code page.</summary>
@@ -296,20 +299,55 @@ public static unsafe partial class Native
 
 		/// <summary>UTF-8.</summary>
 		CP_UTF8 = 65001,
+
 	}
 
 	#endregion
 
+	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
+	[SuppressUnmanagedCodeSecurity]
+	public static extern bool EnumResourceNames(nint module, nint type, EnumerateResourceNames enumFunc, nint param);
+
+	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
+	[SuppressUnmanagedCodeSecurity]
+	public static extern nint FindResource(nint module, nint name, nint type);
+
+	[DllImport(KERNEL32_DLL, SetLastError = true)]
+	[SuppressUnmanagedCodeSecurity]
+	public static extern nint LoadResource(nint module, nint resInfo);
+
+	[DllImport(KERNEL32_DLL, SetLastError = true)]
+	[SuppressUnmanagedCodeSecurity]
+	public static extern nint LockResource(nint resData);
+
+	[DllImport(KERNEL32_DLL, SetLastError = true)]
+	[SuppressUnmanagedCodeSecurity]
+	public static extern uint SizeofResource(nint module, nint resInfo);
+
+	[DllImport(KERNEL32_DLL)]
+	public static extern nint BeginUpdateResource(string fileName, [MA(UT.Bool)] bool deleteExistingResources);
+
+	[DllImport(KERNEL32_DLL)]
+	public static extern bool EndUpdateResource(nint update, bool discard);
+
+	[DllImport(KERNEL32_DLL)]
+	public static extern int UpdateResource(nint update, uint type, uint name, ushort language, byte[] data,
+	                                        uint dateLength);
+
+	[UnmanagedFunctionPointer(CallingConvention.Winapi, SetLastError = true, CharSet = CharSet.Unicode)]
+	[SuppressUnmanagedCodeSecurity]
+	public delegate bool EnumerateResourceNames(nint module, nint type, nint name, nint lParam);
+
 	[DllImport(KERNEL32_DLL, ExactSpelling = true, CharSet = CharSet.Unicode, SetLastError = true)]
 	public static extern int MultiByteToWideChar(int codePage, CharConversionFlags dwFlags, byte[] lpMultiByteStr,
 	                                             int cchMultiByte,
-	                                             [Out, MA(UT.LPWStr)] StringBuilder lpWideCharStr,
+	                                             [Out] [MA(UT.LPWStr)] StringBuilder lpWideCharStr,
 	                                             int cchWideChar);
 
 	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
 	public static extern int WideCharToMultiByte(int codePage, CharConversionFlags flags,
 	                                             [MA(UT.LPWStr)] string wideStr, int chars,
-	                                             [In, Out] byte[] pOutBytes, int bufferBytes, nint defaultChar,
+	                                             [In] [Out] byte[] pOutBytes, int bufferBytes, nint defaultChar,
 	                                             nint pDefaultUsed);
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
@@ -385,4 +423,5 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint GlobalSize(nint hMem);
+
 }

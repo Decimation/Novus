@@ -165,10 +165,10 @@ public static class Global
 
 	// internal static readonly ILoggerFactory LoggerFactory = new LoggerFactory();
 
-	internal static readonly ILoggerFactory Factory =
-		LoggerFactory.Create(builder => builder.AddDebug());
+	internal static readonly ILoggerFactory LoggerFactory =
+		Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddDebug());
 
-	internal static readonly ILogger Log = Factory.CreateLogger(LIB_NAME);
+	internal static readonly ILogger Logger = LoggerFactory.CreateLogger(LIB_NAME);
 
 	static Global()
 	{
@@ -204,11 +204,11 @@ public static class Global
 		 * Setup
 		 */
 
-		Log.LogTrace($"[{LIB_NAME}] Module init");
-		Log.LogTrace($"[{LIB_NAME}]");
+		Logger.LogTrace($"[{LIB_NAME}] Module init");
+		Logger.LogTrace($"[{LIB_NAME}]");
 
 		if (!IsWindows) {
-			Log.LogWarning("Not on Windows!");
+			Logger.LogWarning("Not on Windows!");
 			return;
 		}
 
@@ -227,8 +227,8 @@ public static class Global
 		} */
 
 		if (!IsCompatible) {
-			Log.LogCritical($"[{LIB_NAME}] Compatibility check failed! " +
-			                $"(Runtime: {Environment.Version} | Target: {ClrVersion})", C_ERROR);
+			Logger.LogCritical($"[{LIB_NAME}] Compatibility check failed! " +
+			                   $"(Runtime: {Environment.Version} | Target: {ClrVersion})", C_ERROR);
 
 			//Require.Fail();
 		}
@@ -244,7 +244,7 @@ public static class Global
 			//Close();
 		};
 
-		Log.LogDebug($"[{LIB_NAME}] CLR: ({Environment.Version})", C_INFO);
+		Logger.LogDebug($"[{LIB_NAME}] CLR: ({Environment.Version})", C_INFO);
 
 	}
 
@@ -332,5 +332,8 @@ public static class Global
 
 	#endregion
 #endif
+
+	//CS8058
+	internal const string DIAG_ID_EXPERIMENTAL = "NV0001";
 
 }

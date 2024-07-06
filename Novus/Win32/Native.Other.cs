@@ -11,7 +11,7 @@ namespace Novus.Win32;
 public static unsafe partial class Native
 {
 	[DllImport(UNAME_DLL, SetLastError = true)]
-	private static extern int GetUName(ushort wCharCode, [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpBuf);
+	private static extern int GetUName(ushort wCharCode, [MA(UT.LPWStr)] StringBuilder lpBuf);
 
 	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
 	internal static extern nuint _msize(void* ptr);

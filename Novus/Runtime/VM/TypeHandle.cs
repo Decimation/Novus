@@ -1,4 +1,5 @@
 ﻿// global using TADDR = nuint;
+
 using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.Imports.Attributes;
@@ -17,12 +18,13 @@ namespace Novus.Runtime.VM;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct TypeHandle
 {
+
 	static TypeHandle()
 	{
 		Global.Clr.LoadImports(typeof(TypeHandle));
 	}
 
-	private void* Value { get;set; }
+	private void* Value { get; set; }
 
 	internal Pointer<MethodTable> MethodTable
 	{
@@ -40,4 +42,5 @@ public unsafe struct TypeHandle
 	/// </summary>
 	[field: ImportClr("Sig_GetMethodTable")]
 	private static delegate* unmanaged[Thiscall]<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
+
 }

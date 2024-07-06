@@ -13,7 +13,7 @@ namespace Novus.Runtime.VM.EE;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct EEClassLayoutInfo
 {
-		
+
 	internal int ManagedSize { get; set; }
 
 	// 1,2,4 or 8: this is equal to the largest of the alignment requirements

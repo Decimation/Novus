@@ -69,5 +69,7 @@ internal unsafe struct CorILMethodTiny
 		}
 	}
 
-	internal byte[] CodeIL => Code.ToArray(CodeSize);
+	internal byte[] GetCodeIL()
+		=> Code.ToArray(CodeSize);
+
 }

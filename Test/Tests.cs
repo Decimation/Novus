@@ -38,11 +38,11 @@ namespace Test
 
 		public static unsafe void Test2()
 		{
-			var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
+			var o = (MyClass2) RuntimeHelpers.GetUninitializedObject(typeof(MyClass2));
 			Console.WriteLine(GCHeap.IsHeapPointer(o));
 			Console.WriteLine(RuntimeProperties.IsBoxed(o));
 
-			var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
+			var o2 = (MyStruct) RuntimeHelpers.GetUninitializedObject(typeof(MyStruct));
 			Console.WriteLine(GCHeap.IsHeapPointer(&o2));
 			Console.WriteLine(RuntimeProperties.IsBoxed(o2));
 			Console.WriteLine(Mem.AddressOfData(ref o2));

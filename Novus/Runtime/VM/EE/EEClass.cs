@@ -20,6 +20,7 @@ namespace Novus.Runtime.VM.EE;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct EEClass
 {
+
 	internal void* GuidInfo { get; set; }
 
 	internal void* OptionalFields { get; set; }
@@ -77,11 +78,11 @@ public unsafe struct EEClass
 
 	internal Pointer<ArrayClass> AsArrayClass
 	{
-		get	
+		get
 		{
 			fixed (EEClass* value = &this) {
 				Pointer<byte> p = value;
-				p+=Mem.SizeOf<EEClass>();
+				p += Mem.SizeOf<EEClass>();
 
 				return p.Cast<ArrayClass>();
 			}
@@ -98,7 +99,7 @@ public unsafe struct EEClass
 		{
 			fixed (EEClass* value = &this) {
 				var p = (LayoutEEClass*) value;
-				
+
 				return &p->LayoutInfo;
 			}
 
@@ -156,11 +157,13 @@ public unsafe struct EEClass
 			}
 		}
 	}
+
 }
 
 [Flags]
 public enum LayoutFlags : byte
 {
+
 	/// <summary>
 	///     TRUE if the GC layout of the class is bit-for-bit identical
 	///     to its unmanaged counterpart (i.e. no internal reference fields,
@@ -195,10 +198,12 @@ public enum LayoutFlags : byte
 	R4HFA = 0x10,
 
 	R8HFA = 0x20
+
 }
 
 public enum EEClassFieldId : uint
 {
+
 	NumInstanceFields = 0,
 	NumMethods,
 	NumStaticFields,
@@ -211,11 +216,13 @@ public enum EEClassFieldId : uint
 	NonGCThreadStaticFieldBytes,
 	NumNonVirtualSlots,
 	COUNT
+
 }
 
 [Flags]
 public enum VMFlags : uint
 {
+
 	LayoutDependsOnOtherModules = 0x00000001,
 	Delegate                    = 0x00000002,
 
@@ -259,6 +266,7 @@ public enum VMFlags : uint
 	///     Would like to have 8-byte alignment
 	/// </summary>
 	PreferAlign8 = 0x00200000,
+
 	// unused                              = 0x00400000,
 
 	SparseForCominterop = 0x00800000,
@@ -282,4 +290,5 @@ public enum VMFlags : uint
 	MarshalingTypeInhibit      = 0x40000000,
 	MarshalingTypeFreeThreaded = 0x80000000,
 	MarshalingTypeStandard     = 0xc0000000
+
 }

@@ -6,14 +6,14 @@ namespace Novus.Win32;
 
 public static partial class Native
 {
+
 	/// <summary>
 	/// <c>ZwDuplicateObject</c>
 	/// </summary>
 	[DllImport(NTDLL_DLL)]
 	public static extern unsafe NtStatus NtDuplicateObject(nint sourceProcessHandle, nint sourceHandle,
 	                                                       nint targetProcessHandle, nint* targetHandle,
-	                                                       ulong desiredAccess, ulong handleAttributes,
-	                                                       ulong options);
+	                                                       ulong desiredAccess, ulong handleAttributes, ulong options);
 
 	/// <summary>Retrieves the specified system information.</summary>
 	/// <param name="systemInformationClass">indicate the kind of system information to be retrieved</param>
@@ -32,18 +32,19 @@ public static partial class Native
 	                                            out uint returnLength);
 
 	[DllImport(NTDLL_DLL)]
-	public static extern unsafe NtStatus NtQueryInformationProcess(IntPtr processHandle,
-	                                                               ProcessInfoClass processInformationClass,
-	                                                               void* processInformation,
-	                                                               int processInformationLength,
+	public static extern unsafe NtStatus NtQueryInformationProcess(IntPtr processHandle, ProcessInfoClass processInformationClass,
+	                                                               void* processInformation, int processInformationLength,
 	                                                               out int returnLength);
+
 }
 
 public enum ObjectInformationClass : int
 {
+
 	ObjectBasicInformation    = 0,
 	ObjectNameInformation     = 1,
 	ObjectTypeInformation     = 2,
 	ObjectAllTypesInformation = 3,
 	ObjectHandleInformation   = 4
+
 }

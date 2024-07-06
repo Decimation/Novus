@@ -4,6 +4,7 @@ using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Runtime.VM;
+using Novus.Utilities;
 using Novus.Win32;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -34,7 +35,7 @@ public static unsafe class GCHeap
 
 	/*public static bool IsHeapPointer(object o, bool smallHeapOnly = false)
 		=> IsHeapPointer(Mem.AddressOfHeap(o), smallHeapOnly);*/
-	
+
 	public static bool IsHeapPointer(in Pointer ptr, bool smallHeapOnly = false)
 		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
@@ -50,7 +51,7 @@ public static unsafe class GCHeap
 		var ptr = (void*) AllocObject(type.Value);
 		var obj = Unsafe.Read<object>(&ptr);
 
-		RH.CallConstructor(obj, args);
+		ReflectionHelper.CallConstructor(obj, args);
 
 		return obj;
 	}
@@ -64,14 +65,14 @@ public static unsafe class GCHeap
 		return obj;
 	}
 
-	public static T AllocUninitializedObject<T>()
+	/*public static T AllocUninitializedObject<T>()
 		=> (T) AllocUninitializedObject(typeof(T));
 
 	public static object AllocUninitializedObject(Type t)
 	{
 		var obj = RuntimeHelpers.GetUninitializedObject(t);
 		return obj;
-	}
+	}*/
 
 	/// <summary>
 	/// <c>g_pGCHeap</c>

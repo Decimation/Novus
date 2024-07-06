@@ -24,7 +24,7 @@ public struct ConsoleFontInfo
 
 	public FontWeight FontWeight;
 
-	[MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+	[MA(UT.ByValTStr, SizeConst = 32)]
 	public string FaceName;
 }
 

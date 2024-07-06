@@ -5,8 +5,9 @@ global using MI = System.Reflection.MethodInfo;
 global using PI = System.Reflection.PropertyInfo;
 global using MMI = System.Reflection.MemberInfo;
 global using FI = System.Reflection.FieldInfo;
+
 global using static Novus.Utilities.ReflectionOperatorHelpers;
-global using RH = Novus.Utilities.ReflectionHelper;
+using RH = Novus.Utilities.ReflectionHelper;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -83,14 +84,16 @@ public static class ReflectionHelper
 	/// <remarks>Returns the backing field if <paramref name="fname"/> is a property; otherwise returns the normal field</remarks>
 	public static FI GetAnyResolvedField(this Type t, string fname)
 	{
-		var infos = t.GetAnyMember(fname);
-		var           member      = infos.FirstOrDefault();
+		var infos  = t.GetAnyMember(fname);
+		var member = infos.FirstOrDefault();
 
 		switch (member) {
 			case PropertyInfo { MemberType: MemberTypes.Property } prop:
 				return prop.GetBackingField();
+
 			case FieldInfo fi:
 				return fi;
+
 			default:
 				return null;
 		}
@@ -142,14 +145,14 @@ public static class ReflectionHelper
 		return null;
 	}
 
-	public static Dictionary<FieldInfo,bool> GetNullMembers(this object value, Func<Type, object, bool> fn = null,
-	                                                       BindingFlags flags = ALL_INSTANCE_FLAGS)
+	public static Dictionary<FieldInfo, bool> GetNullMembers(this object value, Func<Type, object, bool> fn = null,
+	                                                         BindingFlags flags = ALL_INSTANCE_FLAGS)
 	{
 		var fields = value.GetType().GetFields(flags);
 
 		fn ??= (_, o) => RuntimeProperties.IsNull(o);
 
-		var rg = new Dictionary<FI,bool>();
+		var rg = new Dictionary<FI, bool>();
 
 		foreach (var info in fields) {
 
@@ -464,7 +467,7 @@ public static class ReflectionHelper
 			Assembly.GetCallingAssembly()
 		};
 		*/
-		asm2??= Assembly.GetCallingAssembly();
+		asm2 ??= Assembly.GetCallingAssembly();
 
 		var asm = new HashSet<AssemblyName>();
 
@@ -626,7 +629,7 @@ public enum InheritanceProperties
 public static class ReflectionOperatorHelpers
 {
 
-	public static Expression GetExpressionForProperty<T>(PropertyInfo property)
+	public static Expression property_to_expr<T>(PropertyInfo property)
 	{
 		var parameter          = Expression.Parameter(typeof(T));
 		var propertyExpression = Expression.Property(parameter, property);
@@ -635,7 +638,7 @@ public static class ReflectionOperatorHelpers
 		return lambdaExpression;
 	}
 
-	public static MMI memberof<T>(Expression<Func<T>> expression)
+	public static MMI member_of<T>(Expression<Func<T>> expression)
 	{
 		if (expression.Body is ConstantExpression) {
 			return null;
@@ -645,15 +648,15 @@ public static class ReflectionOperatorHelpers
 		return body.Member;
 	}
 
-	public static ConstantExpression constof<T>(Expression<Func<T>> expression)
+	public static ConstantExpression const_of<T>(Expression<Func<T>> expression)
 	{
 		var body = (ConstantExpression) expression.Body;
 		return body;
 	}
 
-	public static MemberInfo memberof2<T>(Expression<Func<T>> expression)
+	public static MemberInfo member_of2<T>(Expression<Func<T>> expression)
 	{
-		var mi = memberof(expression);
+		var mi = member_of(expression);
 
 		return mi switch
 		{
@@ -664,19 +667,19 @@ public static class ReflectionOperatorHelpers
 		};
 	}
 
-	public static FI fieldof<T>(Expression<Func<T>> expression)
-		=> (FI) memberof(expression);
+	public static FI field_of<T>(Expression<Func<T>> expression)
+		=> (FI) member_of(expression);
 
-	public static PI propertyof<T>(Expression<Func<T>> expression)
-		=> (PI) memberof(expression);
+	public static PI property_of<T>(Expression<Func<T>> expression)
+		=> (PI) member_of(expression);
 
-	public static MI methodof<T>(Expression<Func<T>> expression)
+	public static MI method_of<T>(Expression<Func<T>> expression)
 	{
 		var body = (MethodCallExpression) expression.Body;
 		return body.Method;
 	}
 
-	public static MI methodof(Expression<Action> expression)
+	public static MI method_of(Expression<Action> expression)
 	{
 		var body = (MethodCallExpression) expression.Body;
 		return body.Method;

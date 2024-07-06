@@ -41,6 +41,7 @@ using NUnit.Framework.Internal;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using Novus.FileTypes.Uni;
 using Novus.Imports.Dynamic;
+using System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable StringLiteralTypo
 
@@ -370,6 +371,7 @@ public class Tests_Atomic
 {
 
 	[Test]
+	[Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 	public void Test1()
 	{
 		const int i  = 1;
@@ -427,8 +429,8 @@ public unsafe class Tests_Pointer
 	[Test]
 	public void Test5()
 	{
-				var s = stackalloc int[4] { 1, 2, 3, 4 };
-		var       p = (Pointer<int>) s;
+		var s = stackalloc int[4] { 1, 2, 3, 4 };
+		var p = (Pointer<int>) s;
 		Assert.AreEqual(s[0], p[0]);
 		p++;
 		Assert.AreEqual(s[1], p.Value);
@@ -667,7 +669,7 @@ public class Tests_RT
 	[Test]
 	public void Test1()
 	{
-		var o = (MyClass2) GCHeap.AllocUninitializedObject(typeof(MyClass2));
+		var o = (MyClass2) RuntimeHelpers.GetUninitializedObject(typeof(MyClass2));
 		Assert.True(GCHeap.IsHeapPointer(o));
 
 		// var o2 = (MyStruct) GCHeap.AllocUninitializedObject(typeof(MyStruct));
@@ -758,7 +760,7 @@ public class Tests_ReflectionHelper
 	[Test]
 	public void Test4()
 	{
-		Assert.AreEqual(fieldof(() => new Subclass1().i),
+		Assert.AreEqual(field_of(() => new Subclass1().i),
 		                typeof(Subclass1).GetRuntimeField(nameof(Subclass1.i)));
 	}
 
@@ -1002,7 +1004,7 @@ public class Tests_Metadata
 
 		Assert.AreEqual(mb.MaxStackSize, il.MaxStackSize);
 		Assert.AreEqual(mb.LocalSignatureMetadataToken, il.LocalVarSigToken);
-		Assert.True(mb.GetILAsByteArray().SequenceEqual(il.CodeIL));
+		Assert.True(mb.GetILAsByteArray().SequenceEqual(il.GetCodeIL()));
 
 		if (il.IsFat && init.HasValue) {
 			Assert.AreEqual(il.Flags.HasFlag(CorILMethodFlags.InitLocals), init.Value);

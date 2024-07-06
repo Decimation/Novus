@@ -19,6 +19,7 @@ namespace Novus.Runtime.VM.IL;
 [StructLayout(LayoutKind.Explicit)]
 public struct CorILMethod
 {
+
 	/*
 	 * https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/corhdr.h
 	 * https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/corhlpr.cpp
@@ -34,11 +35,13 @@ public struct CorILMethod
 
 	[FieldOffset(0)]
 	internal CorILMethodTiny Tiny;
+
 }
 
 [Flags]
 public enum CorILMethodFlags : ushort
 {
+
 	/// <summary>
 	/// Call default constructor on all local vars
 	/// </summary>
@@ -72,4 +75,5 @@ public enum CorILMethodFlags : ushort
 	/// Use this code if the code size is odd
 	/// </summary>
 	TinyFormat1 = 0x0006,
+
 }

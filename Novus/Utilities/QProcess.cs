@@ -1,11 +1,15 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Novus.Utilities;
+
 //todo: WIP
+[Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 public class QProcess : IDisposable
 {
+
 	public Process Process { get; private set; }
 
 	public DataReceivedEventHandler ErrorData { get; private set; }
@@ -16,7 +20,8 @@ public class QProcess : IDisposable
 
 	private ConcurrentQueue<string> OutputQueue { get; set; }
 
-	private StringBuilder ErrorBuffer  { get; set; } = new();
+	private StringBuilder ErrorBuffer { get; set; } = new();
+
 	private StringBuilder OutputBuffer { get; set; } = new();
 
 	public bool IsStarted { get; private set; }
@@ -65,7 +70,8 @@ public class QProcess : IDisposable
 		return s;
 	}
 
-	public IEnumerable<string> ReadOutput() => ReadConcurrent(m_outputResetEvent, OutputQueue);
+	public IEnumerable<string> ReadOutput()
+		=> ReadConcurrent(m_outputResetEvent, OutputQueue);
 
 	public static IEnumerable<T> ReadConcurrent<T>(ManualResetEvent h, ConcurrentQueue<T> q)
 	{
@@ -80,6 +86,7 @@ public class QProcess : IDisposable
 		}
 
 		h.Reset();
+
 		// h.Reset();
 
 		// return rg;
@@ -132,4 +139,5 @@ public class QProcess : IDisposable
 	}
 
 	#endregion
+
 }

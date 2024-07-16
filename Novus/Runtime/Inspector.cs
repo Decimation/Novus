@@ -102,7 +102,7 @@ public static class Inspector
 				foreach (var option in options1) {
 					var sizeOf = Mem.SizeOf(value, option);
 
-					if (sizeOf == Native.INVALID) {
+					if (sizeOf == Native.ERROR_SV) {
 						continue;
 					}
 

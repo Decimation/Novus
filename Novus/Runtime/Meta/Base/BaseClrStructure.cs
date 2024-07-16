@@ -63,7 +63,7 @@ public abstract unsafe class BaseClrStructure<TClr> where TClr : unmanaged
 
 	public override int GetHashCode()
 	{
-		return Native.INVALID;
+		return Native.ERROR_SV;
 	}
 
 	public static bool operator ==(BaseClrStructure<TClr> left, BaseClrStructure<TClr> right) =>

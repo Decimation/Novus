@@ -24,7 +24,7 @@ public sealed class Win32ResourceReader : IDisposable
 
 	public string GetString(uint id)
 	{
-		var buffer = new StringBuilder(Native.SIZE_1);
+		var buffer = new StringBuilder(Native.SIZE_1024);
 		Native.LoadString(m_hModule, id, buffer, buffer.Capacity);
 
 		return buffer.ToString();

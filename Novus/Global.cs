@@ -1,13 +1,11 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
 #pragma warning disable IDE0060, IDE0079, IDE0005
+
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using NN = JetBrains.Annotations.NotNullAttribute;
-
-// global using Native = Novus.Win32.Native;
-// global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
-// global using U = System.Runtime.CompilerServices.Unsafe;
-// global using M = Novus.Memory.Mem;
+global using DNR = System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute;
+global using DNRI = System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute;
 global using MA = System.Runtime.InteropServices.MarshalAsAttribute;
 global using UT = System.Runtime.InteropServices.UnmanagedType;
 global using PE = System.Linq.Expressions.ParameterExpression;
@@ -15,6 +13,11 @@ global using BE = System.Linq.Expressions.BinaryExpression;
 global using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+// global using Native = Novus.Win32.Native;
+// global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+// global using U = System.Runtime.CompilerServices.Unsafe;
+// global using M = Novus.Memory.Mem;
+
 using static Kantan.Diagnostics.LogCategories;
 using System.Collections;
 using System.Diagnostics;

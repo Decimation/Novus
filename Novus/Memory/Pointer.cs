@@ -146,6 +146,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public static explicit operator Pointer<T>(long value)
 		=> new((void*) value);
 
+	public static /*implicit*/ explicit operator Pointer<T>(Pointer<byte> ptr)
+		=> ptr.Address;
+
 	public static implicit operator Pointer<byte>(Pointer<T> ptr)
 		=> ptr.ToPointer();
 
@@ -154,9 +157,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	public static implicit operator Pointer<T>(nint value)
 		=> new(value);
-
-	public static /*implicit*/ explicit operator Pointer<T>(Pointer<byte> ptr)
-		=> ptr.Address;
 
 	/*public static explicit operator Pointer<T>(Span<T> s)
 		=> s.ToPointer();*/

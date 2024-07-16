@@ -40,7 +40,7 @@ public abstract unsafe class MetaClrStructure<TClr> : BaseClrStructure<TClr>
 
 	public override int GetHashCode()
 	{
-		return Native.INVALID;
+		return Native.ERROR_SV;
 	}
 
 	public static bool operator ==(MetaClrStructure<TClr> left, MetaClrStructure<TClr> right) =>

@@ -163,7 +163,7 @@ public static class Tokens
 			case CorElementType.CModOpt:
 			case CorElementType.Internal:
 			case CorElementType.MVar:
-				return Native.INVALID;
+				return Native.ERROR_SV;
 
 			case CorElementType.TypedByRef:
 				return Mem.Size * 2;

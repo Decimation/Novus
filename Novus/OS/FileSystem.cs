@@ -118,9 +118,9 @@ public static class FileSystem
 	{
 		unsafe {
 
-			var buf = stackalloc char[Native.SIZE_1];
+			var buf = stackalloc char[Native.SIZE_1024];
 
-			var l = Native.GetShortPathName(dir, buf, Native.SIZE_1);
+			var l = Native.GetShortPathName(dir, buf, Native.SIZE_1024);
 
 			if (l != Native.ERROR_SUCCESS) {
 				throw new Win32Exception((int) l);

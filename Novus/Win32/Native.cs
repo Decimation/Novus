@@ -2,6 +2,7 @@
 
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
@@ -33,17 +34,22 @@ namespace Novus.Win32;
 public static unsafe partial class Native
 {
 
-	public const int INVALID = -1;
+	#region
 
-	public const nuint U_INVALID = 0xFFFFFFFF;
+	/// <summary>
+	/// Error sentinel value
+	/// </summary>
+	public const int ERROR_SV = -1;
+
+	public const nuint NUINT_MAXVALUE = UInt32.MaxValue;
 
 	public const int ERROR_SUCCESS = 0;
 
-	public const int SIZE_1 = 32 << 5;
-
-	public const uint S_OK = 0x00000000;
+	public const int SIZE_1024 = 1 << 10;
 
 	public const uint ZERO_U = 0u;
+
+	#endregion
 
 	#region DLL
 
@@ -96,7 +102,7 @@ public static unsafe partial class Native
 		//todo: WIP
 
 		nint processHandle = OpenProcess(ProcessAccess.CreateThread |
-		                                 ProcessAccess.VmOperation | ProcessAccess.VmWrite,
+		                                 ProcessAccess.VmOperation  | ProcessAccess.VmWrite,
 		                                 false, pid);
 
 		if (processHandle == IntPtr.Zero) {
@@ -152,9 +158,9 @@ public static unsafe partial class Native
 
 	public static string GetWindowText(nint hWnd)
 	{
-		var sb = new StringBuilder(SIZE_1);
+		var sb = new StringBuilder(SIZE_1024);
 
-		var sz = GetWindowText(hWnd, sb, SIZE_1);
+		var sz = GetWindowText(hWnd, sb, SIZE_1024);
 
 		sb.Length = sz;
 
@@ -210,7 +216,7 @@ public static unsafe partial class Native
 	{
 		// Check classname and title
 		// This is different from FindWindow() in that the code below allows partial matches
-		var sb = new StringBuilder(SIZE_1);
+		var sb = new StringBuilder(SIZE_1024);
 		var v  = GetWindowText(hWnd, sb, sb.Capacity);
 
 		if (v != ERROR_SUCCESS) {
@@ -339,14 +345,14 @@ public static unsafe partial class Native
 
 		//http://www.pinvoke.net/default.aspx/getuname/GetUName.html
 		//https://stackoverflow.com/questions/2087682/finding-out-unicode-character-name-in-net
-		var buf = new StringBuilder(SIZE_1);
+		var buf = new StringBuilder(SIZE_1024);
 		_ = GetUName(id, buf);
 
 		var name = buf.ToString();
 		return name;
 	}
 
-	public static StringBuilder LoadString(nint hInstance, uint id, int buf = SIZE_1)
+	public static StringBuilder LoadString(nint hInstance, uint id, int buf = SIZE_1024)
 	{
 		var buffer = new StringBuilder(buf);
 
@@ -369,6 +375,7 @@ public static unsafe partial class Native
 		return (nint) (x <= 0 ? x : (x & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);
 	}
 
+	[DoesNotReturn]
 	public static void FailWin32Error()
 	{
 		var hr = Marshal.GetHRForLastWin32Error();
@@ -432,7 +439,7 @@ public static unsafe partial class Native
 		while (lpMem < maxAddr) {
 			int result = VirtualQueryEx(handle, (nint) lpMem, ref mbi, sizeOf);
 
-			if (mbi.AllocationBase!= IntPtr.Zero&&mbi.AllocationBase == mbi.BaseAddress) {
+			if (mbi.AllocationBase != IntPtr.Zero && mbi.AllocationBase == mbi.BaseAddress) {
 				ll.AddLast(mbi);
 			}
 
@@ -499,7 +506,7 @@ public static unsafe partial class Native
 
 	/*public static string GetClipboardFormatName(uint u)
 	{
-		var c = new StringBuilder(SIZE_1);
+		var c = new StringBuilder(SIZE_1024);
 
 		unsafe {
 			var l = GetClipboardFormatName(u, c, c.Capacity);

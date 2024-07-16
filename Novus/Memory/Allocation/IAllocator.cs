@@ -18,7 +18,7 @@ public interface IAllocator
 
 	public bool IsAllocated(Pointer p)
 	{
-		return GetSize(p) != Native.INVALID;
+		return GetSize(p) != Native.ERROR_SV;
 	}
 
 	public nint GetSize(Pointer p);

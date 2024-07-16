@@ -90,7 +90,7 @@ public static unsafe class Mem
 
 	public static readonly nuint Invalid_u;
 
-	public static readonly nint Invalid = Native.INVALID;
+	public static readonly nint Invalid = Native.ERROR_SV;
 
 	static Mem()
 	{
@@ -557,13 +557,13 @@ public static unsafe class Mem
 		Pointer p2 = AddressOfData(ref t2);
 
 		//p2.WriteAll(p.Copy(s));
-
-		Copy(p, s, p2);
+		p2.WriteAll(p.ToArray(s));
+		// Copy(p, s, p2);
 
 		return t2;
 	}
 
-	public static void Copy(Pointer src, int cb, Pointer dest)
+	/*public static void Copy(Pointer src, int cb, Pointer dest)
 		=> dest.WriteAll(src.ToArray(cb));
 
 	public static void Copy(Pointer src, int startIndex, int cb, Pointer dest)
@@ -573,7 +573,7 @@ public static unsafe class Mem
 		=> src.ToArray(startIndex, cb);
 
 	public static byte[] Copy(Pointer src, int cb)
-		=> src.ToArray(cb);
+		=> src.ToArray(cb);*/
 
 	#endregion
 
@@ -586,7 +586,7 @@ public static unsafe class Mem
 	/// <param name="elemSize">Byte size of one element</param>
 	/// <param name="elemCnt">Number of elements</param>
 	/// <returns>Total byte size of all elements</returns>
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	[MethodImpl(MImplO.AggressiveInlining)]
 	public static nuint GetByteCount(nuint elemCnt, nuint elemSize)
 	{
 		// This is based on the `mi_count_size_overflow` and `mi_mul_overflow` methods from microsoft/mimalloc.
@@ -611,7 +611,7 @@ public static unsafe class Mem
 	///     Calculates the size of <typeparamref name="T" />
 	/// </summary>
 	/// <param name="options">Size options</param>
-	/// <returns>The size of <typeparamref name="T" />; <see cref="Native.INVALID" /> otherwise</returns>
+	/// <returns>The size of <typeparamref name="T" />; <see cref="Native.ERROR_SV" /> otherwise</returns>
 	public static int SizeOf<T>(SizeOfOptions options)
 	{
 		MetaType mt = typeof(T);
@@ -622,11 +622,11 @@ public static unsafe class Mem
 		return options switch
 		{
 			SizeOfOptions.Native       => mt.NativeSize,
-			SizeOfOptions.Managed      => mt.HasLayout ? mt.ManagedSize : Native.INVALID,
+			SizeOfOptions.Managed      => mt.HasLayout ? mt.ManagedSize : Native.ERROR_SV,
 			SizeOfOptions.Intrinsic    => SizeOf<T>(),
 			SizeOfOptions.BaseFields   => mt.InstanceFieldsSize,
 			SizeOfOptions.BaseInstance => mt.BaseSize,
-			_                          => Native.INVALID
+			_                          => Native.ERROR_SV
 		};
 
 	}
@@ -636,7 +636,7 @@ public static unsafe class Mem
 	/// </summary>
 	/// <param name="value">Value</param>
 	/// <param name="options">Size options</param>
-	/// <returns>The size of <paramref name="value" />; <see cref="Native.INVALID" /> otherwise</returns>
+	/// <returns>The size of <paramref name="value" />; <see cref="Native.ERROR_SV" /> otherwise</returns>
 	public static int SizeOf<T>(T value, SizeOfOptions options)
 	{
 		Require.ArgumentNotNull(value, nameof(value));
@@ -673,7 +673,7 @@ public static unsafe class Mem
 				else goto case SizeOfOptions.Heap;
 
 			default:
-				return Native.INVALID;
+				return Native.ERROR_SV;
 		}
 
 	}
@@ -951,9 +951,8 @@ public static unsafe class Mem
 	/// <seealso cref="SigScanner.ReadSignature" />
 	public static byte[] ReadBinaryString(string s)
 	{
-		var rg = new List<byte>();
-
 		string[] bytes = s.Split(Strings.Constants.SPACE);
+		var      rg    = new List<byte>(bytes.Length);
 
 		foreach (string b in bytes) {
 			var n = Byte.Parse(b, NumberStyles.HexNumber);

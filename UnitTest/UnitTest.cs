@@ -1338,7 +1338,7 @@ public class Tests_Mem
 		Assert.AreEqual(Mem.SizeOf(s, SizeOfOptions.Data),
 		                RuntimeProperties.StringOverhead + (sizeof(char) * s.Length));
 
-		Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.Heap), Native.INVALID);
+		Assert.AreEqual(Mem.SizeOf<string>(SizeOfOptions.Heap), Native.ERROR_SV);
 
 		Assert.Throws<ArgumentNullException>(() =>
 		{

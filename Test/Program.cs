@@ -161,9 +161,6 @@ public static unsafe class Program
 		var ptr2 = ptr + 1;
 		Console.WriteLine(ptr2);
 
-		var ptr3 = GCHeap.GetContainingObject(ptr2, false);
-
-		Console.WriteLine(ptr3);
 	}
 
 }

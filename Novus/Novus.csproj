@@ -103,6 +103,7 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  
   <ItemGroup>
     <None Include="..\icon64.png">
       <Pack>True</Pack>

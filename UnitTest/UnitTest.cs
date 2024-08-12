@@ -78,10 +78,6 @@ public class Tests_FileTypes1
 
 	public static object[] _rg =
 	{
-		// new[] { @"http://www.zerochan.net/2750747", null },
-		// new Object[] { @"https://i.imgur.com/QtCausw.png", FileType.Find("png").First() },
-		// new[] { @"https://kemono.party/patreon/user/3332300/post/65227512", null },
-		// @"https://i.pximg.net/img-master/img/2022/05/01/19/44/39/98022741_p0_master1200.jpg",
 		new Object[] { "C:\\Users\\Deci\\Pictures\\Test Images\\Test1.jpg", FileType.Find("jpeg").First() },
 		new Object[] { "http://static.zerochan.net/atago.(azur.lane).full.2750747.png", FileType.Find("png").First() }
 	};
@@ -250,7 +246,7 @@ public class Tests_FileResolvers
 {
 
 	[Test]
-	[TestCase(@"C:\Users\Deci\Pictures\NSFW\17EA29A6-8966-4801-A508-AC89FABE714D.png")]
+	[TestCase(@"http://static.zerochan.net/atago.(azur.lane).full.2750747.png")]
 	public async Task Test1(string s)
 	{
 		var stream = File.OpenRead(s);
@@ -258,18 +254,6 @@ public class Tests_FileResolvers
 		Assert.True(task.Type == FileType.MT_IMAGE);
 	}
 
-	/*[Test]
-	[TestCase(@"https://kemono.party/patreon/user/587897/post/64451923","image/png")]
-	public async Task Test2(string s,string s2)
-	{
-	    var result = await HttpResourceSniffer.Default.ScanAsync(s);
-
-	    foreach (HttpResourceHandle httpResource in result) {
-	        httpResource.Resolve();
-	    }
-
-	    Assert.True(result.Any(x=>x.ResolvedTypes.Select(x=>x.Type).Contains(s2)));
-	}*/
 
 }
 
@@ -280,10 +264,6 @@ public class Tests_MediaTypes
 
 	[Test]
 	[TestCase("http://s1.zerochan.net/atago.(azur.lane).600.2750747.jpg")]
-
-	// [TestCase("https://www.zerochan.net/2750747", "http://static.zerochan.net/atago.(azur.lane).full.2750747.png")]
-	// [TestCase(@"C:\Users\Deci\Pictures\NSFW\17EA29A6-8966-4801-A508-AC89FABE714D.png", true, false)]
-	// [TestCase("http://s1.zerochan.net/atago.(azur.lane).600.2750747.jpg", false, true)]
 	public async Task Test1(string s)
 	{
 		// var binaryUris = MediaSniffer.Scan(u, new HttpMediaResourceFilter());

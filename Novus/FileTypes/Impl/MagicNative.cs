@@ -7,7 +7,8 @@ namespace Novus.FileTypes.Impl;
 
 public static partial class MagicNative
 {
-	private const string MAGIC_LIB_PATH = "libmagic-1";
+
+	public const string MAGIC_LIB_PATH = "libmagic-1";
 
 	[LibraryImport(MAGIC_LIB_PATH, StringMarshalling = StringMarshalling.Utf8)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]

@@ -170,7 +170,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 8.0.6.
+        ///   Looks up a localized string similar to 8.0.7.
         /// </summary>
         internal static string RequiredVersion {
             get {

@@ -304,8 +304,7 @@ public class Benchmarks24
 	{
 		RuntimeHelpers.RunClassConstructor(typeof(FileType).TypeHandle);
 
-		m_path =
-			@"C:\\Users\\Deci\\Pictures\\Art\\yande.re 1034007 ass halloween horns kaos_art nier_automata tail wings yorha_no.2_type_b.png";
+		m_path=@"C:\Users\Deci\Test Images\Test1.jpg";
 		m_stream = File.OpenRead(m_path);
 
 	}

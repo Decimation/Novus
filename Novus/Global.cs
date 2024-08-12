@@ -13,11 +13,11 @@ global using BE = System.Linq.Expressions.BinaryExpression;
 global using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+
 // global using Native = Novus.Win32.Native;
 // global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 // global using U = System.Runtime.CompilerServices.Unsafe;
 // global using M = Novus.Memory.Mem;
-
 using static Kantan.Diagnostics.LogCategories;
 using System.Collections;
 using System.Diagnostics;
@@ -28,6 +28,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Kantan.Collections;
@@ -41,6 +42,7 @@ using Novus.Utilities;
 using System.Xml.Linq;
 using Kantan.Utilities;
 using Microsoft.Extensions.Logging;
+using Novus.FileTypes.Impl;
 using Novus.Imports;
 using Novus.Win32;
 
@@ -182,6 +184,15 @@ public static class Global
 
 	}
 
+	internal static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+	{
+		if (libraryName == MagicNative.MAGIC_LIB_PATH) {
+			return NativeLibrary.Load(Path.Combine(DataFolder, MagicNative.MAGIC_LIB_PATH), assembly, searchPath);
+		}
+
+		return IntPtr.Zero;
+	}
+
 	[CBN]
 	public static string GetPdbFile()
 	{
@@ -202,6 +213,8 @@ public static class Global
 		if (IsSetup) {
 			return;
 		}
+
+		NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
 
 		/*
 		 * Setup

@@ -16,6 +16,9 @@ using Novus.Utilities;
 
 namespace Novus.FileTypes.Uni;
 
+
+// TODO: UNISOURCE <--> UNIIMAGE
+
 public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 								  IEqualityOperators<UniSource, UniSource, bool>
 {

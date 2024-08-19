@@ -188,7 +188,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 44 0F B6 41.
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 0F B6 41 02 4C 8B C1 48 8B F1.
         /// </summary>
         internal static string Sig_GetIL {
             get {
@@ -233,7 +233,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 57 48 83 EC 30 0F B7 41 06 BB.
+        ///   Looks up a localized string similar to 40 53 48 83 EC 30 0F B7 41 06.
         /// </summary>
         internal static string Sig_GetRVA {
             get {

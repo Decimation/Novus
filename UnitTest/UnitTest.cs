@@ -78,7 +78,7 @@ public class Tests_FileTypes1
 
 	public static object[] _rg =
 	{
-		new Object[] { "C:\\Users\\Deci\\Pictures\\Test Images\\Test1.jpg", FileType.Find("jpeg").First() },
+		new Object[] { @"C:\Users\Deci\Pictures\Test Images\Test1.jpg", FileType.Find("jpeg").First() },
 		new Object[] { "http://static.zerochan.net/atago.(azur.lane).full.2750747.png", FileType.Find("png").First() }
 	};
 
@@ -246,7 +246,8 @@ public class Tests_FileResolvers
 {
 
 	[Test]
-	[TestCase(@"http://static.zerochan.net/atago.(azur.lane).full.2750747.png")]
+	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
+	// [TestCase(@"http://static.zerochan.net/atago.(azur.lane).full.2750747.png")]
 	public async Task Test1(string s)
 	{
 		var stream = File.OpenRead(s);

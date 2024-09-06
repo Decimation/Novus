@@ -250,7 +250,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// <summary>
 	/// Changes the length of the stream, if new length is less than current length stream data will be truncated
 	/// </summary>
-	/// <param name="length">AllocInline stream length</param>
+	/// <param name="length">InitInline stream length</param>
 	/// <returns>return true if stream changed length, false if it wasn't possible</returns>
 	public bool ChangeLength(long length)
 	{

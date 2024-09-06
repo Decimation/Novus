@@ -22,6 +22,7 @@ namespace Novus.Runtime.Meta;
 /// </summary>
 public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 {
+
 	public MetaMethod(Pointer<MethodDesc> ptr) : base(ptr) { }
 
 	public MetaMethod(MethodInfo member) : base(member) { }
@@ -68,9 +69,14 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 
 	public override MethodInfo Info => (MethodInfo) (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
 
-	public void Reset() => Value.Reference.Reset();
+	public RuntimeMethodHandle RuntimeMethodHandle => Value.Reference.RuntimeMethodHandle;
 
-	public void Prepare() => RuntimeHelpers.PrepareMethod(Info.MethodHandle);
+
+	public void Reset()
+		=> Value.Reference.Reset();
+
+	public void Prepare()
+		=> RuntimeHelpers.PrepareMethod(Info.MethodHandle);
 
 	public long RVA => Value.Reference.RVA;
 
@@ -81,12 +87,14 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 	public Pointer<byte> NativeCode
 	{
 		get => Value.Reference.NativeCode;
+
 		// set => Value.Reference.SetNativeCodeInterlocked(value.ToInt64());
 	}
 
 	public Pointer<byte> Function
 	{
 		get => Info.MethodHandle.GetFunctionPointer();
+
 		//set => NativeCode = value;
 	}
 
@@ -101,7 +109,10 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 		}
 	}
 
-	public static implicit operator MetaMethod(Pointer<MethodDesc> ptr) => new(ptr);
+	public static implicit operator MetaMethod(Pointer<MethodDesc> ptr)
+		=> new(ptr);
 
-	public static implicit operator MetaMethod(MethodInfo t) => new(t);
+	public static implicit operator MetaMethod(MethodInfo t)
+		=> new(t);
+
 }

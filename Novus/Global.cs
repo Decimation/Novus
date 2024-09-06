@@ -13,6 +13,13 @@ global using BE = System.Linq.Expressions.BinaryExpression;
 global using NNINN = System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
+global using MNN = System.Diagnostics.CodeAnalysis.MemberNotNullAttribute;
+global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
+
+
+global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
+global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 
 // global using Native = Novus.Win32.Native;
 // global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
@@ -174,7 +181,7 @@ public static class Global
 		Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddDebug());
 
 	internal static readonly ILogger Logger = LoggerFactory.CreateLogger(LIB_NAME);
-
+	
 	static Global()
 	{
 

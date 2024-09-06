@@ -45,6 +45,17 @@ public unsafe struct MethodDesc
 	/// </summary>
 	internal void* Function { get; set; }
 
+	internal RuntimeMethodHandle RuntimeMethodHandle
+	{
+		get
+		{
+			fixed (MethodDesc* ptr = &this) {
+				return RuntimeMethodHandle.FromIntPtr((nint) ptr);
+			}
+
+		}
+	}
+
 	internal bool IsPointingToNativeCode
 	{
 		get

@@ -155,11 +155,15 @@
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>8.0.7</value>
+    <value>8.0.8</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05</value>
     <comment>AllocateObject</comment>
+  </data>
+  <data name="Sig_GetAttrs" xml:space="preserve">
+    <value>48 83 EC 28 0F B7 41 06</value>
+    <comment>MethodDesc::GetAttrs</comment>
   </data>
   <data name="Sig_GetIL" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 0F B6 41 02 4C 8B C1 48 8B F1</value>

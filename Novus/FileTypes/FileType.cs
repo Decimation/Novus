@@ -1,9 +1,6 @@
 ﻿// Read S Novus FileType.cs
 // 2022-05-10 @ 2:49 AM
 
-global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
-global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
-global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;

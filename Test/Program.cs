@@ -1,7 +1,8 @@
-﻿// ReSharper disable LocalizableElement
+﻿// // ReSharper disable LocalizableElement
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable RedundantUnsafeContext
 
+global using Pointer = Novus.Memory.Pointer<byte>;
 global using Native = Novus.Win32.Native;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -17,7 +18,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Numerics;
-using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Runtime.Caching;
@@ -76,17 +76,19 @@ using Novus.FileTypes.Uni;
 // ReSharper disable UnusedParameter.Local
 #nullable disable
 
-namespace Test;
-/*
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
- * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
- *
- * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
- *
- * todo: integrate pdbex
- *
- *
- */
+
+namespace Test
+{
+	/*
+	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
+	 * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
+	 *
+	 * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
+	 *
+	 * todo: integrate pdbex
+	 *
+	 *
+	 */
 
 /*
  * 🌟 Novus				https://github.com/Decimation/Novus
@@ -139,28 +141,44 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
 
-public static unsafe class Program
-{
-
-	static Program()
+	public static unsafe class Program
 	{
-		Global.Clr.LoadImports(typeof(Program));
-		Global.Setup();
+
+		static Program()
+		{
+			Global.Clr.LoadImports(typeof(Program));
+
+		}
+
+		private static unsafe void Main(string[] args)
+		{
+			run1();
+			run2();
+			run3();
+
+
+			var obj = (MyClass3) AllocManager.New(typeof(MyClass3), [1, 1.2f]);
+			Console.WriteLine(obj);
+
+			
+		}
+
+		private static void run1()
+		{
+			string s = "foo";
+		}
+
+		private static void run2()
+		{
+			int i = 123;
+		}
+
+		private static void run3()
+		{
+			Pointer p = stackalloc byte[Mem.Size];
+			any     a = new();
+
+		}
 
 	}
-
-	private static unsafe void Main(string[] args)
-	{
-		object obj = 123;
-		var    ptr = Mem.AddressOfHeap(obj);
-		Console.WriteLine(ptr);
-
-		Console.WriteLine(Mem.AddressOfHeap(obj, OffsetOptions.Header));
-		Console.WriteLine(Mem.AddressOfHeap(obj, OffsetOptions.Fields));
-
-		var ptr2 = ptr + 1;
-		Console.WriteLine(ptr2);
-
-	}
-
 }

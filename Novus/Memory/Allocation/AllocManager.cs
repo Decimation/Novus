@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
@@ -21,6 +22,7 @@ namespace Novus.Memory.Allocation;
 /// </summary>
 public static class AllocManager
 {
+
 	/*
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.Windows.cs
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Ucrtbase/Interop.MemAlloc.cs
@@ -36,6 +38,7 @@ public static class AllocManager
 	public static bool IsAllocated(Pointer ptr)
 	{
 		return Allocated.Contains(ptr);
+
 		// return Allocator.IsAllocated(ptr);
 	}
 
@@ -153,7 +156,7 @@ public static class AllocManager
 
 		return val;
 	}*/
-	
+
 	public static unsafe void Free<T>(T t) where T : class
 	{
 		var ptr = Mem.AddressOfHeap(t);
@@ -161,27 +164,24 @@ public static class AllocManager
 		Free(ptr);
 	}
 
-	/// <summary>
-	/// <seealso cref="Mem.AllocInline{T}"/>
-	/// </summary>
-	public static unsafe T New<T>(params object[] ctor) where T : class
+	
+	public static unsafe object New(Type t,  object[] ctor)
 	{
-		var type = typeof(T);
+		var m = typeof(AllocManager).GetRuntimeMethods()
+			.First(x => x.Name == nameof(New) && x.ContainsGenericParameters);
 
-		var size = Mem.SizeOf<T>(SizeOfOptions.BaseInstance);
-		size += IntPtr.Size;
+		return m.CallGeneric(t, null, [ctor]);
 
-		var ptr     = Alloc((nuint) size);
-		var basePtr = ptr;
+	}
+	/// <summary>
+	/// <seealso cref="Mem.InitInline{T}"/>
+	/// </summary>
+	public static unsafe T New<T>( object[] ctor) where T : class
+	{
+		int size = Mem.SizeOf<T>(SizeOfOptions.BaseInstance);
+		var ptr  = Alloc((nuint) size);
 
-		ptr += sizeof(ObjHeader);
-		var mt = RuntimeProperties.ResolveTypeHandle(type);
-
-		ptr.WritePointer(mt);
-		basePtr.WritePointer(ptr);
-
-		// ref T value = ref basePtr.Cast<T>().Reference;
-		T value = basePtr.Cast<T>().Value;
+		var value = Mem.InitInline<T>(ptr, out var ptr2);
 
 		if (ctor.Any()) {
 			var cc = ReflectionHelper.CallConstructor(value, ctor);
@@ -189,4 +189,5 @@ public static class AllocManager
 
 		return value;
 	}
+
 }

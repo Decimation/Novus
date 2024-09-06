@@ -100,7 +100,7 @@ public static unsafe class RuntimeProperties
 	public static Pointer<MethodTable> GetMethodTable<T>(in T value)
 	{
 		/*var type = value.GetType();
-		return ResolveTypeHandle(type);*/
+		return ResolveMethodTable(type);*/
 		return Func_GetMethodTable(value);
 	}
 
@@ -116,7 +116,7 @@ public static unsafe class RuntimeProperties
 
 		return member switch
 		{
-			Type t            => ResolveTypeHandle(t).Cast(),
+			Type t            => ResolveMethodTable(t).Cast(),
 			FieldInfo field   => field.FieldHandle.Value,
 			MethodInfo method => method.MethodHandle.Value,
 			_                 => throw new InvalidOperationException()
@@ -126,7 +126,7 @@ public static unsafe class RuntimeProperties
 	/// <summary>
 	///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ResolveTypeHandle(System.Type)" /></remarks>
+	/// <remarks>Inverse of <see cref="ResolveMethodTable" /></remarks>
 	public static Type ResolveType(Pointer<MethodTable> handle)
 		=> Func_GetTypeFromHandle(handle.Address);
 
@@ -134,7 +134,7 @@ public static unsafe class RuntimeProperties
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 	/// </summary>
 	/// <remarks>Inverse of <see cref="ResolveType" /></remarks>
-	public static Pointer<MethodTable> ResolveTypeHandle(Type t)
+	public static Pointer<MethodTable> ResolveMethodTable(Type t)
 	{
 		var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;

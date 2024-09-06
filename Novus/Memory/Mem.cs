@@ -1003,24 +1003,24 @@ public static unsafe class Mem
 	}*/
 
 	/// <summary>
-	/// Allocates an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="p"/>.
-	/// The allocated memory size must be at least &gt;= value returned by <see cref="SizeOfOptions.BaseInstance"/>
-	/// <see cref="Mem.SizeOf{T}()"/>
-	/// <seealso cref="AllocManager.AllocInline{T}"/>
+	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
+	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
+	/// <see cref="SizeOfOptions.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
+	/// <seealso cref="AllocManager.InitInline{T}"/>
 	/// </summary>
-	/// <typeparam name="T">Type to allocate</typeparam>
-	/// <param name="p">Memory within which to allocate the instance</param>
-	/// <param name="p2">Original base pointer</param>
-	/// <returns>An instance of type <typeparamref name="T"/> allocated within <paramref name="p"/></returns>
+	/// <typeparam name="T">Type to initialize</typeparam>
+	/// <param name="ptr">Memory within which to initialize the instance</param>
+	/// <param name="ptrOrig">Original base pointer</param>
+	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
 	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
-	public static T AllocInline<T>(Pointer p, out Pointer p2) where T : class
+	public static T InitInline<T>(Pointer ptr, out Pointer ptrOrig) where T : class
 	{
-		p2 = p;
-		p.Cast<ObjHeader>().Write(default);
-		p += Size;
-		p.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
+		ptrOrig = ptr;
+		ptr.Cast<ObjHeader>().Write(default);
+		ptr += Size;
+		ptr.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
 
-		return AddressOf(ref p).Cast<T>().Reference;
+		return AddressOf(ref ptr).Cast<T>().Reference;
 	}
 
 	public static ref T ReadRef<T>(this Memory<T> sp, out MemoryHandle mh)

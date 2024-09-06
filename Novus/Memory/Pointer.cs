@@ -59,10 +59,12 @@ namespace Novus.Memory;
 public unsafe struct Pointer<T> : IFormattable, IPinnable
 {
 
-	private static readonly nuint s_ElementSize;
+	private static readonly nuint s_elementSize;
 
 	static Pointer()
-		=> s_ElementSize = (nuint) Mem.SizeOf<T>();
+	{
+		s_elementSize = (nuint) Mem.SizeOf<T>();
+	}
 
 	/// <summary>
 	///     Internal pointer value.
@@ -72,7 +74,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// <summary>
 	///     Size of element type <typeparamref name="T" />.
 	/// </summary>
-	public readonly nuint ElementSize => s_ElementSize;
+	public readonly nuint ElementSize => s_elementSize;
 
 	/// <summary>
 	///     Indexes <see cref="Address" /> as a reference.
@@ -115,16 +117,19 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	/// </summary>
 	public readonly bool IsNull => this == Mem.Nullptr;
 
-	public Pointer() : this(value: null) { }
+	public Pointer()
+		: this(value: null) { }
 
 	public Pointer(void* value)
 	{
 		m_value = value;
 	}
 
-	public Pointer(nint value) : this(value.ToPointer()) { }
+	public Pointer(nint value)
+		: this(value.ToPointer()) { }
 
-	public Pointer(ref T value) : this(Unsafe.AsPointer(ref value)) { }
+	public Pointer(ref T value)
+		: this(Unsafe.AsPointer(ref value)) { }
 
 	#region Conversion
 

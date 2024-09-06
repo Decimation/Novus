@@ -170,7 +170,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 8.0.7.
+        ///   Looks up a localized string similar to 8.0.8.
         /// </summary>
         internal static string RequiredVersion {
             get {
@@ -184,6 +184,15 @@ namespace Novus.Properties {
         internal static string Sig_AllocObject {
             get {
                 return ResourceManager.GetString("Sig_AllocObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 48 83 EC 28 0F B7 41 06.
+        /// </summary>
+        internal static string Sig_GetAttrs {
+            get {
+                return ResourceManager.GetString("Sig_GetAttrs", resourceCulture);
             }
         }
         

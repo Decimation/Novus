@@ -54,13 +54,14 @@ using System.Diagnostics.CodeAnalysis;
 namespace UnitTest;
 
 [SetUpFixture]
-public class SetupTrace
+public class SetupTests
 {
 
 	[OneTimeSetUp]
 	public void StartTest()
 	{
 		Trace.Listeners.Add(new ConsoleTraceListener());
+		Global.Setup();
 	}
 
 	[OneTimeTearDown]
@@ -670,7 +671,7 @@ public class Tests_RT
 	public unsafe void Test3()
 	{
 		var rg   = stackalloc byte[Mem.SizeOf<Clazz>(SizeOfOptions.BaseInstance)];
-		var inst = Mem.AllocInline<Clazz>(rg, out var ptr2);
+		var inst = Mem.InitInline<Clazz>(rg, out var ptr2);
 
 		inst.a = 321;
 		inst.s = "butt";
@@ -1513,7 +1514,7 @@ public class Tests_Mem
 
 		Pointer<byte> p = stackalloc byte[sizeOf];
 
-		var d = Mem.AllocInline<MyClass>(p, out var p2);
+		var d = Mem.InitInline<MyClass>(p, out var p2);
 
 		const int i = 123;
 
@@ -1532,7 +1533,7 @@ public class Tests_Mem
 
 		Pointer<byte> p = AllocManager.Alloc((nuint) sizeOf);
 
-		var d = Mem.AllocInline<MyClass>(p, out var p2);
+		var d = Mem.InitInline<MyClass>(p, out var p2);
 
 		const int    i = 123;
 		const string s = "foo";
@@ -1548,6 +1549,17 @@ public class Tests_Mem
 		AllocManager.Free(p2);
 	}
 
+
+	[Test]
+	[TestCase()]
+	public void TestNew()
+	{
+		var obj1 = AllocManager.New<List<int>>([123]);
+
+		Assert.NotNull(obj1);
+
+		Assert.True(obj1.Capacity==123);
+	}
 }
 
 [TestFixture]

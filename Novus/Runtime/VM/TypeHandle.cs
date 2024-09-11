@@ -26,15 +26,35 @@ public unsafe struct TypeHandle
 
 	private void* Value { get; set; }
 
+
 	internal Pointer<MethodTable> MethodTable
 	{
 		get
 		{
 			fixed (TypeHandle* p = &this) {
-
 				return Func_GetMethodTable(p);
 			}
 		}
+	}
+
+	/*internal bool IsTypeDesc
+	{
+		get { return (((nuint) Value) & 2) != 0; }
+	}*/
+
+	internal TypeDesc* AsTypeDesc
+	{
+		get { return (TypeDesc*) ((nuint) Value - 2); }
+	}
+
+	internal bool IsMethodTable
+	{
+		get { return ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.MethodTable; }
+	}
+
+	internal bool IsTypeDesc
+	{
+		get { return ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.TypeDesc; }
 	}
 
 	/// <summary>
@@ -42,5 +62,15 @@ public unsafe struct TypeHandle
 	/// </summary>
 	[field: ImportClr("Sig_GetMethodTable")]
 	private static delegate* unmanaged[Thiscall]<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
+
+}
+
+[Flags]
+public enum TypeHandleBits
+{
+
+	MethodTable = 0,
+	TypeDesc    = 2,
+	ValidMask   = 2
 
 }

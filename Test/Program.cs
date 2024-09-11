@@ -63,6 +63,7 @@ using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using Novus.Numerics;
 using Novus.FileTypes.Uni;
+#pragma warning disable NV0001
 
 // ReSharper disable ClassNeverInstantiated.Local
 
@@ -152,15 +153,24 @@ namespace Test
 
 		private static unsafe void Main(string[] args)
 		{
-			run1();
+			/*run1();
 			run2();
 			run3();
 
 
 			var obj = (MyClass3) AllocManager.New(typeof(MyClass3), [1, 1.2f]);
-			Console.WriteLine(obj);
+			Console.WriteLine(obj);*/
 
-			
+			var mc = new MyClass3(1,321.1f);
+			var tt = typeof(List<>);
+			var t  = tt.AsMetaType();
+			var th = RuntimeProperties.ResolveTypeHandle(tt);
+			Console.WriteLine(th.IsTypeDesc);
+			Console.WriteLine(th.IsMethodTable);
+			var mtt1 = th.MethodTable;
+			Console.WriteLine(mtt1);
+			var mtt2 = RuntimeProperties.ResolveMethodTable(tt);
+			Console.WriteLine(mtt2);
 		}
 
 		private static void run1()

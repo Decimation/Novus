@@ -136,9 +136,24 @@ public static unsafe class RuntimeProperties
 	/// <remarks>Inverse of <see cref="ResolveType" /></remarks>
 	public static Pointer<MethodTable> ResolveMethodTable(Type t)
 	{
+		/*var handle = t.TypeHandle.Value;
+		var value  = *(TypeHandle*) &handle;
+		return value.MethodTable;*/
+
+		var typeHandle = ResolveTypeHandle(t);
+
+		return typeHandle.MethodTable;
+	}
+
+	/// <summary>
+	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
+	/// </summary>
+	/// <remarks>Inverse of <see cref="ResolveType" /></remarks>
+	public static TypeHandle ResolveTypeHandle(Type t)
+	{
 		var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;
-		return value.MethodTable;
+		return value;
 	}
 
 	#endregion

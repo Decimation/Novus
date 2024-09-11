@@ -4,11 +4,15 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Diagnostics.CodeAnalysis;
 using Novus.Memory.Allocation;
+
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 
 #pragma warning disable CS1574
 namespace Novus.Memory;
 
+[Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 public struct any
 {
 
@@ -39,6 +43,7 @@ public struct any
 
 	public static explicit operator any(Pointer p)
 		=> new(p, null);
+
 
 	/*public static any Alloc<T>()
 	{

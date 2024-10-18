@@ -341,3 +341,7 @@ healthchecksdb
 /infer-out
 /Benchmark/TestBenchmark.csproj
 /Benchmark/Benchmarks.cs
+/Benchmark/
+/Benchmark/*
+/UnitTest/
+/UnitTest/*

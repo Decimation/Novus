@@ -88,16 +88,14 @@ public static unsafe class Mem
 	/// </summary>
 	public static readonly int Size = nint.Size;
 
-	public static readonly nuint Invalid_u;
-
-	public static readonly nint Invalid = Native.ERROR_SV;
+	public static readonly nint  Invalid   = Native.ERROR_SV;
+	public static readonly nuint Invalid_u = unchecked((nuint) Invalid);
 
 	static Mem()
 	{
-
-		fixed (nint* n = &Invalid) {
+		/*fixed (nint* n = &Invalid) {
 			Invalid_u = *(nuint*) n;
-		}
+		}*/
 	}
 
 	/// <summary>
@@ -144,22 +142,8 @@ public static unsafe class Mem
 	}
 
 	public static bool IsAddressInRange(Pointer p, Pointer lo, nint size)
-	{
-		return p >= lo && p <= lo.AddBytes(size);
-	}
+		=> p >= lo && p <= lo.AddBytes(size);
 
-	#region CRT
-
-	public static nuint _strlen(Pointer p)
-		=> Native.strlen(p.ToPointer());
-
-	/// <summary>
-	/// Size of native runtime (e.g., <see cref="NativeMemory"/>) allocations
-	/// </summary>
-	public static nuint _msize(Pointer p)
-		=> Native._msize(p.ToPointer());
-
-	#endregion
 
 	#region Pin
 
@@ -168,7 +152,7 @@ public static unsafe class Mem
 	private static Action<object, Action<object>> CreatePinImpl()
 	{
 		var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
-		                               new[] { typeof(object), typeof(Action<object>) },
+		                               [typeof(object), typeof(Action<object>)],
 		                               typeof(RuntimeProperties).Module);
 
 		ILGenerator il = method.GetILGenerator();
@@ -558,6 +542,7 @@ public static unsafe class Mem
 
 		//p2.WriteAll(p.Copy(s));
 		p2.WriteAll(p.ToArray(s));
+
 		// Copy(p, s, p2);
 
 		return t2;

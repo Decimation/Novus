@@ -11,7 +11,7 @@ using Novus.Memory.Allocation;
 
 // ReSharper disable StaticMemberInGenericType
 
-namespace Novus.Memory;
+namespace Novus.Memory.Types;
 
 /*
  * Some code adapted from

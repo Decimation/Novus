@@ -2,6 +2,8 @@
 
 #pragma warning disable IDE0060, IDE0079, IDE0005
 
+#region 
+
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using NN = JetBrains.Annotations.NotNullAttribute;
 global using DNR = System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute;
@@ -20,6 +22,8 @@ global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 
 global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
 global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
+
+#endregion
 
 // global using Native = Novus.Win32.Native;
 // global using ReflectionHelper = Novus.Utilities.ReflectionHelper;

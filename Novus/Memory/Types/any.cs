@@ -10,7 +10,7 @@ using Novus.Memory.Allocation;
 #pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 
 #pragma warning disable CS1574
-namespace Novus.Memory;
+namespace Novus.Memory.Types;
 
 [Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 public struct any

@@ -10,13 +10,21 @@ namespace Novus.Win32;
 
 public static unsafe partial class Native
 {
-	[DllImport(UNAME_DLL, SetLastError = true)]
-	private static extern int GetUName(ushort wCharCode, [MA(UT.LPWStr)] StringBuilder lpBuf);
 
+	[DllImport(UNAME_DLL, SetLastError = true)]
+	private static extern int GetUName(ATOM wCharCode, [MA(UT.LPWStr)] StringBuilder lpBuf);
+
+	#region CRT
+
+	/// <summary>
+	/// Size of native runtime (e.g., <see cref="NativeMemory"/>) allocations
+	/// </summary>
 	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
 	internal static extern nuint _msize(void* ptr);
 
 	[DllImport(UCRTBASE_DLL, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
 	internal static extern nuint strlen(void* ptr);
+
+	#endregion
 
 }

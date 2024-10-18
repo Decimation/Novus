@@ -358,7 +358,7 @@ public enum ClipboardFormat : uint
 
 	PNG  = 49299,
 	PNG2 = 49496,
-
+	BMP2=49443,
 }
 
 public enum HandleWindowPosition

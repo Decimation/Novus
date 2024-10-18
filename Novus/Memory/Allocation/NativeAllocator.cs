@@ -12,11 +12,16 @@ namespace Novus.Memory.Allocation;
 /// </summary>
 public sealed unsafe class NativeAllocator : IAllocator
 {
-	public void Free(Pointer p) => NativeMemory.Free(p.ToPointer());
+	public void Free(Pointer p)
+		=> NativeMemory.Free(p.ToPointer());
 
-	public Pointer ReAlloc(Pointer p, nuint n) => NativeMemory.Realloc(p.ToPointer(), n);
+	public Pointer ReAlloc(Pointer p, nuint n)
+		=> NativeMemory.Realloc(p.ToPointer(), n);
 
-	public Pointer Alloc(nuint n) => NativeMemory.AllocZeroed(n);
+	public Pointer Alloc(nuint n)
+		=> NativeMemory.AllocZeroed(n);
 
-	public nint GetSize(Pointer p) => (nint) Native._msize(p.ToPointer());
+	public nint GetSize(Pointer p)
+		=> (nint) Native._msize(p.ToPointer());
+
 }

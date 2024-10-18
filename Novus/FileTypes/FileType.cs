@@ -98,9 +98,20 @@ public readonly struct FileType : IEquatable<FileType>
 
 	#region
 
-	private static readonly byte[] s_seq1A = [0xFE, 0xFF];
-	private static readonly byte[] s_seq1B = [0xFF, 0xFE];
-	private static readonly byte[] s_seq2  = [0xEF, 0xBB, 0xBF];
+	/// <summary>
+	/// <a href="https://mimesniff.spec.whatwg.org/#sniffing-a-mislabeled-binary-resource">7.2.2</a>
+	/// </summary>
+	private static readonly byte[] s_utf16BE_BOM = [0xFE, 0xFF];
+
+	/// <summary>
+	/// <a href="https://mimesniff.spec.whatwg.org/#sniffing-a-mislabeled-binary-resource">7.2.2</a>
+	/// </summary>
+	private static readonly byte[] s_utf16LE_BOM = [0xFF, 0xFE];
+
+	/// <summary>
+	/// <a href="https://mimesniff.spec.whatwg.org/#sniffing-a-mislabeled-binary-resource">7.2.3</a>
+	/// </summary>
+	private static readonly byte[] s_utf8_BOM = [0xEF, 0xBB, 0xBF];
 
 	#endregion
 
@@ -165,10 +176,10 @@ public readonly struct FileType : IEquatable<FileType>
 	{
 
 		switch (input) {
-			case { Length: >= 2 } when input.SequenceEqual(s_seq1A) || input.SequenceEqual(s_seq1B):
+			case { Length: >= 2 } when input.SequenceEqual(s_utf16BE_BOM) || input.SequenceEqual(s_utf16LE_BOM):
 				return MT_TEXT_PLAIN;
 
-			case { Length: >= 3 } when input.SequenceEqual(s_seq2):
+			case { Length: >= 3 } when input.SequenceEqual(s_utf8_BOM):
 				return MT_TEXT_PLAIN;
 		}
 
@@ -180,11 +191,24 @@ public readonly struct FileType : IEquatable<FileType>
 	}
 
 	/// <remarks>
+	///     <a href="https://mimesniff.spec.whatwg.org/#read-the-resource-header">5.2</a>
+	/// </remarks>
+	public static async Task<Memory<byte>> ReadResourceHeaderAsync(Stream input, CancellationToken ct = default)
+	{
+		Memory<byte> buf = new byte[RSRC_HEADER_LEN];
+		var ms = await input.ReadAsync(buf, ct);
+		return buf[0..ms];
+	}
+
+	/// <remarks>
 	///     <a href="https://mimesniff.spec.whatwg.org/#terminology">3</a>
 	/// </remarks>
 	public static bool IsBinaryDataByte(byte b)
 	{
-		return b is >= 0x00 and <= 0x08 or 0x0B or >= 0x0E and <= 0x1A or >= 0x1C and <= 0x1F;
+		return b is >= 0x00 and <= 0x08    // NUL to BS
+			       or 0x0B                 // VT
+			       or >= 0x0E and <= 0x1A  // SO to SUB
+			       or >= 0x1C and <= 0x1F; // FS to US
 	}
 
 	public bool CheckPattern(Span<byte> input, ISet<byte> ignored = null)
@@ -238,26 +262,27 @@ public readonly struct FileType : IEquatable<FileType>
 		// var          j  = All.Max(x => x.Pattern.Length);
 		Memory<byte> rg = s.ReadHeader();
 
-		return ResolveInternal(rg)
-			/* 2-21-23
+		return ResolveInternal(rg);
 
-			| Method |      Mean |     Error |    StdDev |
-			|------- |----------:|----------:|----------:|
-			| Urlmon |  2.118 us | 0.0135 us | 0.0119 us |
-			|  Magic | 17.918 us | 0.2329 us | 0.2179 us |
-			|   Fast | 18.167 us | 0.0823 us | 0.0729 us |
-			 */
-			/*return All.Where(t =>
-				{
+		/* 2-21-23
 
-					unsafe {
-						Span<byte> sp = stackalloc byte[256];
-						int        i  = s.Read(sp);
-						return CheckPattern(sp, t);
-					}
-				})
-				.DistinctBy(x => x.MediaType)*/
-			;
+		| Method |      Mean |     Error |    StdDev |
+		|------- |----------:|----------:|----------:|
+		| Urlmon |  2.118 us | 0.0135 us | 0.0119 us |
+		|  Magic | 17.918 us | 0.2329 us | 0.2179 us |
+		|   Fast | 18.167 us | 0.0823 us | 0.0729 us |
+		 */
+		/*return All.Where(t =>
+			{
+
+				unsafe {
+					Span<byte> sp = stackalloc byte[256];
+					int        i  = s.Read(sp);
+					return CheckPattern(sp, t);
+				}
+			})
+			.DistinctBy(x => x.MediaType)*/
+
 	}
 
 	public static async Task<FileType> ResolveAsync(Stream s, CancellationToken ct = default)

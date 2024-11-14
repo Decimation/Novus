@@ -49,6 +49,8 @@ using Novus.Win32.Wrappers;
 
 namespace Novus.Memory;
 
+using ActionFunctor = Action<object, Action<object>>;
+
 /// <summary>
 ///     Provides utilities for manipulating pointers, memory, and types.
 ///     <para>Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.</para>
@@ -86,13 +88,16 @@ public static unsafe class Mem
 	/// <summary>
 	///     Address size
 	/// </summary>
-	public static readonly int Size = nint.Size;
+	public static readonly int Size = IntPtr.Size;
 
 	public static readonly nint  Invalid   = Native.ERROR_SV;
 	public static readonly nuint Invalid_u = unchecked((nuint) Invalid);
 
 	static Mem()
 	{
+		PinImpl = CreatePinImpl();
+		Is64Bit = Environment.Is64BitProcess;
+
 		/*fixed (nint* n = &Invalid) {
 			Invalid_u = *(nuint*) n;
 		}*/
@@ -103,21 +108,21 @@ public static unsafe class Mem
 	/// </summary>
 	public static readonly Pointer Nullptr = null;
 
-	public static bool Is64Bit => Environment.Is64BitProcess;
+	public static readonly bool Is64Bit;
 
 	/// <summary>
 	///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
 	/// </summary>
 	/// <param name="name">Field name</param>
 	public static int OffsetOf<T>(string name)
-		=> OffsetOf(typeof(T), name);
+		=> typeof(T).OffsetOf(name);
 
 	/// <summary>
 	///     Returns the offset of the field <paramref name="name" /> within the type <paramref name="t" />.
 	/// </summary>
 	/// <param name="t">Enclosing type</param>
 	/// <param name="name">Field name</param>
-	public static int OffsetOf(Type t, string name)
+	public static int OffsetOf(this Type t, string name)
 	{
 		MetaField f = t.GetAnyResolvedField(name);
 
@@ -147,9 +152,10 @@ public static unsafe class Mem
 
 	#region Pin
 
-	private static readonly Action<object, Action<object>> PinImpl = CreatePinImpl();
+	private static readonly ActionFunctor PinImpl;
 
-	private static Action<object, Action<object>> CreatePinImpl()
+	[NN]
+	private static ActionFunctor CreatePinImpl()
 	{
 		var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
 		                               [typeof(object), typeof(Action<object>)],
@@ -172,7 +178,7 @@ public static unsafe class Mem
 
 		il.Emit(OpCodes.Ret);
 
-		return (Action<object, Action<object>>) method.CreateDelegate(typeof(Action<object, Action<object>>));
+		return (ActionFunctor) method.CreateDelegate(typeof(ActionFunctor));
 	}
 
 	/// <summary>
@@ -267,9 +273,7 @@ public static unsafe class Mem
 		=> ref Unsafe.AsRef(ref t);*/
 
 	public static ref T ref_cast<T>(in T t)
-	{
-		return ref Unsafe.AsRef(t);
-	}
+		=> ref Unsafe.AsRef(t);
 
 	/*public static object as_cast(object t)
 		=> as_cast<object, object>(t);
@@ -333,7 +337,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	public static void WriteProcessMemory(Process proc, Pointer addr, byte[] value)
+	public static void WriteProcessMemory(Process proc, Pointer addr, [NN] byte[] value)
 	{
 		fixed (byte* rg = value) {
 			WriteProcessMemory(proc, addr, (nint) rg, value.Length);
@@ -373,13 +377,12 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	public static byte[] ReadProcessMemory(Process proc, Pointer addr, nint cb)
+	public static Memory<byte> ReadProcessMemory(Process proc, Pointer addr, nint cb)
 	{
-		byte[] mem = new byte[cb];
+		Memory<byte> mem = new byte[(int) cb];
+		using var    mh  = mem.Pin();
 
-		fixed (byte* p = mem) {
-			ReadProcessMemory(proc, addr, p, cb);
-		}
+		ReadProcessMemory(proc, addr, mh.Pointer, cb);
 
 		return mem;
 	}
@@ -389,9 +392,8 @@ public static unsafe class Mem
 	/// </summary>
 	public static T ReadProcessMemory<T>(Process proc, Pointer addr)
 	{
-		T value = default!;
-
-		int size = Unsafe.SizeOf<T>();
+		T   value = default;
+		int size  = Unsafe.SizeOf<T>();
 
 		Pointer<T> ptr = AddressOf(ref value);
 
@@ -400,39 +402,10 @@ public static unsafe class Mem
 		return value;
 	}
 
-	/// <summary>
-	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
-	/// </summary>
-	[CBN]
-	public static object ReadProcessMemory(Process proc, Pointer addr, MetaType mt)
-	{
-		//todo
-
-		bool valueType = mt.RuntimeType.IsValueType;
-		int  size      = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
-
-		Debug.WriteLine($"{size} for {mt.Name}");
-
-		//var i = Activator.CreateInstance(t);
-
-		byte[] rg  = ReadProcessMemory(proc, addr, (nint) size);
-		object val = null;
-
-		if (valueType) {
-			val = ReadStructure(mt.RuntimeType, rg);
-		}
-		else {
-			fixed (byte* ptr = rg) {
-				val = Unsafe.Read<object>(ptr);
-			}
-		}
-
-		return val;
-	}
-
 	#endregion
 
-	public static object ReadStructure(Type t, byte[] rg, int ofs = 0)
+
+	/*public static object ReadStructure(Type t, byte[] rg, int ofs = 0)
 	{
 		var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
 
@@ -444,57 +417,15 @@ public static unsafe class Mem
 		handle.Free();
 
 		return value;
-	}
+	}*/
 
-	/// <summary>
-	/// Converts a value of type <typeparamref name="T"/> to a <see cref="byte"/> array.
-	/// </summary>
-	public static byte[] GetBytes<T>(T value)
+	/*public static object ReadStructure(Type t, Memory<byte> rg, int ofs = 0)
 	{
-		/*if (typeof(T).IsValueType) {
-			var ptr = AddressOf(ref value);
-			var cb  = SizeOf<T>();
-			var rg  = new byte[cb];
+		using var    mh    = rg.Pin();
+		object value = Marshal.PtrToStructure((nint) mh.Pointer, t);
 
-			fixed (byte* p = rg) {
-				ptr.Copy(p, cb);
-			}
-
-			return rg;
-		}*/
-
-		if (typeof(T).IsValueType) {
-			var x    = AddressOfData(ref value);
-			var size = SizeOf<T>();
-			return x.ToArray(size);
-		}
-
-		TryGetAddressOfHeap(value, OffsetOptions.Header, out var ptr2);
-		var cb2 = SizeOf(value, SizeOfOptions.Heap);
-
-		return ptr2.ToArray(cb2);
-
-	}
-
-	/// <summary>
-	/// Reads a value fo type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}"/>.
-	/// </summary>
-	public static T ReadFromBytes<T>(byte[] rg)
-	{
-		Memory<byte> asMemory = rg.AsMemory();
-
-		using var pin = asMemory.Pin();
-
-		var p2 = (byte*) pin.Pointer;
-
-		if (!typeof(T).IsValueType) {
-			p2 += Size;
-			return Unsafe.Read<T>(&p2);
-		}
-
-		return Unsafe.Read<T>(p2);
-
-	}
+		return value;
+	}*/
 
 	/*public static byte[] GetStringBytes(string s)
 	{
@@ -633,13 +564,17 @@ public static unsafe class Mem
 		var mt = new MetaType(value.GetType());
 
 		switch (options) {
-			case SizeOfOptions.BaseFields: return mt.InstanceFieldsSize;
+			case SizeOfOptions.BaseFields:
+				return mt.InstanceFieldsSize;
 
-			case SizeOfOptions.BaseInstance: return mt.BaseSize;
+			case SizeOfOptions.BaseInstance:
+				return mt.BaseSize;
 
-			case SizeOfOptions.BaseData: return mt.BaseDataSize;
+			case SizeOfOptions.BaseData:
+				return mt.BaseDataSize;
 
-			case SizeOfOptions.Heap: return HeapSizeOfInternal(value);
+			case SizeOfOptions.Heap:
+				return HeapSizeOfInternal(value);
 
 			case SizeOfOptions.Data:
 				if (RuntimeProperties.IsStruct(value)) {
@@ -655,7 +590,8 @@ public static unsafe class Mem
 					return SizeOf<T>(SizeOfOptions.Intrinsic);
 				}
 
-				else goto case SizeOfOptions.Heap;
+				else
+					goto case SizeOfOptions.Heap;
 
 			default:
 				return Native.ERROR_SV;
@@ -901,6 +837,91 @@ public static unsafe class Mem
 	 * https://catonmat.net/low-level-bit-hacks
 	 */
 
+	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
+
+	#region Object memory operations
+
+	/// <summary>
+	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
+	/// </summary>
+	[CBN]
+	public static object ReadProcessMemory(Process proc, Pointer addr, MetaType mt)
+	{
+		//todo
+
+		bool valueType = mt.RuntimeType.IsValueType;
+		int  size      = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
+
+		Debug.WriteLine($"{size} for {mt.Name}");
+
+		//var i = Activator.CreateInstance(t);
+
+		var    rg  = ReadProcessMemory(proc, addr, (nint) size);
+		object val = null;
+
+		var mh = rg.Pin();
+
+		if (valueType) {
+			val = Marshal.PtrToStructure((nint) mh.Pointer, mt.RuntimeType);
+		}
+		else {
+			val = Unsafe.Read<object>(mh.Pointer);
+
+		}
+
+		return val;
+	}
+
+	/// <summary>
+	/// Converts a value of type <typeparamref name="T"/> to a <see cref="byte"/> array.
+	/// </summary>
+	public static byte[] GetBytes<T>(T value)
+	{
+		/*if (typeof(T).IsValueType) {
+			var ptr = AddressOf(ref value);
+			var cb  = SizeOf<T>();
+			var rg  = new byte[cb];
+
+			fixed (byte* p = rg) {
+				ptr.Copy(p, cb);
+			}
+
+			return rg;
+		}*/
+
+
+		if (typeof(T).IsValueType) {
+			var x    = AddressOfData(ref value);
+			var size = SizeOf<T>();
+			return x.ToArray(size);
+		}
+
+		TryGetAddressOfHeap(value, OffsetOptions.Header, out var ptr2);
+		var cb2 = SizeOf(value, SizeOfOptions.Heap);
+
+		return ptr2.ToArray(cb2);
+	}
+
+	/// <summary>
+	/// Reads a value fo type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
+	/// </summary>
+	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
+	public static T ReadFromBytes<T>(byte[] rg)
+	{
+		Memory<byte> asMemory = rg.AsMemory();
+		using var    pin      = asMemory.Pin();
+
+		var p2 = (byte*) pin.Pointer;
+
+		if (!typeof(T).IsValueType) {
+			p2 += RuntimeProperties.ObjHeaderSize;
+			return Unsafe.Read<T>(&p2);
+		}
+
+		return Unsafe.Read<T>(p2);
+	}
+
+
 	/// <summary>
 	/// <see cref="RuntimeHelpers.GetRawData"/>
 	/// </summary>
@@ -914,10 +935,30 @@ public static unsafe class Mem
 		 */
 
 		return ref Unsafe.As<PinHelperProxy>(obj).Data;
-
 	}
 
-	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
+	/// <summary>
+	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
+	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
+	/// <see cref="SizeOfOptions.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
+	/// <seealso cref="AllocManager.InitInline{T}"/>
+	/// </summary>
+	/// <typeparam name="T">Type to initialize</typeparam>
+	/// <param name="ptr">Memory within which to initialize the instance</param>
+	/// <param name="ptrOrig">Original base pointer</param>
+	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
+	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
+	public static T InitInline<T>(Pointer ptr, out Pointer ptrOrig) where T : class
+	{
+		ptrOrig = ptr;
+		ptr.Cast<ObjHeader>().Write(default);
+		ptr += Size;
+		ptr.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
+
+		return AddressOf(ref ptr).Cast<T>().Reference;
+	}
+
+	#endregion
 
 	/// <summary>
 	/// Parses a <see cref="byte"/> array formatted as <c>00 01 02 ...</c>
@@ -934,7 +975,7 @@ public static unsafe class Mem
 	///     hex number format
 	/// </summary>
 	/// <seealso cref="SigScanner.ReadSignature" />
-	public static byte[] ReadBinaryString(string s)
+	public static byte[] ParseBinaryString(string s)
 	{
 		string[] bytes = s.Split(Strings.Constants.SPACE);
 		var      rg    = new List<byte>(bytes.Length);
@@ -987,28 +1028,7 @@ public static unsafe class Mem
 		return Unsafe.Read<T>(p.ToPointer());
 	}*/
 
-	/// <summary>
-	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
-	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
-	/// <see cref="SizeOfOptions.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
-	/// <seealso cref="AllocManager.InitInline{T}"/>
-	/// </summary>
-	/// <typeparam name="T">Type to initialize</typeparam>
-	/// <param name="ptr">Memory within which to initialize the instance</param>
-	/// <param name="ptrOrig">Original base pointer</param>
-	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
-	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
-	public static T InitInline<T>(Pointer ptr, out Pointer ptrOrig) where T : class
-	{
-		ptrOrig = ptr;
-		ptr.Cast<ObjHeader>().Write(default);
-		ptr += Size;
-		ptr.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
-
-		return AddressOf(ref ptr).Cast<T>().Reference;
-	}
-
-	public static ref T ReadRef<T>(this Memory<T> sp, out MemoryHandle mh)
+	public static ref T PinToRef<T>(this Memory<T> sp, out MemoryHandle mh)
 	{
 		mh = sp.Pin();
 		Pointer<T> p = mh.Pointer;
@@ -1022,7 +1042,7 @@ public static unsafe class Mem
 	}
 	*/
 
-	public static (ModuleEntry32, ImageSectionInfo) Locate(Pointer ptr, Process proc)
+	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer ptr)
 	{
 		var modules = Native.EnumProcessModules((uint) proc.Id);
 

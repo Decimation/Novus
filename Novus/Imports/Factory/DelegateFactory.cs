@@ -16,6 +16,8 @@ using System.Runtime.CompilerServices;
 public sealed class DelegateFactory
 {
 
+	private const char TYPENAME_DELIM = ' ';
+
 	/// <summary>
 	///     Creates a new delegate type.
 	/// </summary>
@@ -42,10 +44,11 @@ public sealed class DelegateFactory
 		if (returnType == typeof(void))
 			return MakeNewDelegateType(parameterTypes);
 
-		string typeNames = string.Join("_", parameterTypes.Select(x => x.Name).Append(returnType.Name));
+		string typeNames = String.Join(TYPENAME_DELIM, parameterTypes.Select(x => x.Name).Append(returnType.Name));
 
 		return MakeNewDelegateType(
-			$"CassowaryMulticast{(returnType != typeof(void) ? '_' : string.Empty)}{typeNames}", returnType,
+			$"{TypeFactory.NovusCassowary}Multicast{(returnType != typeof(void) ? TYPENAME_DELIM : String.Empty)}{typeNames}",
+			returnType,
 			parameterTypes);
 	}
 
@@ -57,10 +60,11 @@ public sealed class DelegateFactory
 	[MImp(MImplO.AggressiveOptimization | MImplO.AggressiveInlining)]
 	public static Type MakeNewDelegateType(params Type[] parameterTypes)
 	{
-		string typeNames = string.Join("_", parameterTypes.Select(x => x.Name));
+		string typeNames = String.Join(TYPENAME_DELIM, parameterTypes.Select(x => x.Name));
 
-		return MakeNewDelegateType($"CassowaryMulticast{(typeNames.Length > 0 ? '_' : string.Empty)}{typeNames}",
-		                           typeof(void), parameterTypes);
+		return MakeNewDelegateType(
+			$"{TypeFactory.NovusCassowary}Multicast{(typeNames.Length > 0 ? TYPENAME_DELIM : String.Empty)}{typeNames}",
+			typeof(void), parameterTypes);
 	}
 
 	/// <summary>
@@ -80,9 +84,9 @@ public sealed class DelegateFactory
 		                                               BindingFlags.Instance,
 		                                               binder, argumentTypes, modifiers)
 		                           ?? throw new TypeLoadException(
-			                           $"{type.Name} does not define any .ctor({string.Join(", ", argumentTypes.Select(x => x.Name))})");
+			                           $"{type.Name} does not define any .ctor({String.Join(", ", argumentTypes.Select(x => x.Name))})");
 
-		var         dynamicMethod = new DynamicMethod(string.Empty, type, argumentTypes);
+		var         dynamicMethod = new DynamicMethod(String.Empty, type, argumentTypes);
 		ILGenerator il            = dynamicMethod.GetILGenerator();
 
 		for (int i = 0; i < argumentTypes.Length; ++i) {
@@ -128,8 +132,8 @@ public sealed class DelegateFactory
 	[MImp(MImplO.AggressiveInlining)]
 	public static Delegate MakeConstructorDelegate(Type type, ConstructorInfo ctorInfo, params Type[] argumentTypes)
 	{
-		DynamicMethod dynamicMethod = new DynamicMethod(string.Empty, type, argumentTypes);
-		ILGenerator   il            = dynamicMethod.GetILGenerator();
+		var         dynamicMethod = new DynamicMethod(String.Empty, type, argumentTypes);
+		ILGenerator il            = dynamicMethod.GetILGenerator();
 
 		for (int i = 0; i < argumentTypes.Length; ++i) {
 			switch (i) {
@@ -172,9 +176,7 @@ public sealed class DelegateFactory
 	/// <returns>A delegate for the constructor.</returns>
 	[MImp(MImplO.AggressiveInlining)]
 	public static Delegate MakeConstructorDelegate(Type type, Binder? binder, params Type[] argumentTypes)
-	{
-		return MakeConstructorDelegate(type, binder, null, argumentTypes);
-	}
+		=> MakeConstructorDelegate(type, binder, null, argumentTypes);
 
 	/// <summary>
 	///     Creates a delegate for a constructor of the specified type.
@@ -184,9 +186,7 @@ public sealed class DelegateFactory
 	/// <returns>A delegate for the constructor.</returns>
 	[MImp(MImplO.AggressiveInlining)]
 	public static Delegate MakeConstructorDelegate(Type type, params Type[] argumentTypes)
-	{
-		return MakeConstructorDelegate(type, null, null, argumentTypes);
-	}
+		=> MakeConstructorDelegate(type, null, null, argumentTypes);
 
 	/// <summary>
 	///     Creates a delegate for a constructor of the specified type.
@@ -195,9 +195,7 @@ public sealed class DelegateFactory
 	/// <returns>A delegate for the constructor.</returns>
 	[MImp(MImplO.AggressiveInlining)]
 	public static Delegate MakeConstructorDelegate<T>(params Type[] argumentTypes)
-	{
-		return MakeConstructorDelegate(typeof(T), null, null, argumentTypes);
-	}
+		=> MakeConstructorDelegate(typeof(T), null, null, argumentTypes);
 
 	/// <summary>
 	///     Creates a delegate using the provided MethodInfo. Delegates are cached.
@@ -206,7 +204,7 @@ public sealed class DelegateFactory
 	/// <param name="instance">The instance that the new Delegate will invoke on.</param>
 	/// <param name="throwOnFailure">Whether to throw an exception on failure.</param>
 	/// <returns>A delegate representing the provided MethodInfo.</returns>
-	public static Delegate MakeDelegate(MI methodInfo, object instance, bool throwOnFailure = true)
+	public static Delegate MakeDelegate(MI methodInfo, object? instance, bool throwOnFailure = true)
 	{
 		Type delegateType = MakeNewDelegateType(methodInfo.ReturnType,
 		                                        methodInfo.GetParameters().Select(x => x.ParameterType)
@@ -222,9 +220,7 @@ public sealed class DelegateFactory
 	/// <param name="throwOnFailure">Whether to throw an exception on failure.</param>
 	/// <returns>A delegate representing the provided MethodInfo.</returns>
 	public static Delegate MakeDelegate(MI methodInfo, bool throwOnFailure = true)
-	{
-		return MakeDelegate(methodInfo, null, throwOnFailure);
-	}
+		=> MakeDelegate(methodInfo, null, throwOnFailure);
 
 	/// <summary>
 	///     Creates a delegate using the provided delegate type and MethodInfo.
@@ -236,8 +232,6 @@ public sealed class DelegateFactory
 	/// <returns>A delegate representing the provided MethodInfo.</returns>
 	public static Delegate MakeDelegate(Type delegateType, MI methodInfo, object? instance,
 	                                    bool throwOnFailure = true)
-	{
-		return Delegate.CreateDelegate(delegateType, instance, methodInfo, throwOnFailure)!;
-	}
+		=> Delegate.CreateDelegate(delegateType, instance, methodInfo, throwOnFailure)!;
 
 }

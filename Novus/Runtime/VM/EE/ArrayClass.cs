@@ -2,6 +2,7 @@
 using Novus.Imports;
 using Novus.Imports.Attributes;
 using Novus.Numerics;
+using Novus.Runtime.VM.Tokens;
 using Novus.Win32;
 
 namespace Novus.Runtime.VM.EE;

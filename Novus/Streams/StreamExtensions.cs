@@ -133,8 +133,8 @@ public static class StreamExtensions
 
 	public static void ReadFully(this Stream stream, byte[] buffer)
 	{
-		// todo
-		Task.Run(() => ReadFullyAsync(stream, buffer));
+		var aw = stream.ReadFullyAsync(buffer).GetAwaiter();
+		aw.GetResult();
 	}
 
 	public static async Task ReadFullyAsync(this Stream stream, byte[] buffer, CancellationToken ct = default)

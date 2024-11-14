@@ -7,10 +7,13 @@ using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.Other;
 
+#pragma warning disable CS1573 // Parameter has no matching param tag in the XML comment (but other parameters do)
+
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 
 namespace Novus.Win32;
+
 #pragma warning disable CA1401,CA2101
 public static unsafe partial class Native
 {
@@ -26,40 +29,42 @@ public static unsafe partial class Native
 
 	// Friendly version, marshals thread-proc as friendly delegate
 	[LibraryImport(KERNEL32_DLL)]
-	public static partial nint CreateThread(
-		nint lpThreadAttributes,
-		uint dwStackSize,
-		ThreadProc lpStartAddress, // ThreadProc as friendly delegate
-		nint lpParameter,
-		uint dwCreationFlags,
-		out uint dwThreadId);
+	public static partial nint CreateThread(nint lpThreadAttributes,
+	                                        uint dwStackSize,
+	                                        ThreadProc lpStartAddress, // ThreadProc as friendly delegate
+	                                        nint lpParameter,
+	                                        uint dwCreationFlags,
+	                                        out uint dwThreadId);
 
 	// Marshal with ThreadProc's function pointer as a raw IntPtr.
 	[LibraryImport(KERNEL32_DLL, EntryPoint = "CreateThread")]
-	public static partial nint CreateThreadRaw(
-		nint lpThreadAttributes,
-		uint dwStackSize,
-		nint lpStartAddress, // ThreadProc as raw IntPtr
-		nint lpParameter,
-		uint dwCreationFlags,
-		out uint dwThreadId);
+	public static partial nint CreateThreadRaw(nint lpThreadAttributes,
+	                                           uint dwStackSize,
+	                                           nint lpStartAddress, // ThreadProc as raw IntPtr
+	                                           nint lpParameter,
+	                                           uint dwCreationFlags,
+	                                           out uint dwThreadId);
 
 	// CreateRemoteThread, since ThreadProc is in remote process, we must use a raw function-pointer.
 	[LibraryImport(KERNEL32_DLL)]
-	public static partial nint CreateRemoteThread(
-		nint hProcess,
-		nint lpThreadAttributes,
-		uint dwStackSize,
-		nint lpStartAddress, // raw Pointer into remote process
-		nint lpParameter,
-		uint dwCreationFlags,
-		out uint lpThreadId
+	public static partial nint CreateRemoteThread(nint hProcess,
+	                                              nint lpThreadAttributes,
+	                                              uint dwStackSize,
+	                                              nint lpStartAddress, // raw Pointer into remote process
+	                                              nint lpParameter,
+	                                              uint dwCreationFlags,
+	                                              out uint lpThreadId
 	);
 
 	// uint output
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	[return: MA(UT.Bool)]
 	public static partial bool GetExitCodeThread(nint hThread, out uint lpExitCode);
+
+	public const uint INFINITE       = 0xFFFFFFFF;
+	public const uint WAIT_ABANDONED = 0x00000080;
+	public const uint WAIT_OBJECT_0  = 0x00000000;
+	public const uint WAIT_TIMEOUT   = 0x00000102;
 
 	#region Console
 
@@ -111,12 +116,14 @@ public static unsafe partial class Native
 	                                             Coord dwBufferCoord, ref SmallRect lpWriteRegion
 	);
 
-	/* Writes character and color attribute data to a specified rectangular block of character cells in a console screen buffer.
-	The data to be written is taken from a correspondingly sized rectangular block at a specified location in the source buffer */
+	/// <summary>
+	/// Writes character and color attribute data to a specified rectangular block of character cells in a console screen buffer.
+	/// The data to be written is taken from a correspondingly sized rectangular block at a specified location in the source buffer
+	/// </summary>
+	/// <param name="lpBuffer">This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
+	/// whose size is specified by the dwBufferSize parameter.</param>
 	[DllImport(KERNEL32_DLL, CharSet = CharSet.Unicode, SetLastError = true)]
 	internal static extern bool WriteConsoleOutput(nint hConsoleOutput,
-	                                               /* This pointer is treated as the origin of a two-dimensional array of CHAR_INFO structures
-	                                               whose size is specified by the dwBufferSize parameter.*/
 	                                               [MA(UT.LPArray)] [In] CharInfo[,] lpBuffer,
 	                                               Coord dwBufferSize,
 	                                               Coord dwBufferCoord,
@@ -191,6 +198,7 @@ public static unsafe partial class Native
 	/*[DllImport(KERNEL32_DLL)]
 	public static extern bool ReadProcessMemory(IntPtr proc, IntPtr baseAddr, byte[] buffer,
 												nint size, out IntPtr numBytesRead);*/
+
 	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory", SetLastError = false)]
 	private static partial void MoveMemory(void* dst, void* src, int size);
 
@@ -269,38 +277,6 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial int VirtualQuery(nint lpAddress, ref MemoryBasicInformation lpBuffer, int dwLength);
-
-	#endregion
-
-	#region Code pages
-
-	public enum CodePages
-	{
-
-		CP_IBM437 = 437,
-
-		/// <summary>The system default Windows ANSI code page.</summary>
-		CP_ACP = 0,
-
-		/// <summary>The current system Macintosh code page.</summary>
-		CP_MACCP = 2,
-
-		/// <summary>The current system OEM code page.</summary>
-		CP_OEMCP = 1,
-
-		/// <summary>Symbol code page (42).</summary>
-		CP_SYMBOL = 42,
-
-		/// <summary>The Windows ANSI code page for the current thread.</summary>
-		CP_THREAD_ACP = 3,
-
-		/// <summary>UTF-7. Use this value only when forced by a 7-bit transport mechanism. Use of UTF-8 is preferred.</summary>
-		CP_UTF7 = 65000,
-
-		/// <summary>UTF-8.</summary>
-		CP_UTF8 = 65001,
-
-	}
 
 	#endregion
 
@@ -400,11 +376,6 @@ public static unsafe partial class Native
 	internal static partial nint CreateRemoteThread(nint hProcess, nint lpThreadAttributes, uint dwStackSize,
 	                                                nint lpStartAddress, nint lpParameter, uint dwCreationFlags,
 	                                                out nint lpThreadId);
-
-	public const uint INFINITE       = 0xFFFFFFFF;
-	public const uint WAIT_ABANDONED = 0x00000080;
-	public const uint WAIT_OBJECT_0  = 0x00000000;
-	public const uint WAIT_TIMEOUT   = 0x00000102;
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	public static partial uint WaitForSingleObject(nint hHandle, uint dwMilliseconds);

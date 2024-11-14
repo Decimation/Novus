@@ -10,6 +10,5 @@ namespace Novus.Runtime.VM;
 public struct ObjHeader
 {
 
-	private nint Value { get; set; }
-
+	internal nint Value { get; set; }
 }

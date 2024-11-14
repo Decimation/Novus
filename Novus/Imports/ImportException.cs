@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 
 namespace Novus.Imports;
 
-public sealed class ImportException : Exception
+public sealed class ImportException : TypeLoadException
 {
 	/// <inheritdoc />
 	public ImportException() { }

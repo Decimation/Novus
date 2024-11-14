@@ -26,5 +26,5 @@ to the process to acquire metadata. All metadata is acquired through memory or l
 # Compatibility
 * 64-bit (and partial 32-bit support)
 * Windows
-* .NET CLR 5.0
+* .NET CLR 8+
 * Workstation GC

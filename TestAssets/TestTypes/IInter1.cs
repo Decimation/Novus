@@ -1,4 +1,7 @@
-﻿internal interface IInter1<T>
+﻿namespace Test.TestTypes
 {
-	static abstract ref T Ref { get; }
+	internal interface IInter1<T>
+	{
+		static abstract ref T Ref { get; }
+	}
 }

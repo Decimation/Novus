@@ -1,17 +1,20 @@
-﻿internal class MyClass3
+﻿namespace Test.TestTypes
 {
-	public int a;
-
-	public float f { get; set; }
-
-	public MyClass3(int a, float f)
+	internal class MyClass3
 	{
-		this.a = a;
-		this.f = f;
-	}
+		public int a;
 
-	public override string ToString()
-	{
-		return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		public float f { get; set; }
+
+		public MyClass3(int a, float f)
+		{
+			this.a = a;
+			this.f = f;
+		}
+
+		public override string ToString()
+		{
+			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		}
 	}
 }

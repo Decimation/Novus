@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Novus.Win32;
 [SupportedOSPlatform(Global.OS_WIN)]
 public static class Clipboard
 {
+
 	public static bool IsOpen { get; private set; }
 
 	public static bool Open()
@@ -30,7 +32,8 @@ public static class Clipboard
 		return IsOpen = !Native.CloseClipboard();
 	}
 
-	public static bool IsFormatAvailable(uint n) => Native.IsClipboardFormatAvailable(n);
+	public static bool IsFormatAvailable(uint n)
+		=> Native.IsClipboardFormatAvailable(n);
 
 	public static bool SetData(object s, uint fmt)
 	{
@@ -67,13 +70,28 @@ public static class Clipboard
 		return rg.ToArray();
 	}
 
-	public static object GetData(uint? f = null)
+	[CBN]
+	public static string GetFormatName(uint f)
+	{
+		const int CAPACITY = 0xFFF;
+		var       sb       = new StringBuilder(CAPACITY);
+		int       l        = Native.GetClipboardFormatName(f, sb, sb.Capacity);
+
+		if (l == 0) {
+			return Enum.GetName((ClipboardFormat) f);
+		}
+
+		return sb.ToString();
+	}
+
+
+	public static object GetData(uint f)
 	{
 
-		f ??= ((EnumFormats().FirstOrDefault<uint>(Native.IsClipboardFormatAvailable)));
+		// f ??= ((EnumFormats().FirstOrDefault<uint>(Native.IsClipboardFormatAvailable)));
 		var fn = ClipboardFormatToObject(f);
 
-		var d = Native.GetClipboardData(f.Value);
+		var d = Native.GetClipboardData(f);
 
 		var v = fn?.Invoke(d) ?? d;
 
@@ -82,11 +100,26 @@ public static class Clipboard
 		return v;
 	}
 
+	internal static T FormatConvert<T>(uint format, Func<nint, T> conv)
+	{
+		if (IsFormatAvailable(format)) {
+			var d = Native.GetClipboardData(format);
+			return conv(d);
+		}
+
+		return default;
+	}
+
+	public static string GetFileName()
+	{
+		return FormatConvert((uint) ClipboardFormat.FileNameW, Marshal.PtrToStringUni);
+	}
+
 	public static uint[] EnumFormats()
 	{
 		var rg = new List<uint>();
 
-		uint u = Native.EnumClipboardFormats(Native.ZERO_U);
+		uint u = Native.ZERO_U;
 
 		while ((u = Native.EnumClipboardFormats(u)) != Native.ZERO_U) {
 			rg.Add(u);
@@ -101,36 +134,38 @@ public static class Clipboard
 	public static Func<nint, object> ClipboardFormatToObject(uint? f)
 	{
 		switch (f) {
-			case (uint) ClipboardFormat.FileNameW or (uint) ClipboardFormat.CF_OEMTEXT:
+			case (uint) ClipboardFormat.FileNameW or (uint) ClipboardFormat.CF_OEMTEXT
+				or (uint) ClipboardFormat.CF_UNICODETEXT:
 				return Marshal.PtrToStringUni;
-			case (uint) ClipboardFormat.PNG:
-				return (u) =>
-				{
-					var size = Native.GlobalSize(u);
-					var rg   = new byte[size];
-					Marshal.Copy(u, rg, 0, (int) size);
-					return rg;
-				};
+
 			case (uint) ClipboardFormat.FileName or (uint) ClipboardFormat.CF_TEXT:
 				return Marshal.PtrToStringAnsi;
+
+			case (uint) ClipboardFormat.PNG or (uint) ClipboardFormat.PNG2 or (uint) ClipboardFormat.BMP2:
+				return Native.CopyGlobalObject;
+
+
 			default:
 				return _ => default;
 		}
 
 	}
 
+
 	[CBN]
 	public static Func<object, nint> ClipboardFormatFromObject(uint? f)
 	{
 		Func<object, nint> fn = f switch
 		{
-			(uint) ClipboardFormat.FileNameW or
-				(uint) ClipboardFormat.CF_OEMTEXT => s => Marshal.StringToHGlobalUni((string) s),
+			(uint) ClipboardFormat.FileNameW or (uint) ClipboardFormat.CF_OEMTEXT
+				or (uint) ClipboardFormat.CF_UNICODETEXT
+				=> static s => Marshal.StringToHGlobalUni((string) s),
 
-			(uint) ClipboardFormat.FileName or
-				(uint) ClipboardFormat.CF_TEXT => s => Marshal.StringToHGlobalAnsi((string) s),
+			(uint) ClipboardFormat.FileName or (uint) ClipboardFormat.CF_TEXT
+				=> static s => Marshal.StringToHGlobalAnsi((string) s),
 
-			_ => null
+			_ => default
+
 			// _ => n => nint.Parse((string) n),
 		};
 
@@ -142,4 +177,5 @@ public static class Clipboard
 	public static uint DefaultFormat { get; set; } = (uint) ClipboardFormat.CF_TEXT;
 
 	public static int SequenceNumber => Native.GetClipboardSequenceNumber();
+
 }

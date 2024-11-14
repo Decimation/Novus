@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace TestTypes;
+namespace Test.TestTypes;
 
 [StructLayout(LayoutKind.Explicit)]
 public struct MyStruct

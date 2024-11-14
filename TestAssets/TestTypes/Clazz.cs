@@ -2,31 +2,14 @@
 // ReSharper disable CA1822
 // ReSharper disable LocalizableElement
 
-using Novus.Memory.Allocation;
-using Novus.Memory;
-using Novus.Runtime.Meta;
-using Novus.Runtime;
 using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using Novus.OS;
-using Novus.Properties;
-using Novus.Utilities;
-using Novus.Win32.Structures.Kernel32;
-using Novus.Win32.Structures.User32;
-using Novus.Win32;
-using Novus;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Dynamic;
-using System.Runtime.InteropServices;
-using TestTypes;
 
 #pragma warning disable CA1822
 [assembly: InternalsVisibleTo("Test")]
 [assembly: InternalsVisibleTo("UnitTest")]
 
-namespace TestTypes;
+namespace Test.TestTypes;
 
 public class Clazz2
 {

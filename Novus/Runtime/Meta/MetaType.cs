@@ -13,6 +13,7 @@ using Novus.Utilities;
 using Kantan.Diagnostics;
 using Kantan.Numeric;
 using Novus.Numerics;
+using Novus.Runtime.VM.Tokens;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
@@ -167,7 +168,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	/// <summary>
 	/// Equals <see cref="MemberInfo.MetadataToken"/>
 	/// </summary>
-	public override int Token => Tokens.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
+	public override int Token => TokenHelper.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
 	public CorElementType CorElementType => RuntimeType.GetCorElementType();
 

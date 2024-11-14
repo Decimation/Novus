@@ -16,11 +16,9 @@ using Novus.Utilities;
 
 namespace Novus.FileTypes.Uni;
 
-
 // TODO: UNISOURCE <--> UNIIMAGE
 
-public abstract class UniSource : IDisposable, IEquatable<UniSource>,
-								  IEqualityOperators<UniSource, UniSource, bool>
+public abstract class UniSource : IDisposable, IEquatable<UniSource>, IEqualityOperators<UniSource, UniSource, bool>
 {
 
 	public static List<IUniSource.IsTypePredicate> Register { get; } =
@@ -63,7 +61,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 	}
 
 	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null,
-												 CancellationToken ct = default)
+	                                             CancellationToken ct = default)
 	{
 		UniSource buf = null;
 
@@ -115,7 +113,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 	}
 
 	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
-													CancellationToken ct = default)
+	                                                CancellationToken ct = default)
 	{
 		try {
 			return await GetAsync(value, resolver, ct);
@@ -150,17 +148,25 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>,
 
 	public bool Equals(UniSource other)
 	{
-		if (ReferenceEquals(null, other)) return false;
-		if (ReferenceEquals(this, other)) return true;
+		if (ReferenceEquals(null, other))
+			return false;
+
+		if (ReferenceEquals(this, other))
+			return true;
 
 		return Equals(Stream, other.Stream) && FileType.Equals(other.FileType) && Equals(Value, other.Value);
 	}
 
 	public override bool Equals(object obj)
 	{
-		if (ReferenceEquals(null, obj)) return false;
-		if (ReferenceEquals(this, obj)) return true;
-		if (obj.GetType() != GetType()) return false;
+		if (ReferenceEquals(null, obj))
+			return false;
+
+		if (ReferenceEquals(this, obj))
+			return true;
+
+		if (obj.GetType() != GetType())
+			return false;
 
 		return Equals((UniSource) obj);
 	}

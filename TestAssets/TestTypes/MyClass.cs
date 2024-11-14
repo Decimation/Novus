@@ -1,4 +1,4 @@
-namespace TestTypes;
+namespace Test.TestTypes;
 
 internal class MyClass
 {

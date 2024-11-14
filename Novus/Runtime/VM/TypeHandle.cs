@@ -42,20 +42,11 @@ public unsafe struct TypeHandle
 		get { return (((nuint) Value) & 2) != 0; }
 	}*/
 
-	internal TypeDesc* AsTypeDesc
-	{
-		get { return (TypeDesc*) ((nuint) Value - 2); }
-	}
+	internal TypeDesc* AsTypeDesc => (TypeDesc*) ((nuint) Value - 2);
 
-	internal bool IsMethodTable
-	{
-		get { return ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.MethodTable; }
-	}
+	internal bool IsMethodTable => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.MethodTable;
 
-	internal bool IsTypeDesc
-	{
-		get { return ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.TypeDesc; }
-	}
+	internal bool IsTypeDesc => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.TypeDesc;
 
 	/// <summary>
 	/// <see cref="TypeHandle.MethodTable"/>

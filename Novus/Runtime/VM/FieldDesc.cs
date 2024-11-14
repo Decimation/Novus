@@ -5,6 +5,7 @@ using Novus.Imports;
 using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Numerics;
+using Novus.Runtime.VM.Tokens;
 using Novus.Win32;
 
 // ReSharper disable InconsistentNaming
@@ -80,9 +81,9 @@ public unsafe struct FieldDesc
 
 			// Check if this FieldDesc is using the packed mb layout
 			if (!BitFlags.HasFlag(FieldBitFlags.RequiresFullMBValue))
-				return Tokens.TokenFromRid(rawToken & (int) PackedLayoutMask.MBMask, CorTokenType.FieldDef);
+				return TokenHelper.TokenFromRid(rawToken & (int) PackedLayoutMask.MBMask, CorTokenType.FieldDef);
 
-			return Tokens.TokenFromRid(rawToken, CorTokenType.FieldDef);
+			return TokenHelper.TokenFromRid(rawToken, CorTokenType.FieldDef);
 		}
 	}
 

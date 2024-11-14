@@ -4,6 +4,7 @@ using Novus.Runtime.VM.EE;
 using System;
 using System.Runtime.InteropServices;
 using Novus.Imports.Attributes;
+using Novus.Runtime.VM.Tokens;
 using Novus.Utilities;
 using Novus.Win32;
 
@@ -28,7 +29,7 @@ public unsafe struct MethodTable
 		Global.Clr.LoadImports(typeof(MethodTable));
 	}
 
-	internal short ComponentSize { get;set; }
+	internal short ComponentSize { get; set; }
 
 	internal GenericsFlags GenericsFlags { get; set; }
 
@@ -144,12 +145,133 @@ public unsafe struct MethodTable
 	/// <see cref="NativeLayoutInfo"/>
 	/// </summary>
 	[field: ImportClr("Sig_GetNativeLayoutInfo")]
-	private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo
-	{
-		get; 
-	}
+	private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*>
+		Func_GetNativeLayoutInfo { get; }
 
 	//
+
+}
+
+#region Enums
+
+/// <summary>
+///     <remarks>
+///         <para>Alias: low flags</para>
+///         <para>Use with <see cref="MethodTable.GenericsFlags" /></para>
+///     </remarks>
+/// </summary>
+[Flags]
+public enum GenericsFlags : ushort
+{
+
+	// We are overloading the low 2 bytes of m_dwFlags to be a component size for Strings
+	// and Arrays and some set of flags which we can be assured are of a specified state
+	// for Strings / Arrays, currently these will be a bunch of generics flags which don't
+	// apply to Strings / Arrays.
+
+	UnusedComponentSize1 = 0x00000001,
+
+	StaticsMask                           = 0x00000006,
+	StaticsMask_NonDynamic                = 0x00000000,
+	StaticsMask_Dynamic                   = 0x00000002, // dynamic statics (EnC, reflection.emit)
+	StaticsMask_Generics                  = 0x00000004, // generics statics
+	StaticsMask_CrossModuleGenerics       = 0x00000006, // cross module generics statics (NGen)
+	StaticsMask_IfGenericsThenCrossModule = 0x00000002, // helper constant to get rid of unnecessary check
+
+	NotInPZM = 0x00000008, // True if this type is not in its PreferredZapModule
+
+	GenericsMask             = 0x00000030,
+	GenericsMask_NonGeneric  = 0x00000000, // no instantiation
+	GenericsMask_GenericInst = 0x00000010, // regular instantiation, e.g. List<String>
+
+	GenericsMask_SharedInst  = 0x00000020, // shared instantiation, e.g. List<__Canon> or List<MyValueType<__Canon>>
+	GenericsMask_TypicalInst = 0x00000030, // the type instantiated at its formal parameters, e.g. List<T>
+
+	HasRemotingVtsInfo = 0x00000080, // Optional data present indicating VTS methods and optional fields
+
+	HasVariance = 0x00000100, // This is an instantiated type some of whose type parameters are co or contra-variant
+
+	HasDefaultCtor = 0x00000200,
+
+	HasPreciseInitCctors =
+		0x00000400, // Do we need to run class constructors at allocation time? (Not perf important, could be moved to EEClass
+
+	IsHFA = 0x00000800, // This type is an HFA (Homogenous Floating-point Aggregate)
+
+	IsRegStructPassed = 0x00000800, // This type is a System V register passed struct.
+
+	IsByRefLike = 0x00001000,
+
+	// In a perfect world we would fill these flags using other flags that we already have
+	// which have a constant value for something which has a component size.
+	UnusedComponentSize5 = 0x00002000,
+
+	UnusedComponentSize6 = 0x00004000,
+	UnusedComponentSize7 = 0x00008000,
+
+	StringArrayValues = StaticsMask_NonDynamic  & 0xFFFF |
+	                    NotInPZM                & 0      |
+	                    GenericsMask_NonGeneric & 0xFFFF |
+	                    HasVariance             & 0      |
+	                    HasDefaultCtor          & 0      |
+	                    HasPreciseInitCctors    & 0
+
+}
+
+/// <summary>
+///     The value of lowest two bits describe what the union contains
+///     <remarks>
+///         Use with <see cref="MethodTable.LowBits" />
+///     </remarks>
+/// </summary>
+public enum LowBits
+{
+
+	/// <summary>
+	///     0 - pointer to <see cref="EEClass" />
+	///     This <see cref="MethodTable" /> is the canonical method table.
+	/// </summary>
+	EEClass = 0,
+
+	/// <summary>
+	///     2 - pointer to canonical <see cref="MethodTable" />.
+	/// </summary>
+	MethodTable = 1,
+
+}
+
+/// <summary>
+///     <remarks>
+///         <para>Alias: flags 2</para>
+///         <para>Use with <see cref="MethodTable.SlotsFlags" /></para>
+///     </remarks>
+/// </summary>
+[Flags]
+public enum OptionalSlotsFlags : ushort
+{
+
+	MultipurposeSlotsMask    = 0x001F,
+	HasPerInstInfo           = 0x0001,
+	HasInterfaceMap          = 0x0002,
+	HasDispatchMapSlot       = 0x0004,
+	HasNonVirtualSlots       = 0x0008,
+	HasModuleOverride        = 0x0010,
+	IsZapped                 = 0x0020,
+	IsPreRestored            = 0x0040,
+	HasModuleDependencies    = 0x0080,
+	IsIntrinsicType          = 0x0100,
+	RequiresDispatchTokenFat = 0x0200,
+	HasCctor                 = 0x0400,
+	HasCCWTemplate           = 0x0800,
+
+	/// <summary>
+	///     Type requires 8-byte alignment (only set on platforms that require this and don't get it implicitly)
+	/// </summary>
+	RequiresAlign8 = 0x1000,
+
+	HasBoxedRegularStatics                = 0x2000,
+	HasSingleNonVirtualSlot               = 0x4000,
+	DependsOnEquivalentOrForwardedStructs = 0x8000
 
 }
 
@@ -272,123 +394,4 @@ public enum TypeFlags : uint
 
 }
 
-/// <summary>
-///     <remarks>
-///         <para>Alias: flags 2</para>
-///         <para>Use with <see cref="MethodTable.SlotsFlags" /></para>
-///     </remarks>
-/// </summary>
-[Flags]
-public enum OptionalSlotsFlags : ushort
-{
-
-	MultipurposeSlotsMask    = 0x001F,
-	HasPerInstInfo           = 0x0001,
-	HasInterfaceMap          = 0x0002,
-	HasDispatchMapSlot       = 0x0004,
-	HasNonVirtualSlots       = 0x0008,
-	HasModuleOverride        = 0x0010,
-	IsZapped                 = 0x0020,
-	IsPreRestored            = 0x0040,
-	HasModuleDependencies    = 0x0080,
-	IsIntrinsicType          = 0x0100,
-	RequiresDispatchTokenFat = 0x0200,
-	HasCctor                 = 0x0400,
-	HasCCWTemplate           = 0x0800,
-
-	/// <summary>
-	///     Type requires 8-byte alignment (only set on platforms that require this and don't get it implicitly)
-	/// </summary>
-	RequiresAlign8 = 0x1000,
-
-	HasBoxedRegularStatics                = 0x2000,
-	HasSingleNonVirtualSlot               = 0x4000,
-	DependsOnEquivalentOrForwardedStructs = 0x8000
-
-}
-
-/// <summary>
-///     <remarks>
-///         <para>Alias: low flags</para>
-///         <para>Use with <see cref="MethodTable.GenericsFlags" /></para>
-///     </remarks>
-/// </summary>
-[Flags]
-public enum GenericsFlags : ushort
-{
-
-	// We are overloading the low 2 bytes of m_dwFlags to be a component size for Strings
-	// and Arrays and some set of flags which we can be assured are of a specified state
-	// for Strings / Arrays, currently these will be a bunch of generics flags which don't
-	// apply to Strings / Arrays.
-
-	UnusedComponentSize1 = 0x00000001,
-
-	StaticsMask                           = 0x00000006,
-	StaticsMask_NonDynamic                = 0x00000000,
-	StaticsMask_Dynamic                   = 0x00000002, // dynamic statics (EnC, reflection.emit)
-	StaticsMask_Generics                  = 0x00000004, // generics statics
-	StaticsMask_CrossModuleGenerics       = 0x00000006, // cross module generics statics (NGen)
-	StaticsMask_IfGenericsThenCrossModule = 0x00000002, // helper constant to get rid of unnecessary check
-
-	NotInPZM = 0x00000008, // True if this type is not in its PreferredZapModule
-
-	GenericsMask             = 0x00000030,
-	GenericsMask_NonGeneric  = 0x00000000, // no instantiation
-	GenericsMask_GenericInst = 0x00000010, // regular instantiation, e.g. List<String>
-
-	GenericsMask_SharedInst  = 0x00000020, // shared instantiation, e.g. List<__Canon> or List<MyValueType<__Canon>>
-	GenericsMask_TypicalInst = 0x00000030, // the type instantiated at its formal parameters, e.g. List<T>
-
-	HasRemotingVtsInfo = 0x00000080, // Optional data present indicating VTS methods and optional fields
-
-	HasVariance = 0x00000100, // This is an instantiated type some of whose type parameters are co or contra-variant
-
-	HasDefaultCtor = 0x00000200,
-
-	HasPreciseInitCctors =
-		0x00000400, // Do we need to run class constructors at allocation time? (Not perf important, could be moved to EEClass
-
-	IsHFA = 0x00000800, // This type is an HFA (Homogenous Floating-point Aggregate)
-
-	IsRegStructPassed = 0x00000800, // This type is a System V register passed struct.
-
-	IsByRefLike = 0x00001000,
-
-	// In a perfect world we would fill these flags using other flags that we already have
-	// which have a constant value for something which has a component size.
-	UnusedComponentSize5 = 0x00002000,
-
-	UnusedComponentSize6 = 0x00004000,
-	UnusedComponentSize7 = 0x00008000,
-
-	StringArrayValues = (StaticsMask_NonDynamic & 0xFFFF) |
-	                    (NotInPZM & 0) |
-	                    (GenericsMask_NonGeneric & 0xFFFF) |
-	                    (HasVariance & 0) |
-	                    (HasDefaultCtor & 0) |
-	                    (HasPreciseInitCctors & 0)
-
-}
-
-/// <summary>
-///     The value of lowest two bits describe what the union contains
-///     <remarks>
-///         Use with <see cref="LowBits" />
-///     </remarks>
-/// </summary>
-public enum LowBits
-{
-
-	/// <summary>
-	///     0 - pointer to <see cref="EEClass" />
-	///     This <see cref="MethodTable" /> is the canonical method table.
-	/// </summary>
-	EEClass = 0,
-
-	/// <summary>
-	///     2 - pointer to canonical <see cref="MethodTable" />.
-	/// </summary>
-	MethodTable = 1,
-
-}
+#endregion

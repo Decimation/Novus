@@ -1,11 +1,14 @@
-﻿public struct MyStruct2
+﻿namespace Test.TestTypes
 {
-	public int a;
-
-	public float f { get; set; }
-
-	public override string ToString()
+	public struct MyStruct2
 	{
-		return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		public int a;
+
+		public float f { get; set; }
+
+		public override string ToString()
+		{
+			return $"{nameof(a)}: {a}, {nameof(f)}: {f}";
+		}
 	}
 }

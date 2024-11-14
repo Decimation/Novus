@@ -57,12 +57,12 @@ public static class AtomicHelper
 
 		nint ptr;
 
-		if (!Cache.ContainsKey(type)) {
+		if (!Cache.TryGetValue(type, out nint value)) {
 			ptr         = GetExchangeFunction<T>();
 			Cache[type] = ptr;
 		}
 		else {
-			ptr = Cache[type];
+			ptr = value;
 		}
 
 		return ptr;

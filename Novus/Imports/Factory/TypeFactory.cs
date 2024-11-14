@@ -12,6 +12,11 @@ namespace Novus.Imports.Factory;
 /// </summary>
 public static class TypeFactory
 {
+	/// <summary>
+	/// <em>Novus</em> &amp; <em>Cassowary</em>
+	/// </summary>
+	public const string NovusCassowary = "Novowary";
+
 
 	#region
 
@@ -20,7 +25,7 @@ public static class TypeFactory
 	private static readonly AssemblyBuilder _assemblyBuilder =
 		AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("Factories"), AssemblyBuilderAccess.Run);
 
-	private static readonly ModuleBuilder _moduleBuilder = _assemblyBuilder.DefineDynamicModule("Cassowary");
+	private static readonly ModuleBuilder _moduleBuilder = _assemblyBuilder.DefineDynamicModule(NovusCassowary);
 
 	private static int _count = 0;
 
@@ -74,9 +79,7 @@ public static class TypeFactory
 	/// <returns>The defined TypeBuilder for the type.</returns>
 	[MImpl(MImplO.AggressiveOptimization | MImplO.AggressiveInlining)]
 	internal static TypeBuilder DefineType(string name, TypeAttributes attr, Type parent)
-	{
-		return _moduleBuilder.DefineType(name + $"%{_count++}%", attr, parent);
-	}
+		=> _moduleBuilder.DefineType(name + $"%{_count++}%", attr, parent);
 
 	/// <summary>
 	///     Resolves a type by its name.

@@ -66,7 +66,7 @@ public sealed class SigScanner
 	public SigScanner(Pointer<byte> p, ulong c)
 		: this(p, c, p.ToArray((int) c)) { }
 
-	public SigScanner(Pointer<byte> ptr, ulong size, byte[] buffer)
+	public SigScanner(Pointer<byte> ptr, ulong size, Memory<byte> buffer)
 	{
 		Buffer  = buffer;
 		Size    = size;

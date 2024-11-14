@@ -1,5 +1,4 @@
-﻿using System;
-using Novus.Memory;
+﻿using Novus.Memory;
 using Novus.Win32;
 
 // ReSharper disable IdentifierTypo
@@ -8,10 +7,10 @@ using Novus.Win32;
 
 // ReSharper disable UnusedMember.Global
 #pragma warning disable CA1069
-namespace Novus.Numerics;
+namespace Novus.Runtime.VM.Tokens;
 #pragma warning disable CA1416
 
-public static class Tokens
+public static class TokenHelper
 {
 
 	// src/inc/corhdr.h
@@ -120,26 +119,31 @@ public static class Tokens
 
 			case CorElementType.I1:
 				return sizeof(sbyte);
+
 			case CorElementType.U1:
 				return sizeof(byte);
 
 			case CorElementType.I2:
 				return sizeof(short);
+
 			case CorElementType.U2:
 				return sizeof(ushort);
 
 			case CorElementType.I4:
 				return sizeof(int);
+
 			case CorElementType.U4:
 				return sizeof(uint);
 
 			case CorElementType.I8:
 				return sizeof(long);
+
 			case CorElementType.U8:
 				return sizeof(ulong);
 
 			case CorElementType.R4:
 				return sizeof(float);
+
 			case CorElementType.R8:
 				return sizeof(double);
 
@@ -173,6 +177,7 @@ public static class Tokens
 			case CorElementType.Sentinel:
 			case CorElementType.Pinned:
 				break;
+
 			default:
 				throw new ArgumentOutOfRangeException(nameof(t), t, null);
 		}
@@ -302,7 +307,7 @@ public enum CorElementType : byte
 	GenericInst = 0x15,
 	TypedByRef  = 0x16,
 	I           = 0x18,
-	Unsafe           = 0x19,
+	Unsafe      = 0x19,
 	FnPtr       = 0x1B,
 	Object      = 0x1C,
 	SzArray     = 0x1D,
@@ -405,7 +410,7 @@ public enum CorInfoOptions : uint
 	CORINFO_GENERICS_CTXT_FROM_METHODTABLE =
 		0x00000080, // is this shared generic code that access the generic context from the ParamTypeArg(that is a MethodTable)?  If so, then if the method has SEH then the 'ParamTypeArg' must always be reported and kept alive. Same as CORINFO_CALLCONV_PARAMTYPE
 
-	CORINFO_GENERICS_CTXT_MASK = CORINFO_GENERICS_CTXT_FROM_THIS |
+	CORINFO_GENERICS_CTXT_MASK = CORINFO_GENERICS_CTXT_FROM_THIS       |
 	                             CORINFO_GENERICS_CTXT_FROM_METHODDESC |
 	                             CORINFO_GENERICS_CTXT_FROM_METHODTABLE,
 
@@ -1104,5 +1109,68 @@ public enum CorCallingConvention
 	Generic = 0x10
 
 	// 0x80 is reserved for internal use
+
+}
+
+public enum CorElementType2
+{
+
+	ELEMENT_TYPE_END         = 0x0,
+	ELEMENT_TYPE_VOID        = 0x1,
+	ELEMENT_TYPE_BOOLEAN     = 0x2,
+	ELEMENT_TYPE_CHAR        = 0x3,
+	ELEMENT_TYPE_I1          = 0x4,
+	ELEMENT_TYPE_U1          = 0x5,
+	ELEMENT_TYPE_I2          = 0x6,
+	ELEMENT_TYPE_U2          = 0x7,
+	ELEMENT_TYPE_I4          = 0x8,
+	ELEMENT_TYPE_U4          = 0x9,
+	ELEMENT_TYPE_I8          = 0xa,
+	ELEMENT_TYPE_U8          = 0xb,
+	ELEMENT_TYPE_R4          = 0xc,
+	ELEMENT_TYPE_R8          = 0xd,
+	ELEMENT_TYPE_STRING      = 0xe,
+	ELEMENT_TYPE_PTR         = 0xf,
+	ELEMENT_TYPE_BYREF       = 0x10,
+	ELEMENT_TYPE_VALUETYPE   = 0x11,
+	ELEMENT_TYPE_CLASS       = 0x12,
+	ELEMENT_TYPE_VAR         = 0x13,
+	ELEMENT_TYPE_ARRAY       = 0x14,
+	ELEMENT_TYPE_GENERICINST = 0x15,
+	ELEMENT_TYPE_TYPEDBYREF  = 0x16,
+	ELEMENT_TYPE_I           = 0x18,
+	ELEMENT_TYPE_U           = 0x19,
+	ELEMENT_TYPE_FNPTR       = 0x1B,
+	ELEMENT_TYPE_OBJECT      = 0x1C,
+	ELEMENT_TYPE_SZARRAY     = 0x1D,
+	ELEMENT_TYPE_MVAR        = 0x1e,
+	ELEMENT_TYPE_CMOD_REQD   = 0x1F,
+	ELEMENT_TYPE_CMOD_OPT    = 0x20,
+	ELEMENT_TYPE_INTERNAL    = 0x21,
+	ELEMENT_TYPE_MAX         = 0x22,
+	ELEMENT_TYPE_MODIFIER    = 0x40,
+	ELEMENT_TYPE_SENTINEL    = 0x01 | ELEMENT_TYPE_MODIFIER,
+	ELEMENT_TYPE_PINNED      = 0x05 | ELEMENT_TYPE_MODIFIER,
+
+}
+
+public enum CEEToken
+{
+
+	IMAGE_CEE_CS_CALLCONV_DEFAULT = 0x0,
+
+	IMAGE_CEE_CS_CALLCONV_VARARG       = 0x5,
+	IMAGE_CEE_CS_CALLCONV_FIELD        = 0x6,
+	IMAGE_CEE_CS_CALLCONV_LOCAL_SIG    = 0x7,
+	IMAGE_CEE_CS_CALLCONV_PROPERTY     = 0x8,
+	IMAGE_CEE_CS_CALLCONV_UNMGD        = 0x9,
+	IMAGE_CEE_CS_CALLCONV_GENERICINST  = 0xa,
+	IMAGE_CEE_CS_CALLCONV_NATIVEVARARG = 0xb,
+	IMAGE_CEE_CS_CALLCONV_MAX          = 0xc,
+
+	IMAGE_CEE_CS_CALLCONV_MASK         = 0x0f,
+	IMAGE_CEE_CS_CALLCONV_HASTHIS      = 0x20,
+	IMAGE_CEE_CS_CALLCONV_EXPLICITTHIS = 0x40,
+	IMAGE_CEE_CS_CALLCONV_GENERIC      = 0x10,
 
 }

@@ -2,7 +2,7 @@
 
 #pragma warning disable IDE0060, IDE0079, IDE0005
 
-#region 
+#region
 
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using NN = JetBrains.Annotations.NotNullAttribute;
@@ -18,8 +18,8 @@ global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
 global using MNN = System.Diagnostics.CodeAnalysis.MemberNotNullAttribute;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
-
-
+global using NNW = System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
+global using MNW = System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute;
 global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
 global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 
@@ -160,9 +160,10 @@ public static class Global
 	/// <summary>
 	///     Runtime CLR version
 	/// </summary>
-	public static readonly Version ClrVersion = Version.Parse(EmbeddedResources.RequiredVersion);
+	public static readonly Version ClrVersion = Version.Parse(ER.RequiredVersion);
 
-	public static string ClrPdb { get; set; } = GetPdbFile();
+	[MN]
+	public static string ClrPdb { get; set; }
 
 	/// <summary>
 	///     Runtime CLR resources
@@ -181,18 +182,17 @@ public static class Global
 
 	// internal static readonly ILoggerFactory LoggerFactory = new LoggerFactory();
 
-	internal static readonly ILoggerFactory LoggerFactory =
-		Microsoft.Extensions.Logging.LoggerFactory.Create(builder => builder.AddDebug());
+	internal static readonly ILoggerFactory LoggerFactoryInt =
+		LoggerFactory.Create(builder => builder.AddDebug());
 
-	internal static readonly ILogger Logger = LoggerFactory.CreateLogger(LIB_NAME);
-	
+	internal static readonly ILogger Logger = LoggerFactoryInt.CreateLogger(LIB_NAME);
+
 	static Global()
 	{
 
 		if (!Directory.Exists(DataFolder)) {
 			Directory.CreateDirectory(DataFolder);
 		}
-
 	}
 
 	internal static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
@@ -205,6 +205,7 @@ public static class Global
 	}
 
 	[CBN]
+	[SupportedOSPlatform(OS_WIN)]
 	public static string GetPdbFile()
 	{
 		// var pdbFile = Path.Join(DataFolder, CLR_PDB);
@@ -240,7 +241,8 @@ public static class Global
 		}
 
 		//todo
-		Clr = new RuntimeResource(CLR_MODULE, ClrPdb);
+		ClrPdb = GetPdbFile();
+		Clr    = new RuntimeResource(CLR_MODULE, ClrPdb);
 
 		/* try {
 			DateTime dt = default;
@@ -295,8 +297,8 @@ public static class Global
 
 	public static bool IsCompatible => IsCorrectVersion && IsWorkstationGC && IsWindows;
 
-	internal const MethodImplOptions IMPL_OPTIONS =
-		MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization;
+	internal const MImplO IMPL_OPTIONS =
+		MImplO.AggressiveInlining | MImplO.AggressiveOptimization;
 
 	public const string OS_WIN = "windows";
 

@@ -42,10 +42,7 @@ public sealed class DynamicLibrary
 	/// </returns>
 	public DynamicLibraryFunction GetFunction(string name, CallingConvention callingConvention, CharSet charSet,
 	                                          params Type[] parameterTypes)
-	{
-		return new DynamicLibraryFunction(
-			this, CreateFunctionMethod(name, callingConvention, charSet, typeof(void), parameterTypes));
-	}
+		=> new(this, CreateFunctionMethod(name, callingConvention, charSet, typeof(void), parameterTypes));
 
 	/// <summary>
 	/// Returns a new <see cref="DynamicLibraryFunction{T}" /> object that can be used to call the function. The function returns a value.
@@ -60,10 +57,7 @@ public sealed class DynamicLibrary
 	/// </returns>
 	public DynamicLibraryFunction<TReturn> GetFunction<TReturn>(string name, CallingConvention callingConvention,
 	                                                            CharSet charSet, params Type[] parameterTypes)
-	{
-		return new DynamicLibraryFunction<TReturn>(
-			this, CreateFunctionMethod(name, callingConvention, charSet, typeof(TReturn), parameterTypes));
-	}
+		=> new(this, CreateFunctionMethod(name, callingConvention, charSet, typeof(TReturn), parameterTypes));
 
 	private MI CreateFunctionMethod(string name, CallingConvention callingConvention, CharSet charSet, Type returnType,
 	                                Type[] parameterTypes)

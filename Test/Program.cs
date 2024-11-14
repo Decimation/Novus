@@ -52,7 +52,7 @@ using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
-using TestTypes;
+using Test.TestTypes;
 #pragma warning disable IDE0005, CS0436, CS0469
 using System;
 using System.Collections.Generic;
@@ -67,133 +67,113 @@ using Novus.FileTypes.Uni;
 using Novus.Memory.Types;
 
 #pragma warning disable NV0001
+#pragma warning disable CS0649
 
 // ReSharper disable ClassNeverInstantiated.Local
-
 // ReSharper disable PossibleNullReferenceException
-
 // ReSharper disable ArrangeTypeModifiers
 // ReSharper disable UnusedType.Local
 // ReSharper disable InconsistentNaming
-#pragma warning disable CS0649
-
 // ReSharper disable UnusedParameter.Local
 #nullable disable
 
 
-namespace Test
+namespace Test;
+/*
+ * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
+ * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
+ *
+ * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
+ *
+ * todo: integrate pdbex
+ *
+ *
+ */
+
+/*
+ * 🌟 Novus				https://github.com/Decimation/Novus
+ * ⨉ NeoCore			https://github.com/Decimation/NeoCore
+ * ⨉ RazorSharp			https://github.com/Decimation/RazorSharp
+ *
+ * ◆ Kantan				https://github.com/Decimation/Kantan
+ *
+ */
+/*
+ * https://github.com/IS4Code/SharpUtils
+ */
+/* Runtime
+ *
+ * https://github.com/dotnet/runtime
+ *
+ *
+ *
+ * Field
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
+ *
+ * Method
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
+ *
+ * EEClass
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
+ *
+ * MethodTable
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
+ *
+ * TypeHandle
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.cpp
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.inl
+ *
+ * Marshal Native
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
+ *
+ * Other
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
+ * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
+ */
+
+public static unsafe class Program
 {
-    /*
-	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
-	 * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
-	 *
-	 * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
-	 *
-	 * todo: integrate pdbex
-	 *
-	 *
-	 */
 
-    /*
-     * 🌟 Novus				https://github.com/Decimation/Novus
-     * ⨉ NeoCore			https://github.com/Decimation/NeoCore
-     * ⨉ RazorSharp			https://github.com/Decimation/RazorSharp
-     *
-     * ◆ Kantan				https://github.com/Decimation/Kantan
-     *
-     */
-    /*
-     * https://github.com/IS4Code/SharpUtils
-     */
-    /* Runtime
-     *
-     * https://github.com/dotnet/runtime
-     *
-     *
-     *
-     * Field
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.h
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/field.cpp
-     *
-     * Method
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.hpp
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.cpp
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/method.inl
-     *
-     * EEClass
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.h
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.cpp
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/class.inl
-     *
-     * MethodTable
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.h
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.cpp
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/methodtable.inl
-     *
-     * TypeHandle
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.h
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.cpp
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/typehandle.inl
-     *
-     * Marshal Native
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.h
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/marshalnative.cpp
-     *
-     * Other
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/ecalllist.h
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/vm/gcheaputilities.h
-     * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
-     */
-
-    public static unsafe class Program
+	static Program()
 	{
+		Global.Clr.LoadImports(typeof(Program));
+	}
 
-		static Program()
-		{
-			Global.Clr.LoadImports(typeof(Program));
+	private static void Main(string[] args)
+	{
+		MyClass mc = new MyClass() { a = 321, s = "butt" };
+		var     rg = Mem.GetBytes(mc);
+		Console.WriteLine(rg.FormatJoin("X", delim: " "));
+		var mc2 = Mem.ReadFromBytes<object>(rg);
+		Console.WriteLine(mc);
+		Console.WriteLine(mc2);
+	}
 
-		}
+	private static void run1()
+	{
+		string s = "foo";
+	}
 
-		private static void Main(string[] args)
-		{
-			/*run1();
-			run2();
-			run3();
+	private static void run2()
+	{
+		int i = 123;
+	}
 
-
-			var obj = (MyClass3) AllocManager.New(typeof(MyClass3), [1, 1.2f]);
-			Console.WriteLine(obj);*/
-
-			var mc = new MyClass3(1, 321.1f);
-			var tt = typeof(List<>);
-			var t  = tt.AsMetaType();
-			var th = RuntimeProperties.ResolveTypeHandle(tt);
-			Console.WriteLine(th.IsTypeDesc);
-			Console.WriteLine(th.IsMethodTable);
-			var mtt1 = th.MethodTable;
-			Console.WriteLine(mtt1);
-			var mtt2 = RuntimeProperties.ResolveMethodTable(tt);
-			Console.WriteLine(mtt2);
-
-
-		}
-
-		private static void run1()
-		{
-			string s = "foo";
-		}
-
-		private static void run2()
-		{
-			int i = 123;
-		}
-
-		private static unsafe void run3()
-		{
-			Pointer p = stackalloc byte[Mem.Size];
-			any     a = new();
-
-		}
+	private static unsafe void run3()
+	{
+		Pointer p = stackalloc byte[Mem.Size];
+		any     a = new();
 
 	}
+
 }

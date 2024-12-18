@@ -42,9 +42,9 @@ namespace Novus.Imports;
 public sealed class RuntimeResource : IDisposable
 {
 
-	public Pointer Address => Module.Value.BaseAddress;
+	public Pointer Address => Module.BaseAddress;
 
-	public Lazy<ProcessModule> Module { get; }
+	public ProcessModule Module { get; }
 
 	public string ModuleName { get; }
 
@@ -54,7 +54,6 @@ public sealed class RuntimeResource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
-	public Pointer ModuleAddress => Module.IsValueCreated ? Module.Value.BaseAddress : Mem.Nullptr;
 
 	/// <summary>
 	/// Creates a <see cref="RuntimeResource"/> from an already-loaded module.
@@ -66,20 +65,16 @@ public sealed class RuntimeResource : IDisposable
 	{
 		ModuleName = moduleName;
 
-		Module = new(() =>
-		{
-			var mod = p.FindModule(moduleName);
+		Module = p.FindModule(moduleName);
 
-			return mod;
-		});
+		if (Module == null) {
+			throw new NullReferenceException($"{moduleName} not found");
+		}
 
 		Scanner = new Lazy<SigScanner>(() =>
 		{
-			if (!Module.IsValueCreated) {
-				Debug.WriteLine($"{Scanner} accessed before {Module} was init");	
-			}
-
-			return new SigScanner(Module.Value);
+			//
+			return new SigScanner(Module);
 		});
 
 		Symbols      = new Lazy<Win32SymbolReader>(() => File.Exists(pdb) ? new Win32SymbolReader(pdb) : null);
@@ -265,9 +260,13 @@ public sealed class RuntimeResource : IDisposable
 				if (addr.IsNull) {
 					// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 
-					Trace.WriteLine($"Could not find import value for {unmanagedAttr.Name}!", LogCategories.C_ERROR);
+					var message = $"Could not find import value for {unmanagedAttr.Name}!";
+					Trace.WriteLine(message, LogCategories.C_ERROR);
 
 					if (throwOnErr) {
+						throw new InvalidOperationException(message);
+					}
+					else {
 						unsafe {
 							var  unmg         = field.FieldType.IsUnmanagedFunctionPointer;
 							var  fnPtr        = field.FieldType.GetFunctionPointerReturnType();
@@ -290,6 +289,7 @@ public sealed class RuntimeResource : IDisposable
 							var fnPtr=dyn.MethodHandle.GetFunctionPointer();
 							addr = fnPtr;*/
 						}
+
 					}
 
 				}
@@ -408,7 +408,7 @@ public sealed class RuntimeResource : IDisposable
 	}
 
 	public Pointer GetExport(string name)
-		=> NativeLibrary.GetExport(Module.Value.BaseAddress, name);
+		=> NativeLibrary.GetExport(Module.BaseAddress, name);
 
 	public Pointer GetSignature(string signature)
 		=> Scanner.Value.FindSignature(signature);
@@ -438,7 +438,7 @@ public sealed class RuntimeResource : IDisposable
 			symbol = symbols.FirstOrDefault();
 		}*/
 
-		return (Pointer) Module.Value.BaseAddress +
+		return (Pointer) Module.BaseAddress +
 		       (nint) (symbol?.Offset ?? throw new InvalidOperationException());
 	}
 
@@ -451,7 +451,7 @@ public sealed class RuntimeResource : IDisposable
 
 		if (LoadedModule) {
 			//Native.FreeLibrary(Module.BaseAddress);
-			NativeLibrary.Free(Module.Value.BaseAddress);
+			NativeLibrary.Free(Module.BaseAddress);
 		}
 
 		// GC.SuppressFinalize(this);
@@ -459,7 +459,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public override string ToString()
 	{
-		return $"{Module.Value.ModuleName} ({Scanner.Value.Address})";
+		return $"{Module.ModuleName} ({Scanner.Value.Address})";
 	}
 
 }

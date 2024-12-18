@@ -170,7 +170,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 8.0.10.
+        ///   Looks up a localized string similar to 9.0.0.
         /// </summary>
         internal static string RequiredVersion {
             get {
@@ -179,7 +179,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05.
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 60 48 8B D9.
         /// </summary>
         internal static string Sig_AllocObject {
             get {
@@ -188,7 +188,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 83 EC 28 0F B7 41 06.
+        ///   Looks up a localized string similar to 48 83 EC 28 0F B7 41 06 BA.
         /// </summary>
         internal static string Sig_GetAttrs {
             get {
@@ -197,7 +197,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 0F B6 41 02 4C 8B C1 48 8B F1.
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 30 4C 8B F1 0F B6 41 02.
         /// </summary>
         internal static string Sig_GetIL {
             get {
@@ -260,7 +260,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 83 EC 28 F7 41 ? ? ? ? ? 4C 8B D9.
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 8B 53 0C.
         /// </summary>
         internal static string Sig_GetStaticAddr {
             get {

@@ -35,9 +35,13 @@ public unsafe struct MethodTable
 
 	internal int BaseSize { get; set; }
 
-	internal OptionalSlotsFlags SlotsFlags { get; set; }
+	/*internal OptionalSlotsFlags SlotsFlags { get; set; }
 
-	internal short RawToken { get; set; }
+	internal short RawToken { get; set; }*/
+
+	internal MethodTableFlags2 Flags2 { get; set; }
+
+	internal ushort RawToken => (ushort) ((uint) Flags2 >> 8);
 
 	internal short NumVirtuals { get; set; }
 
@@ -47,7 +51,7 @@ public unsafe struct MethodTable
 
 	internal void* Module { get; set; }
 
-	internal void* WriteableData { get; set; }
+	internal MethodTableAuxiliaryData* AuxiliaryData { get; set; }
 
 	internal TypeFlags TypeFlags
 	{
@@ -126,7 +130,6 @@ public unsafe struct MethodTable
 	///     <para>Union 2</para>
 	///     <para>PerInstInfo</para>
 	///     <para><see cref="ElementTypeHandle" /></para>
-	///     <para>MultipurposeSlot1</para>
 	/// </summary>
 	private nint Union2 { get; set; }
 
@@ -149,6 +152,53 @@ public unsafe struct MethodTable
 		Func_GetNativeLayoutInfo { get; }
 
 	//
+
+}
+
+[NativeStructure]
+[StructLayout(LayoutKind.Sequential)]
+public unsafe struct MethodTableAuxiliaryData
+{
+
+	public enum AuxiliaryFlags
+	{
+
+		// AS YOU ADD NEW FLAGS PLEASE CONSIDER WHETHER Generics::NewInstantiation NEEDS
+		// TO BE UPDATED IN ORDER TO ENSURE THAT METHODTABLES DUPLICATED FOR GENERIC INSTANTIATIONS
+		// CARRY THE CORRECT INITIAL FLAGS.
+
+		Initialized = 0x0001,
+
+		HasCheckedCanCompareBitsOrUseFastGetHashCode =
+			0x0002, // Whether we have checked the overridden Equals or GetHashCode
+
+		CanCompareBitsOrUseFastGetHashCode =
+			0x0004, // Is any field type or sub field type overridden Equals or GetHashCode
+		IsTlsIndexAllocated = 0x0008,
+		HasApproxParent = 0x0010,
+		MayHaveOpenInterfaceInInterfaceMap = 0x0020,
+		IsNotFullyLoaded = 0x0040,
+		DependenciesLoaded = 0x0080, // class and all dependencies loaded up to CLASS_LOADED_BUT_NOT_VERIFIED
+
+		IsInitError = 0x0100,
+
+		IsStaticDataAllocated =
+			0x0200, // When this is set, if the class can be marked as initialized without any further code execution it will be.
+		HasCheckedStreamOverride = 0x0400,
+		StreamOverriddenRead     = 0x0800,
+		StreamOverriddenWrite    = 0x1000,
+		EnsuredInstanceActive    = 0x2000,
+
+		// unused enum                      = 0x4000,
+		// unused enum                      = 0x8000,
+
+	};
+
+	public uint Flags { get; set; }
+
+	public void* LoaderModule { get; set; }
+
+	public void* ExposedClassObject { get; set; }
 
 }
 
@@ -243,37 +293,31 @@ public enum LowBits
 /// <summary>
 ///     <remarks>
 ///         <para>Alias: flags 2</para>
-///         <para>Use with <see cref="MethodTable.SlotsFlags" /></para>
+///         <para>Use with <see cref="MethodTable.Flags2" /></para>
 ///     </remarks>
 /// </summary>
 [Flags]
-public enum OptionalSlotsFlags : ushort
+public enum MethodTableFlags2 : uint
 {
 
-	MultipurposeSlotsMask    = 0x001F,
-	HasPerInstInfo           = 0x0001,
-	HasInterfaceMap          = 0x0002,
-	HasDispatchMapSlot       = 0x0004,
-	HasNonVirtualSlots       = 0x0008,
-	HasModuleOverride        = 0x0010,
-	IsZapped                 = 0x0020,
-	IsPreRestored            = 0x0040,
-	HasModuleDependencies    = 0x0080,
-	IsIntrinsicType          = 0x0100,
-	RequiresDispatchTokenFat = 0x0200,
-	HasCctor                 = 0x0400,
-	HasCCWTemplate           = 0x0800,
+	// AS YOU ADD NEW FLAGS PLEASE CONSIDER WHETHER Generics::NewInstantiation NEEDS
+	// TO BE UPDATED IN ORDER TO ENSURE THAT METHODTABLES DUPLICATED FOR GENERIC INSTANTIATIONS
+	// CARRY THE CORECT FLAGS.
 
-	/// <summary>
-	///     Type requires 8-byte alignment (only set on platforms that require this and don't get it implicitly)
-	/// </summary>
-	RequiresAlign8 = 0x1000,
+	HasPerInstInfo     = 0x0001,
+	DynamicStatics     = 0x0002,
+	HasDispatchMapSlot = 0x0004,
 
-	HasBoxedRegularStatics                = 0x2000,
-	HasSingleNonVirtualSlot               = 0x4000,
-	DependsOnEquivalentOrForwardedStructs = 0x8000
+	wflags2_unused_2 = 0x0008,
 
-}
+	//unused                            = 0x0010,
+	IsIntrinsicType         = 0x0020,
+	HasCctor                = 0x0040,
+	HasVirtualStaticMethods = 0x0080,
+
+	TokenMask = 0xFFFFFF00,
+
+}; // enum WFLAGS2_ENUM
 
 /// <summary>
 ///     <remarks>

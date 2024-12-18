@@ -39,7 +39,7 @@ public sealed class MagicResolver : IFileTypeResolver
 
 	private static string GetMagicFile()
 	{
-		var mgc = Path.Combine(Global.DataFolder, EmbeddedResources.F_Magic);
+		var mgc = Path.Combine(Global.DataFolder, ER.F_Magic);
 		Assumes.True(File.Exists(mgc));
 
 		Debug.WriteLine($"magic file: {mgc}");

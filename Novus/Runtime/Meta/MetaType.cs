@@ -61,11 +61,11 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	/// </summary>
 	public int BaseSizePadding => EEClass.Reference.BaseSizePadding;
 
-	public bool FieldsArePacked => EEClass.Reference.FieldsArePacked;
+	// public bool FieldsArePacked => EEClass.Reference.FieldsArePacked;
 
 	public int FieldsCount => EEClass.Reference.FieldListLength;
 
-	public int FixedEEClassFields => EEClass.Reference.FixedEEClassFields;
+	// public int FixedEEClassFields => EEClass.Reference.FixedEEClassFields;
 
 	public int InstanceFieldsCount => EEClass.Reference.NumInstanceFields;
 
@@ -258,7 +258,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public Type RuntimeType => RuntimeProperties.ResolveType(Value.Cast<MethodTable>());
 
-	public OptionalSlotsFlags SlotsFlags => Value.Reference.SlotsFlags;
+	public MethodTableFlags2 SlotsFlags => Value.Reference.Flags2;
 
 	public TypeFlags TypeFlags => Value.Reference.TypeFlags;
 

@@ -33,7 +33,7 @@ public unsafe struct EEClass
 	/// </summary>
 	internal FieldDesc* FieldDescList { get; set; }
 
-	internal void* Chunks { get; set; }
+	internal MethodDescChunk* Chunks { get; set; }
 
 	/// <summary>
 	///     <para>Union 1</para>
@@ -61,11 +61,29 @@ public unsafe struct EEClass
 
 	internal CorElementType NormType { get; set; }
 
-	internal bool FieldsArePacked { get; set; }
+	// internal bool FieldsArePacked { get; set; }
 
-	internal byte FixedEEClassFields { get; set; }
+	// internal byte FixedEEClassFields { get; set; }
 
 	internal byte BaseSizePadding { get; set; }
+
+	internal short NumInstanceFields { get; set; }
+
+	internal short NumMethods { get; set; }
+
+	internal short NumStaticFields { get; set; }
+
+	internal short NumHandleStatics { get; set; }
+
+	internal short NumThreadStaticFields { get; set; }
+
+	internal short NumHandleThreadStatics { get; set; }
+
+	internal short NumNonVirtualSlots { get; set; }
+
+	internal uint NonGCStaticFieldBytes { get; set; }
+
+	internal uint NonGCThreadStaticFieldBytes { get; set; }
 
 	// internal Pointer<FieldDesc> FieldList
 	// {
@@ -133,7 +151,7 @@ public unsafe struct EEClass
 		}
 	}
 
-	internal int NumInstanceFields => GetPackableField(EEClassFieldId.NumInstanceFields);
+	/*internal int NumInstanceFields => GetPackableField(EEClassFieldId.NumInstanceFields);
 
 	internal int NumStaticFields => GetPackableField(EEClassFieldId.NumStaticFields);
 
@@ -157,7 +175,7 @@ public unsafe struct EEClass
 				return thisptr.AddBytes(FixedEEClassFields);
 			}
 		}
-	}
+	}*/
 
 }
 

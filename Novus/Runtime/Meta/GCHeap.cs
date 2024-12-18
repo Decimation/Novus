@@ -40,8 +40,10 @@ public static unsafe class GCHeap
 		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
 	[Obsolete]
-	private static Pointer AllocObject(Pointer<MethodTable> t, BOOL b = BOOL.FALSE)
-		=> Func_AllocObject((MethodTable*) t, b);
+	private static Pointer AllocObject(Pointer<MethodTable> t, 
+	                                   GCAllocFlags flags = GCAllocFlags.GC_ALLOC_NO_FLAGS,
+	                                   BOOL b = BOOL.FALSE)
+		=> Func_AllocObject((MethodTable*) t, flags, b);
 
 	[Obsolete]
 	public static object AllocObject(MetaType type, params object[] args)
@@ -90,6 +92,24 @@ public static unsafe class GCHeap
 	/// <see cref="AllocObject{T}"/>
 	/// </summary>
 	[field: ImportClr("Sig_AllocObject")]
-	private static delegate* unmanaged<MethodTable*, BOOL, void*> Func_AllocObject { get; }
+	private static delegate* unmanaged<MethodTable*, GCAllocFlags, BOOL, void*> Func_AllocObject { get; }
 
 }
+
+public enum GCAllocFlags
+{
+
+	GC_ALLOC_NO_FLAGS     = 0,
+	GC_ALLOC_FINALIZE     = 1,
+	GC_ALLOC_CONTAINS_REF = 2,
+	GC_ALLOC_ALIGN8_BIAS  = 4,
+	GC_ALLOC_ALIGN8       = 8, // Only implies the initial allocation is 8 byte aligned.
+
+	// Preserving the alignment across relocation depends on
+	// RESPECT_LARGE_ALIGNMENT also being defined.
+	GC_ALLOC_ZEROING_OPTIONAL   = 16,
+	GC_ALLOC_LARGE_OBJECT_HEAP  = 32,
+	GC_ALLOC_PINNED_OBJECT_HEAP = 64,
+	GC_ALLOC_USER_OLD_HEAP      = GC_ALLOC_LARGE_OBJECT_HEAP | GC_ALLOC_PINNED_OBJECT_HEAP,
+
+};

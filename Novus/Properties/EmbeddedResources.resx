@@ -155,18 +155,18 @@
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>8.0.10</value>
+    <value>9.0.0</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
-    <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 40 44 8B 05</value>
+    <value>48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 60 48 8B D9</value>
     <comment>AllocateObject</comment>
   </data>
   <data name="Sig_GetAttrs" xml:space="preserve">
-    <value>48 83 EC 28 0F B7 41 06</value>
+    <value>48 83 EC 28 0F B7 41 06 BA</value>
     <comment>MethodDesc::GetAttrs</comment>
   </data>
   <data name="Sig_GetIL" xml:space="preserve">
-    <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 0F B6 41 02 4C 8B C1 48 8B F1</value>
+    <value>48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 30 4C 8B F1 0F B6 41 02</value>
     <comment>MethodDesc::GetILHeader</comment>
   </data>
   <data name="Sig_GetMemberDef" xml:space="preserve">
@@ -194,7 +194,7 @@
     <comment>FieldDesc::GetSize</comment>
   </data>
   <data name="Sig_GetStaticAddr" xml:space="preserve">
-    <value>48 83 EC 28 F7 41 ? ? ? ? ? 4C 8B D9</value>
+    <value>40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 8B 53 0C</value>
     <comment>FieldDesc::GetCurrentStaticAddress</comment>
   </data>
   <data name="Sig_IsHeapPointer" xml:space="preserve">

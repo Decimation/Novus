@@ -48,16 +48,16 @@ public sealed class Win32SymbolReader : IDisposable
 
 	public string Image { get; }
 
-	public nint Process { get; }
+	public nint Handle { get; }
 
 	public ConcurrentBag<Symbol> Symbols { get; }
 
 	private const string MASK_ALL = "*!*";
 
-	public Win32SymbolReader(nint process, string image)
+	public Win32SymbolReader(nint handle, string image)
 	{
-		Require.FileExists(image);
-		Process    = process;
+		// Require.FileExists(image);
+		Handle    = handle;
 		Image      = image;
 		m_modBase  = LoadModule();
 		m_disposed = false;
@@ -66,7 +66,7 @@ public sealed class Win32SymbolReader : IDisposable
 		LoadAll();
 	}
 
-	public Win32SymbolReader(string image) : this(Native.GetCurrentProcess(), image) { }
+	public Win32SymbolReader(string image) : this(Random.Shared.Next(), image) { }
 
 	public Symbol[] GetSymbols(string name, [CBN] Func<Symbol, bool> pred = null)
 	{
@@ -126,7 +126,7 @@ public sealed class Win32SymbolReader : IDisposable
 			return;
 		}
 
-		Native.SymEnumSymbols(Process, m_modBase, MASK_ALL, (ptr, u, context) =>
+		Native.SymEnumSymbols(Handle, m_modBase, MASK_ALL, (ptr, u, context) =>
 		{
 			var b = EnumSymCallback(ptr, u, context, out var symbol);
 			Symbols.Add(symbol);
@@ -156,12 +156,12 @@ public sealed class Win32SymbolReader : IDisposable
 		Native.SymSetOptions(options);
 
 		// Initialize DbgHelp and load symbols for all modules of the current process 
-		Native.SymInitialize(Process, IntPtr.Zero, false);
+		Native.SymInitialize(Handle, IntPtr.Zero, false);
 
 		const int BASE_OF_DLL = 0x400000;
 		const int DLL_SIZE    = 0x20000;
 
-		ulong modBase = Native.SymLoadModuleEx(Process, IntPtr.Zero, Image,
+		ulong modBase = Native.SymLoadModuleEx(Handle, IntPtr.Zero, Image,
 		                                       null, BASE_OF_DLL, DLL_SIZE,
 		                                       IntPtr.Zero, 0);
 
@@ -170,8 +170,8 @@ public sealed class Win32SymbolReader : IDisposable
 
 	private void Cleanup()
 	{
-		Native.SymCleanup(Process);
-		Native.SymUnloadModule64(Process, m_modBase);
+		Native.SymCleanup(Handle);
+		Native.SymUnloadModule64(Handle, m_modBase);
 		Symbols.Clear();
 		m_modBase  = 0;
 		m_disposed = true;
@@ -295,6 +295,10 @@ public sealed class Win32SymbolReader : IDisposable
 	public static IEnumerable<string> EnumerateSymbolPath(string pattern)
 	{
 		var nt = Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
+
+		if (nt == null) {
+			return null;
+		}
 
 		var enumerate = Directory.EnumerateFiles(nt, pattern,
 		                                         new EnumerationOptions()

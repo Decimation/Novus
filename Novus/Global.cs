@@ -211,7 +211,13 @@ public static class Global
 		// var pdbFile = Path.Join(DataFolder, CLR_PDB);
 		// File.WriteAllBytes(pdbFile, EmbeddedResources.coreclr);
 
-		var pdbFile = Win32SymbolReader.EnumerateSymbolPath(CLR_PDB).FirstOrDefault();
+		var path = Win32SymbolReader.EnumerateSymbolPath(CLR_PDB);
+
+		if (path == null) {
+			return null;
+		}
+
+		var pdbFile = path.FirstOrDefault();
 
 		return pdbFile;
 	}
@@ -242,7 +248,8 @@ public static class Global
 
 		//todo
 		ClrPdb = GetPdbFile();
-		Clr    = new RuntimeResource(CLR_MODULE, ClrPdb);
+
+		Clr = new RuntimeResource(CLR_MODULE, ClrPdb);
 
 		/* try {
 			DateTime dt = default;

@@ -141,7 +141,7 @@ namespace Test;
  * https://github.com/dotnet/runtime/blob/master/src/coreclr/gc/gcinterface.h
  */
 
-public static unsafe class Program
+public static class Program
 {
 
 	static Program()
@@ -149,7 +149,7 @@ public static unsafe class Program
 		Global.Clr.LoadImports(typeof(Program));
 	}
 
-	private static void Main(string[] args)
+	private static async Task Main(string[] args)
 	{
 		MyClass mc = new MyClass() { a = 321, s = "butt" };
 		var     rg = Mem.GetBytes(mc);
@@ -157,7 +157,10 @@ public static unsafe class Program
 		var mc2 = Mem.ReadFromBytes<object>(rg);
 		Console.WriteLine(mc);
 		Console.WriteLine(mc2);
+		
 	}
+
+	public unsafe static delegate* managed<int> f;
 
 	private static void run1()
 	{

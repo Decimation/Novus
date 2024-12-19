@@ -616,6 +616,18 @@ public static class ReflectionHelper
 		return (setter, getter);
 	}
 
+	public static object GetDefaultFieldValue(this Type t)
+	{
+		object o = default;
+
+		if (t.IsFunctionPointer) {
+			o = IntPtr.Zero;
+
+		}
+
+		return o;
+	}
+
 }
 
 [Flags]

@@ -186,7 +186,7 @@
     <comment>MethodTable::GetNativeLayoutInfo</comment>
   </data>
   <data name="Sig_GetRVA" xml:space="preserve">
-    <value>40 53 48 83 EC 30 0F B7 41 06</value>
+    <value>48 83 EC 38 0F B7 41 06</value>
     <comment>MethodDesc::GetRVA</comment>
   </data>
   <data name="Sig_GetSize" xml:space="preserve">
@@ -194,7 +194,7 @@
     <comment>FieldDesc::GetSize</comment>
   </data>
   <data name="Sig_GetStaticAddr" xml:space="preserve">
-    <value>40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 8B 53 0C</value>
+    <value>40 53 48 83 EC 20 F7 41 ? ? ? ? ? 48 8B D9</value>
     <comment>FieldDesc::GetCurrentStaticAddress</comment>
   </data>
   <data name="Sig_IsHeapPointer" xml:space="preserve">
@@ -202,7 +202,7 @@
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="Sig_IsPointingToNativeCode" xml:space="preserve">
-    <value>40 53 48 83 EC 20 B8 ? ? ? ? 48 8B D9 66 85 01</value>
+    <value>48 83 EC 28 B8 ? ? ? ? 4C 8B D1</value>
     <comment>MethodDesc::IsPointingToNativeCode</comment>
   </data>
   <data name="Sig_Reset" xml:space="preserve">

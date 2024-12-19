@@ -139,10 +139,11 @@ public sealed class RuntimeResource : IDisposable
 	{
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
-		foreach (var (_, member) in annotatedTuples) {
+		foreach (var (k, member) in annotatedTuples) {
 			var field = (FI) member;
 
-			field.SetValue(null, null);
+			var o = field.FieldType.GetDefaultFieldValue();
+			field.SetValue(null, o);
 		}
 
 		Trace.WriteLine($"Unloaded type {t.Name}", LogCategories.C_INFO);
@@ -268,22 +269,8 @@ public sealed class RuntimeResource : IDisposable
 					}
 					else {
 						unsafe {
-							var  unmg         = field.FieldType.IsUnmanagedFunctionPointer;
-							var  fnPtr        = field.FieldType.GetFunctionPointerReturnType();
-							Type modifiedType = field.GetModifiedFieldType();
-
-							var types = field.FieldType.GetFunctionPointerParameterTypes();
-							var dyn   = new DynamicMethod("__eerr", fnPtr, types);
-							var gen   = dyn.GetILGenerator();
-
-							for (int i = 0; i < types.Length; i++) {
-								gen.Emit(OpCodes.Ldarg, i);
-								gen.Emit(OpCodes.Newobj, fnPtr);
-								gen.Emit(OpCodes.Ret);
-							}
-
-							//todo
-							addr = (nint) dyn.MethodHandle.GetFunctionPointer();
+							DynamicMethod dyn = GenerateThrowingFunction(field.FieldType);
+							addr = dyn.MethodHandle.GetFunctionPointer();
 
 							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
 							var fnPtr=dyn.MethodHandle.GetFunctionPointer();
@@ -325,6 +312,28 @@ public sealed class RuntimeResource : IDisposable
 		return fieldValue;
 	}
 
+	private static DynamicMethod GenerateThrowingFunction(Type fieldType)
+	{
+		var unmg  = fieldType.IsUnmanagedFunctionPointer;
+		var fnPtr = fieldType.GetFunctionPointerReturnType();
+
+		// Type modifiedType = field.GetModifiedFieldType();
+
+		var types = fieldType.GetFunctionPointerParameterTypes();
+		var dyn   = new DynamicMethod("__eerr", fnPtr, types);
+		var gen   = dyn.GetILGenerator();
+
+		for (int i = 0; i < types.Length; i++) {
+			gen.Emit(OpCodes.Ldarg, i);
+			gen.Emit(OpCodes.Newobj, fnPtr);
+			gen.Emit(OpCodes.Ret);
+		}
+
+		//todo
+
+		return dyn;
+	}
+
 	#endregion Import
 
 	public static ResourceManager GetManager(Assembly assembly, [CBN] string rsrcName = "EmbeddedResources")
@@ -352,11 +361,6 @@ public sealed class RuntimeResource : IDisposable
 		return resourceManager;
 	}
 
-	private static void ErrorFunction()
-	{
-		throw new InvalidOperationException();
-	}
-
 	#region
 
 	public Pointer FindImport(ImportAttribute a, string s = null)
@@ -377,10 +381,10 @@ public sealed class RuntimeResource : IDisposable
 		{
 			// currying
 
-			ImportType.Signature => this.GetSignature(s),
-			ImportType.Export    => this.GetExport(s),
-			ImportType.Offset    => this.GetOffset(s),
-			ImportType.Symbol    => this.GetSymbol(s, t, absolute),
+			ImportType.Signature => GetSignature(s),
+			ImportType.Export    => GetExport(s),
+			ImportType.Offset    => GetOffset(s),
+			ImportType.Symbol    => GetSymbol(s, t, absolute),
 			_                    => Mem.Nullptr
 		};
 	}
@@ -404,7 +408,9 @@ public sealed class RuntimeResource : IDisposable
 
 	public Pointer GetOffset(string s)
 	{
-		return Address + (nint.TryParse(s, NumberStyles.HexNumber, null, out var l) ? l : nint.Parse(s));
+		return Address + (nint.TryParse(s, NumberStyles.HexNumber, null, out var l)
+			                  ? l
+			                  : nint.Parse(s));
 	}
 
 	public Pointer GetExport(string name)

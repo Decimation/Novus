@@ -242,7 +242,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 30 0F B7 41 06.
+        ///   Looks up a localized string similar to 48 83 EC 38 0F B7 41 06.
         /// </summary>
         internal static string Sig_GetRVA {
             get {
@@ -260,7 +260,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 8B 53 0C.
+        ///   Looks up a localized string similar to 40 53 48 83 EC 20 F7 41 ? ? ? ? ? 48 8B D9.
         /// </summary>
         internal static string Sig_GetStaticAddr {
             get {
@@ -278,7 +278,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 B8 ? ? ? ? 48 8B D9 66 85 01.
+        ///   Looks up a localized string similar to 48 83 EC 28 B8 ? ? ? ? 4C 8B D1.
         /// </summary>
         internal static string Sig_IsPointingToNativeCode {
             get {

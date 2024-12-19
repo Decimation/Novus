@@ -15,6 +15,9 @@ internal unsafe struct CorILMethodFat
 	/*
 	 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/CoreClr/VM/Jit/CorMethodFat.cs
 	 */
+	
+	// https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/corhlpr.h
+	// https://github.com/dotnet/runtime/blob/main/src/coreclr/inc/corhdr.h
 
 	/// <summary>
 	/// <c>DWORD</c> #1

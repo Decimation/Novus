@@ -84,7 +84,7 @@ public static class StreamExtensions
 
 	public const int BlockSize = 0xFF;
 
-	public static byte[] ReadHeader(this Stream stream, int offset = 0, int l = BlockSize)
+	/*public static byte[] ReadHeader(this Stream stream, int offset = 0, int l = BlockSize)
 	{
 		stream.TrySeek(offset);
 
@@ -97,9 +97,27 @@ public static class StreamExtensions
 		}
 
 		return buffer;
+	}*/
+	public static byte[] ReadHeader(this Stream stream, int offset = 0, int l = BlockSize)
+	{
+		stream.TrySeek(offset);
+
+		using var ms = new MemoryStream(l);
+		stream.CopyTo(ms);
+
+		/*var buffer = new byte[l];
+
+		int l2 = stream.Read(buffer);
+
+		if (l2 != l) {
+			Array.Resize(ref buffer, l2);
+		}
+
+		return buffer;*/
+		return ms.GetBuffer();
 	}
 
-	public static async Task<byte[]> ReadHeaderAsync(this Stream m, int offset = 0, int l = BlockSize,
+	/*public static async Task<byte[]> ReadHeaderAsync(this Stream m, int offset = 0, int l = BlockSize,
 	                                                 CancellationToken ct = default)
 	{
 		if (m.CanSeek) {
@@ -118,6 +136,20 @@ public static class StreamExtensions
 		}
 
 		return data;
+	}*/
+
+	public static async Task<byte[]> ReadHeaderAsync(this Stream m, int offset = 0, int l = BlockSize,
+	                                                 CancellationToken ct = default)
+	{
+		if (m.CanSeek) {
+			m.Position = offset;
+			int d = checked((int) m.Length);
+			l = d >= l ? l : d;
+		}
+
+		using var ms = new MemoryStream(l);
+		await m.CopyToAsync(ms, ct);
+		return ms.GetBuffer();
 	}
 
 	public static long TrySeek(this Stream s, long pos = 0)

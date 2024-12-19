@@ -49,6 +49,7 @@ public static unsafe class RuntimeProperties
 	static RuntimeProperties()
 	{
 		Global.Clr.LoadImports(typeof(RuntimeProperties));
+
 	}
 
 	/// <summary>
@@ -91,6 +92,8 @@ public static unsafe class RuntimeProperties
 	/// <see cref="RuntimeHelpers.GetElementSize"/>
 	public static int GetElementSize(object o)
 		=> Func_GetElementSize(o);
+
+
 
 	#region Metadata
 

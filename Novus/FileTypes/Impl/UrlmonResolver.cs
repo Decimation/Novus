@@ -46,7 +46,7 @@ public sealed class UrlmonResolver : IFileTypeResolver
 		return mimeRet;
 	}
 
-	public FileType Resolve(byte[] buf)
+	public FileType Resolve(byte[] buf, int l = FileType.RSRC_HEADER_LEN)
 	{
 		var data = ResolveFromData(buf);
 		return new FileType(data) { };

@@ -40,7 +40,7 @@ public static unsafe class GCHeap
 		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
 	[Obsolete]
-	private static Pointer AllocObject(Pointer<MethodTable> t, 
+	private static Pointer AllocObject(Pointer<MethodTable> t,
 	                                   GCAllocFlags flags = GCAllocFlags.GC_ALLOC_NO_FLAGS,
 	                                   BOOL b = BOOL.FALSE)
 		=> Func_AllocObject((MethodTable*) t, flags, b);
@@ -61,7 +61,7 @@ public static unsafe class GCHeap
 	[Obsolete]
 	public static T AllocObject<T>(params object[] args) where T : class
 	{
-		var ptr = AllocObject(typeof(T), args);
+		var ptr = AllocObject(typeof(T), args: args);
 		var obj = Unsafe.As<T>(ptr);
 
 		return obj;

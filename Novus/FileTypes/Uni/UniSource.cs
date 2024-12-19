@@ -63,11 +63,16 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>, IEqualityO
 	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null,
 	                                             CancellationToken ct = default)
 	{
+		if (o == null) {
+			throw new ArgumentNullException(nameof(o));
+		}
+
 		UniSource buf = null;
 
 		resolver ??= IFileTypeResolver.Default;
 
 		// whitelist ??= [];
+
 
 		if (o is string os) {
 			os = os.CleanString();
@@ -75,8 +80,14 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>, IEqualityO
 		}
 
 		// var uh = GetUniType(o, out var o2);
-		var    s  = o.ToString();
+
+
+		var s = o.ToString();
 		object o2 = null;
+
+		if (s == null) {
+			throw new NullReferenceException();
+		}
 
 		if (UniSourceFile.IsType(o, out o2)) {
 			buf = new UniSourceFile(File.OpenRead(s), o) { };
@@ -93,7 +104,7 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>, IEqualityO
 
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
 
-		var type = await resolver.ResolveAsync(buf.Stream, ct);
+		var type = await resolver.ResolveAsync(buf.Stream, ct: ct);
 
 		/*
 		if (whitelist.Any()) {

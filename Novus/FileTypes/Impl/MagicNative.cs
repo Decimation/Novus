@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Novus.FileTypes.Impl;
 
+
 public static partial class MagicNative
 {
 

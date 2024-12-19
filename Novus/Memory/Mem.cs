@@ -555,13 +555,13 @@ public static unsafe class Mem
 	/// <returns>The size of <paramref name="value" />; <see cref="Native.ERROR_SV" /> otherwise</returns>
 	public static int SizeOf<T>(T value, SizeOfOptions options)
 	{
-		Require.ArgumentNotNull(value, nameof(value));
+		ArgumentNullException.ThrowIfNull(value, nameof(value));
 
 		//Require.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
 
 		// Value is given
 
-		var mt = new MetaType(value.GetType());
+		var mt = value.GetMetaType();
 
 		switch (options) {
 			case SizeOfOptions.BaseFields:
@@ -594,7 +594,8 @@ public static unsafe class Mem
 					goto case SizeOfOptions.Heap;
 
 			default:
-				return Native.ERROR_SV;
+				// return Native.ERROR_SV;
+				return SizeOf<T>(options);
 		}
 
 	}
@@ -627,13 +628,13 @@ public static unsafe class Mem
 	///         Equals <see cref="Mem.SizeOf{T}(T,SizeOfOptions)" /> with <see cref="SizeOfOptions.BaseInstance" /> for objects
 	///         that aren't arrays or strings.
 	///     </para>
-	///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
+	///     <para>Note: This also includes padding and overhead (<see cref="ClrObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 	/// </remarks>
 	/// <returns>The size of the type in heap memory, in bytes</returns>
 	public static int HeapSizeOf<T>(T value) where T : class
 		=> HeapSizeOfInternal(value);
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	[MethodImpl(MImplO.AggressiveInlining)]
 	private static int HeapSizeOfInternal<T>(T value)
 	{
 		// Sanity check
@@ -740,15 +741,7 @@ public static unsafe class Mem
 		// Strings have their data offset by RuntimeInfo.OffsetToStringData
 		// Arrays have their data offset by IntPtr.Size * 2 bytes (may be different for 32 bit)
 
-		int offsetValue = offset switch
-		{
-			OffsetOptions.ArrayData  => RuntimeProperties.OffsetToArrayData,
-			OffsetOptions.StringData => RuntimeProperties.OffsetToStringData,
-			OffsetOptions.Fields     => RuntimeProperties.OffsetToData,
-			OffsetOptions.Header     => -RuntimeProperties.OffsetToData,
-
-			OffsetOptions.None or _ => 0
-		};
+		int offsetValue = offset.GetOffsetValue();
 
 		switch (offset) {
 			case OffsetOptions.StringData:
@@ -951,7 +944,7 @@ public static unsafe class Mem
 	public static T InitInline<T>(Pointer ptr, out Pointer ptrOrig) where T : class
 	{
 		ptrOrig = ptr;
-		ptr.Cast<ObjHeader>().Write(default);
+		ptr.Cast<ClrObjHeader>().Write(default);
 		ptr += Size;
 		ptr.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
 
@@ -1028,13 +1021,6 @@ public static unsafe class Mem
 		return Unsafe.Read<T>(p.ToPointer());
 	}*/
 
-	public static ref T PinToRef<T>(this Memory<T> sp, out MemoryHandle mh)
-	{
-		mh = sp.Pin();
-		Pointer<T> p = mh.Pointer;
-		return ref p.Reference;
-	}
-
 	/*
 	public static ref T ReadRef<T>(this Span<T> sp)
 	{
@@ -1047,7 +1033,7 @@ public static unsafe class Mem
 		var modules = Native.EnumProcessModules((uint) proc.Id);
 
 		foreach (var m in modules) {
-			var b = Mem.IsAddressInRange(ptr, m.modBaseAddr, (nint) m.modBaseSize);
+			var b = IsAddressInRange(ptr, m.modBaseAddr, (nint) m.modBaseSize);
 
 			if (!b) {
 				continue;
@@ -1058,7 +1044,7 @@ public static unsafe class Mem
 			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
 
 			foreach (var e in pe) {
-				var b2 = Mem.IsAddressInRange(ptr, e.Address, e.Size);
+				var b2 = IsAddressInRange(ptr, e.Address, e.Size);
 
 				if (b2) {
 					return (m, e);
@@ -1070,6 +1056,13 @@ public static unsafe class Mem
 		return (default, default);
 	}
 
+	public static ref T PinToRef<T>(this Memory<T> sp, [MDR] out MemoryHandle mh)
+	{
+		mh = sp.Pin();
+		Pointer<T> p = mh.Pointer;
+		return ref p.Reference;
+	}
+
 	/*public static Pointer<T> ToPointer<T>(this Span<T> s)
 		=> s.ToPointer(ref s.GetPinnableReference());*/
 
@@ -1077,7 +1070,21 @@ public static unsafe class Mem
 	{
 		t = ref s.GetPinnableReference();
 
-		return Mem.AddressOf(ref t);
+		return AddressOf(ref t);
+	}
+
+	public static int GetOffsetValue(this OffsetOptions offset)
+	{
+		int offsetValue = offset switch
+		{
+			OffsetOptions.ArrayData  => RuntimeProperties.OffsetToArrayData,
+			OffsetOptions.StringData => RuntimeProperties.OffsetToStringData,
+			OffsetOptions.Fields     => RuntimeProperties.OffsetToData,
+			OffsetOptions.Header     => -RuntimeProperties.OffsetToData,
+
+			OffsetOptions.None or _ => 0
+		};
+		return offsetValue;
 	}
 
 }
@@ -1090,7 +1097,7 @@ public enum OffsetOptions
 
 	/// <summary>
 	///     Return the pointer offset by <c>-</c><see cref="Size" />,
-	///     so it points to the object's <see cref="ObjHeader" />.
+	///     so it points to the object's <see cref="ClrObjHeader" />.
 	/// </summary>
 	Header,
 

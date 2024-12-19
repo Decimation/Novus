@@ -114,7 +114,7 @@ public enum SizeOfOptions
 	///     <para>Source: /src/vm/object.inl: 45</para>
 	///     <para>Equals the Son Of Strike "!do" command.</para>
 	///     <para>Equals <see cref="BaseInstance" /> for objects that aren't arrays or strings.</para>
-	///     <para>Note: This also includes padding and overhead (<see cref="ObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
+	///     <para>Note: This also includes padding and overhead (<see cref="ClrObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 	/// </remarks>
 	/// <returns>The size of the type in heap memory, in bytes</returns>
 	Heap,
@@ -123,7 +123,7 @@ public enum SizeOfOptions
 	/// Requires a value.
 	/// Returns the size of the data in the value. If the type is a reference type,
 	/// this returns the size of the value not occupied by the <see cref="MethodTable" /> pointer and the
-	/// <see cref="ObjHeader" />.
+	/// <see cref="ClrObjHeader" />.
 	/// If the type is a value type, this returns <see cref="Mem.SizeOf{T}()" />.
 	/// </summary>
 	Data,
@@ -132,7 +132,7 @@ public enum SizeOfOptions
 	/// Does not require a value.
 	/// Returns the base size of the data in the type specified by the value. If the value is a
 	/// reference type,
-	/// this returns the size of data not occupied by the <see cref="MethodTable" /> pointer, <see cref="ObjHeader" />,
+	/// this returns the size of data not occupied by the <see cref="MethodTable" /> pointer, <see cref="ClrObjHeader" />,
 	/// padding, and overhead.
 	/// If the value is a value type, this returns <see cref="Mem.SizeOf{T}()" />.
 	/// 

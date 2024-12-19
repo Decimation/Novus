@@ -164,8 +164,8 @@ public static class AllocManager
 		Free(ptr);
 	}
 
-	
-	public static unsafe object New(Type t,  object[] ctor)
+
+	public static unsafe object New(Type t, object[] ctor)
 	{
 		var m = typeof(AllocManager).GetRuntimeMethods()
 			.First(x => x.Name == nameof(New) && x.ContainsGenericParameters);
@@ -173,10 +173,11 @@ public static class AllocManager
 		return m.CallGeneric(t, null, [ctor]);
 
 	}
+
 	/// <summary>
 	/// <seealso cref="Mem.InitInline{T}"/>
 	/// </summary>
-	public static unsafe T New<T>( object[] ctor) where T : class
+	public static unsafe T New<T>(object[] ctor) where T : class
 	{
 		int size = Mem.SizeOf<T>(SizeOfOptions.BaseInstance);
 		var ptr  = Alloc((nuint) size);

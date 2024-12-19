@@ -151,13 +151,20 @@ public static class Program
 
 	private static async Task Main(string[] args)
 	{
+		
+		return;
+
+		
+	}
+
+	private static void Test1()
+	{
 		MyClass mc = new MyClass() { a = 321, s = "butt" };
 		var     rg = Mem.GetBytes(mc);
 		Console.WriteLine(rg.FormatJoin("X", delim: " "));
 		var mc2 = Mem.ReadFromBytes<object>(rg);
 		Console.WriteLine(mc);
 		Console.WriteLine(mc2);
-		
 	}
 
 	public unsafe static delegate* managed<int> f;

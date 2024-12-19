@@ -4,6 +4,7 @@
 
 #region
 
+global using MDR = JetBrains.Annotations.MustDisposeResourceAttribute;
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using NN = JetBrains.Annotations.NotNullAttribute;
 global using DNR = System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute;
@@ -24,6 +25,7 @@ global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAtt
 global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 
 #endregion
+global using Pointer = Novus.Memory.Pointer<byte>;
 
 // global using Native = Novus.Win32.Native;
 // global using ReflectionHelper = Novus.Utilities.ReflectionHelper;

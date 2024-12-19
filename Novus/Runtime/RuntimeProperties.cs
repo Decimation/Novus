@@ -79,6 +79,7 @@ public static unsafe class RuntimeProperties
 	[field: ImportManaged(typeof(RuntimeHelpers), "GetElementSize")]
 	private static delegate* managed<object, int> Func_GetElementSize { get; }
 
+
 	/// <summary>
 	/// Equals <see cref="Mem.SizeOf()"/> with <see cref="SizeOfOptions.Data"/>
 	/// </summary>
@@ -92,7 +93,6 @@ public static unsafe class RuntimeProperties
 	/// <see cref="RuntimeHelpers.GetElementSize"/>
 	public static int GetElementSize(object o)
 		=> Func_GetElementSize(o);
-
 
 
 	#region Metadata
@@ -158,6 +158,11 @@ public static unsafe class RuntimeProperties
 		var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;
 		return value;
+	}
+
+	public static Pointer<ClrObject> AsClrObject(object o)
+	{
+		return Mem.AddressOfHeap(o).Cast<ClrObject>();
 	}
 
 	#endregion
@@ -373,13 +378,13 @@ public static unsafe class RuntimeProperties
 	/// </summary>
 	public static readonly int OffsetToStringData = RuntimeHelpers.OffsetToStringData;
 
-	public static readonly int ObjHeaderSize = sizeof(ObjHeader);
+	public static readonly int ObjHeaderSize = sizeof(ClrObjHeader);
 
 	/// <summary>
-	///     Size of <see cref="TypeHandle" /> and <see cref="ObjHeader" />
+	///     Size of <see cref="TypeHandle" /> and <see cref="ClrObjHeader" />
 	///     <list type="bullet">
 	///         <item>
-	///             <description>+ <see cref="ObjHeaderSize" />: <see cref="ObjHeader" /></description>
+	///             <description>+ <see cref="ObjHeaderSize" />: <see cref="ClrObjHeader" /></description>
 	///         </item>
 	///         <item>
 	///             <description>+ sizeof <see cref="TypeHandle" />: <see cref="TypeHandle" /></description>

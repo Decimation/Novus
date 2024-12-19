@@ -15,7 +15,7 @@ using Novus.Win32;
 namespace Novus.Runtime.VM;
 
 [NativeStructure]
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Explicit)]
 public unsafe struct TypeHandle
 {
 
@@ -24,8 +24,17 @@ public unsafe struct TypeHandle
 		Global.Clr.LoadImports(typeof(TypeHandle));
 	}
 
-	private void* Value { get; set; }
+	[field: FieldOffset(0)]
+	public void* Value { get; set; }
 
+	[field: FieldOffset(0)]
+	public ulong TAddr { get; set; }
+
+	[field: FieldOffset(0)]
+	public MethodTable* AsMethodTable { get; set; }
+
+	[field: FieldOffset(0)]
+	public TypeDesc* AsTypeDesc { get; set; }
 
 	internal Pointer<MethodTable> MethodTable
 	{
@@ -42,9 +51,10 @@ public unsafe struct TypeHandle
 		get { return (((nuint) Value) & 2) != 0; }
 	}*/
 
-	internal TypeDesc* AsTypeDesc => (TypeDesc*) ((nuint) Value - 2);
+	internal TypeDesc* AsTypeDesc1 => (TypeDesc*) ((nuint) Value - 2);
 
-	internal bool IsMethodTable => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.MethodTable;
+	internal bool IsMethodTable
+		=> ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.MethodTable;
 
 	internal bool IsTypeDesc => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.TypeDesc;
 

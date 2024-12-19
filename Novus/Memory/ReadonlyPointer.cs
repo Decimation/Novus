@@ -10,8 +10,8 @@ namespace Novus.Memory;
 public readonly struct ReadonlyPointer<T>
 {
 
-	private const MImplO OPT = MethodImplOptions.AggressiveInlining |
-	                           MethodImplOptions.AggressiveOptimization;
+	private const MImplO OPT = MImplO.AggressiveInlining |
+	                           MImplO.AggressiveOptimization;
 
 	private readonly Pointer<T> m_value;
 

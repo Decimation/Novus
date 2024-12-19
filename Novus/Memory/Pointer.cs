@@ -1,5 +1,5 @@
 ﻿global using MImpl = System.Runtime.CompilerServices.MethodImplAttribute;
-global using Pointer = Novus.Memory.Pointer<byte>;
+// global using Pointer = Novus.Memory.Pointer<byte>;
 using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;

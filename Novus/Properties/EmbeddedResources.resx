@@ -205,6 +205,10 @@
     <value>48 83 EC 28 B8 ? ? ? ? 4C 8B D1</value>
     <comment>MethodDesc::IsPointingToNativeCode</comment>
   </data>
+  <data name="Sig_ObjGetSize" xml:space="preserve">
+    <value>4C 8B 01 49 83 E0 F8</value>
+    <comment>Object::GetSize</comment>
+  </data>
   <data name="Sig_Reset" xml:space="preserve">
     <value>40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 74 0D</value>
     <comment>MethodDesc::ResetCodeEntryPoint</comment>

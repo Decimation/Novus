@@ -287,6 +287,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 4C 8B 01 49 83 E0 F8.
+        /// </summary>
+        internal static string Sig_ObjGetSize {
+            get {
+                return ResourceManager.GetString("Sig_ObjGetSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 74 0D.
         /// </summary>
         internal static string Sig_Reset {

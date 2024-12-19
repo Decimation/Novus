@@ -345,3 +345,4 @@ healthchecksdb
 /Benchmark/*
 /UnitTest/
 /UnitTest/*
+*.bndb

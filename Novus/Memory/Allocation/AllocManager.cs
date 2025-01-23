@@ -157,7 +157,7 @@ public static class AllocManager
 		return val;
 	}*/
 
-	public static unsafe void Free<T>(T t) where T : class
+	public static void Free<T>(T t) where T : class
 	{
 		var ptr = Mem.AddressOfHeap(t);
 		ptr -= IntPtr.Size;
@@ -165,7 +165,7 @@ public static class AllocManager
 	}
 
 
-	public static unsafe object New(Type t, object[] ctor)
+	public static object New(Type t, object[] ctor)
 	{
 		var m = typeof(AllocManager).GetRuntimeMethods()
 			.First(x => x.Name == nameof(New) && x.ContainsGenericParameters);
@@ -177,7 +177,7 @@ public static class AllocManager
 	/// <summary>
 	/// <seealso cref="Mem.InitInline{T}"/>
 	/// </summary>
-	public static unsafe T New<T>(object[] ctor) where T : class
+	public static T New<T>(object[] ctor) where T : class
 	{
 		int size = Mem.SizeOf<T>(SizeOfOptions.BaseInstance);
 		var ptr  = Alloc((nuint) size);

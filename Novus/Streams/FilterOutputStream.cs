@@ -2,35 +2,35 @@
 
 public class FilterOutputStream : OutputStream
 {
-	protected OutputStream Out;
+	protected OutputStream m_out;
 
 	public FilterOutputStream(OutputStream os)
 	{
-		Out = os;
+		m_out = os;
 	}
 
 	public override void Close()
 	{
-		Out.Close();
+		m_out.Close();
 	}
 
 	public override void Flush()
 	{
-		Out.Flush();
+		m_out.Flush();
 	}
 
 	public override void Write(byte[] b)
 	{
-		Out.Write(b);
+		m_out.Write(b);
 	}
 
 	public override void Write(int b)
 	{
-		Out.Write(b);
+		m_out.Write(b);
 	}
 
 	public override void Write(byte[] b, int offset, int len)
 	{
-		Out.Write(b, offset, len);
+		m_out.Write(b, offset, len);
 	}
 }

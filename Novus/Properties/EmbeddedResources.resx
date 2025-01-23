@@ -213,6 +213,10 @@
     <value>40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 74 0D</value>
     <comment>MethodDesc::ResetCodeEntryPoint</comment>
   </data>
+  <data name="Sig_SetCodeEntryPoint" xml:space="preserve">
+    <value>48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B F2 48 8B D9</value>
+    <comment>MethodDesc::SetCodeEntryPoint</comment>
+  </data>
   <data name="Sig_SetEntryPoint" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B FA 48 8B F1 E8 ? ? ? ? 48 8B CE</value>
     <comment>MethodDesc::SetStableEntryPointInterlocked</comment>

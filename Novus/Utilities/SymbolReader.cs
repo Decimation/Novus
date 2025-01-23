@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -21,12 +22,13 @@ using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Wrappers;
 using Novus.OS;
 using Novus.Win32;
+using System.Text;
+
 
 // ReSharper disable UnusedParameter.Local
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE0060
-
 #pragma warning disable CS0618
 #pragma warning disable SYSLIB0014 // Type or member is obsolete
 
@@ -34,8 +36,11 @@ using Novus.Win32;
 
 namespace Novus.Utilities;
 
-[SupportedOSPlatform(Global.OS_WIN)]
-public sealed class Win32SymbolReader : IDisposable
+/// <summary>
+/// Windows PDB reader
+/// </summary>
+[SupportedOSPlatform(FileSystem.OS_WIN)]
+public sealed class SymbolReader : IDisposable
 {
 
 	private bool m_disposed;
@@ -54,10 +59,10 @@ public sealed class Win32SymbolReader : IDisposable
 
 	private const string MASK_ALL = "*!*";
 
-	public Win32SymbolReader(nint handle, string image)
+	public SymbolReader(nint handle, string image)
 	{
 		// Require.FileExists(image);
-		Handle    = handle;
+		Handle     = handle;
 		Image      = image;
 		m_modBase  = LoadModule();
 		m_disposed = false;
@@ -66,7 +71,7 @@ public sealed class Win32SymbolReader : IDisposable
 		LoadAll();
 	}
 
-	public Win32SymbolReader(string image) : this(Random.Shared.Next(), image) { }
+	public SymbolReader(string image) : this(Random.Shared.Next(), image) { }
 
 	public Symbol[] GetSymbols(string name, [CBN] Func<Symbol, bool> pred = null)
 	{
@@ -88,7 +93,7 @@ public sealed class Win32SymbolReader : IDisposable
 		 */
 
 		if (m_disposed) {
-			throw new ObjectDisposedException(nameof(Win32SymbolReader));
+			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
 		var sym = Symbols.Where(s => s.Name.Contains(name) && pred(s)).ToArray();
@@ -119,7 +124,7 @@ public sealed class Win32SymbolReader : IDisposable
 	public void LoadAll(string mask = MASK_ALL)
 	{
 		if (m_disposed) {
-			throw new ObjectDisposedException(nameof(Win32SymbolReader));
+			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
 		if (AllLoaded) {
@@ -177,61 +182,39 @@ public sealed class Win32SymbolReader : IDisposable
 		m_disposed = true;
 	}
 
-	public void Dispose()
-	{
-		Cleanup();
-	}
+
+	public const  string NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
+	private const string EXT_PDB        = ".pdb";
 
 	public static async Task<string> SymchkSymbolFileAsync(string fname, [CBN] string o = null)
 	{
-
-		o ??= FS.GetPath(KnownFolder.Downloads);
+		o ??= FileSystem.GetPath(KnownFolder.Downloads);
 
 		// symchk.exe .\urlmon.dll /s SRV*"C:\Symbols\"*http://msdl.microsoft.com/download/symbols /osdbc \.
 		//symchk /os <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /oc <output>
-
 		//symchk <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /osc <output>
 
 		if (!File.Exists(fname)) {
 			throw new FileNotFoundException(null, fname);
 		}
 
-		/*var          process = Command.Run(symchk);
-		var          info    = process.StartInfo;
-
-		info.Arguments = $"{fname} /su SRV**{ER.MicrosoftSymbolServer} /oscdb {o}";
-
-		process.Start();
-		process.WaitForExit();*/
-
 		var cmd = Cli.Wrap(ER.E_Symchk)
-			.WithArguments($"{fname} /su SRV**{ER.MicrosoftSymbolServer} /oscdb {o}");
+			.WithArguments(["/if", fname, "/su", $"SRV**{ER.MicrosoftSymbolServer}", "/oscdb", o], true)
+			.WithValidation(CommandResultValidation.None);
 
 		var bcr = await cmd.ExecuteBufferedAsync();
 
-		var error = bcr.StandardError;
+		var error  = bcr.StandardError;
+		var stdOut = bcr.StandardOutput;
 
-		// var error = process.StandardError.ReadToEnd();
-
-		// var ee    = process.StandardOutput.ReadToEnd();
-
+		/*
 		if (!string.IsNullOrWhiteSpace(error)) {
 			// process.Dispose();
 			return null;
-
 		}
+		*/
 
-		// process.Dispose();
-
-		// var f = ee.Split(' ')[1];
-
-		// var combine = Path.Combine(Path.GetFileName(s), o);
-
-		// return combine;
-
-		// var outFile = ee.Split("PDB: ")[1].Split("DBG: ")[0].Trim();
-
-		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(fname) + ".pdb");
+		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(fname) + EXT_PDB);
 
 		if (!File.Exists(outFile)) {
 			throw new FileNotFoundException(null, outFile);
@@ -239,6 +222,7 @@ public sealed class Win32SymbolReader : IDisposable
 
 		return outFile;
 	}
+
 
 	public static async Task<string> DownloadSymbolFileAsync(string fname, string o)
 	{
@@ -254,11 +238,11 @@ public sealed class Win32SymbolReader : IDisposable
 
 		// var cacheDirectoryPath = Global.ProgramData;
 
-		o ??= FS.GetPath(KnownFolder.Downloads);
+		o ??= FileSystem.GetPath(KnownFolder.Downloads);
 		using var wc = new WebClient();
 
 		// Check if the correct version of the PDB is already cached
-		var path       = Path.ChangeExtension(fname, "pdb");
+		var path       = Path.ChangeExtension(fname, EXT_PDB);
 		var fileName   = Path.GetFileName(path);
 		var pdbDirPath = Path.Combine(o, fileName);
 
@@ -279,9 +263,7 @@ public sealed class Win32SymbolReader : IDisposable
 			goto ret;
 		}
 
-		var uriString = ER.MicrosoftSymbolServer +
-		                $"{fileName}/"           +
-		                $"{pdbData.Guid:N}{pdbData.Age}/{fileName}";
+		var uriString = $"{ER.MicrosoftSymbolServer}{fileName}/{pdbData.Guid:N}{pdbData.Age}/{fileName}";
 
 		await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
 
@@ -292,9 +274,9 @@ public sealed class Win32SymbolReader : IDisposable
 		return pdbFilePath;
 	}
 
-	public static IEnumerable<string> EnumerateSymbolPath(string pattern)
+	public static IEnumerable<string> EnumerateSymbolPath(string pattern, string symPath = NT_SYMBOL_PATH)
 	{
-		var nt = Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
+		var nt = Environment.GetEnvironmentVariable(symPath, EnvironmentVariableTarget.Machine);
 
 		if (nt == null) {
 			return null;
@@ -308,6 +290,11 @@ public sealed class Win32SymbolReader : IDisposable
 			                                         MaxRecursionDepth     = 3
 		                                         });
 		return enumerate;
+	}
+
+	public void Dispose()
+	{
+		Cleanup();
 	}
 
 }

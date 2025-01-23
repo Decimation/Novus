@@ -13,7 +13,7 @@ using Novus.Win32.Structures.User32;
 
 namespace Novus.OS;
 
-[SupportedOSPlatform(Global.OS_WIN)]
+[SupportedOSPlatform(FileSystem.OS_WIN)]
 public sealed class KeyboardListener : IDisposable
 {
 	public KeyboardListener() : this(IntPtr.Zero) { }

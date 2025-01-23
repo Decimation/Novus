@@ -4,6 +4,7 @@ using Novus.Runtime.VM.EE;
 using System;
 using System.Runtime.InteropServices;
 using Novus.Imports.Attributes;
+using Novus.Numerics;
 using Novus.Runtime.VM.Tokens;
 using Novus.Utilities;
 using Novus.Win32;
@@ -41,7 +42,7 @@ public unsafe struct MethodTable
 
 	internal MethodTableFlags2 Flags2 { get; set; }
 
-	internal ushort RawToken => (ushort) ((uint) Flags2 >> 8);
+	internal ushort RawToken => (ushort) ((uint) Flags2 >> BitCalculator.BITS_PER_BYTE);
 
 	internal short NumVirtuals { get; set; }
 
@@ -72,7 +73,7 @@ public unsafe struct MethodTable
 		get
 		{
 
-			long l = (long) Union1;
+			long l = Union1;
 			return (LowBits) (l & UNION_MASK);
 
 		}
@@ -87,11 +88,11 @@ public unsafe struct MethodTable
 				var lowBits = union_getLowBits(addr);
 
 				if (lowBits == LowBits.EEClass) {
-					return (Pointer<EEClass>) addr;
+					return addr;
 				}
 				else {
 					var canon = union_getPointer(addr);
-					return (Pointer<EEClass>) ((Pointer<MethodTable>) canon).Reference.Union1;
+					return ((Pointer<MethodTable>) canon).Reference.Union1;
 				}
 			}
 		}
@@ -106,7 +107,7 @@ public unsafe struct MethodTable
 
 	internal static nint union_getPointer(nint pCanonMT)
 	{
-		return (pCanonMT & ~((nint) UNION_MASK));
+		return (pCanonMT & ~UNION_MASK);
 	}
 
 	/// <summary>
@@ -169,11 +170,9 @@ public unsafe struct MethodTableAuxiliaryData
 
 		Initialized = 0x0001,
 
-		HasCheckedCanCompareBitsOrUseFastGetHashCode =
-			0x0002, // Whether we have checked the overridden Equals or GetHashCode
+		HasCheckedCanCompareBitsOrUseFastGetHashCode = 0x0002, // Whether we have checked the overridden Equals or GetHashCode
 
-		CanCompareBitsOrUseFastGetHashCode =
-			0x0004, // Is any field type or sub field type overridden Equals or GetHashCode
+		CanCompareBitsOrUseFastGetHashCode = 0x0004, // Is any field type or sub field type overridden Equals or GetHashCode
 		IsTlsIndexAllocated = 0x0008,
 		HasApproxParent = 0x0010,
 		MayHaveOpenInterfaceInInterfaceMap = 0x0020,
@@ -243,8 +242,7 @@ public enum GenericsFlags : ushort
 
 	HasDefaultCtor = 0x00000200,
 
-	HasPreciseInitCctors =
-		0x00000400, // Do we need to run class constructors at allocation time? (Not perf important, could be moved to EEClass
+	HasPreciseInitCctors = 0x00000400, // Do we need to run class constructors at allocation time? (Not perf important, could be moved to EEClass
 
 	IsHFA = 0x00000800, // This type is an HFA (Homogenous Floating-point Aggregate)
 

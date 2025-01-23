@@ -16,5 +16,5 @@ public abstract unsafe class EmbeddedClrStructure<TClr> : MetaClrStructure<TClr>
 
 	protected EmbeddedClrStructure(Pointer<TClr> ptr) : base(ptr) { }
 
-	protected EmbeddedClrStructure(MemberInfo info) : base(info) { }
+	protected EmbeddedClrStructure(MMI info) : base(info) { }
 }

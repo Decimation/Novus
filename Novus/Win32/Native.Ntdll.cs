@@ -4,16 +4,16 @@ using HANDLE = System.IntPtr;
 
 namespace Novus.Win32;
 
-public static partial class Native
+public static unsafe partial class Native
 {
 
 	/// <summary>
 	/// <c>ZwDuplicateObject</c>
 	/// </summary>
 	[DllImport(NTDLL_DLL)]
-	public static extern unsafe NtStatus NtDuplicateObject(nint sourceProcessHandle, nint sourceHandle,
-	                                                       nint targetProcessHandle, nint* targetHandle,
-	                                                       ulong desiredAccess, ulong handleAttributes, ulong options);
+	public static extern NtStatus NtDuplicateObject(nint sourceProcessHandle, nint sourceHandle,
+	                                                nint targetProcessHandle, nint* targetHandle,
+	                                                ulong desiredAccess, ulong handleAttributes, ulong options);
 
 	/// <summary>Retrieves the specified system information.</summary>
 	/// <param name="systemInformationClass">indicate the kind of system information to be retrieved</param>
@@ -32,9 +32,9 @@ public static partial class Native
 	                                            out uint returnLength);
 
 	[DllImport(NTDLL_DLL)]
-	public static extern unsafe NtStatus NtQueryInformationProcess(IntPtr processHandle, ProcessInfoClass processInformationClass,
-	                                                               void* processInformation, int processInformationLength,
-	                                                               out int returnLength);
+	public static extern NtStatus NtQueryInformationProcess(IntPtr processHandle, ProcessInfoClass processInformationClass,
+	                                                        void* processInformation, int processInformationLength,
+	                                                        out int returnLength);
 
 }
 

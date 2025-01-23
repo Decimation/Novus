@@ -1,6 +1,8 @@
 ﻿// Deci Novus UniSourceStream.cs
 // $File.CreatedYear-$File.CreatedMonth-9 @ 2:39
 
+using Novus.OS;
+
 namespace Novus.FileTypes.Uni;
 
 public class UniSourceStream : UniSource, IUniSource
@@ -24,9 +26,9 @@ public class UniSourceStream : UniSource, IUniSource
 		string fn = null, ext = null;
 
 		ext = FileType.Subtype;
-		var tmp = FS.GetTempFileName(fn, ext);
+		var tmp = FileSystem.GetTempFileName(fn, ext);
 
-		// tmp = FS.SanitizeFilename(tmp);
+		// tmp = FileSystem.SanitizeFilename(tmp);
 
 		var path = await WriteStreamToFileAsync(tmp);
 		return path;

@@ -13,7 +13,6 @@ namespace Novus.Runtime.VM;
 [StructLayout(LayoutKind.Sequential)]
 public struct ClrObjHeader
 {
-
 	public nint Value { get; set; }
 
 }

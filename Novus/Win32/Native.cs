@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using Novus.OS;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.Ntdll;
@@ -15,11 +16,10 @@ using Novus.Win32.Wrappers;
 
 // ReSharper disable UnusedVariable
 
-#pragma warning disable CA1401, CA2101
+// #pragma warning disable CA1401, CA2101
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable UnusedMember.Global
-
 // ReSharper disable InconsistentNaming
 #pragma warning disable 649
 
@@ -30,10 +30,9 @@ namespace Novus.Win32;
 /// <summary>
 ///     Native interop; Win32 API
 /// </summary>
-[SupportedOSPlatform(Global.OS_WIN)]
+[SupportedOSPlatform(FileSystem.OS_WIN)]
 public static unsafe partial class Native
 {
-
 	#region
 
 	/// <summary>
@@ -41,9 +40,9 @@ public static unsafe partial class Native
 	/// </summary>
 	public const int ERROR_SV = -1;
 
-	public const nuint NUINT_MAXVALUE = UInt32.MaxValue;
-
 	public const int ERROR_SUCCESS = 0;
+
+	public const nuint NUINT_MAXVALUE = UInt32.MaxValue;
 
 	public const int SIZE_1024 = 1 << 10;
 

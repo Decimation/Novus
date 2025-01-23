@@ -2,6 +2,9 @@
 
 namespace Novus.Win32.Wrappers;
 
+/// <summary>
+/// Encapsulates a <see cref="SymbolInfo"/>
+/// </summary>
 public unsafe class Symbol
 {
 	internal Symbol(SymbolInfo* pSymInfo)

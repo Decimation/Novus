@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -28,6 +29,7 @@ namespace Novus.Runtime;
 /// <seealso cref="Mem" />
 /// <seealso cref="RuntimeProperties" />
 /// <seealso cref="Utilities.ReflectionHelper" />
+[Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 public static class Inspector
 {
 	[Flags]

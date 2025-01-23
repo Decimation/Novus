@@ -4,13 +4,13 @@ public class BufferedInputStream : InputStream
 {
 	public BufferedInputStream(InputStream s)
 	{
-		BaseStream = s.GetWrappedStream();
-		Wrapped    = new BufferedStream(BaseStream);
+		m_baseStream = s.GetWrappedStream();
+		m_wrapped    = new BufferedStream(m_baseStream);
 	}
 
 	public BufferedInputStream(InputStream s, int bufferSize)
 	{
-		BaseStream = s.GetWrappedStream();
-		Wrapped    = new BufferedStream(BaseStream, bufferSize);
+		m_baseStream = s.GetWrappedStream();
+		m_wrapped    = new BufferedStream(m_baseStream, bufferSize);
 	}
 }

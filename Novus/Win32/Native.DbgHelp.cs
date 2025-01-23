@@ -1,6 +1,10 @@
 ﻿using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text;
 using Novus.Win32.Structures.DbgHelp;
+// ReSharper disable ArrangeAttributes
+
+// ReSharper disable IdentifierTypo
 
 // ReSharper disable InconsistentNaming
 
@@ -8,6 +12,7 @@ namespace Novus.Win32;
 
 public static unsafe partial class Native
 {
+
 #pragma warning disable SYSLIB1054
 
 	[DllImport(DBGHELP_DLL)]
@@ -48,5 +53,20 @@ public static unsafe partial class Native
 	                                             string moduleName, ulong baseOfDll, uint dllSize, nint data,
 	                                             uint flags);
 
+	[return: MA(UT.Bool)]
+	public delegate bool PFINDFILEINPATHCALLBACK([MA(UT.LPTStr)] string filename,
+	                                             [In, Opt]  IntPtr context);
+
+
+	[return: MA(UT.Bool)]
+	public static extern bool SymFindFileInPath(nint hprocess,
+	                                            [CBN, Opt, MA(UT.LPTStr)]   string SearchPath,
+	                                            [MA(UT.LPTStr)] string FileName,
+	                                            [In, Opt]  IntPtr id, uint two, uint three, SymbolServerOptions flags,
+	                                            [MA(UT.LPTStr)] StringBuilder FoundFile,
+	                                            [CBN, In, Opt]   PFINDFILEINPATHCALLBACK callback,
+	                                            [In, Opt]  IntPtr context);
+
 	#endregion
+
 }

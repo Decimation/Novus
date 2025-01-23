@@ -305,6 +305,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B F2 48 8B D9.
+        /// </summary>
+        internal static string Sig_SetCodeEntryPoint {
+            get {
+                return ResourceManager.GetString("Sig_SetCodeEntryPoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B FA 48 8B F1 E8 ? ? ? ? 48 8B CE.
         /// </summary>
         internal static string Sig_SetEntryPoint {

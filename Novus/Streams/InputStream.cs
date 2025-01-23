@@ -11,8 +11,8 @@ public class InputStream : IDisposable
 {
 	private long m_mark;
 
-	protected Stream Wrapped;
-	protected Stream BaseStream;
+	protected Stream m_wrapped;
+	protected Stream m_baseStream;
 
 	public static implicit operator InputStream(Stream s)
 	{
@@ -26,7 +26,7 @@ public class InputStream : IDisposable
 
 	public virtual int Available()
 	{
-		if (Wrapped is WrappedSystemStream stream)
+		if (m_wrapped is WrappedSystemStream stream)
 			return stream.InputStream.Available();
 		else
 			return 0;
@@ -34,8 +34,8 @@ public class InputStream : IDisposable
 
 	public virtual void Close()
 	{
-		if (Wrapped != null) {
-			Wrapped.Close();
+		if (m_wrapped != null) {
+			m_wrapped.Close();
 		}
 	}
 
@@ -53,32 +53,32 @@ public class InputStream : IDisposable
 
 	public virtual void Mark(int readLimit)
 	{
-		if (Wrapped is WrappedSystemStream stream)
+		if (m_wrapped is WrappedSystemStream stream)
 			stream.InputStream.Mark(readLimit);
 		else {
-			if (BaseStream is WrappedSystemStream systemStream)
+			if (m_baseStream is WrappedSystemStream systemStream)
 				systemStream.OnMark(readLimit);
 
-			if (Wrapped != null)
-				m_mark = Wrapped.Position;
+			if (m_wrapped != null)
+				m_mark = m_wrapped.Position;
 		}
 	}
 
 	public virtual bool MarkSupported()
 	{
-		if (Wrapped is WrappedSystemStream stream)
+		if (m_wrapped is WrappedSystemStream stream)
 			return stream.InputStream.MarkSupported();
 		else
-			return Wrapped is { CanSeek: true };
+			return m_wrapped is { CanSeek: true };
 	}
 
 	public virtual int Read()
 	{
-		if (Wrapped == null) {
+		if (m_wrapped == null) {
 			throw new NotImplementedException();
 		}
 
-		return Wrapped.ReadByte();
+		return m_wrapped.ReadByte();
 	}
 
 	public virtual int Read(byte[] buf)
@@ -88,11 +88,11 @@ public class InputStream : IDisposable
 
 	public virtual int Read(byte[] b, int off, int len)
 	{
-		if (Wrapped is WrappedSystemStream stream)
+		if (m_wrapped is WrappedSystemStream stream)
 			return stream.InputStream.Read(b, off, len);
 
-		if (Wrapped != null) {
-			int num = Wrapped.Read(b, off, len);
+		if (m_wrapped != null) {
+			int num = m_wrapped.Read(b, off, len);
 			return num <= 0 ? -1 : num;
 		}
 
@@ -112,18 +112,18 @@ public class InputStream : IDisposable
 
 	public virtual void Reset()
 	{
-		if (Wrapped is WrappedSystemStream stream)
+		if (m_wrapped is WrappedSystemStream stream)
 			stream.InputStream.Reset();
 		else {
-			if (Wrapped == null)
+			if (m_wrapped == null)
 				throw new IOException();
-			Wrapped.Position = m_mark;
+			m_wrapped.Position = m_mark;
 		}
 	}
 
 	public virtual long Skip(long cnt)
 	{
-		if (Wrapped is WrappedSystemStream stream)
+		if (m_wrapped is WrappedSystemStream stream)
 			return stream.InputStream.Skip(cnt);
 
 		long n = cnt;
@@ -139,22 +139,22 @@ public class InputStream : IDisposable
 
 	internal bool CanSeek()
 	{
-		return Wrapped is { CanSeek: true };
+		return m_wrapped is { CanSeek: true };
 	}
 
 	internal long Position
 	{
 		get
 		{
-			if (Wrapped != null)
-				return Wrapped.Position;
+			if (m_wrapped != null)
+				return m_wrapped.Position;
 			else
 				throw new NotSupportedException();
 		}
 		set
 		{
-			if (Wrapped != null)
-				Wrapped.Position = value;
+			if (m_wrapped != null)
+				m_wrapped.Position = value;
 			else
 				throw new NotSupportedException();
 		}
@@ -163,7 +163,7 @@ public class InputStream : IDisposable
 	public static InputStream Wrap(Stream s)
 	{
 		var stream = new InputStream();
-		stream.Wrapped = s;
+		stream.m_wrapped = s;
 		return stream;
 	}
 }

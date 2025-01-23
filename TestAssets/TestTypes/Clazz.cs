@@ -48,7 +48,8 @@ public class Clazz3
 
 	public void SayHi()
 		=> Console.WriteLine("hi");
-
+	public void SayButt()
+		=> Console.WriteLine("butt");
 	public override string ToString()
 	{
 		return $"{nameof(a)}: {a}, {nameof(s)}: {s}, {nameof(prop)}: {prop}";

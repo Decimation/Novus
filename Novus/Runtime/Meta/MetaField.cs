@@ -1,7 +1,9 @@
-﻿using System.Reflection;
+﻿// Author: Deci | Project: Novus | Name: MetaField.cs
+// Date: 2020/11/02 @ 01:11:53
+
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Novus.Memory;
-using Novus.Numerics;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.Tokens;
@@ -14,20 +16,24 @@ namespace Novus.Runtime.Meta;
 
 /// <summary>
 ///     <list type="bullet">
-///         <item><description>CLR structure: <see cref="FieldDesc"/></description></item>
-///         <item><description>Reflection structure: <see cref="FieldInfo"/></description></item>
+///         <item>
+///             <description>CLR structure: <see cref="FieldDesc" /></description>
+///         </item>
+///         <item>
+///             <description>Reflection structure: <see cref="FieldInfo" /></description>
+///         </item>
 ///     </list>
 /// </summary>
 public unsafe class MetaField : EmbeddedClrStructure<FieldDesc>
 {
 
+	public MetaField(Pointer<FieldDesc> ptr) : base(ptr) { }
+
+	public MetaField(FI ptr) : base(ptr) { }
+
 	private const int FIELD_OFFSET_MAX = (1 << 27) - 1;
 
 	private const int FIELD_OFFSET_NEW_ENC = FIELD_OFFSET_MAX - 4;
-
-	public MetaField(Pointer<FieldDesc> ptr) : base(ptr) { }
-
-	public MetaField(FieldInfo ptr) : base(ptr) { }
 
 	public CorElementType Element => Value.Reference.Element;
 
@@ -35,14 +41,14 @@ public unsafe class MetaField : EmbeddedClrStructure<FieldDesc>
 
 	public int Offset => Value.Reference.Offset;
 
-	public override FieldInfo Info => EnclosingType.RuntimeType.Module.ResolveField(Token);
+	public override FI Info => EnclosingType.RuntimeType.Module.ResolveField(Token);
 
 	public MetaType FieldType => Info.FieldType;
 
 	public override MetaType EnclosingType => Value.Reference.ApproxEnclosingMethodTable;
 
 	/// <summary>
-	/// <remarks>Equals <see cref="MemberInfo.MetadataToken"/></remarks>
+	///     <remarks>Equals <see cref="MemberInfo.MetadataToken" /></remarks>
 	/// </summary>
 	public override int Token => Value.Reference.Token;
 
@@ -70,7 +76,7 @@ public unsafe class MetaField : EmbeddedClrStructure<FieldDesc>
 	public static implicit operator MetaField(Pointer<FieldDesc> ptr)
 		=> new(ptr);
 
-	public static implicit operator MetaField(FieldInfo t)
+	public static implicit operator MetaField(FI t)
 		=> new(t);
 
 }

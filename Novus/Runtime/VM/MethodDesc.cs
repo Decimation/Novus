@@ -77,6 +77,16 @@ public unsafe struct MethodDesc
 		}
 	}
 
+	internal void* EntryPoint
+	{
+		set
+		{
+			fixed (MethodDesc* p = &this) {
+				Func_SetCodeEntryPoint(p, value);
+			}
+		}
+	}
+
 	internal int Token
 	{
 		get
@@ -176,6 +186,15 @@ public unsafe struct MethodDesc
 	/// </summary>
 	[field: ImportClr("Sig_GetIL")]
 	private static delegate* unmanaged[Thiscall]<MethodDesc*, int, CorILMethod*> Func_GetILHeader { get; }
+
+
+	/// <summary>
+	/// <see cref="MethodDesc.EntryPoint"/>
+	/// </summary>
+	[field: ImportClr("Sig_SetCodeEntryPoint")]
+	private static delegate* unmanaged[Thiscall]<MethodDesc*, void*, void> Func_SetCodeEntryPoint { get; }
+
+
 
 }
 

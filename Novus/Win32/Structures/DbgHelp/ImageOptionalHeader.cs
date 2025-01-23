@@ -13,7 +13,7 @@ namespace Novus.Win32.Structures.DbgHelp;
 internal struct ImageOptionalHeader
 {
 	[field: FieldOffset(0)]
-	public MagicType Magic { get; }
+	public ImageNtMagicType Magic { get; }
 
 	[field: FieldOffset(2)]
 	public byte MajorLinkerVersion { get; }

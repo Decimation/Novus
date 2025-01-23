@@ -7,7 +7,7 @@ public class WrappedSystemStream : Stream
 
 	public WrappedSystemStream(InputStream ist)
 	{
-		this.InputStream = ist;
+		InputStream = ist;
 	}
 
 	public WrappedSystemStream(OutputStream ost)
@@ -21,13 +21,8 @@ public class WrappedSystemStream : Stream
 
 	public override void Close()
 	{
-		if (InputStream != null) {
-			InputStream.Close();
-		}
-
-		if (OutputStream != null) {
-			OutputStream.Close();
-		}
+		InputStream?.Close();
+		OutputStream?.Close();
 	}
 
 	public override void Flush()
@@ -85,25 +80,13 @@ public class WrappedSystemStream : Stream
 		m_position++;
 	}
 
-	public override bool CanRead
-	{
-		get { return InputStream != null; }
-	}
+	public override bool CanRead => InputStream != null;
 
-	public override bool CanSeek
-	{
-		get { return true; }
-	}
+	public override bool CanSeek => true;
 
-	public override bool CanWrite
-	{
-		get { return OutputStream != null; }
-	}
+	public override bool CanWrite => OutputStream != null;
 
-	public override long Length
-	{
-		get { throw new NotSupportedException(); }
-	}
+	public override long Length => throw new NotSupportedException();
 
 	internal void OnMark(int nb)
 	{

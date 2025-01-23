@@ -20,6 +20,7 @@ using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Wrappers;
 using System.Net;
 using System.Runtime.Versioning;
+using Novus.OS;
 
 // ReSharper disable UnusedMember.Local
 
@@ -38,7 +39,7 @@ namespace Novus.Imports;
 /// </summary>
 /// <seealso cref="ER"/>
 [DAM(DAMT.All)]
-[SupportedOSPlatform(Global.OS_WIN)]
+[SupportedOSPlatform(FileSystem.OS_WIN)]
 public sealed class RuntimeResource : IDisposable
 {
 
@@ -50,7 +51,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public Lazy<SigScanner> Scanner { get; }
 
-	public Lazy<Win32SymbolReader> Symbols { get; }
+	public Lazy<SymbolReader> Symbols { get; }
 
 	public bool LoadedModule { get; private init; }
 
@@ -77,7 +78,7 @@ public sealed class RuntimeResource : IDisposable
 			return new SigScanner(Module);
 		});
 
-		Symbols      = new Lazy<Win32SymbolReader>(() => File.Exists(pdb) ? new Win32SymbolReader(pdb) : null);
+		Symbols      = new Lazy<SymbolReader>(() => File.Exists(pdb) ? new SymbolReader(pdb) : null);
 		LoadedModule = false;
 	}
 

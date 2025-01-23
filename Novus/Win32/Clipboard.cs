@@ -9,13 +9,14 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Novus.OS;
 
 namespace Novus.Win32;
 
 //TODO: WIP
 //https://github.com/aayush-pokharel/ClipboardMonitor
 
-[SupportedOSPlatform(Global.OS_WIN)]
+[SupportedOSPlatform(FileSystem.OS_WIN)]
 public static class Clipboard
 {
 

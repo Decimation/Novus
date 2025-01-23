@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Versioning;
+using Novus.OS;
 using Novus.Win32.Structures.User32;
 
 namespace Novus.Win32.Wrappers;
@@ -12,7 +13,7 @@ namespace Novus.Win32.Wrappers;
 /// <note type="note">The ComObject derived class should call QueueNonBlockingCallback in its invoke function, for example
 /// IExecuteCommand::Execute() or IDropTarget::Drop() passing a method that will complete the initialization work.</note>
 /// </summary>
-[SupportedOSPlatform(Global.OS_WIN)]
+[SupportedOSPlatform(FileSystem.OS_WIN)]
 public class MessageLoop
 {
 	//https://github.com/dahall/Vanara

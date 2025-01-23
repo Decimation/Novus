@@ -93,8 +93,8 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	[return: MA(UT.Bool)]
-	public static extern bool GetMessage(ref MSG lpMsg, [Optional] nint hWnd, [Optional] uint wMsgFilterMin,
-	                                     [Optional] uint wMsgFilterMax);
+	public static extern bool GetMessage(ref MSG lpMsg, [Opt] nint hWnd, [Opt] uint wMsgFilterMin,
+	                                     [Opt] uint wMsgFilterMax);
 
 	/*
 	[DllImport(USER32_DLL, SetLastError = true)]
@@ -117,12 +117,12 @@ public static unsafe partial class Native
 	public static extern bool TranslateMessage(ref MSG lpMsg);
 
 	[DllImport(USER32_DLL, SetLastError = false)]
-	public static extern void PostQuitMessage([Optional] int nExitCode);
+	public static extern void PostQuitMessage([Opt] int nExitCode);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	[return: MA(UT.Bool)]
-	public static extern bool PostThreadMessage(uint idThread, uint Msg, [Optional] nint wParam,
-	                                            [Optional] nint lParam);
+	public static extern bool PostThreadMessage(uint idThread, uint Msg, [Opt] nint wParam,
+	                                            [Opt] nint lParam);
 
 	#region Key
 
@@ -250,14 +250,14 @@ public static unsafe partial class Native
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	[return: MA(UT.Bool)]
-	public static extern bool KillTimer([Optional] nint hWnd, nint uIDEvent);
+	public static extern bool KillTimer([Opt] nint hWnd, nint uIDEvent);
 
 	[UnmanagedFunctionPointer(CallingConvention.Winapi)]
 	public delegate void TimerProc(nint hwnd, uint uMsg, nint idEvent, uint dwTime);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
-	public static extern nint SetTimer([Optional] nint hWnd, [Optional] nint nIDEvent, [Optional] uint uElapse,
-	                                   [Optional] TimerProc lpTimerFunc);
+	public static extern nint SetTimer([Opt] nint hWnd, [Opt] nint nIDEvent, [Opt] uint uElapse,
+	                                   [Opt] TimerProc lpTimerFunc);
 
 	public const int MF_BYCOMMAND = 0x00000000;
 

@@ -5,7 +5,6 @@ global using MI = System.Reflection.MethodInfo;
 global using PI = System.Reflection.PropertyInfo;
 global using MMI = System.Reflection.MemberInfo;
 global using FI = System.Reflection.FieldInfo;
-
 global using static Novus.Utilities.ReflectionOperatorHelpers;
 using RH = Novus.Utilities.ReflectionHelper;
 using System;
@@ -29,6 +28,7 @@ using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Kantan.Diagnostics;
 using Novus.Numerics;
+
 // ReSharper disable AnnotateNotNullParameter
 
 // ReSharper disable InconsistentNaming
@@ -89,10 +89,10 @@ public static class ReflectionHelper
 		var member = infos.FirstOrDefault();
 
 		switch (member) {
-			case PropertyInfo { MemberType: MemberTypes.Property } prop:
+			case PI { MemberType: MemberTypes.Property } prop:
 				return prop.GetBackingField();
 
-			case FieldInfo fi:
+			case FI fi:
 				return fi;
 
 			default:
@@ -146,8 +146,8 @@ public static class ReflectionHelper
 		return null;
 	}
 
-	public static Dictionary<FieldInfo, bool> GetNullMembers(this object value, Func<Type, object, bool> fn = null,
-	                                                         BindingFlags flags = ALL_INSTANCE_FLAGS)
+	public static Dictionary<FI, bool> GetNullMembers(this object value, Func<Type, object, bool> fn = null,
+	                                                  BindingFlags flags = ALL_INSTANCE_FLAGS)
 	{
 		var fields = value.GetType().GetFields(flags);
 
@@ -182,8 +182,8 @@ public static class ReflectionHelper
 	public static IEnumerable<FI> GetAllBackingFields(this Type t)
 	{
 		var rg = t.GetRuntimeFields()
-			.Where(f => f.Name.Contains(SN_BACKING_FIELD))
-			.ToArray();
+			.Where(f => f.Name.Contains(SN_BACKING_FIELD));
+
 		return rg;
 	}
 
@@ -290,7 +290,14 @@ public static class ReflectionHelper
 		=> t.IsInteger() || t.IsReal();
 
 	private static readonly Type[] ExtraUInt = [typeof(UInt128), typeof(nuint)];
-	private static readonly Type[] ExtraSInt = [typeof(BigInteger), typeof(Int128), typeof(nint)];
+	private static readonly Type[] ExtraSInt = [typeof(Int128), typeof(nint), typeof(BigInteger)];
+
+	private static TypeCode GetCodeInfo(Type t, out bool isIntCode)
+	{
+		var c = Type.GetTypeCode(t);
+		isIntCode = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
+		return c;
+	}
 
 	public static bool IsInteger(this Type t)
 	{
@@ -300,13 +307,6 @@ public static class ReflectionHelper
 		// var b3 = t == typeof(nint) || t == typeof(nuint);
 
 		return b || ExtraSInt.Contains(t) || ExtraUInt.Contains(t);
-	}
-
-	private static TypeCode GetCodeInfo(Type t, out bool isIntCode)
-	{
-		var c = Type.GetTypeCode(t);
-		isIntCode = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
-		return c;
 	}
 
 	public static bool IsReal(this Type t)
@@ -326,7 +326,7 @@ public static class ReflectionHelper
 	/// <summary>
 	///     Dummy class for use with <see cref="IsUnmanaged" /> and <see cref="IsUnmanaged" />
 	/// </summary>
-	private sealed class Unsafe<T> where T : unmanaged { }
+	private sealed class UnmanagedDummyType<T> where T : unmanaged { }
 
 	/// <summary>
 	///     Determines whether this type fits the <c>unmanaged</c> type constraint.
@@ -335,7 +335,7 @@ public static class ReflectionHelper
 	{
 		try {
 			// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
-			typeof(Unsafe<>).MakeGenericType(t);
+			typeof(UnmanagedDummyType<>).MakeGenericType(t);
 			return true;
 		}
 		catch {
@@ -533,7 +533,7 @@ public static class ReflectionHelper
 		var type = t.GetType();
 
 		var f  = type.GetAnyMethod(nameof(MemberwiseClone));
-		var r  = f.Invoke(t, Array.Empty<object>());
+		var r  = f.Invoke(t, []);
 		var t2 = Unsafe.As<T>(r);
 		return t2;
 	}
@@ -618,6 +618,7 @@ public static class ReflectionHelper
 
 	public static object GetDefaultFieldValue(this Type t)
 	{
+		//todo
 		object o = default;
 
 		if (t.IsFunctionPointer) {
@@ -627,6 +628,17 @@ public static class ReflectionHelper
 
 		return o;
 	}
+
+	public static void Deconstruct(this object o, Func<MMI, bool> m = null)
+	{
+		var mem  = o.GetType().GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.Default);
+		var dict = new Dictionary<string, object>();
+		foreach (var info in mem) {
+			//todo
+		}
+	}
+
+	public static bool IsIndexed(this PI p) => p.GetIndexParameters().Length > 0;
 
 }
 
@@ -642,7 +654,7 @@ public enum InheritanceProperties
 public static class ReflectionOperatorHelpers
 {
 
-	public static Expression property_to_expr<T>(PropertyInfo property)
+	public static Expression property_to_expr<T>(PI property)
 	{
 		var parameter          = Expression.Parameter(typeof(T));
 		var propertyExpression = Expression.Property(parameter, property);
@@ -667,14 +679,14 @@ public static class ReflectionOperatorHelpers
 		return body;
 	}
 
-	public static MemberInfo member_of2<T>(Expression<Func<T>> expression)
+	public static MMI member_of2<T>(Expression<Func<T>> expression)
 	{
 		var mi = member_of(expression);
 
 		return mi switch
 		{
-			FieldInfo f    => f,
-			PropertyInfo p => p,
+			FI f    => f,
+			PI p => p,
 
 			_ => mi
 		};

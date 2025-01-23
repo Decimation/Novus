@@ -98,6 +98,7 @@ public static class StreamExtensions
 
 		return buffer;
 	}*/
+
 	public static byte[] ReadHeader(this Stream stream, int offset = 0, int l = BlockSize)
 	{
 		stream.TrySeek(offset);
@@ -163,11 +164,11 @@ public static class StreamExtensions
 		return oldPos;
 	}
 
-	public static void ReadFully(this Stream stream, byte[] buffer)
+	/*public static void ReadFully(this Stream stream, byte[] buffer)
 	{
 		var aw = stream.ReadFullyAsync(buffer).GetAwaiter();
 		aw.GetResult();
-	}
+	}*/
 
 	public static async Task ReadFullyAsync(this Stream stream, byte[] buffer, CancellationToken ct = default)
 	{

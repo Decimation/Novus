@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿// Author: Deci | Project: Novus | Name: MetaType.cs
+// Date: 2020/11/02 @ 00:11:00
+
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Kantan.Diagnostics;
 using Novus.Memory;
 using Novus.Runtime.Meta.Base;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.EE;
-using Novus.Utilities;
-using Kantan.Diagnostics;
-using Kantan.Numeric;
-using Novus.Numerics;
 using Novus.Runtime.VM.Tokens;
+using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming
@@ -23,21 +20,27 @@ namespace Novus.Runtime.Meta;
 
 public static class MetaExtensions
 {
-	public static MetaType GetMetaType(this object o) => o.GetType().AsMetaType();
 
-	public static MetaMethod AsMetaMethod(this MethodInfo t) => new(t);
+	public static MetaType GetMetaType(this object o)
+		=> o.GetType().AsMetaType();
 
-	public static MetaField AsMetaField(this FieldInfo t) => new(t);
+	public static MetaMethod AsMetaMethod(this MethodInfo t)
+		=> new(t);
 
-	public static MetaType AsMetaType(this Type t) => new(t);
+	public static MetaField AsMetaField(this FI t)
+		=> new(t);
+
+	public static MetaType AsMetaType(this Type t)
+		=> new(t);
+
 }
 
 /// <summary>
 ///     <list type="bullet">
 ///         <item>
 ///             <description>
-///                 CLR structure: <see cref="VM.MethodTable" />, <see cref="VM.EE.EEClass" />, 
-///                 <see cref="VM.TypeHandle" />, <see cref="VM.EE.EEClassLayoutInfo"/>, <see cref="VM.EE.ArrayClass"/>
+///                 CLR structure: <see cref="VM.MethodTable" />, <see cref="VM.EE.EEClass" />,
+///                 <see cref="VM.TypeHandle" />, <see cref="VM.EE.EEClassLayoutInfo" />, <see cref="VM.EE.ArrayClass" />
 ///             </description>
 ///         </item>
 ///         <item>
@@ -47,12 +50,13 @@ public static class MetaExtensions
 /// </summary>
 public unsafe class MetaType : MetaClrStructure<MethodTable>
 {
+
 	public MetaType(Pointer<MethodTable> mt) : base(mt) { }
 
 	public MetaType(Type t) : base(t) { }
 
 	/// <summary>
-	/// Equals <see cref="Type.Attributes"/>
+	///     Equals <see cref="Type.Attributes" />
 	/// </summary>
 	public TypeAttributes Attributes => EEClass.Reference.Attributes;
 
@@ -79,7 +83,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	public int MethodsCount => EEClass.Reference.NumMethods;
 
 	/// <summary>
-	/// Equals <see cref="Marshal.SizeOf(Type)"/>, <see cref="Marshal.SizeOf{T}()"/>
+	///     Equals <see cref="Marshal.SizeOf(Type)" />, <see cref="Marshal.SizeOf{T}()" />
 	/// </summary>
 	public int NativeSize => (int) NativeLayoutInfo.Reference.Size;
 
@@ -89,15 +93,11 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public IEnumerable<MetaField> Fields
 		=> RuntimeType.GetRuntimeFields()
-		              .Select(f => new MetaField(f));
+			.Select(f => new MetaField(f));
 
 	public IEnumerable<MetaMethod> Methods
 		=> RuntimeType.GetRuntimeMethods()
-		              .Select(m => new MetaMethod(m));
-
-	public MetaField GetField(string name) => RuntimeType.GetAnyField(name);
-
-	public MetaMethod GetMethod(string name) => RuntimeType.GetAnyMethod(name);
+			.Select(m => new MetaMethod(m));
 
 	private Pointer<EEClassNativeLayoutInfo> NativeLayoutInfo
 	{
@@ -146,7 +146,9 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	public bool HasLayout => VMFlags.HasFlag(VMFlags.HasLayout);
 
 	/// <summary>
-	/// <a href="https://docs.microsoft.com/en-us/dotnet/framework/interop/blittable-and-non-blittable-types">Blittable types</a>
+	///     <a href="https://docs.microsoft.com/en-us/dotnet/framework/interop/blittable-and-non-blittable-types">
+	///         Blittable types
+	///     </a>
 	/// </summary>
 	public bool IsBlittable => HasLayout && LayoutInfo.Reference.Flags.HasFlag(LayoutFlags.Blittable);
 
@@ -155,7 +157,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	public bool IsDelegate => VMFlags.HasFlag(VMFlags.Delegate);
 
 	/// <summary>
-	/// Equals <see cref="RuntimeHelpers.IsReferenceOrContainsReferences{T}"/>
+	///     Equals <see cref="RuntimeHelpers.IsReferenceOrContainsReferences{T}" />
 	/// </summary>
 	public bool IsReferenceOrContainsReferences => !RuntimeType.IsValueType || ContainsPointers;
 
@@ -163,20 +165,14 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public bool IsStringOrArray => HasComponentSize;
 
-	public override MemberInfo Info => RuntimeType;
+	public override MMI Info => RuntimeType;
 
 	/// <summary>
-	/// Equals <see cref="MemberInfo.MetadataToken"/>
+	///     Equals <see cref="MemberInfo.MetadataToken" />
 	/// </summary>
 	public override int Token => TokenHelper.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
 	public CorElementType CorElementType => RuntimeType.GetCorElementType();
-
-	// returns random combination of flags if this doesn't have a component size
-	private ushort RawGetComponentSize()
-	{
-		return (ushort) ComponentSize;
-	}
 
 	public int BaseDataSize
 	{
@@ -184,16 +180,16 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 		{
 			if (RuntimeType.IsValueType) {
 
-				var m = typeof(Mem).GetRuntimeMethods().First(delegate(MethodInfo n)
+				var mi = typeof(Mem).GetRuntimeMethods().First(static mi2 =>
 				{
-					var infos = n.GetParameters();
+					var infos = mi2.GetParameters();
 
-					return n.Name == nameof(Mem.SizeOf)
-					       && infos.Length == 2
+					return mi2.Name                    == nameof(Mem.SizeOf)
+					       && infos.Length           == 2
 					       && infos[1].ParameterType == typeof(SizeOfOptions);
 				});
 
-				return (int) m.CallGeneric(RuntimeType, null, null, SizeOfOptions.Intrinsic);
+				return (int) mi.CallGeneric(RuntimeType, null, null, SizeOfOptions.Intrinsic);
 			}
 
 			// Subtract the size of the ObjHeader and MethodTable*
@@ -201,40 +197,8 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 		}
 	}
 
-	public static implicit operator MetaType(Pointer<MethodTable> ptr) => new(ptr);
-
-	public static implicit operator MetaType(Type t) => new(t);
-
-	public static bool operator !=(MetaType left, MetaType right) => !Equals(left, right);
-
-	public static bool operator ==(MetaType left, MetaType right) => Equals(left, right);
-
-	public bool Equals(MetaType other)
-	{
-		return base.Equals(other); /*&& RuntimeType == other.RuntimeType*/
-	}
-
-	public override bool Equals(object? obj)
-	{
-		if (obj is null)
-			return false;
-
-		if (ReferenceEquals(this, obj))
-			return true;
-
-		return obj.GetType() == GetType() && Equals((MetaType) obj);
-
-	}
-
-	public override int GetHashCode()
-	{
-		unchecked {
-			return (base.GetHashCode() * 397) ^ RuntimeType.GetHashCode();
-		}
-	}
-
 	/// <summary>
-	/// Equals <see cref="Array.Rank"/>
+	///     Equals <see cref="Array.Rank" />
 	/// </summary>
 	public int ArrayRank => EEClass.Reference.ArrayRank;
 
@@ -274,8 +238,57 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public bool IsAnyPointer => RuntimeType.IsAnyPointer();
 
-	public override string ToString()
+	public MetaField GetField(string name)
+		=> RuntimeType.GetAnyField(name);
+
+	public MetaMethod GetMethod(string name)
+		=> RuntimeType.GetAnyMethod(name);
+
+	// returns random combination of flags if this doesn't have a component size
+	private ushort RawGetComponentSize()
+		=> (ushort) ComponentSize;
+
+	public bool Equals(MetaType other)
 	{
-		return ($"{base.ToString()} | {nameof(EEClass)}: {EEClass}");
+		return base.Equals(other); /*&& RuntimeType == other.RuntimeType*/
 	}
+
+	public override bool Equals(object? obj)
+	{
+		if (obj is null)
+			return false;
+
+		if (ReferenceEquals(this, obj))
+			return true;
+
+		return obj.GetType() == GetType() && Equals((MetaType) obj);
+
+	}
+
+	public override int GetHashCode()
+	{
+		unchecked {
+			return (base.GetHashCode() * 397) ^ RuntimeType.GetHashCode();
+		}
+	}
+
+	public override string ToString()
+		=> ($"{base.ToString()} | {nameof(EEClass)}: {EEClass}");
+
+	public static implicit operator MetaType(Pointer<MethodTable> ptr)
+		=> new(ptr);
+
+	public static implicit operator MetaType(Type t)
+		=> new(t);
+
+	public static bool operator !=(MetaType left, MetaType right)
+	{
+		return !Equals(left, right);
+	}
+
+	public static bool operator ==(MetaType left, MetaType right)
+	{
+		return Equals(left, right);
+	}
+
 }

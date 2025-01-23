@@ -66,6 +66,8 @@ using Novus.Numerics;
 using Novus.FileTypes.Uni;
 using Novus.Memory.Types;
 
+// ReSharper disable UnusedMember.Local
+
 #pragma warning disable NV0001
 #pragma warning disable CS0649
 
@@ -149,12 +151,21 @@ public static class Program
 		Global.Clr.LoadImports(typeof(Program));
 	}
 
-	private static async Task Main(string[] args)
+	private static unsafe void Main(string[] args)
 	{
-		
-		return;
 
-		
+		var clazz = new TestTypes.Clazz3();
+		var mm    = clazz.GetType().GetAnyMethod("SayHi").AsMetaMethod();
+		var mm2    = clazz.GetType().GetAnyMethod("SayButt").AsMetaMethod();
+		clazz.SayHi();
+		clazz.SayButt();
+		mm.Reset();
+		mm.EntryPoint = (void*) mm2.Function;
+		clazz.SayHi();
+
+		// delegate* unmanaged<void> au = &clazz.SayButt;
+
+		return;
 	}
 
 	private static void Test1()
@@ -166,8 +177,6 @@ public static class Program
 		Console.WriteLine(mc);
 		Console.WriteLine(mc2);
 	}
-
-	public unsafe static delegate* managed<int> f;
 
 	private static void run1()
 	{
@@ -185,5 +194,7 @@ public static class Program
 		any     a = new();
 
 	}
+
+	public static unsafe delegate* managed<int> f;
 
 }

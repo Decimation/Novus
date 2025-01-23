@@ -28,8 +28,8 @@ public class ImageSectionInfo
 
 	public override string ToString()
 	{
-		return String.Format("Number: {0} | Name: {1} | Address: {2:X} | Size: {3} | Characteristics: {4}", Number,
-		                     Name,
-		                     Address.ToInt64(), Size, Characteristics);
+		return
+			$"Number: {Number} | Name: {Name} | Address: {Address.ToInt64():X} | Size: {Size} | "
+			+ $"Characteristics: {Characteristics}";
 	}
 }

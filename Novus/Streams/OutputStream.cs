@@ -2,7 +2,7 @@
 
 public class OutputStream : IDisposable
 {
-	protected Stream Wrapped;
+	protected Stream m_wrapped;
 
 	public static implicit operator OutputStream(Stream s)
 	{
@@ -16,7 +16,7 @@ public class OutputStream : IDisposable
 
 	public virtual void Close()
 	{
-		Wrapped?.Close();
+		m_wrapped?.Close();
 	}
 
 	public void Dispose()
@@ -26,7 +26,7 @@ public class OutputStream : IDisposable
 
 	public virtual void Flush()
 	{
-		Wrapped?.Flush();
+		m_wrapped?.Flush();
 	}
 
 	internal Stream GetWrappedStream()
@@ -39,19 +39,19 @@ public class OutputStream : IDisposable
 	public static OutputStream Wrap(Stream s)
 	{
 		var stream = new OutputStream();
-		stream.Wrapped = s;
+		stream.m_wrapped = s;
 		return stream;
 	}
 
 	public virtual void Write(int b)
 	{
-		if (Wrapped is WrappedSystemStream stream)
+		if (m_wrapped is WrappedSystemStream stream)
 			stream.OutputStream.Write(b);
 		else
 		{
-			if (Wrapped == null)
+			if (m_wrapped == null)
 				throw new NotImplementedException();
-			Wrapped.WriteByte((byte)b);
+			m_wrapped.WriteByte((byte)b);
 		}
 	}
 
@@ -62,13 +62,13 @@ public class OutputStream : IDisposable
 
 	public virtual void Write(byte[] b, int offset, int len)
 	{
-		if (Wrapped is WrappedSystemStream stream)
+		if (m_wrapped is WrappedSystemStream stream)
 			stream.OutputStream.Write(b, offset, len);
 		else
 		{
-			if (Wrapped != null)
+			if (m_wrapped != null)
 			{
-				Wrapped.Write(b, offset, len);
+				m_wrapped.Write(b, offset, len);
 			}
 			else
 			{

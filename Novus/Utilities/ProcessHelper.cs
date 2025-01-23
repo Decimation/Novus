@@ -18,6 +18,7 @@ namespace Novus.Utilities;
 
 public static class ProcessHelper
 {
+
 	/// <summary>
 	///     Finds a <see cref="ProcessModule" /> in the current process with the <see cref="ProcessModule.ModuleName" /> of
 	///     <paramref name="moduleName" />
@@ -62,23 +63,15 @@ public static class ProcessHelper
 
 	[CBN]
 	public static Process GetParent()
-	{
-		return GetParent(Process.GetCurrentProcess().Handle);
-	}
+		=> Process.GetCurrentProcess().GetParent();
 
 	[CBN]
 	public static Process GetParent(int id)
-	{
-		var process = Process.GetProcessById(id);
-		return GetParent(process.Handle);
-	}
+		=> Process.GetProcessById(id).GetParent();
 
 	[CBN]
 	public static Process GetParent(string s)
-	{
-		var process = Process.GetProcessesByName(s).First();
-		return GetParent(process.Handle);
-	}
+		=> Process.GetProcessesByName(s).FirstOrDefault()?.GetParent();
 
 	[CBN]
 	public static Process GetParent(this Process p)
@@ -108,4 +101,5 @@ public static class ProcessHelper
 
 		}
 	}
+
 }

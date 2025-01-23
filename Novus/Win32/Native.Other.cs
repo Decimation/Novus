@@ -12,7 +12,7 @@ public static unsafe partial class Native
 {
 
 	[DllImport(UNAME_DLL, SetLastError = true)]
-	private static extern int GetUName(ATOM wCharCode, [MA(UT.LPWStr)] StringBuilder lpBuf);
+	public static extern int GetUName(ATOM wCharCode, [MA(UT.LPWStr)] StringBuilder lpBuf);
 
 	#region CRT
 

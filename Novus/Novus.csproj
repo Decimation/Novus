@@ -113,10 +113,10 @@
 
   <ItemGroup>
     <Reference Include="Kantan">
-      <HintPath>..\..\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
+      <HintPath>..\..\Kantan\Kantan\bin\Release\net9.0\Kantan.dll</HintPath>
     </Reference>
     <Reference Include="Kantan.Net">
-      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net8.0\Kantan.Net.dll</HintPath>
+      <HintPath>..\..\Kantan\Kantan.Net\bin\Release\net9.0\Kantan.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
 

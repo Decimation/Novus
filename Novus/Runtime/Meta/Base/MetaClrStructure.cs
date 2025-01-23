@@ -20,13 +20,13 @@ public abstract unsafe class MetaClrStructure<TClr> : BaseClrStructure<TClr>
 		
 	public virtual string Name => Info.Name;
 
-	public abstract MemberInfo Info { get; }
+	public abstract MMI Info { get; }
 
 	public abstract int Token { get; }
 
 	internal MetaClrStructure(Pointer<TClr> ptr) : base(ptr) { }
 
-	protected MetaClrStructure(MemberInfo member) : base(member) { }
+	protected MetaClrStructure(MMI member) : base(member) { }
 
 	public override string ToString()
 	{

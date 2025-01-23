@@ -23,8 +23,10 @@ global using NNW = System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
 global using MNW = System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute;
 global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
 global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
+global using Opt = System.Runtime.InteropServices.OptionalAttribute;
 
 #endregion
+
 global using Pointer = Novus.Memory.Pointer<byte>;
 
 // global using Native = Novus.Win32.Native;
@@ -128,7 +130,7 @@ namespace Novus;
 ///         </item>
 ///         <item>
 ///             <description>
-///                 <see cref="Win32SymbolReader" />
+///                 <see cref="SymbolReader" />
 ///             </description>
 ///         </item>
 ///         <item>
@@ -207,13 +209,13 @@ public static class Global
 	}
 
 	[CBN]
-	[SupportedOSPlatform(OS_WIN)]
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static string GetPdbFile()
 	{
 		// var pdbFile = Path.Join(DataFolder, CLR_PDB);
 		// File.WriteAllBytes(pdbFile, EmbeddedResources.coreclr);
 
-		var path = Win32SymbolReader.EnumerateSymbolPath(CLR_PDB);
+		var path = SymbolReader.EnumerateSymbolPath(CLR_PDB);
 
 		if (path == null) {
 			return null;
@@ -243,7 +245,7 @@ public static class Global
 		Logger.LogTrace($"[{LIB_NAME}] Module init");
 		Logger.LogTrace($"[{LIB_NAME}]");
 
-		if (!IsWindows) {
+		if (!FileSystem.IsWindows) {
 			Logger.LogWarning("Not on Windows!");
 			return;
 		}
@@ -294,24 +296,17 @@ public static class Global
 		IsSetup = false;
 	}
 
-	[SupportedOSPlatformGuard(OS_WIN)]
-	public static readonly bool IsWindows = OperatingSystem.IsWindows();
-
-	[SupportedOSPlatformGuard(OS_LINUX)]
-	public static readonly bool IsLinux = OperatingSystem.IsLinux();
 
 	public static readonly bool IsWorkstationGC = !GCSettings.IsServerGC;
 
 	public static readonly bool IsCorrectVersion = Environment.Version == ClrVersion;
 
-	public static bool IsCompatible => IsCorrectVersion && IsWorkstationGC && IsWindows;
+
+	public static bool IsCompatible => IsCorrectVersion && IsWorkstationGC && FileSystem.IsWindows;
 
 	internal const MImplO IMPL_OPTIONS =
 		MImplO.AggressiveInlining | MImplO.AggressiveOptimization;
 
-	public const string OS_WIN = "windows";
-
-	public const string OS_LINUX = "linux";
 #if EXTRA
 	#region QWrite
 

@@ -114,14 +114,14 @@ public static unsafe class RuntimeProperties
 	/// <param name="member">Reflection type</param>
 	/// <returns>A pointer to the corresponding structure</returns>
 	/// <exception cref="InvalidOperationException">The type of <see cref="MemberInfo" /> doesn't have a handle</exception>
-	public static Pointer<byte> ResolveMetadataHandle(MemberInfo member)
+	public static Pointer<byte> ResolveMetadataHandle(MMI member)
 	{
 		Require.ArgumentNotNull(member, nameof(member));
 
 		return member switch
 		{
 			Type t            => ResolveMethodTable(t).Cast(),
-			FieldInfo field   => field.FieldHandle.Value,
+			FI field   => field.FieldHandle.Value,
 			MethodInfo method => method.MethodHandle.Value,
 			_                 => throw new InvalidOperationException()
 		};

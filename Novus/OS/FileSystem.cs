@@ -1,4 +1,4 @@
-﻿global using FS = Novus.OS.FileSystem;
+﻿// global using FS = Novus.OS.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,6 +16,7 @@ using Kantan.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
+using Novus.Win32.Structures.User32;
 
 #pragma warning disable 8603
 // #pragma warning disable CA1416 //todo
@@ -46,10 +47,30 @@ namespace Novus.OS;
 public static class FileSystem
 {
 
+	[SupportedOSPlatformGuard(OS_WIN)]
+	public static readonly bool IsWindows = OperatingSystem.IsWindows();
+
+	[SupportedOSPlatformGuard(OS_LINUX)]
+	public static readonly bool IsLinux = OperatingSystem.IsLinux();
+
+	public const string OS_WIN = "windows";
+
+	public const string OS_LINUX = "linux";
+
+	static FileSystem()
+	{
+		if (IsLinux) {
+			PathDelimiter = ':';
+		}
+		else {
+			PathDelimiter = ';';
+		}
+	}
+
 	#region KnownFolder
 
 	/// <remarks><a href="https://stackoverflow.com/questions/10667012/getting-downloads-folder-in-c">Adapted from here</a></remarks>
-	[SupportedOSPlatform(Global.OS_WIN)]
+	[SupportedOSPlatform(OS_WIN)]
 	private static readonly string[] KnownFolderGuids =
 	[
 		"{56784854-C6CB-462B-8169-88E350ACB882}", // Contacts
@@ -73,7 +94,7 @@ public static class FileSystem
 	/// <returns>The default path of the known folder.</returns>
 	/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 	///     could not be retrieved.</exception>
-	[SupportedOSPlatform(Global.OS_WIN)]
+	[SupportedOSPlatform(OS_WIN)]
 	public static string GetPath(KnownFolder knownFolder)
 		=> GetPath(knownFolder, false);
 
@@ -87,11 +108,11 @@ public static class FileSystem
 	/// <returns>The default path of the known folder.</returns>
 	/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 	///     could not be retrieved.</exception>
-	[SupportedOSPlatform(Global.OS_WIN)]
+	[SupportedOSPlatform(OS_WIN)]
 	public static string GetPath(KnownFolder knownFolder, bool defaultUser)
 		=> GetPath(knownFolder, KnownFolderFlags.DontVerify, defaultUser);
 
-	[SupportedOSPlatform(Global.OS_WIN)]
+	[SupportedOSPlatform(OS_WIN)]
 	private static string GetPath(KnownFolder knownFolder, KnownFolderFlags flags, bool defaultUser)
 	{
 		int result = Native.SHGetKnownFolderPath(new Guid(KnownFolderGuids[(int) knownFolder]),
@@ -113,7 +134,7 @@ public static class FileSystem
 	public static string GetRootDirectory()
 		=> Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
 
-	[SupportedOSPlatform(Global.OS_WIN)]
+	[SupportedOSPlatform(OS_WIN)]
 	public static string GetShortPath(string dir)
 	{
 		unsafe {
@@ -284,7 +305,7 @@ public static class FileSystem
 		}
 	}
 
-	[SupportedOSPlatform(Global.OS_WIN)]
+	[SupportedOSPlatform(OS_WIN)]
 	public static bool SendFileToRecycleBin(string filePath)
 	{
 		if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
@@ -321,7 +342,7 @@ public static class FileSystem
 		if (!File.Exists(f)) {
 			if (Path.GetDirectoryName(f) == String.Empty) {
 				var split = (Environment.GetEnvironmentVariable(PATH_ENV) ?? String.Empty)
-					.Split(PATH_DELIM);
+					.Split(PathDelimiter);
 
 				// ReSharper disable once LoopCanBeConvertedToQuery
 				foreach (string test in split) {
@@ -414,14 +435,12 @@ public static class FileSystem
 	/// </summary>
 	public const string PATH_ENV = "PATH";
 
-	/// <summary>
-	///     Delimiter of environment variable <see cref="PATH_ENV" />
-	/// </summary>
-	public const char PATH_DELIM = ';';
+
+	public static readonly char PathDelimiter;
 
 	public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		return GetEnvironmentPath(t).Split(PATH_DELIM);
+		return GetEnvironmentPath(t).Split(PathDelimiter);
 	}
 
 	public static string GetEnvironmentPath(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
@@ -441,7 +460,7 @@ public static class FileSystem
 	{
 		string oldValue = GetEnvironmentPath(t);
 
-		SetEnvironmentPath(oldValue.Replace(PATH_DELIM + location, String.Empty), t);
+		SetEnvironmentPath(oldValue.Replace(PathDelimiter + location, String.Empty), t);
 	}
 
 	/// <summary>
@@ -461,11 +480,11 @@ public static class FileSystem
 		return withoutExtension + append + extension;
 	}
 
-	[SupportedOSPlatform(Global.OS_WIN)]
+	[SupportedOSPlatform(OS_WIN)]
 	public static string? SymbolPath
 		=> Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
 
-	[SupportedOSPlatform(Global.OS_WIN)]
+	[SupportedOSPlatform(OS_WIN)]
 	public static bool IsAdministrator()
 	{
 		using var identity = WindowsIdentity.GetCurrent();
@@ -480,10 +499,10 @@ public static class FileSystem
 	{
 		get
 		{
-			if (OperatingSystem.IsLinux()) {
+			if (IsLinux) {
 				return Environment.UserName == "root";
 			}
-			else if (OperatingSystem.IsWindows()) {
+			else if (IsWindows) {
 				return IsAdministrator();
 
 			}
@@ -492,6 +511,7 @@ public static class FileSystem
 
 		}
 	}
+
 }
 
 /// <summary>

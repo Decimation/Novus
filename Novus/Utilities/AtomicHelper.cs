@@ -15,13 +15,13 @@ namespace Novus.Utilities;
 public static class AtomicHelper
 {
 
-	private static readonly Dictionary<Type, nint> Cache = new();
+	private static readonly Dictionary<Type, nint> s_cache = new();
 
 	private static nint GetExchangeFunction<T>()
 	{
 		var method =
 			typeof(Interlocked).GetAnyMethod(nameof(Interlocked.Exchange),
-			                                 new[] { typeof(T).MakeByRefType(), typeof(T) });
+			                                 [typeof(T).MakeByRefType(), typeof(T)]);
 
 		if (method == null) {
 			return IntPtr.Zero;
@@ -57,9 +57,9 @@ public static class AtomicHelper
 
 		nint ptr;
 
-		if (!Cache.TryGetValue(type, out nint value)) {
+		if (!s_cache.TryGetValue(type, out nint value)) {
 			ptr         = GetExchangeFunction<T>();
-			Cache[type] = ptr;
+			s_cache[type] = ptr;
 		}
 		else {
 			ptr = value;

@@ -11,6 +11,7 @@ namespace Novus.Win32.Structures.DbgHelp;
 [StructLayout(LayoutKind.Sequential)]
 internal unsafe struct SymbolInfo
 {
+
 	/// <summary>
 	///     Max string length for <see cref="SymbolInfo.Name" />
 	/// </summary>
@@ -139,11 +140,13 @@ internal unsafe struct SymbolInfo
 			return Marshal.PtrToStringUni((nint) namePtr, (int) NameLen);
 		}
 	}
+
 }
 
 [Flags]
 public enum SymbolFlag
 {
+
 	/// <summary>
 	/// The symbol is a CLR token.
 	/// </summary>
@@ -228,11 +231,13 @@ public enum SymbolFlag
 	/// The symbol is a virtual symbol created by the SymAddSymbol function.
 	/// </summary>
 	VIRTUAL = 0x00001000,
+
 }
 
 [Flags]
 public enum SymbolOptions : uint
 {
+
 	ALLOW_ABSOLUTE_SYMBOLS = 0x00000800,
 
 	ALLOW_ZERO_ADDRESS = 0x01000000,
@@ -284,10 +289,12 @@ public enum SymbolOptions : uint
 	SECURE = 0x00040000,
 
 	UNDNAME = 0x00000002,
+
 }
 
 public enum SymbolTag
 {
+
 	Null,
 	Exe,
 	Compiland,
@@ -331,4 +338,5 @@ public enum SymbolTag
 	HeapAllocationSite,
 	CoffGroup,
 	Max
+
 }

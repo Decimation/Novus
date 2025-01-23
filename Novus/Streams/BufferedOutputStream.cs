@@ -4,11 +4,11 @@ public class BufferedOutputStream : OutputStream
 {
 	public BufferedOutputStream(OutputStream outs)
 	{
-		Wrapped = new BufferedStream(outs == null ? new MemoryStream() : outs.GetWrappedStream());
+		m_wrapped = new BufferedStream(outs == null ? new MemoryStream() : outs.GetWrappedStream());
 	}
 
 	public BufferedOutputStream(OutputStream outs, int bufferSize)
 	{
-		Wrapped = new BufferedStream(outs.GetWrappedStream(), bufferSize);
+		m_wrapped = new BufferedStream(outs.GetWrappedStream(), bufferSize);
 	}
 }

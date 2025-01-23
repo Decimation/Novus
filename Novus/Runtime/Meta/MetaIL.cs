@@ -1,8 +1,9 @@
-﻿using System;
+﻿// Author: Deci | Project: Novus | Name: MetaIL.cs
+// Date: 2021/05/23 @ 00:05:48
+
 using System.Reflection;
 using Novus.Memory;
 using Novus.Runtime.Meta.Base;
-using Novus.Runtime.VM;
 using Novus.Runtime.VM.IL;
 
 // ReSharper disable UnusedMember.Global
@@ -13,12 +14,22 @@ namespace Novus.Runtime.Meta;
 
 /// <summary>
 ///     <list type="bullet">
-///         <item><description>CLR structure: <see cref="CorILMethod"/>, <see cref="CorILMethodFat"/>, <see cref="CorILMethodTiny"/></description></item>
-///         <item><description>Reflection structure: <see cref="MethodBody"/></description></item>
+///         <item>
+///             <description>
+///                 CLR structure:
+///                 <see cref="CorILMethod" />,
+///                 <see cref="CorILMethodFat" />,
+///                 <see cref="CorILMethodTiny" />
+///             </description>
+///         </item>
+///         <item>
+///             <description>Reflection structure: <see cref="MethodBody" /></description>
+///         </item>
 ///     </list>
 /// </summary>
 public class MetaIL : BaseClrStructure<CorILMethod>
 {
+
 	/*
 	 * https://github.com/Decimation/NeoCore/blob/master/NeoCore/CoreClr/Meta/MetaIL.cs
 	 */
@@ -36,19 +47,22 @@ public class MetaIL : BaseClrStructure<CorILMethod>
 	public Pointer<byte> Code => IsFat ? Value.Reference.Fat.Code : Value.Reference.Tiny.Code;
 
 	/// <summary>
-	/// Equals <see cref="MethodBody.GetILAsByteArray"/>
-	/// </summary>
-	public byte[] GetCodeIL()
-		=> IsFat ? Value.Reference.Fat.GetCodeIL() : Value.Reference.Tiny.GetCodeIL();
-
-	/// <summary>
-	/// Equals <see cref="MethodBody.MaxStackSize"/>
+	///     Equals <see cref="MethodBody.MaxStackSize" />
 	/// </summary>
 	public int MaxStackSize => IsFat ? Value.Reference.Fat.MaxStackSize : Value.Reference.Tiny.MaxStackSize;
 
 	/// <summary>
-	/// Equals <see cref="MethodBody.LocalSignatureMetadataToken"/>
+	///     Equals <see cref="MethodBody.LocalSignatureMetadataToken" />
 	/// </summary>
 	public int LocalVarSigToken =>
 		IsFat ? Value.Reference.Fat.LocalVarSigToken : Value.Reference.Tiny.LocalVarSigToken;
+
+	/// <summary>
+	///     Equals <see cref="MethodBody.GetILAsByteArray" />
+	/// </summary>
+	public byte[] GetCodeIL()
+	{
+		return IsFat ? Value.Reference.Fat.GetCodeIL() : Value.Reference.Tiny.GetCodeIL();
+	}
+
 }

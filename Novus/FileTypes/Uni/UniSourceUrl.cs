@@ -5,6 +5,7 @@ using System.Net;
 using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
+using Novus.OS;
 
 namespace Novus.FileTypes.Uni;
 
@@ -34,7 +35,7 @@ public class UniSourceUrl : UniSource, IUniSource
 		fn = url.GetFileName();
 
 		// var tmp = Path.Combine(Path.GetTempPath(), fn);
-		var tmp = FS.GetTempFileName(fn, ext);
+		var tmp = FileSystem.GetTempFileName(fn, ext);
 
 		// tmp = FS.SanitizeFilename(tmp);
 

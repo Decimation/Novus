@@ -48,6 +48,7 @@ using Novus.Runtime.VM;
 using Novus.Streams;
 using Novus.Utilities;
 using Novus.Win32;
+using Novus.Win32.Structures.AdvApi32;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
@@ -153,10 +154,20 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
+		var s  = Native.OpenSCManager(null, null, ScManagerAccessTypes.SC_MANAGER_ALL_ACCESS);
+		var s2 = Native.OpenService(s, "NvContainerLocalSystem", ServiceAccessTypes.SERVICE_ALL_ACCESS);
+		Native.ControlService(s2, ServiceControl.SERVICE_CONTROL_STOP, out ServiceStatus ss);
+		Console.WriteLine(ss);
+		Native.CloseServiceHandle(s);
+		Native.CloseServiceHandle(s2);
+		return;
+	}
 
+	private static unsafe void Test2()
+	{
 		var clazz = new TestTypes.Clazz3();
 		var mm    = clazz.GetType().GetAnyMethod("SayHi").AsMetaMethod();
-		var mm2    = clazz.GetType().GetAnyMethod("SayButt").AsMetaMethod();
+		var mm2   = clazz.GetType().GetAnyMethod("SayButt").AsMetaMethod();
 		clazz.SayHi();
 		clazz.SayButt();
 		mm.Reset();
@@ -164,8 +175,6 @@ public static class Program
 		clazz.SayHi();
 
 		// delegate* unmanaged<void> au = &clazz.SayButt;
-
-		return;
 	}
 
 	private static void Test1()

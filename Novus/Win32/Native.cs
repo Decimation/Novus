@@ -33,6 +33,7 @@ namespace Novus.Win32;
 [SupportedOSPlatform(FileSystem.OS_WIN)]
 public static unsafe partial class Native
 {
+
 	#region
 
 	/// <summary>
@@ -68,6 +69,7 @@ public static unsafe partial class Native
 	public const string WINHTTP_DLL   = "winhttp.dll";
 	public const string UCRTBASE_DLL  = "ucrtbase.dll";
 	public const string UNAME_DLL     = "getuname.dll";
+	public const string ADVAPI32_DLL  = "advapi32.dll";
 
 	#endregion
 

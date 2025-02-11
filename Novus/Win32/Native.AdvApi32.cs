@@ -26,4 +26,23 @@ public static partial class Native
 	[return: MA(UT.Bool)]
 	public static extern bool CloseServiceHandle(ScHandle hSCObject);
 
+	[DllImport(ADVAPI32_DLL, SetLastError = true, CharSet = CharSet.Auto)]
+	[return: MA(UT.Bool)]
+	public static extern bool StartService(ScHandle hService, [Opt] int dwNumServiceArgs,
+	                                       [CBN] [Opt] string[] lpServiceArgVectors);
+
+	/// <summary>Stops a service using <see cref="ControlService"/> with <see cref="ServiceControl.SERVICE_CONTROL_STOP"/></summary>
+	/// <param name="hService">
+	/// A handle to the service. This handle is returned by the <see cref="OpenService"/> or
+	/// <see cref="CreateService(SC_HANDLE, string, string, uint, ServiceTypes, ServiceStartType, ServiceErrorControlType, string, string, IntPtr, string[], string, string)"/> function. The
+	/// access rights required for this handle depend on the <see cref="ServiceControl"/> code requested.
+	/// </param>
+	/// <param name="lpServiceStatus">
+	/// A pointer to a <see cref="SERVICE_STATUS"/> structure that receives the latest service status information. The information
+	/// returned reflects the most recent status that the service reported to the service control manager.
+	/// </param>
+	/// <returns></returns>
+	public static bool StopService(ScHandle hService, out ServiceStatus lpServiceStatus) =>
+		ControlService(hService, ServiceControl.SERVICE_CONTROL_STOP, out lpServiceStatus);
+
 }

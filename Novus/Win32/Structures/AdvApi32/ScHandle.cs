@@ -21,10 +21,10 @@ public readonly struct ScHandle
 	}
 
 	/// <summary>Returns an invalid handle by instantiating a <see cref="ScHandle" /> object with <see cref="nint.Zero" />.</summary>
-	public static ScHandle NULL => new(nint.Zero);
+	public static ScHandle NULL => new(IntPtr.Zero);
 
 	/// <summary>Gets a value indicating whether this instance is a null handle.</summary>
-	public bool IsNull => handle == nint.Zero;
+	public bool IsNull => handle == IntPtr.Zero;
 
 	/// <summary>Performs an explicit conversion from <see cref="ScHandle" /> to <see cref="nint" />.</summary>
 	/// <param name="h">The handle.</param>

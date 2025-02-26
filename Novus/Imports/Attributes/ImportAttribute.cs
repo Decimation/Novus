@@ -11,7 +11,7 @@ namespace Novus.Imports.Attributes;
 /// </summary>
 /// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
 [AttributeUsage(AttributeTargets.Field)]
-[MeansImplicitUse(ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors)]
+[MIU(ImplicitUseTargetFlags.WithMembers | ImplicitUseTargetFlags.WithInheritors)]
 public abstract class ImportAttribute : Attribute
 {
 	protected ImportAttribute(string name, ImportManageType manageType, Type resolver = null)

@@ -39,8 +39,9 @@ namespace Novus.Runtime;
 /// </summary>
 /// <seealso cref="Mem" />
 /// <seealso cref="RuntimeHelpers" />
-/// <seealso cref="RuntimeEnvironment" />
+/// <seealso cref="System.Runtime.InteropServices.RuntimeEnvironment" />
 /// <seealso cref="RuntimeInformation" />
+/// <see cref="RuntimeEnvironment"/>
 public static unsafe class RuntimeProperties
 {
 
@@ -121,7 +122,7 @@ public static unsafe class RuntimeProperties
 		return member switch
 		{
 			Type t            => ResolveMethodTable(t).Cast(),
-			FI field   => field.FieldHandle.Value,
+			FI field          => field.FieldHandle.Value,
 			MethodInfo method => method.MethodHandle.Value,
 			_                 => throw new InvalidOperationException()
 		};

@@ -158,7 +158,7 @@ public static class TokenHelper
 			case CorElementType.Object:
 			case CorElementType.SzArray:
 			case CorElementType.End:
-				return nint.Size;
+				return IntPtr.Size;
 
 			case CorElementType.ValueType:
 			case CorElementType.Var:

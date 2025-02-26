@@ -92,7 +92,7 @@ public static class Tests2
 internal class Tests1
 {
 
-	private static readonly IntPtr HWND_MESSAGE       = new IntPtr(-3);
+	private static readonly nint HWND_MESSAGE       = new nint(-3);
 	private const           int    WM_CLIPBOARDUPDATE = 0x031D;
 
 	private delegate void ClipboardUpdateCallback();
@@ -114,7 +114,7 @@ internal class Tests1
 
 		if (hasFormat) {
 			// Get the clipboard data and do something with it
-			IntPtr clipboardData = Native.GetClipboardData((int) ClipboardFormat.CF_UNICODETEXT);
+			nint clipboardData = Native.GetClipboardData((int) ClipboardFormat.CF_UNICODETEXT);
 
 			if (clipboardData != IntPtr.Zero) {
 				string clipboardText = Marshal.PtrToStringUni(clipboardData);

@@ -11,7 +11,7 @@ namespace Novus.Imports.Attributes;
 ///     for the signature to scan using <see cref="RuntimeResource.Scanner" />.
 /// </summary>
 /// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
-[MeansImplicitUse]
+[MIU]
 [AttributeUsage(AttributeTargets.Field)]
 public class ImportUnmanagedAttribute : ImportAttribute
 {

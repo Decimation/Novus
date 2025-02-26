@@ -256,7 +256,7 @@ public unsafe struct SigParser
 			case ELEMENT_TYPE_TYPEDBYREF:
 			case ELEMENT_TYPE_ARRAY:
 			case ELEMENT_TYPE_SZARRAY:
-				pSize = nint.Size;
+				pSize = IntPtr.Size;
 				break;
 
 			case ELEMENT_TYPE_VOID:

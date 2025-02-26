@@ -55,17 +55,17 @@ public static unsafe partial class Native
 
 	[return: MA(UT.Bool)]
 	public delegate bool PFINDFILEINPATHCALLBACK([MA(UT.LPTStr)] string filename,
-	                                             [In, Opt]  IntPtr context);
+	                                             [In, Opt]  nint context);
 
 
 	[return: MA(UT.Bool)]
 	public static extern bool SymFindFileInPath(nint hprocess,
 	                                            [CBN, Opt, MA(UT.LPTStr)]   string SearchPath,
 	                                            [MA(UT.LPTStr)] string FileName,
-	                                            [In, Opt]  IntPtr id, uint two, uint three, SymbolServerOptions flags,
+	                                            [In, Opt]  nint id, uint two, uint three, SymbolServerOptions flags,
 	                                            [MA(UT.LPTStr)] StringBuilder FoundFile,
 	                                            [CBN, In, Opt]   PFINDFILEINPATHCALLBACK callback,
-	                                            [In, Opt]  IntPtr context);
+	                                            [In, Opt]  nint context);
 
 	#endregion
 

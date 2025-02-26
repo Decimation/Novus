@@ -69,7 +69,7 @@ using ActionFunctor = Action<object, Action<object>>;
 /// <seealso cref="AllocManager" />
 /// <seealso cref="Unsafe" />
 /// <seealso cref="RuntimeHelpers" />
-/// <seealso cref="RuntimeEnvironment" />
+/// <seealso cref="System.Runtime.InteropServices.RuntimeEnvironment" />
 /// <seealso cref="RuntimeInformation" />
 /// <seealso cref="FormatterServices" />
 /// <seealso cref="Activator" />
@@ -95,8 +95,13 @@ public static unsafe class Mem
 
 	static Mem()
 	{
-		PinImpl = CreatePinImpl();
 		Is64Bit = Environment.Is64BitProcess;
+
+		if (!RuntimeFeature.IsDynamicCodeSupported) {
+			return;
+		}
+
+		PinImpl = CreatePinImpl();
 
 		/*fixed (nint* n = &Invalid) {
 			Invalid_u = *(nuint*) n;
@@ -512,8 +517,8 @@ public static unsafe class Mem
 		nuint multiplyNoOverflow = (nuint) 1 << (4 * sizeof(nuint));
 
 		return (elemSize >= multiplyNoOverflow || elemCnt >= multiplyNoOverflow)
-		       && elemSize > 0 && nuint.MaxValue / elemSize < elemCnt
-			       ? nuint.MaxValue
+		       && elemSize > 0 && UIntPtr.MaxValue / elemSize < elemCnt
+			       ? UIntPtr.MaxValue
 			       : elemCnt * elemSize;
 	}
 

@@ -1,4 +1,4 @@
-﻿global using ATOM = System.UInt16;
+﻿global using ATOM = ushort;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -73,7 +73,7 @@ public static unsafe partial class Native
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	[return: MA(UT.Bool)]
-	public static partial bool SetStdHandle(StandardHandle nStdHandle, IntPtr nHandle);
+	public static partial bool SetStdHandle(StandardHandle nStdHandle, nint nHandle);
 
 	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]

@@ -34,7 +34,7 @@ public sealed class KeyboardListener : IDisposable
 		KeyWhitelist = whitelist ?? new HashSet<VirtualKey>();
 	}
 
-	public bool IsGlobal => ScopeHandle == nint.Zero;
+	public bool IsGlobal => ScopeHandle == IntPtr.Zero;
 
 	public void Start()
 	{

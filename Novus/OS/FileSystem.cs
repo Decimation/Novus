@@ -308,7 +308,7 @@ public static class FileSystem
 	[SupportedOSPlatform(OS_WIN)]
 	public static bool SendFileToRecycleBin(string filePath)
 	{
-		if (string.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
+		if (String.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
 			return false;
 
 		var fileOp = new SHFILEOPSTRUCT

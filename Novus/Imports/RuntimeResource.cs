@@ -20,6 +20,8 @@ using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Wrappers;
 using System.Net;
 using System.Runtime.Versioning;
+using Microsoft.Extensions.Logging;
+using Novus.Imports.Factory;
 using Novus.OS;
 
 // ReSharper disable UnusedMember.Local
@@ -55,6 +57,10 @@ public sealed class RuntimeResource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
+
+	private readonly List<Type> m_loadedTypes = [];
+
+	private readonly HashSet<ResourceManager> m_managers = [ER.ResourceManager];
 
 	/// <summary>
 	/// Creates a <see cref="RuntimeResource"/> from an already-loaded module.
@@ -199,10 +205,6 @@ public sealed class RuntimeResource : IDisposable
 
 	}
 
-	private readonly List<Type> m_loadedTypes = [];
-
-	private readonly HashSet<ResourceManager> m_managers = [ER.ResourceManager];
-
 	private object GetObject(ImportAttribute attr)
 	{
 		if (attr is ImportUnmanagedAttribute { Value: not null } unmanaged) {
@@ -262,15 +264,14 @@ public sealed class RuntimeResource : IDisposable
 				if (addr.IsNull) {
 					// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 
-					var message = $"Could not find import value for {unmanagedAttr.Name}!";
-					Trace.WriteLine(message, LogCategories.C_ERROR);
+					Global.Logger.LogError($"Could not find import value for {unmanagedAttr.Name}!");
 
 					if (throwOnErr) {
-						throw new InvalidOperationException(message);
+						throw new InvalidOperationException($"Could not find import value for {unmanagedAttr.Name}!");
 					}
 					else {
 						unsafe {
-							DynamicMethod dyn = GenerateThrowingFunction(field.FieldType);
+							DynamicMethod dyn = MethodFactory.GenerateThrowingFunction(field.FieldType);
 							addr = dyn.MethodHandle.GetFunctionPointer();
 
 							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
@@ -313,28 +314,6 @@ public sealed class RuntimeResource : IDisposable
 		return fieldValue;
 	}
 
-	private static DynamicMethod GenerateThrowingFunction(Type fieldType)
-	{
-		var unmg  = fieldType.IsUnmanagedFunctionPointer;
-		var fnPtr = fieldType.GetFunctionPointerReturnType();
-
-		// Type modifiedType = field.GetModifiedFieldType();
-
-		var types = fieldType.GetFunctionPointerParameterTypes();
-		var dyn   = new DynamicMethod("__eerr", fnPtr, types);
-		var gen   = dyn.GetILGenerator();
-
-		for (int i = 0; i < types.Length; i++) {
-			gen.Emit(OpCodes.Ldarg, i);
-			gen.Emit(OpCodes.Newobj, fnPtr);
-			gen.Emit(OpCodes.Ret);
-		}
-
-		//todo
-
-		return dyn;
-	}
-
 	#endregion Import
 
 	public static ResourceManager GetManager(Assembly assembly, [CBN] string rsrcName = "EmbeddedResources")
@@ -364,44 +343,44 @@ public sealed class RuntimeResource : IDisposable
 
 	#region
 
-	public Pointer FindImport(ImportAttribute a, string s = null)
+	public Pointer FindImport(ImportAttribute ia, string value = null)
 	{
-		var n        = a.Name;
-		var x        = default(ImportType);
-		var t        = a.Resolver;
-		var absolute = a.AbsoluteMatch;
+		var n        = ia.Name;
+		var it       = default(ImportType);
+		var resolver = ia.Resolver;
+		var absolute = ia.AbsoluteMatch;
 
-		switch (a) {
-			case ImportUnmanagedAttribute ua:
-				s ??= ua.Value;
-				x =   ua.Type;
+		switch (ia) {
+			case ImportUnmanagedAttribute iua:
+				value ??= iua.Value;
+				it    =   iua.Type;
 				break;
 		}
 
-		return x switch
+		return it switch
 		{
 			// currying
 
-			ImportType.Signature => GetSignature(s),
-			ImportType.Export    => GetExport(s),
-			ImportType.Offset    => GetOffset(s),
-			ImportType.Symbol    => GetSymbol(s, t, absolute),
+			ImportType.Signature => GetSignature(value),
+			ImportType.Export    => GetExport(value),
+			ImportType.Offset    => GetOffset(value),
+			ImportType.Symbol    => GetSymbol(value, resolver, absolute),
 			_                    => Mem.Nullptr
 		};
 	}
 
-	public static Pointer FindImport(Process p, string m, string s, ImportType x, bool absolute = false)
+	public static Pointer FindImport(Process proc, string moduleName, string value, ImportType it, bool absolute = false)
 	{
-		using var resource = new RuntimeResource(p, m, s);
+		using var resource = new RuntimeResource(proc, moduleName, value);
 
-		return resource.FindImport(new ImportUnmanagedAttribute(m, x, s)
+		return resource.FindImport(new ImportUnmanagedAttribute(moduleName, it, value)
 		{
 			AbsoluteMatch = absolute
-		}, s);
+		}, value);
 	}
 
-	public static Pointer<byte> FindImport(string m, string s, ImportType x)
-		=> FindImport(Process.GetCurrentProcess(), m, s, x);
+	public static Pointer FindImport(string moduleName, string value, ImportType it)
+		=> FindImport(Process.GetCurrentProcess(), moduleName, value, it);
 
 	#endregion
 
@@ -409,9 +388,9 @@ public sealed class RuntimeResource : IDisposable
 
 	public Pointer GetOffset(string s)
 	{
-		return Address + (nint.TryParse(s, NumberStyles.HexNumber, null, out var l)
+		return Address + (IntPtr.TryParse(s, NumberStyles.HexNumber, null, out var l)
 			                  ? l
-			                  : nint.Parse(s));
+			                  : IntPtr.Parse(s));
 	}
 
 	public Pointer GetExport(string name)
@@ -427,7 +406,7 @@ public sealed class RuntimeResource : IDisposable
 		}
 
 		var symbols1 = Symbols.Value.GetSymbols(name)
-			.Where(s => s.Tag is SymbolTag.Function or SymbolTag.Data);
+			.Where(static s => s.Tag is SymbolTag.Function or SymbolTag.Data);
 
 		Symbol symbol = null;
 
@@ -466,7 +445,9 @@ public sealed class RuntimeResource : IDisposable
 
 	public override string ToString()
 	{
-		return $"{Module.ModuleName} ({Scanner.Value.Address})";
+		return $"[{Module.ModuleName}] "
+		       + $"| {nameof(Scanner)}: {(Scanner.IsValueCreated ? Scanner.Value.Address : '-')}"
+		       + $"| {nameof(Symbols)} : {(Symbols.IsValueCreated ? Symbols.Value.Image : '-')}";
 	}
 
 }

@@ -9,7 +9,7 @@ namespace Novus.Imports.Attributes;
 ///     <see cref="Type" />.
 /// </summary>
 /// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
-[MeansImplicitUse]
+[MIU]
 [AttributeUsage(AttributeTargets.Field)]
 public class ImportManagedAttribute : ImportAttribute
 {

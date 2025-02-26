@@ -55,8 +55,8 @@ public sealed class DynamicLibrary
 	/// <returns>
 	/// A new <see cref="DynamicLibraryFunction{T}" /> object that can be used to call the function.
 	/// </returns>
-	public DynamicLibraryFunction<TReturn> GetFunction<TReturn>(string name, CallingConvention callingConvention,
-	                                                            CharSet charSet, params Type[] parameterTypes)
+	public DynamicLibraryFunction<TReturn> GetFunction<TReturn>(string name, CallingConvention callingConvention, CharSet charSet,
+	                                                            params Type[] parameterTypes)
 		=> new(this, CreateFunctionMethod(name, callingConvention, charSet, typeof(TReturn), parameterTypes));
 
 	private MI CreateFunctionMethod(string name, CallingConvention callingConvention, CharSet charSet, Type returnType,

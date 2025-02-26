@@ -4,6 +4,8 @@
 
 #region
 
+global using UI = JetBrains.Annotations.UsedImplicitlyAttribute;
+global using MIU = JetBrains.Annotations.MeansImplicitUseAttribute;
 global using MDR = JetBrains.Annotations.MustDisposeResourceAttribute;
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using NN = JetBrains.Annotations.NotNullAttribute;
@@ -60,6 +62,7 @@ using Microsoft.Extensions.Logging;
 using Novus.FileTypes.Impl;
 using Novus.Imports;
 using Novus.Win32;
+using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable InconsistentNaming
 
@@ -164,7 +167,7 @@ public static class Global
 	/// <summary>
 	///     Runtime CLR version
 	/// </summary>
-	public static readonly Version ClrVersion = Version.Parse(ER.RequiredVersion);
+	public static readonly Version ClrVersion;
 
 	[MN]
 	public static string ClrPdb { get; set; }
@@ -176,30 +179,93 @@ public static class Global
 
 	public static bool IsSetup { get; private set; }
 
-	/*public static string ProgramData { get; } =
-		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), LIB_NAME);*/
+	public static readonly string DataFolder;
 
-	public static readonly string DataFolder =
-		Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
+	public static readonly Assembly Assembly;
 
-	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+	internal static readonly ILoggerFactory LoggerFactoryInt;
 
-	// internal static readonly ILoggerFactory LoggerFactory = new LoggerFactory();
+	internal static readonly ILogger Logger;
 
-	internal static readonly ILoggerFactory LoggerFactoryInt =
-		LoggerFactory.Create(builder => builder.AddDebug());
+	public static readonly bool IsWorkstationGC = !GCSettings.IsServerGC;
 
-	internal static readonly ILogger Logger = LoggerFactoryInt.CreateLogger(LIB_NAME);
+	public static readonly bool IsCorrectVersion = Environment.Version == ClrVersion;
 
+	public static bool IsCompatible => IsCorrectVersion && IsWorkstationGC && FileSystem.IsWindows;
+
+	/// <summary>
+	/// Root static initializer, followed by <see cref="Setup"/>
+	/// </summary>
 	static Global()
 	{
+		LoggerFactoryInt = LoggerFactory.Create(builder =>
+		{
+			builder.AddDebug();
+			builder.AddTraceSource("TRACE");
+		});
+
+
+		Logger     = LoggerFactoryInt.CreateLogger(LIB_NAME);
+
+		Logger.LogTrace($"{nameof(Global)} invoked");
+
+		ClrVersion = Version.Parse(ER.RequiredVersion);
+		Assembly   = Assembly.GetExecutingAssembly();
+
+		DataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
 
 		if (!Directory.Exists(DataFolder)) {
 			Directory.CreateDirectory(DataFolder);
 		}
 	}
 
-	internal static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+	/// <summary>
+	///     Root initializer
+	/// </summary>
+	[ModuleInitializer]
+	public static void Setup()
+	{
+		if (IsSetup) {
+			return;
+		}
+
+		/*
+		 * Setup
+		 */
+
+		Logger.LogTrace($"Module init :: {nameof(Setup)}");
+		Logger.LogTrace($"Runtime: {Environment.Version} | Target: {ClrVersion}");
+
+		if (!FileSystem.IsWindows) {
+			Logger.LogWarning("Not on Windows!");
+			// return;
+		}
+
+		if (!IsCompatible) {
+			Logger.LogWarning($"Compatibility check failed!");
+		}
+
+		NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
+
+
+		ClrPdb = GetPdbFile();
+		Clr    = new RuntimeResource(CLR_MODULE, ClrPdb);
+
+
+		/*
+		 * Close
+		 */
+
+
+		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
+		{
+			//Close();
+		};
+
+		IsSetup = true;
+	}
+
+	public static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
 	{
 		if (libraryName == MagicNative.MAGIC_LIB_PATH) {
 			return NativeLibrary.Load(Path.Combine(DataFolder, MagicNative.MAGIC_LIB_PATH), assembly, searchPath);
@@ -226,68 +292,6 @@ public static class Global
 		return pdbFile;
 	}
 
-	/// <summary>
-	///     Module initializer
-	/// </summary>
-	[ModuleInitializer]
-	public static void Setup()
-	{
-		if (IsSetup) {
-			return;
-		}
-
-		NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
-
-		/*
-		 * Setup
-		 */
-
-		Logger.LogTrace($"[{LIB_NAME}] Module init");
-		Logger.LogTrace($"[{LIB_NAME}]");
-
-		if (!FileSystem.IsWindows) {
-			Logger.LogWarning("Not on Windows!");
-			return;
-		}
-
-		//todo
-		ClrPdb = GetPdbFile();
-
-		Clr = new RuntimeResource(CLR_MODULE, ClrPdb);
-
-		/* try {
-			DateTime dt = default;
-
-			dt = File.GetLastWriteTime(Assembly.Location);
-			var version = Assembly.GetName().Version;
-			Trace.WriteLine($"{version} @ ~{dt}");
-		}
-		catch (TypeInitializationException e) {
-			Debug.WriteLine($"{e}");
-		} */
-
-		if (!IsCompatible) {
-			Logger.LogCritical($"[{LIB_NAME}] Compatibility check failed! " +
-			                   $"(Runtime: {Environment.Version} | Target: {ClrVersion})", C_ERROR);
-
-			//Require.Fail();
-		}
-
-		IsSetup = true;
-
-		/*
-		 * Close
-		 */
-
-		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
-		{
-			//Close();
-		};
-
-		Logger.LogDebug($"[{LIB_NAME}] CLR: ({Environment.Version})", C_INFO);
-
-	}
-
 	public static void Close()
 	{
 		AllocManager.Close();
@@ -296,13 +300,6 @@ public static class Global
 		IsSetup = false;
 	}
 
-
-	public static readonly bool IsWorkstationGC = !GCSettings.IsServerGC;
-
-	public static readonly bool IsCorrectVersion = Environment.Version == ClrVersion;
-
-
-	public static bool IsCompatible => IsCorrectVersion && IsWorkstationGC && FileSystem.IsWindows;
 
 	internal const MImplO IMPL_OPTIONS =
 		MImplO.AggressiveInlining | MImplO.AggressiveOptimization;

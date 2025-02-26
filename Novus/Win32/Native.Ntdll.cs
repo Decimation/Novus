@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Novus.Win32.Structures.Ntdll;
-using HANDLE = System.IntPtr;
+using HANDLE = nint;
 
 namespace Novus.Win32;
 
@@ -32,7 +32,7 @@ public static unsafe partial class Native
 	                                            out uint returnLength);
 
 	[DllImport(NTDLL_DLL)]
-	public static extern NtStatus NtQueryInformationProcess(IntPtr processHandle, ProcessInfoClass processInformationClass,
+	public static extern NtStatus NtQueryInformationProcess(nint processHandle, ProcessInfoClass processInformationClass,
 	                                                        void* processInformation, int processInformationLength,
 	                                                        out int returnLength);
 

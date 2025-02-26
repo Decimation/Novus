@@ -3,6 +3,6 @@ using JetBrains.Annotations;
 
 namespace Novus.Imports.Attributes;
 
-[MeansImplicitUse(ImplicitUseTargetFlags.WithMembers)]
+[MIU(ImplicitUseTargetFlags.WithMembers)]
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 public sealed class NativeStructureAttribute : Attribute { }

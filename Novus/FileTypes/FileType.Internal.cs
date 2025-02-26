@@ -74,7 +74,7 @@ public partial class FileType
 			var mediaType = o[ER.K_Name].ToString();
 
 			var jOffset = o[ER.K_Offset];
-			var offset  = jOffset == null ? 0 : int.Parse(jOffset.ToString());
+			var offset  = jOffset == null ? 0 : Int32.Parse(jOffset.ToString());
 
 			var ft = new FileType(Mem.ParseAOBString(mask), Mem.ParseAOBString(sig), mediaType, offset)
 				{ };

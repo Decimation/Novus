@@ -232,21 +232,21 @@ public static unsafe partial class Native
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
 	[return: MA(UT.Bool)]
-	public static partial bool AddClipboardFormatListener(IntPtr hwnd);
+	public static partial bool AddClipboardFormatListener(nint hwnd);
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
 	[return: MA(UT.Bool)]
-	public static partial bool RemoveClipboardFormatListener(IntPtr hwnd);
+	public static partial bool RemoveClipboardFormatListener(nint hwnd);
 
 	[LibraryImport(USER32_DLL, SetLastError = true)]
-	public static partial IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
+	public static partial nint SetClipboardViewer(nint hWndNewViewer);
 
 	#endregion
 
 	// See http://msdn.microsoft.com/en-us/library/ms633541%28v=vs.85%29.aspx
 	// See http://msdn.microsoft.com/en-us/library/ms649033%28VS.85%29.aspx
 	[LibraryImport(USER32_DLL)]
-	public static partial IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+	public static partial nint SetParent(nint hWndChild, nint hWndNewParent);
 
 	[DllImport(USER32_DLL, SetLastError = true, ExactSpelling = true)]
 	[return: MA(UT.Bool)]
@@ -270,7 +270,7 @@ public static unsafe partial class Native
 	public static extern nint GetSystemMenu(nint hWnd, bool bRevert);
 
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]
-	public unsafe delegate IntPtr WndProc(IntPtr hWnd, WindowMessage msg, void* wParam, void* lParam);
+	public unsafe delegate nint WndProc(nint hWnd, WindowMessage msg, void* wParam, void* lParam);
 
 	[DllImport(USER32_DLL, SetLastError = true)]
 	[return: MA(UT.U2)]
@@ -515,19 +515,19 @@ public unsafe partial struct WNDCLASSEX
 
 	public int cbWndExtra;
 
-	public IntPtr hInstance;
+	public nint hInstance;
 
-	public IntPtr hIcon;
+	public nint hIcon;
 
-	public IntPtr hCursor;
+	public nint hCursor;
 
-	public IntPtr hbrBackground;
+	public nint hbrBackground;
 
 	public char* lpszMenuName;
 
 	public char* lpszClassName;
 
-	public IntPtr hIconSm;
+	public nint hIconSm;
 
 	public static WNDCLASSEX Create()
 	{

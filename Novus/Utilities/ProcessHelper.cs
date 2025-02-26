@@ -78,7 +78,7 @@ public static class ProcessHelper
 		=> GetParent(p.Handle);
 
 	[CBN]
-	public static Process GetParent(IntPtr handle)
+	public static Process GetParent(nint handle)
 	{
 		int returnLength;
 

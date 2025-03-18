@@ -154,13 +154,19 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
+		var mc=new MyClass2b();
+
+		return;
+	}
+
+	private static void Test3()
+	{
 		var s  = Native.OpenSCManager(null, null, ScManagerAccessTypes.SC_MANAGER_ALL_ACCESS);
 		var s2 = Native.OpenService(s, "NvContainerLocalSystem", ServiceAccessTypes.SERVICE_ALL_ACCESS);
 		Native.ControlService(s2, ServiceControl.SERVICE_CONTROL_STOP, out ServiceStatus ss);
 		Console.WriteLine(ss);
 		Native.CloseServiceHandle(s);
 		Native.CloseServiceHandle(s2);
-		return;
 	}
 
 	private static unsafe void Test2()

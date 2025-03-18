@@ -34,7 +34,9 @@ namespace Novus.Win32;
 public static unsafe partial class Native
 {
 
-	#region
+#region
+
+#pragma warning disable CA1416
 
 	/// <summary>
 	/// Error sentinel value
@@ -49,9 +51,9 @@ public static unsafe partial class Native
 
 	public const uint ZERO_U = 0u;
 
-	#endregion
+#endregion
 
-	#region DLL
+#region DLL
 
 	/*
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Interop.Libraries.cs
@@ -71,9 +73,11 @@ public static unsafe partial class Native
 	public const string UNAME_DLL     = "getuname.dll";
 	public const string ADVAPI32_DLL  = "advapi32.dll";
 
-	#endregion
+#pragma warning restore CA1416
 
-	#region HRESULT
+#endregion
+
+#region HRESULT
 
 	public const uint E_ABORT        = 0x80004004;
 	public const uint E_ACCESSDENIED = 0x80070005;
@@ -86,7 +90,7 @@ public static unsafe partial class Native
 	public const uint E_POINTER      = 0x80004003;
 	public const uint E_UNEXPECTED   = 0x8000FFFF;
 
-	#endregion
+#endregion
 
 	public static nint GetStdOutputHandle()
 		=> GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);

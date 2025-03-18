@@ -6,7 +6,9 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using Microsoft;
+using Novus.OS;
 using Novus.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -73,6 +75,7 @@ public sealed class SigScanner
 		Address = ptr;
 	}
 
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static SigScanner FromProcess(Process proc, ProcessModule module)
 	{
 		var ptr = module.BaseAddress;

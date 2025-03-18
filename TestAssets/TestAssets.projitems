@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)TestTypes\IInter1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyClass2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyClass2b.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyClass3.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestTypes\MyStruct2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestTypes\Clazz.cs" />

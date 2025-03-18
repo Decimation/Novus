@@ -14,11 +14,13 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Kantan.Text;
 using Novus.Memory.Allocation;
 using Novus.Numerics;
+using Novus.OS;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
@@ -314,11 +316,12 @@ public static unsafe class Mem
 	#region Read/write
 
 	#region Write
-
+	
 	/// <summary>
 	///     Writes a value of type <typeparamref name="T" /> with value <paramref name="value" /> to
 	///     <paramref name="baseAddr" /> in <paramref name="proc" />
 	/// </summary>
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static void WriteProcessMemory<T>(Process proc, Pointer baseAddr, T value)
 	{
 		int dwSize = Unsafe.SizeOf<T>();
@@ -330,6 +333,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Root abstraction of <see cref="Native.WriteProcessMemory" />
 	/// </summary>
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer addr, Pointer ptrBuffer, int dwSize)
 	{
 		nint hProc = Native.OpenProcess(proc);
@@ -342,6 +346,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer addr, [NN] byte[] value)
 	{
 		fixed (byte* rg = value) {
@@ -352,6 +357,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer addr, ReadOnlySpan<byte> value)
 	{
 		fixed (byte* rg = value) {
@@ -370,6 +376,7 @@ public static unsafe class Mem
 	/// <param name="addr">Address within the specified process from which to read</param>
 	/// <param name="buffer">Buffer that receives the read contents from the address space</param>
 	/// <param name="cb">Number of bytes to read</param>
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static void ReadProcessMemory(Process proc, Pointer addr, Pointer buffer, nint cb)
 	{
 		nint h = Native.OpenProcess(proc);
@@ -382,6 +389,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static Memory<byte> ReadProcessMemory(Process proc, Pointer addr, nint cb)
 	{
 		Memory<byte> mem = new byte[(int) cb];
@@ -395,6 +403,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads a value of type <typeparamref name="T" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static T ReadProcessMemory<T>(Process proc, Pointer addr)
 	{
 		T   value = default;
@@ -843,6 +852,7 @@ public static unsafe class Mem
 	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
 	[CBN]
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static object ReadProcessMemory(Process proc, Pointer addr, MetaType mt)
 	{
 		//todo
@@ -1033,6 +1043,7 @@ public static unsafe class Mem
 	}
 	*/
 
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer ptr)
 	{
 		var modules = Native.EnumProcessModules((uint) proc.Id);

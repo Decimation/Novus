@@ -113,10 +113,9 @@ public static class ReflectionHelper
 	public static (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>(this Type t)
 		where TAttribute : Attribute
 	{
-		return (
-			       from member in t.GetAllMembers()
-			       where Attribute.IsDefined(member, typeof(TAttribute))
-			       select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
+		return (from member in t.GetAllMembers()
+		        where Attribute.IsDefined(member, typeof(TAttribute))
+		        select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
 	}
 
 	[return: MN]

@@ -13,18 +13,9 @@ namespace Novus.Imports.Attributes;
 public class ImportInitializerAttribute : Attribute
 {
 
-	public Type Type { get; set; }
+	public ImportInitializerAttribute(string name)
+	{ }
 
-	public ImportInitializerAttribute(Type type)
-	{
-		Type = type;
-	}
-
-}
-
-public class ImportInitializerAttribute<T> : ImportInitializerAttribute
-{
-
-	public ImportInitializerAttribute() : base(typeof(T)) { }
+	public ImportInitializerAttribute() : this(null) { }
 
 }

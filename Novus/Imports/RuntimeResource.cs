@@ -19,6 +19,7 @@ using Novus.Imports.Attributes;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Wrappers;
 using System.Net;
+using System.Runtime.ExceptionServices;
 using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 using Novus.Imports.Factory;
@@ -185,8 +186,23 @@ public sealed class RuntimeResource : IDisposable
 
 		Debug.WriteLine($"Loading type {t.Name}", nameof(LoadImports));
 
-		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
+		
+		var iiaTuple = t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+			.Where(mi => Attribute.IsDefined(mi, typeof(ImportInitializerAttribute)))
+			.Select(mi => (mi.GetCustomAttribute<ImportInitializerAttribute>(), mi));
 
+		foreach ((ImportInitializerAttribute iia, MethodInfo mi) in iiaTuple) {
+			Trace.WriteLine($"Invoking {iia}");
+			var res = mi.Invoke(null, null);
+
+		}
+
+		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
+		LoadType(t, throwOnErr, annotatedTuples);
+	}
+
+	private void LoadType(Type t, bool throwOnErr, IEnumerable<(ImportAttribute Attribute, MMI Member)> annotatedTuples)
+	{
 		foreach (var (attribute, member) in annotatedTuples) {
 			var field = (FI) member;
 
@@ -199,10 +215,10 @@ public sealed class RuntimeResource : IDisposable
 			Debug.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}", nameof(LoadImports));
 		}
 
+
 		m_loadedTypes.Add(t);
 
 		Trace.WriteLine($"Loaded type {t.Name}", nameof(LoadImports));
-
 	}
 
 	private object GetObject(ImportAttribute attr)

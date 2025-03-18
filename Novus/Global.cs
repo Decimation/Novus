@@ -189,9 +189,9 @@ public static class Global
 
 	public static readonly bool IsWorkstationGC = !GCSettings.IsServerGC;
 
-	public static readonly bool IsCorrectVersion = Environment.Version == ClrVersion;
+	public static readonly bool IsCorrectVersion;
 
-	public static bool IsCompatible => IsCorrectVersion && IsWorkstationGC && FileSystem.IsWindows;
+	public static readonly bool IsCompatible;
 
 	/// <summary>
 	/// Root static initializer, followed by <see cref="Setup"/>
@@ -202,15 +202,19 @@ public static class Global
 		{
 			builder.AddDebug();
 			builder.AddTraceSource("TRACE");
+			builder.SetMinimumLevel(LogLevel.Trace);
 		});
 
 
-		Logger     = LoggerFactoryInt.CreateLogger(LIB_NAME);
+		Logger = LoggerFactoryInt.CreateLogger(LIB_NAME);
 
 		Logger.LogTrace($"{nameof(Global)} invoked");
 
-		ClrVersion = Version.Parse(ER.RequiredVersion);
-		Assembly   = Assembly.GetExecutingAssembly();
+		Assembly = Assembly.GetExecutingAssembly();
+
+		ClrVersion       = Version.Parse(ER.RequiredVersion);
+		IsCorrectVersion = Environment.Version == ClrVersion;
+		IsCompatible     = IsCorrectVersion && IsWorkstationGC && FileSystem.IsWindows;
 
 		DataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
 
@@ -238,11 +242,12 @@ public static class Global
 
 		if (!FileSystem.IsWindows) {
 			Logger.LogWarning("Not on Windows!");
+
 			// return;
 		}
 
 		if (!IsCompatible) {
-			Logger.LogWarning($"Compatibility check failed!");
+			Logger.LogWarning("Compatibility check failed!");
 		}
 
 		NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);

@@ -9,7 +9,7 @@ using JetBrains.Annotations;
 namespace Novus.Imports.Attributes;
 
 [MIU(ImplicitUseTargetFlags.WithInheritors)]
-[AttributeUsage(AttributeTargets.Method, Inherited = true)]
+[AttributeUsage(AttributeTargets.Method)]
 public class ImportInitializerAttribute : Attribute
 {
 

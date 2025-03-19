@@ -181,7 +181,7 @@ public static class Global
 
 	public static readonly string DataFolder;
 
-	public static readonly Assembly Assembly;
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
 
 	internal static readonly ILoggerFactory LoggerFactoryInt;
 
@@ -210,7 +210,7 @@ public static class Global
 
 		Logger.LogTrace($"{nameof(Global)} invoked");
 
-		Assembly = Assembly.GetExecutingAssembly();
+		// Assembly = Assembly.GetExecutingAssembly();
 
 		ClrVersion       = Version.Parse(ER.RequiredVersion);
 		IsCorrectVersion = Environment.Version == ClrVersion;

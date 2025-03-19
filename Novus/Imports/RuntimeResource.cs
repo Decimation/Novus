@@ -27,7 +27,6 @@ using Novus.OS;
 
 // ReSharper disable UnusedMember.Local
 
-// ReSharper disable SuggestVarOrType_DeconstructionDeclarations
 
 #pragma warning disable IDE0059
 
@@ -46,6 +45,8 @@ namespace Novus.Imports;
 public sealed class RuntimeResource : IDisposable
 {
 
+	public const string RSRC_MGR_NAME = "EmbeddedResources";
+
 	public Pointer Address => Module.BaseAddress;
 
 	public ProcessModule Module { get; }
@@ -61,7 +62,10 @@ public sealed class RuntimeResource : IDisposable
 
 	private readonly List<Type> m_loadedTypes = [];
 
-	private readonly HashSet<ResourceManager> m_managers = [ER.ResourceManager];
+	private readonly Dictionary<Assembly, ResourceManager> m_managers = new()
+	{
+		{ Global.Assembly, ER.ResourceManager }
+	};
 
 	/// <summary>
 	/// Creates a <see cref="RuntimeResource"/> from an already-loaded module.
@@ -130,7 +134,7 @@ public sealed class RuntimeResource : IDisposable
 	 * https://github.com/Decimation/Novus/tree/10a2fde6d3df0e359c13f6808bf169723ffd414d/Novus/Native
 	 */
 
-	#region Import
+#region Import
 
 	public void UnloadAll()
 	{
@@ -180,20 +184,18 @@ public sealed class RuntimeResource : IDisposable
 			return;
 		}
 
-		var mgr = GetManager(t.Assembly);
-
-		m_managers.Add(mgr);
+		var mgr = GetOrAddManager(t.Assembly);
 
 		Debug.WriteLine($"Loading type {t.Name}", nameof(LoadImports));
 
-		
+
 		var iiaTuple = t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
 			.Where(mi => Attribute.IsDefined(mi, typeof(ImportInitializerAttribute)))
 			.Select(mi => (mi.GetCustomAttribute<ImportInitializerAttribute>(), mi));
 
 		foreach ((ImportInitializerAttribute iia, MethodInfo mi) in iiaTuple) {
-			Trace.WriteLine($"Invoking {iia}");
 			var res = mi.Invoke(null, null);
+			Trace.WriteLine($"Invoking {iia} -> {res}");
 
 		}
 
@@ -212,22 +214,23 @@ public sealed class RuntimeResource : IDisposable
 
 			field.SetValue(null, fieldValue);
 
-			Debug.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}", nameof(LoadImports));
+			Trace.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}");
 		}
 
 
 		m_loadedTypes.Add(t);
 
-		Trace.WriteLine($"Loaded type {t.Name}", nameof(LoadImports));
+		Trace.WriteLine($"Loaded type {t.Name}");
 	}
 
+	[CBN]
 	private object GetObject(ImportAttribute attr)
 	{
 		if (attr is ImportUnmanagedAttribute { Value: not null } unmanaged) {
 			return unmanaged.Value;
 		}
 
-		foreach (var manager in m_managers) {
+		foreach (var (asm, manager) in m_managers) {
 			var value = manager.GetObject(attr.Name);
 
 			if (value != null) {
@@ -280,14 +283,14 @@ public sealed class RuntimeResource : IDisposable
 				if (addr.IsNull) {
 					// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 
-					Global.Logger.LogError($"Could not find import value for {unmanagedAttr.Name}!");
+					Global.Logger.LogError("Could not find import value for {Name}", unmanagedAttr.Name);
 
 					if (throwOnErr) {
 						throw new InvalidOperationException($"Could not find import value for {unmanagedAttr.Name}!");
 					}
 					else {
 						unsafe {
-							DynamicMethod dyn = MethodFactory.GenerateThrowingFunction(field.FieldType);
+							DynamicMethod dyn = MethodFactory.GetOrGenerateThrowingFunction(field.FieldType);
 							addr = dyn.MethodHandle.GetFunctionPointer();
 
 							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
@@ -330,9 +333,36 @@ public sealed class RuntimeResource : IDisposable
 		return fieldValue;
 	}
 
-	#endregion Import
+#endregion Import
 
-	public static ResourceManager GetManager(Assembly assembly, [CBN] string rsrcName = "EmbeddedResources")
+	public bool TryAddManager(Assembly asm, ResourceManager mgr)
+	{
+		return m_managers.TryAdd(asm, mgr);
+	}
+
+
+	[CBN]
+	public ResourceManager GetOrAddManager(Assembly assembly, [CBN] string rsrcName = RSRC_MGR_NAME)
+	{
+		if (m_managers.TryGetValue(assembly, out ResourceManager mgr)) {
+			return mgr;
+		}
+
+		string name = GetResourceManagerName(assembly, rsrcName);
+
+		if (name == null) {
+			return null;
+		}
+
+		mgr = new ResourceManager(name, assembly);
+		
+		TryAddManager(assembly, mgr);
+
+		return mgr;
+	}
+
+	[CBN]
+	public static string GetResourceManagerName(Assembly assembly, [CBN] string rsrcName = RSRC_MGR_NAME)
 	{
 		string name = null;
 
@@ -340,7 +370,7 @@ public sealed class RuntimeResource : IDisposable
 			string value = assembly.GetName().Name;
 			rsrcName ??= value;
 
-			if (v.Contains(value!) || v.Contains(rsrcName!)) {
+			if (value != null && (v.Contains(value) || v.Contains(rsrcName))) {
 				name = v;
 				break;
 			}
@@ -352,12 +382,12 @@ public sealed class RuntimeResource : IDisposable
 
 		name = name[..name.LastIndexOf('.')];
 
-		var resourceManager = new ResourceManager(name, assembly);
+		// var resourceManager = new ResourceManager(name, assembly);
 
-		return resourceManager;
+		return name;
 	}
 
-	#region
+#region
 
 	public Pointer FindImport(ImportAttribute ia, string value = null)
 	{
@@ -398,9 +428,9 @@ public sealed class RuntimeResource : IDisposable
 	public static Pointer FindImport(string moduleName, string value, ImportType it)
 		=> FindImport(Process.GetCurrentProcess(), moduleName, value, it);
 
-	#endregion
+#endregion
 
-	#region
+#region
 
 	public Pointer GetOffset(string s)
 	{
@@ -444,7 +474,7 @@ public sealed class RuntimeResource : IDisposable
 		       (nint) (symbol?.Offset ?? throw new InvalidOperationException());
 	}
 
-	#endregion
+#endregion
 
 	public void Dispose()
 	{

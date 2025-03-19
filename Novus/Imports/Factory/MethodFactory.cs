@@ -6,17 +6,17 @@ namespace Novus.Imports.Factory;
 public static class MethodFactory
 {
 
-	private static readonly ConcurrentDictionary<Type, DynamicMethod> m_throwingFunctions;
+	private static readonly ConcurrentDictionary<Type, DynamicMethod> s_throwingFunctions;
 
 	static MethodFactory()
 	{
-		m_throwingFunctions = new ConcurrentDictionary<Type, DynamicMethod>();
+		s_throwingFunctions = new ConcurrentDictionary<Type, DynamicMethod>();
 	}
 
-	public static DynamicMethod GenerateThrowingFunction(Type fieldType)
+	public static DynamicMethod GetOrGenerateThrowingFunction(Type fieldType)
 	{
 		//todo
-		if (m_throwingFunctions.TryGetValue(fieldType, out DynamicMethod dyn)) {
+		if (s_throwingFunctions.TryGetValue(fieldType, out DynamicMethod dyn)) {
 			goto ret;
 		}
 
@@ -37,7 +37,7 @@ public static class MethodFactory
 			gen.Emit(OpCodes.Ret);
 		}
 
-		m_throwingFunctions.TryAdd(fieldType, dyn);
+		s_throwingFunctions.TryAdd(fieldType, dyn);
 	ret:
 		return dyn;
 	}

@@ -7,7 +7,8 @@ using JetBrains.Annotations;
 namespace Novus.Imports.Attributes;
 
 /// <summary>
-///     Describes an imported member.
+///     Describes an imported member. <br />
+/// <see cref="RuntimeResource"/>
 /// </summary>
 /// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
 [AttributeUsage(AttributeTargets.Field)]

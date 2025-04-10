@@ -17,6 +17,7 @@ using Novus.Win32;
 
 namespace Novus.Runtime.VM.EE;
 #pragma warning disable CA1069
+
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct EEClass
@@ -24,7 +25,7 @@ public unsafe struct EEClass
 
 	internal void* GuidInfo { get; set; }
 
-	internal void* OptionalFields { get; set; }
+	internal EEClassOptionalFields* OptionalFields { get; set; }
 
 	internal MethodTable* MethodTable { get; set; }
 
@@ -101,7 +102,7 @@ public unsafe struct EEClass
 		{
 			fixed (EEClass* value = &this) {
 				Pointer<byte> p = value;
-				p += Mem.SizeOf<EEClass>();
+				p += RuntimeProperties.EEClassSize;
 
 				return p.Cast<ArrayClass>();
 			}
@@ -116,6 +117,7 @@ public unsafe struct EEClass
 	{
 		get
 		{
+			
 			fixed (EEClass* value = &this) {
 				var p = (LayoutEEClass*) value;
 

@@ -7,17 +7,21 @@ global using Native = Novus.Win32.Native;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.SymbolStore;
 using System.Drawing;
 using System.Dynamic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
 using System.Numerics;
+using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Runtime.Caching;
@@ -45,6 +49,7 @@ using Novus.OS;
 using Novus.Properties;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
+using Novus.Runtime.VM.EE;
 using Novus.Streams;
 using Novus.Utilities;
 using Novus.Win32;
@@ -154,10 +159,39 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
-		var mc=new MyClass2b();
+		// var mc=new MyClass2b();
+
+		foreach (var v in Get<EEClass>()) {
+			Console.WriteLine($"{v.Key} = {v.Value}");
+		}
 
 		return;
+
 	}
+
+
+	static IDictionary<string, Func<int, object>> fns = new Dictionary<string, Func<int, object>>()
+		{ }.AsReadOnly();
+
+	public static IDictionary<string, int> Get<T>(T t = default)
+	{
+		var vals = new Dictionary<string, int>
+		{
+			{ nameof(Marshal.SizeOf), Marshal.SizeOf<T>() },
+		};
+
+		foreach (var i in Enum.GetValues<SizeOfOption>()) {
+
+			vals.Add(i.ToString(), Mem.SizeOf<T>(t, i));
+		}
+
+		unsafe {
+			vals.Add("sizeof", sizeof(T));
+		}
+
+		return vals;
+	}
+
 
 	private static void Test3()
 	{

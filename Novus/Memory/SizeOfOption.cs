@@ -12,8 +12,15 @@ namespace Novus.Memory;
 /// <summary>
 /// Specifies how sizes are calculated
 /// </summary>
-public enum SizeOfOptions
+public enum SizeOfOption
 {
+	/// <summary>
+	///     Calculates the complete size of the value's data. If the type parameter is
+	///     a value type, this is equal to option <see cref="Intrinsic"/>. If the type parameter is a
+	///     reference type, this is equal to <see cref="Heap"/>.
+	/// </summary>
+	Auto = 0,
+
 	/// <summary>
 	///     <para>Returns the native (<see cref="Marshal" />) size of a type.</para>
 	/// </summary>
@@ -139,10 +146,4 @@ public enum SizeOfOptions
 	/// </summary>
 	BaseData,
 
-	/// <summary>
-	///     Calculates the complete size of the value's data. If the type parameter is
-	///     a value type, this is equal to option <see cref="Intrinsic"/>. If the type parameter is a
-	///     reference type, this is equal to <see cref="Heap"/>.
-	/// </summary>
-	Auto,
 }

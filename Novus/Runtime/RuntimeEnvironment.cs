@@ -32,6 +32,8 @@ public static class RuntimeEnvironment
 
 	public static bool IsAot { get; } = IsAotMethod(); // This allocates, so we only want to call it once statically.
 
+	public static bool IsInteractiveHost => Assembly.GetEntryAssembly()?.FullName?.Contains("InteractiveHost") ?? false;
+
 	private static bool IsAotMethod()
 	{
 		Type runtimeFeature = Type.GetType("System.Runtime.CompilerServices.RuntimeFeature");

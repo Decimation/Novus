@@ -186,10 +186,10 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 					return mi2.Name                    == nameof(Mem.SizeOf)
 					       && infos.Length           == 2
-					       && infos[1].ParameterType == typeof(SizeOfOptions);
+					       && infos[1].ParameterType == typeof(SizeOfOption);
 				});
 
-				return (int) mi.CallGeneric(RuntimeType, null, null, SizeOfOptions.Intrinsic);
+				return (int) mi.CallGeneric(RuntimeType, null, null, SizeOfOption.Intrinsic);
 			}
 
 			// Subtract the size of the ObjHeader and MethodTable*

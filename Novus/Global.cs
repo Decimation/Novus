@@ -240,6 +240,10 @@ public static class Global
 		Logger.LogTrace($"Module init :: {nameof(Setup)}");
 		Logger.LogTrace($"Runtime: {Environment.Version} | Target: {ClrVersion}");
 
+		if (RuntimeEnvironment.IsInteractiveHost) {
+			Logger.LogWarning("Interactive host");
+		}
+
 		if (!FileSystem.IsWindows) {
 			Logger.LogWarning("Not on Windows!");
 
@@ -251,7 +255,6 @@ public static class Global
 		}
 
 		NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
-
 
 		ClrPdb = GetPdbFile();
 		Clr    = new RuntimeResource(CLR_MODULE, ClrPdb);
@@ -272,6 +275,7 @@ public static class Global
 
 	public static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
 	{
+
 		if (libraryName == MagicNative.MAGIC_LIB_PATH) {
 			return NativeLibrary.Load(Path.Combine(DataFolder, MagicNative.MAGIC_LIB_PATH), assembly, searchPath);
 		}

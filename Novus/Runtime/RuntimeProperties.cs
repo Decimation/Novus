@@ -19,6 +19,7 @@ using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
 using Novus.Utilities;
 using Novus.Numerics;
+using Novus.Runtime.VM.EE;
 using Novus.Runtime.VM.Tokens;
 
 // ReSharper disable UnusedVariable
@@ -51,8 +52,11 @@ public static unsafe class RuntimeProperties
 	{
 		Global.Clr.LoadImports(typeof(RuntimeProperties));
 
+		
+		
 	}
 
+	
 	/// <summary>
 	///     <see cref="IsPinnable" />
 	/// </summary>
@@ -82,7 +86,7 @@ public static unsafe class RuntimeProperties
 
 
 	/// <summary>
-	/// Equals <see cref="Mem.SizeOf()"/> with <see cref="SizeOfOptions.Data"/>
+	/// Equals <see cref="Mem.SizeOf()"/> with <see cref="SizeOfOption.Data"/>
 	/// </summary>
 	/// <see cref="RuntimeHelpers.GetRawObjectDataSize"/>
 	public static int GetRawObjDataSize(object o)
@@ -256,7 +260,7 @@ public static unsafe class RuntimeProperties
 		}
 
 		var ptr = Mem.AddressOfData(ref t);
-		int s   = Mem.SizeOf(t, SizeOfOptions.BaseFields);
+		int s   = Mem.SizeOf(t, SizeOfOption.BaseFields);
 
 		for (int i = 0; i < s; i++) {
 			if (ptr[i] != 0) {
@@ -399,7 +403,12 @@ public static unsafe class RuntimeProperties
 	/// </summary>
 	public static readonly int MinObjectSize = Mem.Size * 2 + ObjHeaderSize;
 
-	#endregion
+	/// <summary>
+	/// Equals <see cref="LayoutEEClass.OFFSET_LAYOUTINFO"/>
+	/// </summary>
+	public static readonly int EEClassSize = sizeof(EEClass);
+
+#endregion
 
 	public static CorElementType GetCorElementType(this Type t)
 		=> Func_GetCorType(t);

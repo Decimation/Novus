@@ -3,6 +3,8 @@
 #pragma warning disable IDE0005, CS1574
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections.Frozen;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -18,6 +20,7 @@ using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Kantan.Text;
+using Microsoft.Extensions.Logging;
 using Novus.Memory.Allocation;
 using Novus.Numerics;
 using Novus.OS;
@@ -157,7 +160,7 @@ public static unsafe class Mem
 		=> p >= lo && p <= lo.AddBytes(size);
 
 
-	#region Pin
+#region Pin
 
 	private static readonly ActionFunctor PinImpl;
 
@@ -272,9 +275,9 @@ public static unsafe class Mem
 
 	}
 
-	#endregion
+#endregion
 
-	#region Cast
+#region Cast
 
 	/*public static ref T ref_cast<T>(in T t)
 		=> ref Unsafe.AsRef(ref t);*/
@@ -311,12 +314,12 @@ public static unsafe class Mem
 		return ref p.Cast<TTo>().Reference;
 	}
 
-	#endregion
+#endregion
 
-	#region Read/write
+#region Read/write
 
-	#region Write
-	
+#region Write
+
 	/// <summary>
 	///     Writes a value of type <typeparamref name="T" /> with value <paramref name="value" /> to
 	///     <paramref name="baseAddr" /> in <paramref name="proc" />
@@ -365,9 +368,9 @@ public static unsafe class Mem
 		}
 	}
 
-	#endregion
+#endregion
 
-	#region Read
+#region Read
 
 	/// <summary>
 	///     Root abstraction of <see cref="Native.ReadProcessMemory(IntPtr,IntPtr,IntPtr,int,out int)" />
@@ -416,7 +419,7 @@ public static unsafe class Mem
 		return value;
 	}
 
-	#endregion
+#endregion
 
 
 	/*public static object ReadStructure(Type t, byte[] rg, int ofs = 0)
@@ -473,16 +476,16 @@ public static unsafe class Mem
 		return null;
 	}*/
 
-	#endregion
+#endregion
 
-	#region Copy
+#region Copy
 
 	public static T CopyInstance<T>(T t) where T : class
 	{
 		var t2 = Activator.CreateInstance<T>();
 
 		Pointer p  = AddressOfData(ref t);
-		int     s  = SizeOf(t, SizeOfOptions.Data);
+		int     s  = SizeOf(t, SizeOfOption.Data);
 		Pointer p2 = AddressOfData(ref t2);
 
 		//p2.WriteAll(p.Copy(s));
@@ -505,9 +508,9 @@ public static unsafe class Mem
 	public static byte[] Copy(Pointer src, int cb)
 		=> src.ToArray(cb);*/
 
-	#endregion
+#endregion
 
-	#region Size
+#region Size
 
 	/// <summary>
 	///     Calculates the total byte size of <paramref name="elemCnt" /> elements with
@@ -540,23 +543,23 @@ public static unsafe class Mem
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
 	/// </summary>
-	/// <param name="options">Size options</param>
+	/// <param name="option">Size options</param>
 	/// <returns>The size of <typeparamref name="T" />; <see cref="Native.ERROR_SV" /> otherwise</returns>
-	public static int SizeOf<T>(SizeOfOptions options)
+	public static int SizeOf<T>(SizeOfOption option)
 	{
 		MetaType mt = typeof(T);
 
 		// Note: Arrays native size == 0
 		// Note: Arrays have no layout
 
-		return options switch
+		return option switch
 		{
-			SizeOfOptions.Native       => mt.NativeSize,
-			SizeOfOptions.Managed      => mt.HasLayout ? mt.ManagedSize : Native.ERROR_SV,
-			SizeOfOptions.Intrinsic    => SizeOf<T>(),
-			SizeOfOptions.BaseFields   => mt.InstanceFieldsSize,
-			SizeOfOptions.BaseInstance => mt.BaseSize,
-			_                          => Native.ERROR_SV
+			SizeOfOption.Native       => mt.NativeSize,
+			SizeOfOption.Managed      => mt.HasLayout ? mt.ManagedSize : Native.ERROR_SV,
+			SizeOfOption.Intrinsic    => SizeOf<T>(),
+			SizeOfOption.BaseFields   => mt.InstanceFieldsSize,
+			SizeOfOption.BaseInstance => mt.BaseSize,
+			_                         => Native.ERROR_SV
 		};
 
 	}
@@ -565,9 +568,9 @@ public static unsafe class Mem
 	///     Calculates the size of <paramref name="value" />
 	/// </summary>
 	/// <param name="value">Value</param>
-	/// <param name="options">Size options</param>
+	/// <param name="option">Size options</param>
 	/// <returns>The size of <paramref name="value" />; <see cref="Native.ERROR_SV" /> otherwise</returns>
-	public static int SizeOf<T>(T value, SizeOfOptions options)
+	public static int SizeOf<T>(T value, SizeOfOption option)
 	{
 		ArgumentNullException.ThrowIfNull(value, nameof(value));
 
@@ -577,20 +580,20 @@ public static unsafe class Mem
 
 		var mt = value.GetMetaType();
 
-		switch (options) {
-			case SizeOfOptions.BaseFields:
+		switch (option) {
+			case SizeOfOption.BaseFields:
 				return mt.InstanceFieldsSize;
 
-			case SizeOfOptions.BaseInstance:
+			case SizeOfOption.BaseInstance:
 				return mt.BaseSize;
 
-			case SizeOfOptions.BaseData:
+			case SizeOfOption.BaseData:
 				return mt.BaseDataSize;
 
-			case SizeOfOptions.Heap:
+			case SizeOfOption.Heap:
 				return HeapSizeOfInternal(value);
 
-			case SizeOfOptions.Data:
+			case SizeOfOption.Data:
 				if (RuntimeProperties.IsStruct(value)) {
 					return SizeOf<T>();
 				}
@@ -598,18 +601,18 @@ public static unsafe class Mem
 				// Subtract the size of the ObjHeader and MethodTable*
 				return HeapSizeOfInternal(value) - RuntimeProperties.ObjectBaseSize;
 
-			case SizeOfOptions.Auto:
+			case SizeOfOption.Auto:
 
 				if (RuntimeProperties.IsStruct(value)) {
-					return SizeOf<T>(SizeOfOptions.Intrinsic);
+					return SizeOf<T>(SizeOfOption.Intrinsic);
 				}
 
 				else
-					goto case SizeOfOptions.Heap;
+					goto case SizeOfOption.Heap;
 
 			default:
 				// return Native.ERROR_SV;
-				return SizeOf<T>(options);
+				return SizeOf<T>(option);
 		}
 
 	}
@@ -639,20 +642,29 @@ public static unsafe class Mem
 	///     <para>Source: /src/vm/object.inl: 45</para>
 	///     <para>Equals the Son Of Strike "!do" command.</para>
 	///     <para>
-	///         Equals <see cref="Mem.SizeOf{T}(T,SizeOfOptions)" /> with <see cref="SizeOfOptions.BaseInstance" /> for objects
+	///         Equals <see cref="Mem.SizeOf{T}(T,SizeOfOption)" /> with <see cref="SizeOfOption.BaseInstance" /> for objects
 	///         that aren't arrays or strings.
 	///     </para>
 	///     <para>Note: This also includes padding and overhead (<see cref="ClrObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 	/// </remarks>
 	/// <returns>The size of the type in heap memory, in bytes</returns>
-	public static int HeapSizeOf<T>(T value) where T : class
-		=> HeapSizeOfInternal(value);
+	public static int HeapSizeOf<T>(T value, bool throwOnErr = false) where T : class
+		=> HeapSizeOfInternal(value, throwOnErr);
 
 	[MethodImpl(MImplO.AggressiveInlining)]
-	private static int HeapSizeOfInternal<T>(T value)
+	private static int HeapSizeOfInternal<T>(T value, bool throwOnErr = false)
 	{
 		// Sanity check
-		Require.Assert(!RuntimeProperties.IsStruct(value));
+		// Require.Assert(!RuntimeProperties.IsStruct(value));
+
+		var isStruct = RuntimeProperties.IsStruct(value);
+		var isBoxed  = RuntimeProperties.IsBoxed(value);
+
+		Global.Logger.LogTrace("{Value} [{T}] | Struct={Strct} | Boxed={Bxd}", value, typeof(T), isStruct, isBoxed);
+
+		if (throwOnErr && !isStruct) {
+			throw new ArgumentException($"Value must be reference type", nameof(value));
+		}
 
 		// By manually reading the MethodTable*, we can calculate the size correctly if the reference
 		// is boxed or cloaked
@@ -691,9 +703,40 @@ public static unsafe class Mem
 		return baseSize + length * componentSize;
 	}
 
-	#endregion
 
-	#region Address
+	#region 
+
+	private static readonly IReadOnlySet<SizeOfOption> TypeValue = new HashSet<SizeOfOption>()
+	{
+		SizeOfOption.BaseFields,
+		SizeOfOption.BaseInstance,
+		SizeOfOption.Heap,
+		SizeOfOption.Data,
+
+	};
+
+	private static readonly IReadOnlySet<SizeOfOption> TypeParameter = new HashSet<SizeOfOption>()
+	{
+		SizeOfOption.Native,
+		SizeOfOption.Managed,
+		SizeOfOption.Intrinsic,
+		SizeOfOption.BaseFields,
+		SizeOfOption.BaseInstance,
+		SizeOfOption.BaseData,
+
+	};
+
+	public static bool RequiresTypeValue(this SizeOfOption option)
+		=> TypeValue.Contains(option);
+
+	public static bool RequiresTypeParameter(this SizeOfOption option)
+		=> TypeParameter.Contains(option);
+
+#endregion
+
+#endregion
+
+#region Address
 
 	/// <summary>
 	///     Returns the address of <paramref name="value" />.
@@ -794,7 +837,7 @@ public static unsafe class Mem
 	/*public static Pointer AddressOfData2<T>(in T value)
 		=> AddressOfData(ref ref_cast(in value));*/
 
-	#region Field
+#region Field
 
 	public static Pointer AddressOfField(object obj, string name)
 		=> AddressOfField<object, byte>(ref obj, name);
@@ -835,9 +878,9 @@ public static unsafe class Mem
 	public static ref TField ReferenceOfField<TField>(Type t, string name, object o = null) =>
 		ref AddressOfField<TField>(t, name, o).Reference;*/
 
-	#endregion
+#endregion
 
-	#endregion
+#endregion
 
 	/*
 	 * https://github.com/pkrumins/bithacks.h/blob/master/bithacks.h
@@ -846,7 +889,7 @@ public static unsafe class Mem
 
 	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 
-	#region Object memory operations
+#region Object memory operations
 
 	/// <summary>
 	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
@@ -905,7 +948,7 @@ public static unsafe class Mem
 		}
 
 		TryGetAddressOfHeap(value, OffsetOptions.Header, out var ptr2);
-		var cb2 = SizeOf(value, SizeOfOptions.Heap);
+		var cb2 = SizeOf(value, SizeOfOption.Heap);
 
 		return ptr2.ToArray(cb2);
 	}
@@ -948,7 +991,7 @@ public static unsafe class Mem
 	/// <summary>
 	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
 	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
-	/// <see cref="SizeOfOptions.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
+	/// <see cref="SizeOfOption.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
 	/// <seealso cref="AllocManager.InitInline{T}"/>
 	/// </summary>
 	/// <typeparam name="T">Type to initialize</typeparam>
@@ -966,7 +1009,7 @@ public static unsafe class Mem
 		return AddressOf(ref ptr).Cast<T>().Reference;
 	}
 
-	#endregion
+#endregion
 
 	/// <summary>
 	/// Parses a <see cref="byte"/> array formatted as <c>00 01 02 ...</c>
@@ -1001,7 +1044,7 @@ public static unsafe class Mem
 	{
 		// int sizeInBytes = sizeof(T) * BitCalculator.BITS_PER_BYTE;
 
-		int sizeInBytes = SizeOf<T>(SizeOfOptions.Intrinsic) * BitCalculator.BITS_PER_BYTE;
+		int sizeInBytes = SizeOf<T>(SizeOfOption.Intrinsic) * BitCalculator.BITS_PER_BYTE;
 
 		if (totalBits <= -1) {
 			// throw new ArgumentOutOfRangeException(nameof(totalBits), "Total bits must be at least 1.");

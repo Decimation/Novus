@@ -179,7 +179,7 @@ public static class AllocManager
 	/// </summary>
 	public static T New<T>(object[] ctor) where T : class
 	{
-		int size = Mem.SizeOf<T>(SizeOfOptions.BaseInstance);
+		int size = Mem.SizeOf<T>(SizeOfOption.BaseInstance);
 		var ptr  = Alloc((nuint) size);
 
 		var value = Mem.InitInline<T>(ptr, out var ptr2);

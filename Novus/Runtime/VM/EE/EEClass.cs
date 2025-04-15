@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Novus.Imports;
@@ -117,12 +118,17 @@ public unsafe struct EEClass
 	{
 		get
 		{
-			
-			fixed (EEClass* value = &this) {
-				var p = (LayoutEEClass*) value;
 
-				return &p->LayoutInfo;
+			var p2 = Mem.AddressOf(ref this).AddBytes(LayoutEEClass.OFFSET_LAYOUTINFO).Cast<EEClassLayoutInfo>();
+
+			fixed (EEClass* value = &this) {
+				var p  = (LayoutEEClass*) value;
+				var p1 = &p->LayoutInfo;
+
+				Debug.Assert(p1==p2);
+				return p1;
 			}
+
 
 			// fixed (EEClass* value = &this)
 			// {

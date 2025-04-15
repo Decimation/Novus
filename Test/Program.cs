@@ -161,7 +161,7 @@ public static class Program
 	{
 		// var mc=new MyClass2b();
 
-		foreach (var v in Get<EEClass>()) {
+		foreach (var v in Get<EEClass>().Union(Get<string>("foo"))) {
 			Console.WriteLine($"{v.Key} = {v.Value}");
 		}
 
@@ -177,7 +177,7 @@ public static class Program
 	{
 		var vals = new Dictionary<string, int>
 		{
-			{ nameof(Marshal.SizeOf), Marshal.SizeOf<T>() },
+			// { nameof(Marshal.SizeOf), Marshal.SizeOf<T>() },
 		};
 
 		foreach (var i in Enum.GetValues<SizeOfOption>()) {

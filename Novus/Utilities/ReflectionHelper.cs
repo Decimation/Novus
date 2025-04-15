@@ -330,6 +330,7 @@ public static class ReflectionHelper
 	/// <summary>
 	///     Determines whether this type fits the <c>unmanaged</c> type constraint.
 	/// </summary>
+	[DebuggerHidden]
 	public static bool IsUnmanaged(this Type t)
 	{
 		try {

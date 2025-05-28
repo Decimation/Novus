@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: Novus | Name: ServiceControl.cs
 // Date: 2025/02/05 @ 14:02:13
 
+#pragma warning disable CS1574, CS1584, CS1581, CS1580
 namespace Novus.Win32.Structures.AdvApi32;
 
 /// <summary>

@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 using Novus.Win32;
 
 namespace Novus.Memory.Allocation;
-// #pragma warning disable CA1416
+#pragma warning disable CA1416
 
 // ReSharper disable UnusedMember.Global
 public interface IAllocator

@@ -1,12 +1,12 @@
 ﻿namespace Novus.FileTypes.Impl;
 
-public sealed class FastResolver : IFileTypeResolver
+public sealed class DefaultResolver : IFileTypeResolver
 {
 	public void Dispose() { }
 
-	private FastResolver() { }
+	private DefaultResolver() { }
 
-	public static readonly IFileTypeResolver Instance = new FastResolver();
+	public static readonly IFileTypeResolver Instance = new DefaultResolver();
 
 	public FileType Resolve(byte[] rg, int l = FileType.RSRC_HEADER_LEN)
 		=> FileType.Resolve(rg);

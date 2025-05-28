@@ -2,6 +2,7 @@
 // Date: 2025/02/05 @ 14:02:55
 
 using Novus.Win32.Structures.Other;
+#pragma warning disable CS1574, CS1584, CS1581, CS1580
 
 namespace Novus.Win32.Structures.AdvApi32;
 
@@ -32,7 +33,7 @@ public enum ScManagerAccessTypes : uint
 	/// <summary>Required to call the <see cref="NotifyBootConfigStatus"/> function.</summary>
 	SC_MANAGER_MODIFY_BOOT_CONFIG = 0x0020,
 
-	/// <summary>Includes <see cref="ACCESS_MASK.STANDARD_RIGHTS_REQUIRED"/>, in addition to all access rights in this table.</summary>
+	/// <summary>Includes <see cref="AccessMask.STANDARD_RIGHTS_REQUIRED"/>, in addition to all access rights in this table.</summary>
 	SC_MANAGER_ALL_ACCESS = AccessMask.STANDARD_RIGHTS_REQUIRED |
 	                        SC_MANAGER_CONNECT                   |
 	                        SC_MANAGER_CREATE_SERVICE            |

@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 using Kantan.Diagnostics;
 using Novus.Memory;
 using Novus.Streams;
-
+#nullable disable
 namespace Novus.FileTypes;
 
 public partial class FileType

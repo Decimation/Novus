@@ -50,7 +50,7 @@ using Novus.Win32.Wrappers;
 #pragma warning disable IDE0059
 #pragma warning disable IDE1006
 
-// #pragma warning disable CA1416 //todo
+#pragma warning disable CA1416 //todo
 
 namespace Novus.Memory;
 
@@ -706,7 +706,7 @@ public static unsafe class Mem
 
 	#region 
 
-	private static readonly IReadOnlySet<SizeOfOption> TypeValue = new HashSet<SizeOfOption>()
+	private static readonly HashSet<SizeOfOption> TypeValue = new()
 	{
 		SizeOfOption.BaseFields,
 		SizeOfOption.BaseInstance,
@@ -715,7 +715,7 @@ public static unsafe class Mem
 
 	};
 
-	private static readonly IReadOnlySet<SizeOfOption> TypeParameter = new HashSet<SizeOfOption>()
+	private static readonly HashSet<SizeOfOption> TypeParameter = new()
 	{
 		SizeOfOption.Native,
 		SizeOfOption.Managed,

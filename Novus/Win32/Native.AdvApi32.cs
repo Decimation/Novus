@@ -3,6 +3,7 @@
 
 using Novus.Win32.Structures.AdvApi32;
 using System.Runtime.InteropServices;
+#pragma warning disable CS1574, CS1584, CS1581, CS1580
 
 namespace Novus.Win32;
 

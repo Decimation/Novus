@@ -33,6 +33,8 @@ using Novus.Runtime.VM.Tokens;
 // ReSharper disable ArgumentsStyleLiteral
 
 #pragma warning disable CS0618, CS1574, IDE0059
+#pragma warning disable CA1416
+
 namespace Novus.Runtime;
 
 /// <summary>
@@ -51,9 +53,6 @@ public static unsafe class RuntimeProperties
 	static RuntimeProperties()
 	{
 		Global.Clr.LoadImports(typeof(RuntimeProperties));
-
-		
-		
 	}
 
 	

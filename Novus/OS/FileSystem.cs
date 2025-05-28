@@ -224,7 +224,7 @@ public static class FileSystem
 		return Task.Run(() =>
 		{
 			f ??= Path.GetTempFileName();
-			var s = File.OpenWrite(f);
+			using var s = File.OpenWrite(f);
 
 			for (long i = 0; i < cb; i++) {
 				s.WriteByte((byte) (i ^ cb));

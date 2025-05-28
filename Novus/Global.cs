@@ -193,6 +193,9 @@ public static class Global
 
 	public static readonly bool IsCompatible;
 
+	public const string BUILD_NCLRI = "NCLRI";
+
+
 	/// <summary>
 	/// Root static initializer, followed by <see cref="Setup"/>
 	/// </summary>
@@ -205,12 +208,16 @@ public static class Global
 			builder.SetMinimumLevel(LogLevel.Trace);
 		});
 
-
 		Logger = LoggerFactoryInt.CreateLogger(LIB_NAME);
 
 		Logger.LogTrace($"{nameof(Global)} invoked");
 
 		// Assembly = Assembly.GetExecutingAssembly();
+
+#if NCLRI
+#warning NCLRI mode
+		Logger.LogInformation("{Build} build!", BUILD_NCLRI);
+#endif
 
 		ClrVersion       = Version.Parse(ER.RequiredVersion);
 		IsCorrectVersion = Environment.Version == ClrVersion;

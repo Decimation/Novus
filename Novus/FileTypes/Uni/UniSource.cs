@@ -12,27 +12,33 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Novus.Imports;
+using Novus.OS;
 using Novus.Utilities;
 
 namespace Novus.FileTypes.Uni;
 
 // TODO: UNISOURCE <--> UNIIMAGE
 
-public abstract class UniSource : IDisposable, IEquatable<UniSource>, IEqualityOperators<UniSource, UniSource, bool>
+public abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<UniSource, UniSource, bool>, IDisposable
 {
 
-	public static List<IUniSource.IsTypePredicate> Register { get; } =
+	/*
+	public static List<IUniSource.IsTypePredicateCallback> Register { get; } =
 		[UniSourceStream.IsType, UniSourceFile.IsType, UniSourceUrl.IsType];
+		*/
 
 	static UniSource() { }
 
-	protected UniSource(Stream stream, object value)
+
+	protected UniSource(UniSourceType type, object value)
 	{
-		Stream = stream;
-		Value  = value;
+		SourceType = type;
+		Value      = value;
 	}
 
-	public abstract UniSourceType SourceType { get; }
+	public UniSourceType SourceType { get; }
+
+	public string Name { get; protected init; }
 
 	public Stream Stream { get; protected set; }
 
@@ -42,13 +48,11 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>, IEqualityO
 
 	public object Value { get; protected set; }
 
-	public abstract bool IsUri { get; }
+	public bool IsUri => SourceType == UniSourceType.Uri;
 
-	public abstract bool IsFile { get; }
+	public bool IsFile => SourceType == UniSourceType.File;
 
-	public abstract bool IsStream { get; }
-
-	public string Name { get; protected init; }
+	public bool IsStream => SourceType == UniSourceType.Stream;
 
 	public virtual void Dispose()
 	{
@@ -60,74 +64,65 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>, IEqualityO
 		return $"[{SourceType}] {FileType}";
 	}
 
-	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null,
-	                                             CancellationToken ct = default)
+	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null, bool autoAlloc = true, CancellationToken ct = default)
 	{
-		if (o == null) {
-			throw new ArgumentNullException(nameof(o));
-		}
-
+		resolver ??= IFileTypeResolver.Default;
 		UniSource buf = null;
 
-		resolver ??= IFileTypeResolver.Default;
+		string os;
 
-		// whitelist ??= [];
+		switch (o) {
+			case null:
+				throw new ArgumentNullException(nameof(o));
 
+			case Stream stream:
+				buf = new UniSourceStream(stream);
+				goto resType;
 
-		if (o is string os) {
-			os = os.CleanString();
-			o  = os;
+			default:
+				os = o?.ToString()?.CleanString();
+
+				if (Url.IsValid(os)) {
+					var osAsUrl = Url.Parse(os);
+
+					if (osAsUrl.Scheme == "file" && File.Exists(os)) {
+						buf = new UniSourceFile(new FileInfo(os));
+					}
+					else {
+						buf = new UniSourceUrl(osAsUrl);
+					}
+				}
+				else {
+					throw new ArgumentException("Unknown type", nameof(o));
+				}
+
+				break;
 		}
 
-		// var uh = GetUniType(o, out var o2);
+	resType:
 
+		if (autoAlloc) {
+			var ok = await buf.AllocStream(ct);
 
-		var s = o.ToString();
-		object o2 = null;
+			if (ok) {
+				var type = await resolver.ResolveAsync(buf.Stream, ct: ct);
 
-		if (s == null) {
-			throw new NullReferenceException();
-		}
+				buf.FileType = type;
+				buf.Stream.TrySeek();
 
-		if (UniSourceFile.IsType(o, out o2)) {
-			buf = new UniSourceFile(File.OpenRead(s), o) { };
-		}
-		else if (UniSourceUrl.IsType(o, out o2)) {
-			buf = await UniSourceUrl.HandleUriAsync(s, ct);
-		}
-		else if (UniSourceStream.IsType(o, out o2)) {
-			buf = new UniSourceStream(o as Stream);
-		}
-		else {
-			throw new ArgumentException(null, nameof(o));
-		}
-
-		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
-
-		var type = await resolver.ResolveAsync(buf.Stream, ct: ct);
-
-		/*
-		if (whitelist.Any()) {
-
-			if (!whitelist.Contains(type)) {
-				throw new ArgumentException($"Invalid file type: {type}", nameof(o));
 			}
-
 		}
-		*/
-
-		buf.FileType = type;
-		buf.Stream.TrySeek();
 
 		return buf;
-
 	}
 
+
 	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
+	                                                bool autoAlloc = true,
 	                                                CancellationToken ct = default)
 	{
 		try {
-			return await GetAsync(value, resolver, ct);
+			return await GetAsync(value, resolver, autoAlloc, ct: ct);
 		}
 		catch (FlurlHttpException e) {
 			Debug.WriteLine($"HTTP: {e.Message}", nameof(TryGetAsync));
@@ -144,18 +139,39 @@ public abstract class UniSource : IDisposable, IEquatable<UniSource>, IEqualityO
 	}
 
 	[ICBN]
-	public abstract Task<string> TryDownloadAsync();
-
-	public async Task<string> WriteStreamToFileAsync(string tmp)
+	public virtual async ValueTask<string> TryWriteToFileAsync(string fn = null, string ext = null)
 	{
-		var fs = new FileStream(tmp, FileMode.Create)
-			{ };
-		await Stream.CopyToAsync(fs);
-		await fs.FlushAsync();
-		fs.Dispose();
-		Stream.TrySeek();
-		return tmp;
+		// var tmp = Path.Combine(Path.GetTempPath(), fn);
+		var tmp = FileSystem.GetTempFileName(fn, ext);
+
+		// tmp = FS.SanitizeFilename(tmp);
+
+		var path = await CopyStreamToFileAsync(tmp);
+
+		return path;
 	}
+
+	public virtual ValueTask<string> CopyStreamToFileAsync(string fileName)
+	{
+		var fs = new FileStream(fileName, FileMode.Create)
+			{ };
+
+		CopyStream(fs);
+
+		return ValueTask.FromResult(fileName);
+	}
+
+	protected void CopyStream(Stream fs)
+	{
+		lock (Stream) {
+			Stream.CopyTo(fs);
+			fs.Flush();
+			fs.Dispose();
+			Stream.TrySeek();
+		}
+	}
+
+	public abstract ValueTask<bool> AllocStream(CancellationToken ct = default);
 
 	public bool Equals(UniSource other)
 	{
@@ -282,7 +298,7 @@ public class UniSource : UniSourceBase, IEquatable<UniSource>, IEqualityOperator
 public enum UniSourceType
 {
 
-	NA,
+	NA = 0,
 	File,
 	Uri,
 	Stream

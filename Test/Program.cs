@@ -161,14 +161,36 @@ public static class Program
 	{
 		// var mc=new MyClass2b();
 
-		foreach (var v in Get<EEClass>().Union(Get<string>("foo"))) {
-			Console.WriteLine($"{v.Key} = {v.Value}");
-		}
-
+		string path = @"C:\Users\Deci\Pictures\1mcvbqv39yta1.png";
+		Url    u    = path;
+		Console.WriteLine(u);
+		Console.WriteLine(u.Scheme);
+		Url u2 = ((Url) "g");
+		Console.WriteLine(u2.Scheme);
+		Console.WriteLine(Url.IsValid(u2));
+		Console.WriteLine(Url.Parse(u2));
+		Console.WriteLine(Url.Parse(path));
+		Console.WriteLine(Url.IsValid(@"C:\bggg"));
+		Console.WriteLine(Url.IsValid((Url) ""));
+		run(u);
+		run(path);
 		return;
 
 	}
 
+	static void run(object o)
+	{
+		switch (o) {
+			case string os:
+				Console.WriteLine("str");
+				break;
+
+			case Url u:
+				Console.WriteLine("u");
+				break;
+
+		}
+	}
 
 	static IDictionary<string, Func<int, object>> fns = new Dictionary<string, Func<int, object>>()
 		{ }.AsReadOnly();

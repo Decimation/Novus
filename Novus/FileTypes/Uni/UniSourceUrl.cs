@@ -12,42 +12,32 @@ namespace Novus.FileTypes.Uni;
 public class UniSourceUrl : UniSource, IUniSource
 {
 
-	public override bool IsUri => true;
-
-	public override bool IsFile => false;
-
-	public override bool IsStream => false;
-
-	public override UniSourceType SourceType => UniSourceType.Uri;
-
 	public Url Url { get; }
 
-	internal UniSourceUrl(Stream stream, object value) : base(stream, value)
+	internal UniSourceUrl(Url value) : base(UniSourceType.Uri, value)
 	{
 		Url  = (Url) value;
 		Name = Url.GetFileName();
 	}
 
-	public override async Task<string> TryDownloadAsync()
+	public override ValueTask<string> TryWriteToFileAsync(string fn = null, string ext = null)
 	{
-		string fn  = null, ext = null;
-		var    url = (Url) Value;
-		fn = url.GetFileName();
-
-		// var tmp = Path.Combine(Path.GetTempPath(), fn);
-		var tmp = FileSystem.GetTempFileName(fn, ext);
-
-		// tmp = FS.SanitizeFilename(tmp);
-
-		var path = await WriteStreamToFileAsync(tmp);
-		return path;
+		fn ??= Name;
+		return base.TryWriteToFileAsync(fn, ext);
 	}
 
-	public static async Task<UniSource> HandleUriAsync(Url value, CancellationToken ct)
+#region Overrides of UniSource
+
+	public override async ValueTask<bool> AllocStream(CancellationToken ct = default)
 	{
+		if (Stream != null) {
+			goto ret;
+		}
+
+
 		// value = value.CleanString();
 
-		var res = await value.AllowAnyHttpStatus()
+		var res = await Url.AllowAnyHttpStatus()
 			          .WithHeaders(new
 			          {
 				          User_Agent = ER.UserAgent,
@@ -55,21 +45,24 @@ public class UniSourceUrl : UniSource, IUniSource
 			          .GetAsync(cancellationToken: ct);
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
-			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
+			throw new ArgumentException($"{Url} returned {HttpStatusCode.NotFound}");
 		}
 
-		var stream = await res.GetStreamAsync();
+		Stream = await res.GetStreamAsync();
 
 		/*if (stream.CanSeek && stream.Length < FileTypes.FileType.RSRC_HEADER_LEN) {
 
 		}*/
 
-		var buf = new UniSourceUrl(stream, value)
-			{ };
-		return buf;
+		ret:
+		return true;
 	}
 
-	public static bool IsType(object o, out object u)
+#endregion
+
+	
+
+	/*public static bool IsType(object o, out object u)
 	{
 		Url ux2 = o switch
 		{
@@ -79,13 +72,6 @@ public class UniSourceUrl : UniSource, IUniSource
 		};
 		u = ux2;
 		return Url.IsValid(ux2);
-	}
-
-}
-
-public interface IUniParser
-{
-
-	public Task<UniSource> Parse(object value, CancellationToken d = default);
+	}*/
 
 }

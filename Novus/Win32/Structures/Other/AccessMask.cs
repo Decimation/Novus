@@ -95,11 +95,11 @@ public partial struct AccessMask : IEquatable<AccessMask>
 
 	private readonly uint value;
 
-	/// <summary>Initializes a new instance of the <see cref="val"/> struct.</summary>
+	/// <summary>Initializes a new instance of the <paramref name="val"/> struct.</summary>
 	/// <param name="val">The value.</param>
 	public AccessMask(uint val) => value = val;
 
-	/// <summary>Initializes a new instance of the <see cref="mask"/> struct.</summary>
+	/// <summary>Initializes a new instance of the <paramref name="mask"/> struct.</summary>
 	/// <param name="mask">The mask.</param>
 	public AccessMask(IConvertible mask) : this(mask.ToUInt32(null)) { }
 

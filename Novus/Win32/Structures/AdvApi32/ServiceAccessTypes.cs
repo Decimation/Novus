@@ -3,6 +3,8 @@
 
 using Novus.Win32.Structures.Other;
 
+#pragma warning disable CS1574, CS1584, CS1581, CS1580
+
 namespace Novus.Win32.Structures.AdvApi32;
 
 [Flags]
@@ -51,14 +53,14 @@ public enum ServiceAccessTypes : uint
 
 	/// <summary>Includes <see cref="AccessMask.STANDARD_RIGHTS_REQUIRED"/> in addition to all access rights in this table.</summary>
 	SERVICE_ALL_ACCESS = AccessMask.STANDARD_RIGHTS_REQUIRED |
-						 SERVICE_QUERY_CONFIG |
-						 SERVICE_CHANGE_CONFIG |
-						 SERVICE_QUERY_STATUS |
-						 SERVICE_ENUMERATE_DEPENDENTS |
-						 SERVICE_START |
-						 SERVICE_STOP |
-						 SERVICE_PAUSE_CONTINUE |
-						 SERVICE_INTERROGATE |
-						 SERVICE_USER_DEFINED_CONTROL
+	                     SERVICE_QUERY_CONFIG                |
+	                     SERVICE_CHANGE_CONFIG               |
+	                     SERVICE_QUERY_STATUS                |
+	                     SERVICE_ENUMERATE_DEPENDENTS        |
+	                     SERVICE_START                       |
+	                     SERVICE_STOP                        |
+	                     SERVICE_PAUSE_CONTINUE              |
+	                     SERVICE_INTERROGATE                 |
+	                     SERVICE_USER_DEFINED_CONTROL
 
 }

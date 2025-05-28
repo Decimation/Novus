@@ -8,34 +8,35 @@ namespace Novus.FileTypes.Uni;
 public class UniSourceFile : UniSource, IUniSource
 {
 
-	public override UniSourceType SourceType => UniSourceType.File;
-
-	public override bool IsUri => false;
-
-	public override bool IsFile => true;
-
-	public override bool IsStream => false;
-
-	internal UniSourceFile(Stream stream, object value) : base(stream, value)
+	internal UniSourceFile(FileInfo value) : base(UniSourceType.File, value)
 	{
-		Name     = Path.GetFileName(Value.ToString());
-		FileName = Value.ToString();
+		FileInfo = value;
+		Name     = FileInfo.Name;
 	}
 
-	public string FileName { get; }
 
-	public override Task<string> TryDownloadAsync()
+	public FileInfo FileInfo { get; }
+
+	public override ValueTask<bool> AllocStream(CancellationToken ct = default)
 	{
-		var fileName = Value.ToString();
-		
-		if (!File.Exists(fileName)) {
-			throw new FileNotFoundException(fileName: fileName, message: "Not found");
+		var b = Stream != null;
+
+		if (b) {
+			goto ret;
 		}
 
-		return Task.FromResult(fileName);
+		Stream = FileInfo.OpenRead();
+
+	ret:
+		return ValueTask.FromResult(true);
 	}
 
-	public static bool IsType(object o, out object f)
+	public override ValueTask<string> TryWriteToFileAsync(string fn = null, string ext = null)
+	{
+		return ValueTask.FromResult(FileInfo.FullName);
+	}
+
+	/*public static bool IsType(object o, out object f)
 	{
 		f = null;
 
@@ -44,6 +45,6 @@ public class UniSourceFile : UniSource, IUniSource
 		}
 
 		return f != null;
-	}
+	}*/
 
 }

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Novus.Memory;
 using System;
+using System.Runtime.InteropServices;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // ReSharper disable UnusedMember.Global
@@ -104,8 +105,7 @@ public static class StreamExtensions
 		stream.TrySeek(offset);
 
 		using var ms = new MemoryStream(l);
-		stream.CopyTo(ms);
-
+		stream.CopyTo(ms,l);
 		/*var buffer = new byte[l];
 
 		int l2 = stream.Read(buffer);
@@ -115,8 +115,11 @@ public static class StreamExtensions
 		}
 
 		return buffer;*/
+		
 		return ms.GetBuffer();
 	}
+
+	
 
 	/*public static async Task<byte[]> ReadHeaderAsync(this Stream m, int offset = 0, int l = BlockSize,
 	                                                 CancellationToken ct = default)

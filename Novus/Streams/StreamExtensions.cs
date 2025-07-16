@@ -105,7 +105,7 @@ public static class StreamExtensions
 		stream.TrySeek(offset);
 
 		using var ms = new MemoryStream(l);
-		stream.CopyTo(ms,l);
+		stream.CopyTo(ms, l);
 		/*var buffer = new byte[l];
 
 		int l2 = stream.Read(buffer);
@@ -115,11 +115,10 @@ public static class StreamExtensions
 		}
 
 		return buffer;*/
-		
+
 		return ms.GetBuffer();
 	}
 
-	
 
 	/*public static async Task<byte[]> ReadHeaderAsync(this Stream m, int offset = 0, int l = BlockSize,
 	                                                 CancellationToken ct = default)

@@ -254,7 +254,7 @@ public static class Global
 		if (!FileSystem.IsWindows) {
 			Logger.LogWarning("Not on Windows!");
 
-			// return;
+			return;
 		}
 
 		if (!IsCompatible) {

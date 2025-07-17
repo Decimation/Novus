@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using Kantan.Text;
 using Novus.Utilities;
@@ -15,8 +16,9 @@ namespace Novus.OS;
 ///     Utilities for working with the command prompt.
 /// </summary>
 
-[Experimental(Global.DIAG_ID_EXPERIMENTAL)]
-// [Obsolete($"Use {nameof(CliWrap)}")]
+// [Experimental(Global.DIAG_ID_EXPERIMENTAL)]
+[Obsolete($"Use {nameof(CliWrap)}", false)]
+[SupportedOSPlatform(FileSystem.OS_WIN)]
 public static class Command
 {
 
@@ -31,7 +33,8 @@ public static class Command
 
 		var process = Run(ER.E_Cmd);
 
-		if (args is { }) {
+		if (args is not null)
+		{
 			process.StartInfo.Arguments = $"/C {args}";
 		}
 

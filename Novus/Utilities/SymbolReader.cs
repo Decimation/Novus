@@ -92,7 +92,8 @@ public sealed class SymbolReader : IDisposable
 		 * https://github.com/moyix/pdbparse
 		 */
 
-		if (m_disposed) {
+		if (m_disposed)
+		{
 			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
@@ -123,11 +124,13 @@ public sealed class SymbolReader : IDisposable
 
 	public void LoadAll(string mask = MASK_ALL)
 	{
-		if (m_disposed) {
+		if (m_disposed)
+		{
 			throw new ObjectDisposedException(nameof(SymbolReader));
 		}
 
-		if (AllLoaded) {
+		if (AllLoaded)
+		{
 			return;
 		}
 
@@ -194,7 +197,8 @@ public sealed class SymbolReader : IDisposable
 		//symchk /os <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /oc <output>
 		//symchk <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /osc <output>
 
-		if (!File.Exists(fname)) {
+		if (!File.Exists(fname))
+		{
 			throw new FileNotFoundException(null, fname);
 		}
 
@@ -216,7 +220,8 @@ public sealed class SymbolReader : IDisposable
 
 		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(fname) + EXT_PDB);
 
-		if (!File.Exists(outFile)) {
+		if (!File.Exists(outFile))
+		{
 			throw new FileNotFoundException(null, outFile);
 		}
 
@@ -246,20 +251,23 @@ public sealed class SymbolReader : IDisposable
 		var fileName   = Path.GetFileName(path);
 		var pdbDirPath = Path.Combine(o, fileName);
 
-		if (!Directory.Exists(pdbDirPath)) {
+		if (!Directory.Exists(pdbDirPath))
+		{
 			Directory.CreateDirectory(pdbDirPath);
 		}
 
 		var pdbPlusGuidDirPath = Path.Combine(pdbDirPath, pdbData.Guid.ToString());
 
-		if (!Directory.Exists(pdbPlusGuidDirPath)) {
+		if (!Directory.Exists(pdbPlusGuidDirPath))
+		{
 			Directory.CreateDirectory(pdbPlusGuidDirPath);
 		}
 
 		//var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, path);
 		var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
 
-		if (File.Exists(pdbFilePath)) {
+		if (File.Exists(pdbFilePath))
+		{
 			goto ret;
 		}
 
@@ -276,25 +284,33 @@ public sealed class SymbolReader : IDisposable
 
 	public static IEnumerable<string> EnumerateSymbolPath(string pattern, string symPath = NT_SYMBOL_PATH)
 	{
-		var nt = Environment.GetEnvironmentVariable(symPath, EnvironmentVariableTarget.Machine);
+		var nt = Environment.ExpandEnvironmentVariables(symPath);
 
-		if (nt == null) {
-			return null;
+		/*
+		var nt = Environment.GetEnvironmentVariable(symPath, EnvironmentVariableTarget.Machine)?
+			.Split(FileSystem.PathDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+			*/
+
+		if (!Path.Exists(nt) || nt == null)
+		{
+			return [];
 		}
 
-		var enumerate = Directory.EnumerateFiles(nt, pattern,
-		                                         new EnumerationOptions()
-		                                         {
-			                                         MatchType             = MatchType.Simple,
-			                                         RecurseSubdirectories = true,
-			                                         MaxRecursionDepth     = 3
-		                                         });
-		return enumerate;
+		return Directory.EnumerateFiles(nt, pattern, new EnumerationOptions()
+		{
+			MatchType             = MatchType.Simple,
+			RecurseSubdirectories = true,
+			MaxRecursionDepth     = 3
+		});
 	}
 
 	public void Dispose()
 	{
 		Cleanup();
 	}
+
+	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	public static string SymbolPath
+		=> Environment.GetEnvironmentVariable(SymbolReader.NT_SYMBOL_PATH, EnvironmentVariableTarget.Machine);
 
 }

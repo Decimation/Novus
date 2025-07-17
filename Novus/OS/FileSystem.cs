@@ -1,4 +1,5 @@
 ﻿// global using FS = Novus.OS.FileSystem;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,12 +14,14 @@ using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Diagnostics;
 using Kantan.Utilities;
+using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 
 #pragma warning disable 8603
+
 // #pragma warning disable CA1416 //todo
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
@@ -57,17 +60,20 @@ public static class FileSystem
 
 	public const string OS_LINUX = "linux";
 
+	/// <summary>
+	///     Environment variable PATH
+	/// </summary>
+	public const string PATH_ENV = "PATH";
+
+
+	public static readonly char PathDelimiter;
+
 	static FileSystem()
 	{
-		if (IsLinux) {
-			PathDelimiter = ':';
-		}
-		else {
-			PathDelimiter = ';';
-		}
+		PathDelimiter = IsLinux ? ':' : ';';
 	}
 
-	#region KnownFolder
+#region KnownFolder
 
 	/// <remarks><a href="https://stackoverflow.com/questions/10667012/getting-downloads-folder-in-c">Adapted from here</a></remarks>
 	[SupportedOSPlatform(OS_WIN)]
@@ -119,7 +125,8 @@ public static class FileSystem
 		                                         (uint) flags, new nint(defaultUser ? -1 : 0),
 		                                         out var outPath);
 
-		if (result >= 0) {
+		if (result >= 0)
+		{
 			string path = Marshal.PtrToStringUni(outPath)!;
 			Marshal.FreeCoTaskMem(outPath);
 			return path;
@@ -129,7 +136,7 @@ public static class FileSystem
 			"Unable to retrieve the known folder path. It may not be available on this system.", result);
 	}
 
-	#endregion
+#endregion
 
 	public static string GetRootDirectory()
 		=> Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
@@ -137,13 +144,15 @@ public static class FileSystem
 	[SupportedOSPlatform(OS_WIN)]
 	public static string GetShortPath(string dir)
 	{
-		unsafe {
+		unsafe
+		{
 
 			var buf = stackalloc char[Native.SIZE_1024];
 
 			var l = Native.GetShortPathName(dir, buf, Native.SIZE_1024);
 
-			if (l != Native.ERROR_SUCCESS) {
+			if (l != Native.ERROR_SUCCESS)
+			{
 				throw new Win32Exception((int) l);
 			}
 
@@ -164,44 +173,49 @@ public static class FileSystem
 		return p;
 	}
 
-	public static string GetParent(string fi, int n)
+	public static string GetParent(string? fi, int n)
 	{
-		if (n == 0) {
+		if (n == 0 || fi == null)
+		{
 			return fi;
 		}
 
-		return GetParent(Directory.GetParent(fi)!.FullName, --n);
+		var parent = Directory.GetParent(fi);
+
+		return GetParent(parent?.FullName, --n);
 	}
 
-	#region
+#region
 
 	public static string GetRandomName()
 		=> Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
 
-	public static string GetTempFileName(string? fn = null, string? ext = null)
+	public static string GetTempFileName(string? fn = null, string? ext = "tmp")
 	{
 		string tmp = Path.GetTempFileName();
 
-		if (fn != null) {
+		if (fn != null)
+		{
 			var ext1 = Path.GetExtension(fn);
 
 			/*if (ext != null && ext1 != ext) {
 					fn = Path.ChangeExtension(fn, ext);
 				}*/
-			if (ext == null && ext1 != null) {
-				ext = ext1;
-			}
 
-			var tmp3 = Path.ChangeExtension(Path.Combine(Path.GetDirectoryName(tmp), fn), "tmp");
+			ext ??= ext1;
+
+			var tmp3 = Path.ChangeExtension(Path.Combine(Path.GetDirectoryName(tmp), fn), ext);
 			File.Move(tmp, tmp3, true);
 			tmp = tmp3;
 		}
 		else { }
 
-		if (ext != null) {
+		if (ext != null)
+		{
 			var tmp2 = Path.ChangeExtension(tmp, ext);
 
-			if (tmp2 != tmp) {
+			if (tmp2 != tmp)
+			{
 				File.Move(tmp, tmp2, true);
 				tmp = tmp2;
 			}
@@ -226,7 +240,8 @@ public static class FileSystem
 			f ??= Path.GetTempFileName();
 			using var s = File.OpenWrite(f);
 
-			for (long i = 0; i < cb; i++) {
+			for (long i = 0; i < cb; i++)
+			{
 				s.WriteByte((byte) (i ^ cb));
 			}
 
@@ -234,7 +249,7 @@ public static class FileSystem
 		});
 	}
 
-	#endregion
+#endregion
 
 	public static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
 	{
@@ -248,7 +263,8 @@ public static class FileSystem
 	public static bool ExploreFile(string filePath)
 	{
 		// https://stackoverflow.com/questions/13680415/how-to-open-explorer-with-a-specific-file-selected
-		if (!File.Exists(filePath)) {
+		if (!File.Exists(filePath))
+		{
 			return false;
 		}
 
@@ -289,7 +305,8 @@ public static class FileSystem
 
 	public static bool Open(string s, out Process? p)
 	{
-		try {
+		try
+		{
 			p = Process.Start(new ProcessStartInfo
 			{
 				FileName        = s,
@@ -297,7 +314,8 @@ public static class FileSystem
 			});
 			return true;
 		}
-		catch (Exception ex) {
+		catch (Exception ex)
+		{
 			// Handle any exceptions that might occur
 			Trace.WriteLine($"Error opening: {ex.Message}");
 			p = null;
@@ -308,7 +326,7 @@ public static class FileSystem
 	[SupportedOSPlatform(OS_WIN)]
 	public static bool SendFileToRecycleBin(string filePath)
 	{
-		if (String.IsNullOrEmpty(filePath) || !System.IO.File.Exists(filePath))
+		if (!File.Exists(filePath) || String.IsNullOrEmpty(filePath))
 			return false;
 
 		var fileOp = new SHFILEOPSTRUCT
@@ -326,43 +344,43 @@ public static class FileSystem
 		return result;
 	}
 
-	#region Path
+#region Path
+
+	public static IEnumerable<string?> EnumerateInPath(string f, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
+		=> EnumerateInPath(PATH_ENV, f, t);
 
 	/// <summary>
-	/// Expands environment variables and, if unqualified, locates the exe in the working directory
-	/// or the environment's path.
+	/// Expands environment variables and, if unqualified, locates <paramref name="f"/> within environment variable <paramref name="env"/>.
 	/// </summary>
-	/// <param name="f">The name of the executable file</param>
+	/// <param name="f">The name of the file</param>
+	/// <param name="env">Environment variable name</param>
 	/// <returns>The fully-qualified path to the file</returns>
-	/// <exception cref="System.IO.FileNotFoundException">Raised when the exe was not found</exception>
-	public static string? FindInPath(string f)
+	public static IEnumerable<string?> EnumerateInPath(string env, string f, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
 		f = Environment.ExpandEnvironmentVariables(f);
 
-		if (!File.Exists(f)) {
-			if (Path.GetDirectoryName(f) == String.Empty) {
-				var split = (Environment.GetEnvironmentVariable(PATH_ENV) ?? String.Empty)
-					.Split(PathDelimiter);
+		var split = GetEnvironmentPathDirectories(t);
 
-				// ReSharper disable once LoopCanBeConvertedToQuery
-				foreach (string test in split) {
-					string path = test.Trim();
-
-					if (!String.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, f))) {
-						return Path.GetFullPath(path);
-					}
-				}
-			}
-
-			return null;
-
-			// throw new FileNotFoundException(new FileNotFoundException().Message, f);
+		if (split == null)
+		{
+			throw new InvalidOperationException($"{nameof(f)} variable {null}");
 		}
 
-		return Path.GetFullPath(f);
+		return split.SelectMany(s =>
+		{
+			var e = Directory.EnumerateFiles(s, f, enumerationOptions: new EnumerationOptions()
+			{
+				MatchType          = MatchType.Simple,
+				MatchCasing        = MatchCasing.CaseInsensitive,
+				MaxRecursionDepth  = 1,
+				IgnoreInaccessible = true
+			});
+			return e;
+		});
+
 	}
 
-	public static string? FindExecutableLocation(string exe)
+	public static string? FindLocation(string exe)
 	{
 
 		// https://stackoverflow.com/questions/6041332/best-way-to-get-application-folder-path
@@ -392,8 +410,10 @@ public static class FileSystem
 
 		//
 
-		foreach (string loc in rg) {
-			if (ExistsInFolder(loc, exe, out var folder)) {
+		foreach (string loc in rg)
+		{
+			if (ExistsInFolder(loc, exe, out var folder))
+			{
 				return folder;
 			}
 		}
@@ -401,25 +421,18 @@ public static class FileSystem
 		return null;
 	}
 
-	public static string ResolvePath(string s)
-	{
-		var p = SearchInPath(s);
-
-		if (p is not { }) {
-			return s;
-		}
-
-		return s;
-	}
-
 	public static string? SearchInPath(string s, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
 		string[] path = GetEnvironmentPathDirectories(t);
 
-		foreach (string directory in path) {
-			if (Directory.Exists(directory)) {
-				foreach (string file in Directory.EnumerateFiles(directory)) {
-					if (Path.GetFileName(file) == s) {
+		foreach (string directory in path)
+		{
+			if (Directory.Exists(directory))
+			{
+				foreach (string file in Directory.EnumerateFiles(directory))
+				{
+					if (Path.GetFileName(file) == s)
+					{
 						//rg.Add(file);
 						return file;
 					}
@@ -430,17 +443,9 @@ public static class FileSystem
 		return null;
 	}
 
-	/// <summary>
-	///     Environment variable PATH
-	/// </summary>
-	public const string PATH_ENV = "PATH";
-
-
-	public static readonly char PathDelimiter;
-
 	public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		return GetEnvironmentPath(t).Split(PathDelimiter);
+		return GetEnvironmentPath(t).Split(PathDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 	}
 
 	public static string GetEnvironmentPath(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
@@ -471,18 +476,7 @@ public static class FileSystem
 		return GetEnvironmentPathDirectories(t).Contains(location);
 	}
 
-	#endregion
-
-	public static string AppendToFilename(string filename, string append)
-	{
-		var withoutExtension = Path.GetFileNameWithoutExtension(filename);
-		var extension        = Path.GetExtension(filename);
-		return withoutExtension + append + extension;
-	}
-
-	[SupportedOSPlatform(OS_WIN)]
-	public static string? SymbolPath
-		=> Environment.GetEnvironmentVariable("_NT_SYMBOL_PATH", EnvironmentVariableTarget.Machine);
+#endregion
 
 	[SupportedOSPlatform(OS_WIN)]
 	public static bool IsAdministrator()
@@ -499,10 +493,12 @@ public static class FileSystem
 	{
 		get
 		{
-			if (IsLinux) {
+			if (IsLinux)
+			{
 				return Environment.UserName == "root";
 			}
-			else if (IsWindows) {
+			else if (IsWindows)
+			{
 				return IsAdministrator();
 
 			}

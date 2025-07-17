@@ -162,6 +162,8 @@ public static class Global
 	/// </summary>
 	public const string CLR_MODULE = "coreclr.dll";
 
+	public const string CLR_MODULE_SO = "libcoreclr.so";
+
 	public const string CLR_PDB = "coreclr.pdb";
 
 	/// <summary>
@@ -296,6 +298,8 @@ public static class Global
 	{
 		// var pdbFile = Path.Join(DataFolder, CLR_PDB);
 		// File.WriteAllBytes(pdbFile, EmbeddedResources.coreclr);
+
+		// var path=FileSystem.EnumerateInPath(CLR_PDB);
 
 		var path = SymbolReader.EnumerateSymbolPath(CLR_PDB);
 

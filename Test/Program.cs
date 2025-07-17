@@ -160,7 +160,21 @@ public static class Program
 	{
 		// var mc=new MyClass2b();
 
-		
+		var pss = Process.GetCurrentProcess().Modules;
+		foreach (ProcessModule processModule in pss)
+		{
+			Console.WriteLine(processModule);
+
+		}
+		foreach (string s in FileSystem.EnumerateInPath("coreclr.pdb", EnvironmentVariableTarget.Machine))
+		{
+			Console.WriteLine(s);
+		}
+
+		foreach (string s in SymbolReader.EnumerateSymbolPath("coreclr.pdb"))
+		{
+			Console.WriteLine(s);
+		}
 		return;
 	}
 

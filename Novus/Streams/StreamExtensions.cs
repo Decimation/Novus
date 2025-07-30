@@ -25,10 +25,12 @@ public static class StreamExtensions
 	{
 		var list = new List<string>();
 
-		while (!stream.EndOfStream) {
+		while (!stream.EndOfStream)
+		{
 			string? line = stream.ReadLine();
 
-			if (line != null) {
+			if (line != null)
+			{
 				list.Add(line);
 			}
 		}
@@ -40,10 +42,12 @@ public static class StreamExtensions
 	{
 		var list = new List<string>();
 
-		while (!stream.EndOfStream) {
+		while (!stream.EndOfStream)
+		{
 			string? line = await stream.ReadLineAsync(ct);
 
-			if (line != null) {
+			if (line != null)
+			{
 				list.Add(line);
 			}
 		}
@@ -144,7 +148,8 @@ public static class StreamExtensions
 	public static async Task<byte[]> ReadHeaderAsync(this Stream m, int offset = 0, int l = BlockSize,
 	                                                 CancellationToken ct = default)
 	{
-		if (m.CanSeek) {
+		if (m.CanSeek)
+		{
 			m.Position = offset;
 			int d = checked((int) m.Length);
 			l = d >= l ? l : d;
@@ -159,11 +164,42 @@ public static class StreamExtensions
 	{
 		long oldPos = s.Position;
 
-		if (s.CanSeek) {
+		if (s.CanSeek)
+		{
 			s.Position = pos;
 		}
 
 		return oldPos;
+	}
+
+	/// <summary>
+	/// Rewind stream to first position.
+	/// </summary>
+	/// <param name="stream">Stream to rewind</param>
+	public static bool Rewind(this Stream stream)
+	{
+		var canSeek = stream.CanSeek && stream.Position != 0;
+
+		if (canSeek)
+		{
+			stream.Seek(0L, SeekOrigin.Begin);
+		}
+
+		return canSeek;
+	}
+
+	/// <summary>
+	/// Copy stream as new stream.
+	/// </summary>
+	/// <param name="stream">Stream to copy</param>
+	/// <returns>Copy of original stream</returns>
+	public static Stream CopyStream(this Stream stream)
+	{
+		Stream targetStream = new MemoryStream();
+		stream.Rewind();
+		stream.CopyTo(targetStream);
+		targetStream.Rewind();
+		return targetStream;
 	}
 
 	/*public static void ReadFully(this Stream stream, byte[] buffer)
@@ -177,7 +213,8 @@ public static class StreamExtensions
 		int offset = 0;
 		int readBytes;
 
-		do {
+		do
+		{
 			// If you are using Socket directly instead of a Stream:
 			//readBytes = socket.Receive(buffer, offset, buffer.Length - offset,
 			//                           SocketFlags.None);
@@ -187,7 +224,8 @@ public static class StreamExtensions
 			offset += readBytes;
 		} while (readBytes > 0 && offset < buffer.Length);
 
-		if (offset < buffer.Length) {
+		if (offset < buffer.Length)
+		{
 			throw new EndOfStreamException();
 		}
 	}
@@ -208,10 +246,12 @@ public static class StreamExtensions
 		var ll = new LinkedList<T>();
 		T   t;
 
-		while (!pred(t = read(s))) {
+		while (!pred(t = read(s)))
+		{
 			ll.AddLast(t);
 
-			if (token.IsCancellationRequested || (!max.HasValue && ll.Count >= max)) {
+			if (token.IsCancellationRequested || (!max.HasValue && ll.Count >= max))
+			{
 				goto ret;
 			}
 		}

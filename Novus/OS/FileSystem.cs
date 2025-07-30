@@ -380,6 +380,33 @@ public static class FileSystem
 
 	}
 
+	public static string? FindInPath(string f)
+	{
+		f = Environment.ExpandEnvironmentVariables(f);
+
+		if (!File.Exists(f)) {
+			if (Path.GetDirectoryName(f) == String.Empty) {
+				var split = (Environment.GetEnvironmentVariable(PATH_ENV) ?? String.Empty)
+					.Split(PathDelimiter);
+
+				// ReSharper disable once LoopCanBeConvertedToQuery
+				foreach (string test in split) {
+					string path = test.Trim();
+
+					if (!String.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, f))) {
+						return Path.GetFullPath(path);
+					}
+				}
+			}
+
+			return null;
+
+			// throw new FileNotFoundException(new FileNotFoundException().Message, f);
+		}
+
+		return Path.GetFullPath(f);
+	}
+
 	public static string? FindLocation(string exe)
 	{
 

@@ -102,6 +102,7 @@ public abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<UniS
 	resType:
 
 		if (autoAlloc) {
+			
 			var ok = await buf.AllocStream(ct);
 
 			if (ok) {
@@ -117,12 +118,12 @@ public abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<UniS
 	}
 
 
-	public static async Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
+	public static Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
 	                                                bool autoAlloc = true,
 	                                                CancellationToken ct = default)
 	{
 		try {
-			return await GetAsync(value, resolver, autoAlloc, ct: ct);
+			return GetAsync(value, resolver, autoAlloc, ct: ct);
 		}
 		catch (FlurlHttpException e) {
 			Debug.WriteLine($"HTTP: {e.Message}", nameof(TryGetAsync));
@@ -135,7 +136,7 @@ public abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<UniS
 		}
 		finally { }
 
-		return null;
+		return Task.FromResult<UniSource>(null);
 	}
 
 	[ICBN]

@@ -62,7 +62,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
   </ItemGroup>
 

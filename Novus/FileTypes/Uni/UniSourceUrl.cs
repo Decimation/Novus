@@ -1,6 +1,7 @@
 ﻿// Deci Novus UniSourceUri.cs
 // $File.CreatedYear-$File.CreatedMonth-9 @ 2:39
 
+using System.Diagnostics;
 using System.Net;
 using Flurl;
 using Flurl.Http;
@@ -26,10 +27,19 @@ public class UniSourceUrl : UniSource, IUniSource
 		return base.TryWriteToFileAsync(fn, ext);
 	}
 
+	/*public static IFlurlClient Client { get; set; }
+
+	static UniSourceUrl()
+	{
+		Client = FlurlHttp.Clients.GetOrAdd(nameof(UniSourceUrl), null, builder => { });
+	}*/
+
 #region Overrides of UniSource
 
 	public override async ValueTask<bool> AllocStream(CancellationToken ct = default)
 	{
+		bool ok = true;
+
 		if (Stream != null) {
 			goto ret;
 		}
@@ -42,10 +52,33 @@ public class UniSourceUrl : UniSource, IUniSource
 			          {
 				          User_Agent = ER.UserAgent,
 			          })
+			          .WithSettings(act =>
+			          {
+				          act.Redirects.Enabled               = true;
+				          act.Redirects.AllowSecureToInsecure = true;
+				          act.Redirects.MaxAutoRedirects      = 3;
+				          act.HttpVersion                     = "2.0";
+			          })
+			          .WithCookies(out CookieJar jar)
+			          .OnError(err =>
+			          {
+				          Trace.WriteLine($"{err} {err.Exception}");
+				          err.ExceptionHandled = true;
+			          })
 			          .GetAsync(cancellationToken: ct);
 
-		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
-			throw new ArgumentException($"{Url} returned {HttpStatusCode.NotFound}");
+		/*var res2 = await new HttpClient().GetAsync(Url, ct);
+		Trace.WriteLine(res2);*/
+
+		if (res is null or
+		    {
+			    ResponseMessage.IsSuccessStatusCode: false
+			    /*ResponseMessage.StatusCode: HttpStatusCode.NotFound or HttpStatusCode.Moved */
+		    }) {
+			// throw new ArgumentException($"{Url} returned {HttpStatusCode.NotFound}");
+
+			ok = false;
+			goto ret;
 		}
 
 		Stream = await res.GetStreamAsync();
@@ -54,13 +87,12 @@ public class UniSourceUrl : UniSource, IUniSource
 
 		}*/
 
-		ret:
-		return true;
+	ret:
+		return ok;
 	}
 
 #endregion
 
-	
 
 	/*public static bool IsType(object o, out object u)
 	{

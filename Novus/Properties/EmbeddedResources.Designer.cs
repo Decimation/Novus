@@ -170,7 +170,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 9.0.6.
+        ///   Looks up a localized string similar to 9.0.9.
         /// </summary>
         internal static string RequiredVersion {
             get {
@@ -197,7 +197,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 30 4C 8B F1 0F B6 41 02.
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B E9 0F B6 41 ?.
         /// </summary>
         internal static string Sig_GetIL {
             get {
@@ -206,7 +206,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 0F B6 41 02 48 8B D1 0F B7 09.
+        ///   Looks up a localized string similar to 0F B6 51 ? 48 8B C1.
         /// </summary>
         internal static string Sig_GetMemberDef {
             get {
@@ -341,7 +341,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36.
+        ///   Looks up a localized string similar to Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36.
         /// </summary>
         internal static string UserAgent {
             get {

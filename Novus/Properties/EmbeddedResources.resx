@@ -155,7 +155,7 @@
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>9.0.6</value>
+    <value>9.0.9</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
     <value>48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 60 48 8B D9</value>
@@ -166,11 +166,11 @@
     <comment>MethodDesc::GetAttrs</comment>
   </data>
   <data name="Sig_GetIL" xml:space="preserve">
-    <value>48 89 5C 24 ? 48 89 74 24 ? 48 89 7C 24 ? 41 56 48 83 EC 30 4C 8B F1 0F B6 41 02</value>
+    <value>48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B E9 0F B6 41 ?</value>
     <comment>MethodDesc::GetILHeader</comment>
   </data>
   <data name="Sig_GetMemberDef" xml:space="preserve">
-    <value>0F B6 41 02 48 8B D1 0F B7 09</value>
+    <value>0F B6 51 ? 48 8B C1</value>
     <comment>MethodDesc::GetMemberDef</comment>
   </data>
   <data name="Sig_GetMethodTable" xml:space="preserve">
@@ -230,6 +230,6 @@
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="UserAgent" xml:space="preserve">
-    <value>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36</value>
+    <value>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36</value>
   </data>
 </root>

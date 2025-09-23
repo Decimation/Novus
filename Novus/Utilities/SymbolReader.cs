@@ -284,7 +284,8 @@ public sealed class SymbolReader : IDisposable
 
 	public static IEnumerable<string> EnumerateSymbolPath(string pattern, string symPath = NT_SYMBOL_PATH)
 	{
-		var nt = Environment.ExpandEnvironmentVariables(symPath);
+		// var nt = Environment.ExpandEnvironmentVariables(symPath);
+		var nt = Environment.GetEnvironmentVariable(symPath, EnvironmentVariableTarget.Machine);
 
 		/*
 		var nt = Environment.GetEnvironmentVariable(symPath, EnvironmentVariableTarget.Machine)?

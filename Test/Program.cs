@@ -2,6 +2,11 @@
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable RedundantUnsafeContext
 
+#pragma warning disable IDE0005, CS0436, CS0469
+#pragma warning disable NV0001
+#pragma warning disable CS0649
+
+
 global using Pointer = Novus.Memory.Pointer<byte>;
 global using Native = Novus.Win32.Native;
 using System.Buffers;
@@ -58,7 +63,6 @@ using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
 using Test.TestTypes;
-#pragma warning disable IDE0005, CS0436, CS0469
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -72,20 +76,17 @@ using Novus.FileTypes.Uni;
 using Novus.Memory.Types;
 
 // ReSharper disable UnusedMember.Local
-
-#pragma warning disable NV0001
-#pragma warning disable CS0649
-
 // ReSharper disable ClassNeverInstantiated.Local
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable ArrangeTypeModifiers
 // ReSharper disable UnusedType.Local
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedParameter.Local
+
 #nullable disable
 
-
 namespace Test;
+
 /*
  * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
  * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
@@ -105,9 +106,11 @@ namespace Test;
  * ◆ Kantan				https://github.com/Decimation/Kantan
  *
  */
+
 /*
  * https://github.com/IS4Code/SharpUtils
  */
+
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -161,20 +164,20 @@ public static class Program
 		// var mc=new MyClass2b();
 
 		var pss = Process.GetCurrentProcess().Modules;
-		foreach (ProcessModule processModule in pss)
-		{
+
+		foreach (ProcessModule processModule in pss) {
 			Console.WriteLine(processModule);
 
 		}
-		foreach (string s in FileSystem.EnumerateInPath("coreclr.pdb", EnvironmentVariableTarget.Machine))
-		{
+
+		foreach (string s in FileSystem.EnumerateInPath("coreclr.pdb", EnvironmentVariableTarget.Machine)) {
 			Console.WriteLine(s);
 		}
 
-		foreach (string s in SymbolReader.EnumerateSymbolPath("coreclr.pdb"))
-		{
+		foreach (string s in SymbolReader.EnumerateSymbolPath("coreclr.pdb")) {
 			Console.WriteLine(s);
 		}
+
 		return;
 	}
 

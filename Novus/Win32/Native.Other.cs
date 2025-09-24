@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
-
+using ATOM=ushort;
 // ReSharper disable StringLiteralTypo
 
 namespace Novus.Win32;

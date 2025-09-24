@@ -1,5 +1,6 @@
 ﻿global using MImpl = System.Runtime.CompilerServices.MethodImplAttribute;
-// global using Pointer = Novus.Memory.Pointer<byte>;
+
+// global using Pointer<byte> = Novus.Memory.Pointer<byte>;
 using System.Buffers;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -47,7 +48,7 @@ namespace Novus.Memory;
 ///             <description>Minimum type safety</description>
 ///         </item>
 /// <item>
-///             <description>Pointer semantics</description>
+///             <description>Pointer<byte> semantics</description>
 ///         </item>
 ///     </list>
 /// </remarks>
@@ -131,7 +132,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public Pointer(ref T value)
 		: this(Unsafe.AsPointer(ref value)) { }
 
-	#region Conversion
+#region Conversion
 
 	public static explicit operator Pointer<T>(ulong ul)
 		=> new((void*) ul);
@@ -219,9 +220,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public readonly uint ToUInt32()
 		=> (uint) m_value;
 
-	#endregion
+#endregion
 
-	#region Comparison
+#region Comparison
 
 	/// <summary>
 	///     Checks to see if <paramref name="other" /> is equal to the current instance.
@@ -237,7 +238,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	{
 		return obj is Pointer<T> pointer && Equals(pointer);
 
-		/*if (obj is Pointer p && Equals(p)) {
+		/*if (obj is Pointer<byte> p && Equals(p)) {
 			return true;
 		}
 		else if (obj == null) {
@@ -278,9 +279,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public static bool operator <=(Pointer<T> ptr, Pointer<T> b)
 		=> ptr.ToInt64() <= b.ToInt64();
 
-	#endregion
+#endregion
 
-	#region Arithmetic
+#region Arithmetic
 
 	/// <summary>
 	///     Increment <see cref="Address" /> by the specified number of bytes
@@ -400,9 +401,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public readonly Pointer<T> AddressOfIndex(nint index)
 		=> Offset(index);
 
-	#endregion
+#endregion
 
-	#region Read/write
+#region Read/write
 
 	/// <summary>
 	///     Writes a value of type <typeparamref name="T" /> to <see cref="Address" />.
@@ -532,9 +533,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public T[] ToArray(nint elemCnt)
 		=> ToArray(OFFSET, elemCnt);
 
-	#endregion
+#endregion
 
-	#region Format
+#region Format
 
 	public readonly override string ToString()
 		=> ToString(FormatHelper.HexFormatter.FMT_P);
@@ -560,7 +561,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	}
 
-	#endregion
+#endregion
 
 	[MURV]
 	public readonly MemoryHandle Pin(int elementIndex = OFFSET_I)

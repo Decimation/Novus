@@ -116,7 +116,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Represents a <c>null</c> <see cref="Pointer{T}" /> or <see cref="ReadOnlyPointer{T}" />
 	/// </summary>
-	public static readonly Pointer Nullptr = null;
+	public static readonly Pointer<byte> Nullptr = null;
 
 	public static readonly bool Is64Bit;
 
@@ -142,7 +142,7 @@ public static unsafe class Mem
 	/// <param name="p">Operand</param>
 	/// <param name="lo">Start address (inclusive)</param>
 	/// <param name="hi">End address (inclusive)</param>
-	public static bool IsAddressInRange(Pointer p, Pointer lo, Pointer hi)
+	public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, Pointer<byte> hi)
 	{
 		// [lo, hi]
 
@@ -156,7 +156,7 @@ public static unsafe class Mem
 		return p <= hi && p >= lo;
 	}
 
-	public static bool IsAddressInRange(Pointer p, Pointer lo, nint size)
+	public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, nint size)
 		=> p >= lo && p <= lo.AddBytes(size);
 
 
@@ -325,7 +325,7 @@ public static unsafe class Mem
 	///     <paramref name="baseAddr" /> in <paramref name="proc" />
 	/// </summary>
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static void WriteProcessMemory<T>(Process proc, Pointer baseAddr, T value)
+	public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 	{
 		int dwSize = Unsafe.SizeOf<T>();
 		var ptr    = AddressOf(ref value);
@@ -337,7 +337,7 @@ public static unsafe class Mem
 	///     Root abstraction of <see cref="Native.WriteProcessMemory" />
 	/// </summary>
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static void WriteProcessMemory(Process proc, Pointer addr, Pointer ptrBuffer, int dwSize)
+	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> ptrBuffer, int dwSize)
 	{
 		nint hProc = Native.OpenProcess(proc);
 
@@ -350,7 +350,7 @@ public static unsafe class Mem
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static void WriteProcessMemory(Process proc, Pointer addr, [NN] byte[] value)
+	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, [NN] byte[] value)
 	{
 		fixed (byte* rg = value) {
 			WriteProcessMemory(proc, addr, (nint) rg, value.Length);
@@ -361,7 +361,7 @@ public static unsafe class Mem
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static void WriteProcessMemory(Process proc, Pointer addr, ReadOnlySpan<byte> value)
+	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, ReadOnlySpan<byte> value)
 	{
 		fixed (byte* rg = value) {
 			WriteProcessMemory(proc, addr, (nint) rg, value.Length);
@@ -380,7 +380,7 @@ public static unsafe class Mem
 	/// <param name="buffer">Buffer that receives the read contents from the address space</param>
 	/// <param name="cb">Number of bytes to read</param>
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static void ReadProcessMemory(Process proc, Pointer addr, Pointer buffer, nint cb)
+	public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, nint cb)
 	{
 		nint h = Native.OpenProcess(proc);
 
@@ -393,7 +393,7 @@ public static unsafe class Mem
 	///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static Memory<byte> ReadProcessMemory(Process proc, Pointer addr, nint cb)
+	public static Memory<byte> ReadProcessMemory(Process proc, Pointer<byte> addr, nint cb)
 	{
 		Memory<byte> mem = new byte[(int) cb];
 		using var    mh  = mem.Pin();
@@ -407,7 +407,7 @@ public static unsafe class Mem
 	///     Reads a value of type <typeparamref name="T" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static T ReadProcessMemory<T>(Process proc, Pointer addr)
+	public static T ReadProcessMemory<T>(Process proc, Pointer<byte> addr)
 	{
 		T   value = default;
 		int size  = Unsafe.SizeOf<T>();
@@ -449,7 +449,7 @@ public static unsafe class Mem
 		byte[] rg = new byte[s.Length * sizeof(char)];
 
 		fixed (char* p = s) {
-			Pointer p2 = p;
+			Pointer<byte> p2 = p;
 
 			p2.Copy(rg);
 		}
@@ -484,9 +484,9 @@ public static unsafe class Mem
 	{
 		var t2 = Activator.CreateInstance<T>();
 
-		Pointer p  = AddressOfData(ref t);
-		int     s  = SizeOf(t, SizeOfOption.Data);
-		Pointer p2 = AddressOfData(ref t2);
+		Pointer<byte> p  = AddressOfData(ref t);
+		int           s  = SizeOf(t, SizeOfOption.Data);
+		Pointer<byte> p2 = AddressOfData(ref t2);
 
 		//p2.WriteAll(p.Copy(s));
 		p2.WriteAll(p.ToArray(s));
@@ -496,16 +496,16 @@ public static unsafe class Mem
 		return t2;
 	}
 
-	/*public static void Copy(Pointer src, int cb, Pointer dest)
+	/*public static void Copy(Pointer<byte>src, int cb, Pointer<byte> dest)
 		=> dest.WriteAll(src.ToArray(cb));
 
-	public static void Copy(Pointer src, int startIndex, int cb, Pointer dest)
+	public static void Copy(Pointer<byte> src, int startIndex, int cb, Pointer<byte> dest)
 		=> dest.WriteAll(src.ToArray(startIndex, cb));
 
-	public static byte[] Copy(Pointer src, int startIndex, int cb)
+	public static byte[] Copy(Pointer<byte> src, int startIndex, int cb)
 		=> src.ToArray(startIndex, cb);
 
-	public static byte[] Copy(Pointer src, int cb)
+	public static byte[] Copy(Pointer<byte> src, int cb)
 		=> src.ToArray(cb);*/
 
 #endregion
@@ -704,7 +704,7 @@ public static unsafe class Mem
 	}
 
 
-	#region 
+#region
 
 	private static readonly HashSet<SizeOfOption> TypeValue = new()
 	{
@@ -751,7 +751,7 @@ public static unsafe class Mem
 		return Unsafe.AsPointer(ref value);
 	}
 
-	public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer ptr)
+	public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer<byte> ptr)
 	{
 		if (RuntimeProperties.IsStruct(value)) {
 			ptr = null;
@@ -762,7 +762,7 @@ public static unsafe class Mem
 		return true;
 	}
 
-	public static bool TryGetAddressOfHeap<T>(T value, out Pointer ptr)
+	public static bool TryGetAddressOfHeap<T>(T value, out Pointer<byte> ptr)
 		=> TryGetAddressOfHeap(value, OffsetOptions.None, out ptr);
 
 	/// <summary>
@@ -781,18 +781,18 @@ public static unsafe class Mem
 	/// <param name="offset">Offset type</param>
 	/// <returns>The address of <paramref name="value" /></returns>
 	/// <exception cref="ArgumentOutOfRangeException">If <paramref name="offset"></paramref> is out of range.</exception>
-	public static Pointer AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
+	public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
 		where T : class
 		=> AddressOfHeapInternal(value, offset);
 
-	private static Pointer AddressOfHeapInternal<T>(T value, OffsetOptions offset)
+	private static Pointer<byte> AddressOfHeapInternal<T>(T value, OffsetOptions offset)
 	{
 		// It is already assumed value is a class type
 
 		//var tr = __makeref(value);
 		//var heapPtr = **(IntPtr**) (&tr);
 
-		Pointer heapPtr = AddressOf(ref value).ReadPointer();
+		Pointer<byte> heapPtr = AddressOf(ref value).ReadPointer();
 
 		// NOTE:
 		// Strings have their data offset by RuntimeInfo.OffsetToStringData
@@ -819,7 +819,7 @@ public static unsafe class Mem
 	///     this will return the equivalent of <see cref="AddressOfHeap{T}(T, OffsetOptions)" /> with
 	///     <see cref="OffsetOptions.Fields" />.
 	/// </summary>
-	public static Pointer AddressOfData<T>(ref T value)
+	public static Pointer<byte> AddressOfData<T>(ref T value)
 	{
 		Pointer<T> addr = AddressOf(ref value);
 
@@ -834,19 +834,19 @@ public static unsafe class Mem
 		return AddressOfHeapInternal(value, OffsetOptions.Fields);
 	}
 
-	/*public static Pointer AddressOfData2<T>(in T value)
+	/*public static Pointer<byte> AddressOfData2<T>(in T value)
 		=> AddressOfData(ref ref_cast(in value));*/
 
 #region Field
 
-	public static Pointer AddressOfField(object obj, string name)
+	public static Pointer<byte> AddressOfField(object obj, string name)
 		=> AddressOfField<object, byte>(ref obj, name);
 
 	public static Pointer<TField> AddressOfField<T, TField>(ref T obj, string name)
 	{
 		int offsetOf = obj.GetType().OffsetOf(name);
 
-		Pointer p = AddressOfData(ref obj);
+		Pointer<byte> p = AddressOfData(ref obj);
 
 		return (Pointer<TField>) (p + offsetOf);
 	}
@@ -855,7 +855,7 @@ public static unsafe class Mem
 	{
 		MetaField field = t.GetAnyResolvedField(name).AsMetaField();
 
-		Pointer p = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
+		Pointer<byte> p = field.IsStatic ? field.StaticAddress : AddressOfField(o, name);
 
 		return p.Cast<TField>();
 	}
@@ -864,7 +864,7 @@ public static unsafe class Mem
 	{
 		int offsetOf = obj.GetType().OffsetOf(member_of2(mem).Name);
 
-		Pointer p = AddressOfData(ref obj);
+		Pointer<byte> p = AddressOfData(ref obj);
 
 		return (Pointer<TField>) (p + offsetOf);
 	}
@@ -896,7 +896,7 @@ public static unsafe class Mem
 	/// </summary>
 	[CBN]
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static object ReadProcessMemory(Process proc, Pointer addr, MetaType mt)
+	public static object ReadProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
 	{
 		//todo
 
@@ -999,7 +999,7 @@ public static unsafe class Mem
 	/// <param name="ptrOrig">Original base pointer</param>
 	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
 	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
-	public static T InitInline<T>(Pointer ptr, out Pointer ptrOrig) where T : class
+	public static T InitInline<T>(Pointer<byte> ptr, out Pointer<byte> ptrOrig) where T : class
 	{
 		ptrOrig = ptr;
 		ptr.Cast<ClrObjHeader>().Write(default);
@@ -1069,12 +1069,12 @@ public static unsafe class Mem
 		return new string(bits);
 	}
 
-	/*public static void Write<T>(Pointer p, T value)
+	/*public static void Write<T>(Pointer<byte> p, T value)
 	{
 		Unsafe.Write(p.ToPointer(), value);
 	}
 
-	public static T Read<T>(Pointer p)
+	public static T Read<T>(Pointer<byte> p)
 	{
 		return Unsafe.Read<T>(p.ToPointer());
 	}*/
@@ -1087,7 +1087,7 @@ public static unsafe class Mem
 	*/
 
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer ptr)
+	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer<byte> ptr)
 	{
 		var modules = Native.EnumProcessModules((uint) proc.Id);
 

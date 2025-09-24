@@ -125,8 +125,7 @@ public static class FileSystem
 		                                         (uint) flags, new nint(defaultUser ? -1 : 0),
 		                                         out var outPath);
 
-		if (result >= 0)
-		{
+		if (result >= 0) {
 			string path = Marshal.PtrToStringUni(outPath)!;
 			Marshal.FreeCoTaskMem(outPath);
 			return path;
@@ -144,15 +143,13 @@ public static class FileSystem
 	[SupportedOSPlatform(OS_WIN)]
 	public static string GetShortPath(string dir)
 	{
-		unsafe
-		{
+		unsafe {
 
 			var buf = stackalloc char[Native.SIZE_1024];
 
 			var l = Native.GetShortPathName(dir, buf, Native.SIZE_1024);
 
-			if (l != Native.ERROR_SUCCESS)
-			{
+			if (l != Native.ERROR_SUCCESS) {
 				throw new Win32Exception((int) l);
 			}
 
@@ -175,8 +172,7 @@ public static class FileSystem
 
 	public static string GetParent(string? fi, int n)
 	{
-		if (n == 0 || fi == null)
-		{
+		if (n == 0 || fi == null) {
 			return fi;
 		}
 
@@ -194,8 +190,7 @@ public static class FileSystem
 	{
 		string tmp = Path.GetTempFileName();
 
-		if (fn != null)
-		{
+		if (fn != null) {
 			var ext1 = Path.GetExtension(fn);
 
 			/*if (ext != null && ext1 != ext) {
@@ -210,12 +205,10 @@ public static class FileSystem
 		}
 		else { }
 
-		if (ext != null)
-		{
+		if (ext != null) {
 			var tmp2 = Path.ChangeExtension(tmp, ext);
 
-			if (tmp2 != tmp)
-			{
+			if (tmp2 != tmp) {
 				File.Move(tmp, tmp2, true);
 				tmp = tmp2;
 			}
@@ -240,8 +233,7 @@ public static class FileSystem
 			f ??= Path.GetTempFileName();
 			using var s = File.OpenWrite(f);
 
-			for (long i = 0; i < cb; i++)
-			{
+			for (long i = 0; i < cb; i++) {
 				s.WriteByte((byte) (i ^ cb));
 			}
 
@@ -263,8 +255,7 @@ public static class FileSystem
 	public static bool ExploreFile(string filePath)
 	{
 		// https://stackoverflow.com/questions/13680415/how-to-open-explorer-with-a-specific-file-selected
-		if (!File.Exists(filePath))
-		{
+		if (!File.Exists(filePath)) {
 			return false;
 		}
 
@@ -305,8 +296,7 @@ public static class FileSystem
 
 	public static bool Open(string s, out Process? p)
 	{
-		try
-		{
+		try {
 			p = Process.Start(new ProcessStartInfo
 			{
 				FileName        = s,
@@ -314,8 +304,7 @@ public static class FileSystem
 			});
 			return true;
 		}
-		catch (Exception ex)
-		{
+		catch (Exception ex) {
 			// Handle any exceptions that might occur
 			Trace.WriteLine($"Error opening: {ex.Message}");
 			p = null;
@@ -361,8 +350,7 @@ public static class FileSystem
 
 		var split = GetEnvironmentPathDirectories(t);
 
-		if (split == null)
-		{
+		if (split == null) {
 			throw new InvalidOperationException($"{nameof(f)} variable {null}");
 		}
 
@@ -437,10 +425,8 @@ public static class FileSystem
 
 		//
 
-		foreach (string loc in rg)
-		{
-			if (ExistsInFolder(loc, exe, out var folder))
-			{
+		foreach (string loc in rg) {
+			if (ExistsInFolder(loc, exe, out var folder)) {
 				return folder;
 			}
 		}
@@ -452,14 +438,10 @@ public static class FileSystem
 	{
 		string[] path = GetEnvironmentPathDirectories(t);
 
-		foreach (string directory in path)
-		{
-			if (Directory.Exists(directory))
-			{
-				foreach (string file in Directory.EnumerateFiles(directory))
-				{
-					if (Path.GetFileName(file) == s)
-					{
+		foreach (string directory in path) {
+			if (Directory.Exists(directory)) {
+				foreach (string file in Directory.EnumerateFiles(directory)) {
+					if (Path.GetFileName(file) == s) {
 						//rg.Add(file);
 						return file;
 					}
@@ -520,12 +502,10 @@ public static class FileSystem
 	{
 		get
 		{
-			if (IsLinux)
-			{
+			if (IsLinux) {
 				return Environment.UserName == "root";
 			}
-			else if (IsWindows)
-			{
+			else if (IsWindows) {
 				return IsAdministrator();
 
 			}

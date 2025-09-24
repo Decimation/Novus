@@ -16,9 +16,9 @@ namespace Novus.Memory.Types;
 public struct any
 {
 
-	private Pointer m_address;
+	private Pointer<byte> m_address;
 
-	public Pointer Address
+	public Pointer<byte> Address
 	{
 		get => m_address;
 	}
@@ -35,13 +35,13 @@ public struct any
 	[MNNW(true, nameof(Type))]
 	public bool HasType => Type != null;
 
-	public any(Pointer address, Type type = null)
+	public any(Pointer<byte> address, Type type = null)
 	{
 		m_address = address;
 		m_type    = type;
 	}
 
-	public static explicit operator any(Pointer p)
+	public static explicit operator any(Pointer<byte> p)
 		=> new(p, null);
 
 

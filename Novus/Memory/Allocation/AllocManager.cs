@@ -31,18 +31,18 @@ public static class AllocManager
 
 	public static IAllocator Allocator { get; set; } = new NativeAllocator();
 
-	private static List<Pointer> Allocated { get; } = new();
+	private static List<Pointer<byte>> Allocated { get; } = new();
 
 	public static int AllocCount => Allocated.Count;
 
-	public static bool IsAllocated(Pointer ptr)
+	public static bool IsAllocated(Pointer<byte> ptr)
 	{
 		return Allocated.Contains(ptr);
 
 		// return Allocator.IsAllocated(ptr);
 	}
 
-	public static nuint GetSize(Pointer ptr)
+	public static nuint GetSize(Pointer<byte> ptr)
 	{
 		/*if (!IsAllocated(ptr)) {
 			return Native.INVALID2;
@@ -70,13 +70,13 @@ public static class AllocManager
 		return ptr;
 	}
 
-	private static void FreeInternal(Pointer ptr)
+	private static void FreeInternal(Pointer<byte> ptr)
 	{
 		Allocator.Free(ptr.Address);
 		Allocated.Remove(ptr);
 	}
 
-	public static void Free(Pointer ptr)
+	public static void Free(Pointer<byte> ptr)
 	{
 		if (!IsAllocated(ptr)) {
 			return;
@@ -90,7 +90,7 @@ public static class AllocManager
 	/// </summary>
 	/// <param name="cb">Number of bytes</param>
 	[MURV]
-	public static Pointer Alloc(nuint cb)
+	public static Pointer<byte> Alloc(nuint cb)
 		=> Alloc<byte>(cb);
 
 	/// <summary>

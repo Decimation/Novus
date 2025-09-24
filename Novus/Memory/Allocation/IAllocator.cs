@@ -11,15 +11,15 @@ public interface IAllocator
 	public void Free(Pointer<byte> p);
 
 	[MURV]
-	public Pointer ReAlloc(Pointer<byte> p, nuint n);
+	public Pointer<byte> ReAlloc(Pointer<byte> p, nuint n);
 
 	[MURV]
-	public Pointer Alloc(nuint n);
+	public Pointer<byte> Alloc(nuint n);
 
-	public bool IsAllocated(Pointer p)
+	public bool IsAllocated(Pointer<byte> p)
 	{
 		return GetSize(p) != Native.ERROR_SV;
 	}
 
-	public nint GetSize(Pointer p);
+	public nint GetSize(Pointer<byte> p);
 }

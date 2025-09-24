@@ -53,7 +53,7 @@ public static class ReflectionHelper
 	public const BindingFlags ALL_INSTANCE_FLAGS =
 		BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
 
-	#region Members
+#region Members
 
 	public static IEnumerable<FI> GetAllFields(this Type t)
 		=> t.GetFields(ALL_FLAGS);
@@ -113,9 +113,10 @@ public static class ReflectionHelper
 	public static (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>(this Type t)
 		where TAttribute : Attribute
 	{
-		return (from member in t.GetAllMembers()
-		        where Attribute.IsDefined(member, typeof(TAttribute))
-		        select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
+		return (
+			       from member in t.GetAllMembers()
+			       where Attribute.IsDefined(member, typeof(TAttribute))
+			       select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
 	}
 
 	[return: MN]
@@ -174,9 +175,9 @@ public static class ReflectionHelper
 		return (T) p.GetValue(null);
 	}*/
 
-	#endregion
+#endregion
 
-	#region Special
+#region Special
 
 	public static IEnumerable<FI> GetAllBackingFields(this Type t)
 	{
@@ -247,9 +248,9 @@ public static class ReflectionHelper
 		       && type.Attributes.HasFlag(TypeAttributes.NotPublic);*/
 	}
 
-	#endregion
+#endregion
 
-	#region Properties
+#region Properties
 
 	public static bool ExtendsType(this Type myType, Type superType)
 	{
@@ -267,7 +268,7 @@ public static class ReflectionHelper
 		return type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericType);
 	}
 
-	#region
+#region
 
 	public static bool IsSigned(this Type t)
 	{
@@ -320,7 +321,7 @@ public static class ReflectionHelper
 		return case1 || case2;
 	}
 
-	#endregion
+#endregion
 
 	/// <summary>
 	///     Dummy class for use with <see cref="IsUnmanaged" /> and <see cref="IsUnmanaged" />
@@ -363,9 +364,9 @@ public static class ReflectionHelper
 	public static Type GetType2<T>([CBN] this T t)
 		=> t?.GetType() ?? typeof(T);
 
-	#endregion
+#endregion
 
-	#region Invocation
+#region Invocation
 
 	/// <summary>
 	///     Executes a generic method
@@ -406,9 +407,9 @@ public static class ReflectionHelper
 		return false;
 	}
 
-	#endregion
+#endregion
 
-	#region Assemblies
+#region Assemblies
 
 	public static Type[] GetImplementations(this Type type)
 	{
@@ -493,9 +494,9 @@ public static class ReflectionHelper
 		return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
 	}
 
-	#endregion
+#endregion
 
-	#region Field ID
+#region Field ID
 
 	/*//todo
 	[AttributeUsage(
@@ -526,7 +527,7 @@ public static class ReflectionHelper
 		return f.ToArray();
 	}*/
 
-	#endregion
+#endregion
 
 	public static T Clone<T>(this T t) where T : class
 	{
@@ -633,6 +634,7 @@ public static class ReflectionHelper
 	{
 		var mem  = o.GetType().GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.Default);
 		var dict = new Dictionary<string, object>();
+
 		foreach (var info in mem) {
 			//todo
 		}
@@ -685,7 +687,7 @@ public static class ReflectionOperatorHelpers
 
 		return mi switch
 		{
-			FI f    => f,
+			FI f => f,
 			PI p => p,
 
 			_ => mi

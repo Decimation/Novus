@@ -47,7 +47,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public const string RSRC_MGR_NAME = "EmbeddedResources";
 
-	public Pointer Address => Module.BaseAddress;
+	public Pointer<byte> Address => Module.BaseAddress;
 
 	public ProcessModule Module { get; }
 
@@ -302,7 +302,7 @@ public sealed class RuntimeResource : IDisposable
 
 				}
 
-				if (field.FieldType == typeof(Pointer)) {
+				if (field.FieldType == typeof(Pointer<byte>)) {
 					fieldValue = addr;
 				}
 				else {
@@ -355,7 +355,7 @@ public sealed class RuntimeResource : IDisposable
 		}
 
 		mgr = new ResourceManager(name, assembly);
-		
+
 		TryAddManager(assembly, mgr);
 
 		return mgr;
@@ -389,7 +389,7 @@ public sealed class RuntimeResource : IDisposable
 
 #region
 
-	public Pointer FindImport(ImportAttribute ia, string value = null)
+	public Pointer<byte> FindImport(ImportAttribute ia, string value = null)
 	{
 		var n        = ia.Name;
 		var it       = default(ImportType);
@@ -415,7 +415,7 @@ public sealed class RuntimeResource : IDisposable
 		};
 	}
 
-	public static Pointer FindImport(Process proc, string moduleName, string value, ImportType it, bool absolute = false)
+	public static Pointer<byte> FindImport(Process proc, string moduleName, string value, ImportType it, bool absolute = false)
 	{
 		using var resource = new RuntimeResource(proc, moduleName, value);
 
@@ -425,27 +425,27 @@ public sealed class RuntimeResource : IDisposable
 		}, value);
 	}
 
-	public static Pointer FindImport(string moduleName, string value, ImportType it)
+	public static Pointer<byte> FindImport(string moduleName, string value, ImportType it)
 		=> FindImport(Process.GetCurrentProcess(), moduleName, value, it);
 
 #endregion
 
 #region
 
-	public Pointer GetOffset(string s)
+	public Pointer<byte> GetOffset(string s)
 	{
 		return Address + (IntPtr.TryParse(s, NumberStyles.HexNumber, null, out var l)
 			                  ? l
 			                  : IntPtr.Parse(s));
 	}
 
-	public Pointer GetExport(string name)
+	public Pointer<byte> GetExport(string name)
 		=> NativeLibrary.GetExport(Module.BaseAddress, name);
 
-	public Pointer GetSignature(string signature)
+	public Pointer<byte> GetSignature(string signature)
 		=> Scanner.Value.FindSignature(signature);
 
-	public Pointer GetSymbol(string name, Type t = null, bool absolute = false)
+	public Pointer<byte> GetSymbol(string name, Type t = null, bool absolute = false)
 	{
 		if (Symbols.Value == null) {
 			return Mem.Nullptr;
@@ -470,7 +470,7 @@ public sealed class RuntimeResource : IDisposable
 			symbol = symbols.FirstOrDefault();
 		}*/
 
-		return (Pointer) Module.BaseAddress +
+		return (Pointer<byte>) Module.BaseAddress +
 		       (nint) (symbol?.Offset ?? throw new InvalidOperationException());
 	}
 

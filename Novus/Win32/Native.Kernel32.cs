@@ -1,4 +1,4 @@
-﻿global using ATOM = ushort;
+﻿using ATOM = ushort;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -50,7 +50,7 @@ public static unsafe partial class Native
 	public static partial nint CreateRemoteThread(nint hProcess,
 	                                              nint lpThreadAttributes,
 	                                              uint dwStackSize,
-	                                              nint lpStartAddress, // raw Pointer into remote process
+	                                              nint lpStartAddress, // raw Pointer<byte> into remote process
 	                                              nint lpParameter,
 	                                              uint dwCreationFlags,
 	                                              out uint lpThreadId
@@ -66,7 +66,7 @@ public static unsafe partial class Native
 	public const uint WAIT_OBJECT_0  = 0x00000000;
 	public const uint WAIT_TIMEOUT   = 0x00000102;
 
-	#region Console
+#region Console
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	public static partial nint GetStdHandle(StandardHandle nStdHandle);
@@ -153,9 +153,9 @@ public static unsafe partial class Native
 	[return: MA(UT.Bool)]
 	public static extern bool AttachConsole(int dwProcessId);
 
-	#endregion
+#endregion
 
-	#region Toolhelp
+#region Toolhelp
 
 	[DllImport(KERNEL32_DLL)]
 	internal static extern bool Module32First(nint hSnapshot, ref ModuleEntry32 lpme);
@@ -166,9 +166,9 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	public static partial nint CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessID);
 
-	#endregion
+#endregion
 
-	#region File
+#region File
 
 	internal static uint GetFileSize(nint hFile)
 		=> GetFileSize(hFile, IntPtr.Zero);
@@ -181,9 +181,9 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial uint GetFileSize(nint hFile, nint lpFileSizeHigh);
 
-	#endregion
+#endregion
 
-	#region Memory
+#region Memory
 
 	[LibraryImport(KERNEL32_DLL)]
 	[return: MA(UT.Bool)]
@@ -216,9 +216,9 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL, EntryPoint = "RtlMoveMemory")]
 	public static partial void CopyMemory(nint pdst, byte[] psrc, int cb);
 
-	#endregion
+#endregion
 
-	#region Library
+#region Library
 
 	[LibraryImport(KERNEL32_DLL, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial nint LoadLibrary(string dllToLoad);
@@ -236,9 +236,9 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL, SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
 	public static partial nint LoadLibraryEx(string lpFileName, nint hReservedNull, LoadLibraryFlags dwFlags);
 
-	#endregion
+#endregion
 
-	#region Handle
+#region Handle
 
 	[LibraryImport(KERNEL32_DLL, SetLastError = true)]
 	public static partial nint GetCurrentProcess();
@@ -251,9 +251,9 @@ public static unsafe partial class Native
 	[return: MA(UT.Bool)]
 	public static partial bool CloseHandle(nint obj);
 
-	#endregion
+#endregion
 
-	#region Virtual
+#region Virtual
 
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial nint VirtualAllocEx(nint hProcess, nint lpAddress,
@@ -278,7 +278,7 @@ public static unsafe partial class Native
 	[LibraryImport(KERNEL32_DLL)]
 	public static partial int VirtualQuery(nint lpAddress, ref MemoryBasicInformation lpBuffer, int dwLength);
 
-	#endregion
+#endregion
 
 	[DllImport(KERNEL32_DLL, SetLastError = true, CharSet = CharSet.Unicode)]
 	[SuppressUnmanagedCodeSecurity]

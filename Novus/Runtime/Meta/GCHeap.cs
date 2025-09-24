@@ -36,13 +36,11 @@ public static unsafe class GCHeap
 	/*public static bool IsHeapPointer(object o, bool smallHeapOnly = false)
 		=> IsHeapPointer(Mem.AddressOfHeap(o), smallHeapOnly);*/
 
-	public static bool IsHeapPointer(in Pointer ptr, bool smallHeapOnly = false)
+	public static bool IsHeapPointer(in Pointer<byte> ptr, bool smallHeapOnly = false)
 		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
 	[Obsolete]
-	private static Pointer AllocObject(Pointer<MethodTable> t,
-	                                   GCAllocFlags flags = GCAllocFlags.GC_ALLOC_NO_FLAGS,
-	                                   BOOL b = BOOL.FALSE)
+	private static Pointer<byte> AllocObject(Pointer<MethodTable> t, GCAllocFlags flags = GCAllocFlags.GC_ALLOC_NO_FLAGS, BOOL b = BOOL.FALSE)
 		=> Func_AllocObject((MethodTable*) t, flags, b);
 
 	[Obsolete]

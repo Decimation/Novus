@@ -7,7 +7,6 @@
 #pragma warning disable CS0649
 
 
-global using Pointer = Novus.Memory.Pointer<byte>;
 global using Native = Novus.Win32.Native;
 using System.Buffers;
 using System.Buffers.Binary;
@@ -250,7 +249,7 @@ public static class Program
 
 	private static unsafe void run3()
 	{
-		Pointer p = stackalloc byte[Mem.Size];
+		Pointer<byte> p = stackalloc byte[Mem.Size];
 		any     a = new();
 
 	}

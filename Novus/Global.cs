@@ -29,8 +29,6 @@ global using Opt = System.Runtime.InteropServices.OptionalAttribute;
 
 #endregion
 
-global using Pointer = Novus.Memory.Pointer<byte>;
-
 // global using Native = Novus.Win32.Native;
 // global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 // global using U = System.Runtime.CompilerServices.Unsafe;

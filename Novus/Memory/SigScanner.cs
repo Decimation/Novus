@@ -10,6 +10,7 @@ using System.Runtime.Versioning;
 using Microsoft;
 using Novus.OS;
 using Novus.Utilities;
+using Novus.Memory;
 
 // ReSharper disable UnusedMember.Global
 
@@ -57,7 +58,7 @@ public sealed class SigScanner
 	/// </summary>
 	public ulong Size { get; }
 
-	#region Constructors
+#region Constructors
 
 	public SigScanner(ProcessModule module)
 		: this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
@@ -78,22 +79,22 @@ public sealed class SigScanner
 	[SupportedOSPlatform(FileSystem.OS_WIN)]
 	public static SigScanner FromProcess(Process proc, ProcessModule module)
 	{
-		var ptr = module.BaseAddress;
-		var size = (ulong) module.ModuleMemorySize;
+		var ptr    = module.BaseAddress;
+		var size   = (ulong) module.ModuleMemorySize;
 		var buffer = Mem.ReadProcessMemory(proc, ptr, (nint) size);
 
 		return new SigScanner(ptr, size, buffer);
 	}
 
-	public static Pointer[] ScanCurrentProcess(string sig)
+	public static Pointer<byte>[] ScanCurrentProcess(string sig)
 		=> ScanProcess(Process.GetCurrentProcess(), sig);
 
-	public static Pointer[] ScanProcess(Process p, string sig)
+	public static Pointer<byte>[] ScanProcess(Process p, string sig)
 		=> ScanProcess(p, ReadSignature(sig));
 
-	public static Pointer[] ScanProcess(Process p, byte[] s)
+	public static Pointer<byte>[] ScanProcess(Process p, byte[] s)
 	{
-		var buf = new ConcurrentBag<Pointer>();
+		var buf = new ConcurrentBag<Pointer<byte>>();
 
 		var modules = p.GetModules();
 
@@ -115,7 +116,7 @@ public sealed class SigScanner
 		return [.. buf];
 	}
 
-	#endregion
+#endregion
 
 	private bool PatternCheck(int nOffset, IReadOnlyList<byte> arrPattern)
 	{
@@ -191,7 +192,7 @@ public sealed class SigScanner
 	/// <returns>Address of the located signature; <see cref="Mem.Nullptr"/> if the signature was not found</returns>
 	public Pointer<byte> FindSignature(byte[] pattern)
 	{
-		Pointer p = Mem.Nullptr;
+		Pointer<byte> p = Mem.Nullptr;
 
 		FindSignatures(pattern, p2 =>
 		{

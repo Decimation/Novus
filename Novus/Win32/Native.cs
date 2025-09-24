@@ -3,9 +3,11 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using Novus.Memory;
 using Novus.OS;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
@@ -391,14 +393,14 @@ public static unsafe partial class Native
 		throw exception;
 	}
 
-	public static bool VirtualFree(Process hProcess, Pointer lpAddress, int dwSize, AllocationType dwFreeType)
+	public static bool VirtualFree(Process hProcess, Pointer<byte> lpAddress, int dwSize, AllocationType dwFreeType)
 	{
 		bool p = VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
 
 		return p;
 	}
 
-	public static MemoryBasicInformation VirtualQuery(Process proc, Pointer lpAddr)
+	public static MemoryBasicInformation VirtualQuery(Process proc, Pointer<byte> lpAddr)
 	{
 		var mbi = new MemoryBasicInformation();
 
@@ -408,15 +410,15 @@ public static unsafe partial class Native
 		return mbi;
 	}
 
-	public static Pointer VirtualAlloc(Process proc, Pointer lpAddr, int dwSize,
-	                                   AllocationType type, MemoryProtection mp)
+	public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize,
+	                                         AllocationType type, MemoryProtection mp)
 	{
 		nint ptr = VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
 
 		return ptr;
 	}
 
-	public static bool VirtualProtect(Process hProcess, Pointer lpAddress, int dwSize,
+	public static bool VirtualProtect(Process hProcess, Pointer<byte> lpAddress, int dwSize,
 	                                  MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
 	{
 		bool p = VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
@@ -455,7 +457,7 @@ public static unsafe partial class Native
 		return ll;
 	}
 
-	public static MemoryBasicInformation QueryMemoryPage(Pointer p)
+	public static MemoryBasicInformation QueryMemoryPage(Pointer<byte> p)
 	{
 
 		/*

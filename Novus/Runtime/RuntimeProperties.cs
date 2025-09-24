@@ -55,7 +55,7 @@ public static unsafe class RuntimeProperties
 		Global.Clr.LoadImports(typeof(RuntimeProperties));
 	}
 
-	
+
 	/// <summary>
 	///     <see cref="IsPinnable" />
 	/// </summary>
@@ -99,7 +99,7 @@ public static unsafe class RuntimeProperties
 		=> Func_GetElementSize(o);
 
 
-	#region Metadata
+#region Metadata
 
 	/// <summary>
 	///     Reads <see cref="TypeHandle" /> as <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from
@@ -169,9 +169,9 @@ public static unsafe class RuntimeProperties
 		return Mem.AddressOfHeap(o).Cast<ClrObject>();
 	}
 
-	#endregion
+#endregion
 
-	#region Comparison & Properties
+#region Comparison & Properties
 
 	/// <see cref="RuntimeHelpers.GetObjectValue"/>
 	[CBN]
@@ -319,9 +319,9 @@ public static unsafe class RuntimeProperties
 
 	}
 
-	#endregion
+#endregion
 
-	#region Constants
+#region Constants
 
 	/// <summary>
 	///     Size of the length field and first character

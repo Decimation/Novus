@@ -19,7 +19,7 @@ to the process to acquire metadata. All metadata is acquired through memory or l
 
 * Calculating heap size of managed objects
 * Taking the address of managed objects
-* Pointer to managed types
+* Pointer<byte> to managed types
 * Pinning unblittable objects
 * And much more
 

@@ -93,7 +93,6 @@ namespace Test;
  * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
  *
  */
-
 /*
  * 🌟 Novus				https://github.com/Decimation/Novus
  * ⨉ NeoCore			https://github.com/Decimation/NeoCore
@@ -102,11 +101,9 @@ namespace Test;
  * ◆ Kantan				https://github.com/Decimation/Kantan
  *
  */
-
 /*
  * https://github.com/IS4Code/SharpUtils
  */
-
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -157,31 +154,36 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
-
+		
 		// var mc=new MyClass2b();
 
-		var  obj           = new MyClass(){s = "foo", a = 123};
-		var mt=RuntimeProperties.GetMethodTable(obj);
-		var t=typeof(MyClass);
-		var mt2 = RuntimeProperties.ResolveTypeHandle(t);
+		MyClass obj  = new MyClass() { s = "foo", a = 123 };
+		var addr = (Pointer<byte>) Unsafe.AsPointer(ref obj);
+		var addr2 = (Pointer<byte>) addr.ReadPointer();
+		Console.WriteLine($"&obj = {addr} -> {addr2}");
 
-		ref var data = ref RuntimeProperties.AsClrObject(obj).Reference;
-		ref var data2 = ref obj.GetRawData();
-		Console.WriteLine(data);
-		Console.WriteLine(data2);
-		var rg = Mem.GetBytes(obj);
-		var obj2 = Mem.ReadFromBytes<MyClass>(rg);
-		var obj3 = Mem.ReadFromBytes(rg);
-		Console.WriteLine(obj);
-		Console.WriteLine(obj2);
-		Console.WriteLine(obj3);
+		var heap = Mem.AddressOfHeap(obj);
+		Console.WriteLine($"Heap: {heap}");
 
-		return;
+		Pointer<MethodTable> mt  = RuntimeProperties.GetMethodTable(obj);
+		// Type                 t   = typeof(MyClass);
+		// TypeHandle           mt2 = RuntimeProperties.ResolveTypeHandle(t);
+
+		Console.WriteLine($"MT: {mt}");
+
+		int hSize = Mem.SizeOf(obj, SizeOfOption.Heap);
+
+		Console.WriteLine($"Heap size: {hSize}");
+		for (int i = 0; i < hSize; i++) {
+			Console.Write($"{heap[i]:X} ");
+		}
+
+		Debugger.Break();
 	}
 
 	private static void Test4()
 	{
-		var pss = Process.GetCurrentProcess().Modules;
+		ProcessModuleCollection pss = Process.GetCurrentProcess().Modules;
 
 		foreach (ProcessModule processModule in pss) {
 			Console.WriteLine(processModule);
@@ -202,12 +204,12 @@ public static class Program
 
 	public static IDictionary<string, int> Get<T>(T t = default)
 	{
-		var vals = new Dictionary<string, int>
+		Dictionary<string, int> vals = new Dictionary<string, int>
 		{
 			// { nameof(Marshal.SizeOf), Marshal.SizeOf<T>() },
 		};
 
-		foreach (var i in Enum.GetValues<SizeOfOption>()) {
+		foreach (SizeOfOption i in Enum.GetValues<SizeOfOption>()) {
 
 			vals.Add(i.ToString(), Mem.SizeOf<T>(t, i));
 		}
@@ -222,8 +224,8 @@ public static class Program
 
 	private static void Test3()
 	{
-		var s  = Native.OpenSCManager(null, null, ScManagerAccessTypes.SC_MANAGER_ALL_ACCESS);
-		var s2 = Native.OpenService(s, "NvContainerLocalSystem", ServiceAccessTypes.SERVICE_ALL_ACCESS);
+		ScHandle s  = Native.OpenSCManager(null, null, ScManagerAccessTypes.SC_MANAGER_ALL_ACCESS);
+		ScHandle s2 = Native.OpenService(s, "NvContainerLocalSystem", ServiceAccessTypes.SERVICE_ALL_ACCESS);
 		Native.ControlService(s2, ServiceControl.SERVICE_CONTROL_STOP, out ServiceStatus ss);
 		Console.WriteLine(ss);
 		Native.CloseServiceHandle(s);
@@ -232,9 +234,9 @@ public static class Program
 
 	private static unsafe void Test2()
 	{
-		var clazz = new TestTypes.Clazz3();
-		var mm    = clazz.GetType().GetAnyMethod("SayHi").AsMetaMethod();
-		var mm2   = clazz.GetType().GetAnyMethod("SayButt").AsMetaMethod();
+		Clazz3     clazz = new TestTypes.Clazz3();
+		MetaMethod mm    = clazz.GetType().GetAnyMethod("SayHi").AsMetaMethod();
+		MetaMethod mm2   = clazz.GetType().GetAnyMethod("SayButt").AsMetaMethod();
 		clazz.SayHi();
 		clazz.SayButt();
 		mm.Reset();
@@ -247,9 +249,9 @@ public static class Program
 	private static void Test1()
 	{
 		MyClass mc = new MyClass() { a = 321, s = "butt" };
-		var     rg = Mem.GetBytes(mc);
+		byte[]  rg = Mem.GetBytes(mc);
 		Console.WriteLine(rg.FormatJoin("X", delim: " "));
-		var mc2 = Mem.ReadFromBytes<object>(rg);
+		object mc2 = Mem.ReadFromBytes<object>(rg);
 		Console.WriteLine(mc);
 		Console.WriteLine(mc2);
 	}
@@ -267,7 +269,7 @@ public static class Program
 	private static unsafe void run3()
 	{
 		Pointer<byte> p = stackalloc byte[Mem.Size];
-		any     a = new();
+		any           a = new();
 
 	}
 

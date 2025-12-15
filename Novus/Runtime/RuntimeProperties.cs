@@ -127,7 +127,7 @@ public static unsafe class RuntimeProperties
 
 		return member switch
 		{
-			Type t    => ResolveMethodTable(t).Cast(),
+			Type t    => t.TypeHandle.Value,
 			FI field  => field.FieldHandle.Value,
 			MI method => method.MethodHandle.Value,
 			_         => throw new InvalidOperationException()
@@ -150,9 +150,11 @@ public static unsafe class RuntimeProperties
 		var value  = *(TypeHandle*) &handle;
 		return value.MethodTable;*/
 
+		/*
 		var typeHandle = ResolveTypeHandle(t);
+		return typeHandle.MethodTable;*/
 
-		return typeHandle.MethodTable;
+		return t.TypeHandle.Value;
 	}
 
 	/// <summary>

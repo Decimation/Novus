@@ -712,7 +712,7 @@ public static unsafe class Mem
 
 		int baseSize = metaType.BaseSize;
 
-		int componentSize = metaType.ComponentSize;
+		int componentSize = metaType.TypeFlags.HasFlag(TypeFlags.HasComponentSize) ? metaType.ComponentSize : 0;
 
 		int length = value switch
 		{
@@ -813,7 +813,8 @@ public static unsafe class Mem
 		//var tr = __makeref(value);
 		//var heapPtr = **(IntPtr**) (&tr);
 
-		Pointer<byte> heapPtr = AddressOf(ref value).ReadPointer();
+		var     pointer = AddressOf(ref value);
+		Pointer<byte> heapPtr   = pointer.ReadPointer();
 
 		// NOTE:
 		// Strings have their data offset by RuntimeInfo.OffsetToStringData
@@ -980,7 +981,7 @@ public static unsafe class Mem
 	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
 	public static T ReadFromBytes<T>(byte[] rg)
 	{
-		Memory<byte> asMemory = rg.AsMemory();
+		/*Memory<byte> asMemory = rg.AsMemory();
 
 		var p2 = asMemory.ToPointer(out var mh);
 
@@ -989,7 +990,19 @@ public static unsafe class Mem
 			return AddressOf(ref p2).Cast<T>().Value;
 		}
 
-		return p2.Cast<T>().Value;
+		return p2.Cast<T>().Value;*/
+
+		Memory<byte> asMemory = rg.AsMemory();
+		using var    pin      = asMemory.Pin();
+
+		var p2 = (byte*) pin.Pointer;
+
+		if (!typeof(T).IsValueType) {
+			p2 += RuntimeProperties.ObjHeaderSize;
+			return Unsafe.Read<T>(&p2);
+		}
+
+		return Unsafe.Read<T>(p2);
 	}
 
 	/// <summary>

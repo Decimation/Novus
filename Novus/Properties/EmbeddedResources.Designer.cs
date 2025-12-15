@@ -19,7 +19,7 @@ namespace Novus.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class EmbeddedResources {
@@ -170,7 +170,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 9.0.9.
+        ///   Looks up a localized string similar to 10.0.1.
         /// </summary>
         internal static string RequiredVersion {
             get {
@@ -179,7 +179,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 60 48 8B D9.
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 83 EC ? 44 8B 0D ? ? ? ? 48 8B D9 65 48 8B 04 25 ? ? ? ? B9.
         /// </summary>
         internal static string Sig_AllocObject {
             get {
@@ -188,7 +188,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 83 EC 28 0F B7 41 06 BA.
+        ///   Looks up a localized string similar to 48 83 EC ? 0F B7 41 ? 4C 8B C1 83 E0 ? 83 F8 ? 0F 84 ? ? ? ? 83 F8 ? 74.
         /// </summary>
         internal static string Sig_GetAttrs {
             get {
@@ -197,7 +197,16 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B E9 0F B6 41 ?.
+        ///   Looks up a localized string similar to F6 C1 ? 75 ? ? ? 25 ? ? ? ? 3D ? ? ? ? 74 ? 3D.
+        /// </summary>
+        internal static string Sig_GetCorElemType {
+            get {
+                return ResourceManager.GetString("Sig_GetCorElemType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B D9 44 0F B6 41.
         /// </summary>
         internal static string Sig_GetIL {
             get {
@@ -206,16 +215,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 0F B6 51 ? 48 8B C1.
-        /// </summary>
-        internal static string Sig_GetMemberDef {
-            get {
-                return ResourceManager.GetString("Sig_GetMemberDef", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to 48 8B 01 A8 02 75 01.
+        ///   Looks up a localized string similar to ? ? ? A8 ? 75 ? C3 48 8D 48.
         /// </summary>
         internal static string Sig_GetMethodTable {
             get {
@@ -224,7 +224,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 0F B7 41 06 A8 20 74 13.
+        ///   Looks up a localized string similar to 0F B7 41 ? A8 ? 74 ? 83 E0 ? 48 8D 15 ? ? ? ? ? ? ? ? ? ? ? ? C3.
         /// </summary>
         internal static string Sig_GetNativeCode {
             get {
@@ -233,7 +233,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 48 8B 41 28 48 8B D9.
+        ///   Looks up a localized string similar to 40 53 48 83 EC ? 48 8B 41 ? 48 8B D9 A8 ? 74 ? 48 83 E0 ? 48 8B 40 ? 48 8B 40.
         /// </summary>
         internal static string Sig_GetNativeLayoutInfo {
             get {
@@ -242,7 +242,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 83 EC 38 0F B7 41 06.
+        ///   Looks up a localized string similar to 48 83 EC ? 44 0F B6 49 ? 48 8B D1.
         /// </summary>
         internal static string Sig_GetRVA {
             get {
@@ -251,7 +251,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 8B 41 0C 48 8D 1D.
+        ///   Looks up a localized string similar to 40 53 48 83 EC ? 8B 41 ? 48 8D 1D.
         /// </summary>
         internal static string Sig_GetSize {
             get {
@@ -260,7 +260,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 F7 41 ? ? ? ? ? 48 8B D9.
+        ///   Looks up a localized string similar to 40 53 48 83 EC ? F7 41 ? ? ? ? ? 48 8B D9.
         /// </summary>
         internal static string Sig_GetStaticAddr {
             get {
@@ -269,7 +269,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 83 EC 28 48 8B CA 41 0F B6 D0 E8 ? ? ? ? 48 85 C0 0F 95 C0 48 83 C4 28 C3 CC CC CC CC CC 4C 8B 02 33 C9 49 83 E0 F8 41 39 08 7D 0B 8B 4A 08 41 0F B7 00 48 0F AF C8 41 8B 40 04 48 03 C1 48 3B 05 ? ? ? ? 0F 93 C0 C3 CC CC CC CC CC 40 53.
+        ///   Looks up a localized string similar to 48 83 EC ? 48 8B CA 41 0F B6 D0 E8 ? ? ? ? 48 85 C0 0F 95 C0 48 83 C4 ? C3 ? ? ? ? ? ? ? ? 33 C9 49 83 E0 ? ? ? ? 7D ? 8B 4A ? ? ? ? ? 48 0F AF C8 41 8B 40 ? 48 03 C1 48 3B 05 ? ? ? ? 0F 93 C0 C3 ? ? ? ? ? 40 53.
         /// </summary>
         internal static string Sig_IsHeapPointer {
             get {
@@ -278,7 +278,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 83 EC 28 B8 ? ? ? ? 4C 8B D1.
+        ///   Looks up a localized string similar to 40 53 48 83 EC ? B8 ? ? ? ? 4C 8B C9.
         /// </summary>
         internal static string Sig_IsPointingToNativeCode {
             get {
@@ -287,7 +287,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 4C 8B 01 49 83 E0 F8.
+        ///   Looks up a localized string similar to ? ? ? 49 83 E0 ? ? ? ? 00 41 8B 40.
         /// </summary>
         internal static string Sig_ObjGetSize {
             get {
@@ -296,7 +296,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 74 0D.
+        ///   Looks up a localized string similar to 40 53 48 83 EC ? 48 8B D9 E8 ? ? ? ? 84 C0 74 ? 48 8B CB 48 83 C4.
         /// </summary>
         internal static string Sig_Reset {
             get {
@@ -305,7 +305,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B F2 48 8B D9.
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B F2.
         /// </summary>
         internal static string Sig_SetCodeEntryPoint {
             get {
@@ -314,7 +314,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B FA 48 8B F1 E8 ? ? ? ? 48 8B CE.
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 57 48 83 EC ? 48 8B DA 48 8B F9 E8 ? ? ? ? 48 8B CF 4C 8B D0.
         /// </summary>
         internal static string Sig_SetEntryPoint {
             get {
@@ -328,6 +328,15 @@ namespace Novus.Properties {
         internal static string Sym_GCHeap {
             get {
                 return ResourceManager.GetString("Sym_GCHeap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TypeHandle::GetMethodTable.
+        /// </summary>
+        internal static string Sym_GetMethodTable {
+            get {
+                return ResourceManager.GetString("Sym_GetMethodTable", resourceCulture);
             }
         }
         

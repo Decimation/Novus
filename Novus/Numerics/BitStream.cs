@@ -753,7 +753,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteByte(byte value)
 	{
-		WriteBytes(new byte[] { value }, BITS_PER_BYTE);
+		WriteBytes([value], BITS_PER_BYTE);
 	}
 
 	/// <summary>
@@ -769,7 +769,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 			bits = BITS_PER_BYTE;
 		}
 
-		WriteBytes(new byte[] { value }, bits);
+		WriteBytes([value], bits);
 	}
 
 	/// <summary>
@@ -777,7 +777,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteSByte(sbyte value)
 	{
-		WriteBytes(new byte[] { (byte) value }, BITS_PER_BYTE);
+		WriteBytes([(byte) value], BITS_PER_BYTE);
 	}
 
 	/// <summary>
@@ -793,7 +793,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 			bits = BITS_PER_BYTE;
 		}
 
-		WriteBytes(new byte[] { (byte) value }, bits);
+		WriteBytes([(byte) value], bits);
 	}
 
 	/// <summary>
@@ -809,7 +809,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	public void WriteChar(char value)
 	{
-		byte[] bytes = Encoding.GetBytes(new char[] { value }, 0, 1);
+		byte[] bytes = Encoding.GetBytes([value], 0, 1);
 		WriteBytes(bytes, bytes.Length * BITS_PER_BYTE);
 	}
 

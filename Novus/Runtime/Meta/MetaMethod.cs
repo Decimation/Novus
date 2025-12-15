@@ -30,7 +30,7 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 
 	public MetaMethod(Pointer<MethodDesc> ptr) : base(ptr) { }
 
-	public MetaMethod(MethodInfo member) : base(member) { }
+	public MetaMethod(MI member) : base(member) { }
 
 	public int ChunkIndex => Value.Reference.ChunkIndex;
 
@@ -67,7 +67,7 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 
 	public MethodAttributes Attributes => Info.Attributes;
 
-	public override MethodInfo Info => (MethodInfo) (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
+	public override MI Info => (MI) (EnclosingType.RuntimeType).Module.ResolveMethod(Token);
 
 	public RuntimeMethodHandle RuntimeMethodHandle => Value.Reference.RuntimeMethodHandle;
 
@@ -113,7 +113,7 @@ public unsafe class MetaMethod : EmbeddedClrStructure<MethodDesc>
 	public static implicit operator MetaMethod(Pointer<MethodDesc> ptr)
 		=> new(ptr);
 
-	public static implicit operator MetaMethod(MethodInfo t)
+	public static implicit operator MetaMethod(MI t)
 		=> new(t);
 
 }

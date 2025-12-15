@@ -275,7 +275,7 @@ public static unsafe partial class Native
 		if (!Module32First(snapshot, ref mod))
 			return null;
 
-		List<ModuleEntry32> modules = new();
+		List<ModuleEntry32> modules = [];
 
 		do {
 			modules.Add(mod);

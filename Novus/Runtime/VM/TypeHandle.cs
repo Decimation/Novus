@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.Imports.Attributes;
 using Novus.Memory;
+using Novus.Runtime.VM.Tokens;
 using Novus.Win32;
 
 // ReSharper disable InconsistentNaming
@@ -58,11 +59,23 @@ public unsafe struct TypeHandle
 
 	internal bool IsTypeDesc => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.TypeDesc;
 
+	internal CorElementType CorElementType => (CorElementType) Func_GetCorElemType((void*) TAddr);
+
+#region 
+
 	/// <summary>
 	/// <see cref="TypeHandle.MethodTable"/>
 	/// </summary>
-	[field: ImportClr("Sig_GetMethodTable")]
-	private static delegate* unmanaged[Thiscall]<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
+	[field: ImportClr("Sym_GetMethodTable", ImportType.Symbol)]
+	private static delegate* unmanaged<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
+
+	/// <summary>
+	/// <see cref="CorElementType"/>
+	/// </summary>
+	[field: ImportClr("Sig_GetCorElemType")]
+	private static delegate* unmanaged<void*, int> Func_GetCorElemType { get; }
+
+	#endregion
 
 }
 

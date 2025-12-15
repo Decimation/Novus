@@ -56,19 +56,18 @@ public static unsafe class RuntimeProperties
 	}
 
 
+	#region 
+
 	/// <summary>
 	///     <see cref="IsPinnable" />
 	/// </summary>
 	[field: ImportManaged(typeof(Marshal), "IsPinnable")]
 	private static delegate* managed<object, bool> Func_IsPinnable { get; }
 
-	[field: ImportManaged(typeof(RuntimeTypeHandle), "GetCorElementType")]
-	private static delegate* managed<Type, CorElementType> Func_GetCorType { get; }
-
 	/// <summary>
 	///     <see cref="ResolveType" />
 	/// </summary>
-	[field: ImportManaged(typeof(Type), "GetTypeFromHandleUnsafe")]
+	[field: ImportManaged(typeof(Type), "GetTypeFromHandle")]
 	private static delegate* managed<nint, Type> Func_GetTypeFromHandle { get; }
 
 	/// <summary>
@@ -83,20 +82,24 @@ public static unsafe class RuntimeProperties
 	[field: ImportManaged(typeof(RuntimeHelpers), "GetElementSize")]
 	private static delegate* managed<object, int> Func_GetElementSize { get; }
 
+	#endregion
+
+
+	#region 
 
 	/// <summary>
 	/// Equals <see cref="Mem.SizeOf()"/> with <see cref="SizeOfOption.Data"/>
 	/// </summary>
 	/// <see cref="RuntimeHelpers.GetRawObjectDataSize"/>
-	public static int GetRawObjDataSize(object o)
-		=> Func_GetRawObjDataSize(o);
+	public static int GetRawObjDataSize(object o) => Func_GetRawObjDataSize(o);
 
 	/// <summary>
 	/// Equals <see cref="MetaType.ComponentSize"/>
 	/// </summary>
 	/// <see cref="RuntimeHelpers.GetElementSize"/>
-	public static int GetElementSize(object o)
-		=> Func_GetElementSize(o);
+	public static int GetElementSize(object o) => Func_GetElementSize(o);
+
+	#endregion
 
 
 #region Metadata
@@ -124,10 +127,10 @@ public static unsafe class RuntimeProperties
 
 		return member switch
 		{
-			Type t            => ResolveMethodTable(t).Cast(),
-			FI field          => field.FieldHandle.Value,
-			MethodInfo method => method.MethodHandle.Value,
-			_                 => throw new InvalidOperationException()
+			Type t    => ResolveMethodTable(t).Cast(),
+			FI field  => field.FieldHandle.Value,
+			MI method => method.MethodHandle.Value,
+			_         => throw new InvalidOperationException()
 		};
 	}
 
@@ -135,8 +138,7 @@ public static unsafe class RuntimeProperties
 	///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 	/// </summary>
 	/// <remarks>Inverse of <see cref="ResolveMethodTable" /></remarks>
-	public static Type ResolveType(Pointer<MethodTable> handle)
-		=> Func_GetTypeFromHandle(handle.Address);
+	public static Type ResolveType(Pointer<MethodTable> handle) => Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
@@ -225,7 +227,7 @@ public static unsafe class RuntimeProperties
 		=> EqualityComparer<T>.Default.Equals(value, default);
 
 	public static bool IsUnmanaged<T>([NN] T value)
-		=> value.GetType().IsUnmanaged();
+		=> value.GetType().IsUnmanaged;
 
 	public static bool IsStruct<T>([NN] T value)
 		=> value.GetType().IsValueType;
@@ -408,8 +410,4 @@ public static unsafe class RuntimeProperties
 	public static readonly int EEClassSize = sizeof(EEClass);
 
 #endregion
-
-	public static CorElementType GetCorElementType(this Type t)
-		=> Func_GetCorType(t);
-
 }

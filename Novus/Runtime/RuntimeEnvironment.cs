@@ -16,19 +16,17 @@ public static class RuntimeEnvironment
 
 
 	[PublicAPI]
-	public static bool IsNetNative
-		=> RuntimeInformation.FrameworkDescription.StartsWith(".NET Native", StringComparison.OrdinalIgnoreCase);
+	public static bool IsNetNative => RuntimeInformation.FrameworkDescription.StartsWith(".NET Native", StringComparison.OrdinalIgnoreCase);
 
-	public static bool IsNetCore
-		=> ((Environment.Version.Major >= 5) || RuntimeInformation.FrameworkDescription.StartsWith(".NET Core", StringComparison.OrdinalIgnoreCase))
-		   && !String.IsNullOrEmpty(AppContext.BaseDirectory);
+	public static bool IsNetCore => ((Environment.Version.Major >= 5)
+	                                 || RuntimeInformation.FrameworkDescription.StartsWith(".NET Core", StringComparison.OrdinalIgnoreCase))
+	                                && !String.IsNullOrEmpty(AppContext.BaseDirectory);
 
 	public static bool IsWasm => RuntimeInformation.IsOSPlatform(OSPlatform.Create("BROWSER"));
 
-	public static bool IsNativeAOT
-		=> Environment.Version.Major >= 5
-		   && String.IsNullOrEmpty(AppContext.BaseDirectory) // it's merged to a single .exe and .Location returns null
-		   && !IsWasm;                                               // Wasm also returns "" for assembly locations
+	public static bool IsNativeAOT => Environment.Version.Major >= 5
+	                                  && String.IsNullOrEmpty(AppContext.BaseDirectory) // it's merged to a single .exe and .Location returns null
+	                                  && !IsWasm;                                       // Wasm also returns "" for assembly locations
 
 	public static bool IsAot { get; } = IsAotMethod(); // This allocates, so we only want to call it once statically.
 

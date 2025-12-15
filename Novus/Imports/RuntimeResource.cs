@@ -193,7 +193,7 @@ public sealed class RuntimeResource : IDisposable
 			.Where(mi => Attribute.IsDefined(mi, typeof(ImportInitializerAttribute)))
 			.Select(mi => (mi.GetCustomAttribute<ImportInitializerAttribute>(), mi));
 
-		foreach ((ImportInitializerAttribute iia, MethodInfo mi) in iiaTuple) {
+		foreach ((ImportInitializerAttribute iia, MI mi) in iiaTuple) {
 			var res = mi.Invoke(null, null);
 			Trace.WriteLine($"Invoking {iia} -> {res}");
 
@@ -322,6 +322,9 @@ public sealed class RuntimeResource : IDisposable
 
 				var fn = managedAttr.Type.GetAnyMethod(name);
 
+				if (fn == null) {
+					Debugger.Break();
+				}
 				var ptr = fn.MethodHandle.GetFunctionPointer();
 
 				fieldValue = ptr;

@@ -278,6 +278,8 @@ public static class Global
 		};
 
 		IsSetup = true;
+
+		Logger.LogDebug("Loaded pdb {ClrPdb}", ClrPdb);
 	}
 
 	public static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)

@@ -576,6 +576,16 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		// ...
 	}
 
+	#region 
+
+	public static Pointer<T> operator &(Pointer<T> ptr, Pointer<T> n) => ptr.Address & n.Address;
+
+	public static Pointer<T> operator |(Pointer<T> ptr, Pointer<T> n) => ptr.Address | n.Address;
+
+	public static Pointer<T> operator ~(Pointer<T> ptr) => ~ptr.Address;
+
+	#endregion
+
 	/*public readonly MemoryBasicInformation Query()
 		=> Native.QueryMemoryPage(this);*/
 

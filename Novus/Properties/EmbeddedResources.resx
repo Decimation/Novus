@@ -155,75 +155,78 @@
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>9.0.9</value>
+    <value>10.0.1</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
-    <value>48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 41 54 41 55 41 56 41 57 48 83 EC 60 48 8B D9</value>
+    <value>48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 83 EC ? 44 8B 0D ? ? ? ? 48 8B D9 65 48 8B 04 25 ? ? ? ? B9</value>
     <comment>AllocateObject</comment>
   </data>
   <data name="Sig_GetAttrs" xml:space="preserve">
-    <value>48 83 EC 28 0F B7 41 06 BA</value>
+    <value>48 83 EC ? 0F B7 41 ? 4C 8B C1 83 E0 ? 83 F8 ? 0F 84 ? ? ? ? 83 F8 ? 74</value>
     <comment>MethodDesc::GetAttrs</comment>
   </data>
+  <data name="Sig_GetCorElemType" xml:space="preserve">
+    <value>F6 C1 ? 75 ? ? ? 25 ? ? ? ? 3D ? ? ? ? 74 ? 3D</value>
+    <comment>TypeHandle_GetCorElementType</comment>
+  </data>
   <data name="Sig_GetIL" xml:space="preserve">
-    <value>48 89 5C 24 ? 48 89 6C 24 ? 48 89 74 24 ? 57 48 83 EC ? 48 8B E9 0F B6 41 ?</value>
+    <value>48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B D9 44 0F B6 41</value>
     <comment>MethodDesc::GetILHeader</comment>
   </data>
-  <data name="Sig_GetMemberDef" xml:space="preserve">
-    <value>0F B6 51 ? 48 8B C1</value>
-    <comment>MethodDesc::GetMemberDef</comment>
-  </data>
   <data name="Sig_GetMethodTable" xml:space="preserve">
-    <value>48 8B 01 A8 02 75 01</value>
+    <value>? ? ? A8 ? 75 ? C3 48 8D 48</value>
     <comment>TypeHandle::GetMethodTable</comment>
   </data>
   <data name="Sig_GetNativeCode" xml:space="preserve">
-    <value>0F B7 41 06 A8 20 74 13</value>
+    <value>0F B7 41 ? A8 ? 74 ? 83 E0 ? 48 8D 15 ? ? ? ? ? ? ? ? ? ? ? ? C3</value>
     <comment>MethodDesc::GetNativeCode</comment>
   </data>
   <data name="Sig_GetNativeLayoutInfo" xml:space="preserve">
-    <value>40 53 48 83 EC 20 48 8B 41 28 48 8B D9</value>
+    <value>40 53 48 83 EC ? 48 8B 41 ? 48 8B D9 A8 ? 74 ? 48 83 E0 ? 48 8B 40 ? 48 8B 40</value>
     <comment>MethodTable::GetNativeLayoutInfo</comment>
   </data>
   <data name="Sig_GetRVA" xml:space="preserve">
-    <value>48 83 EC 38 0F B7 41 06</value>
+    <value>48 83 EC ? 44 0F B6 49 ? 48 8B D1</value>
     <comment>MethodDesc::GetRVA</comment>
   </data>
   <data name="Sig_GetSize" xml:space="preserve">
-    <value>40 53 48 83 EC 20 8B 41 0C 48 8D 1D</value>
+    <value>40 53 48 83 EC ? 8B 41 ? 48 8D 1D</value>
     <comment>FieldDesc::GetSize</comment>
   </data>
   <data name="Sig_GetStaticAddr" xml:space="preserve">
-    <value>40 53 48 83 EC 20 F7 41 ? ? ? ? ? 48 8B D9</value>
+    <value>40 53 48 83 EC ? F7 41 ? ? ? ? ? 48 8B D9</value>
     <comment>FieldDesc::GetCurrentStaticAddress</comment>
   </data>
   <data name="Sig_IsHeapPointer" xml:space="preserve">
-    <value>48 83 EC 28 48 8B CA 41 0F B6 D0 E8 ? ? ? ? 48 85 C0 0F 95 C0 48 83 C4 28 C3 CC CC CC CC CC 4C 8B 02 33 C9 49 83 E0 F8 41 39 08 7D 0B 8B 4A 08 41 0F B7 00 48 0F AF C8 41 8B 40 04 48 03 C1 48 3B 05 ? ? ? ? 0F 93 C0 C3 CC CC CC CC CC 40 53</value>
+    <value>48 83 EC ? 48 8B CA 41 0F B6 D0 E8 ? ? ? ? 48 85 C0 0F 95 C0 48 83 C4 ? C3 ? ? ? ? ? ? ? ? 33 C9 49 83 E0 ? ? ? ? 7D ? 8B 4A ? ? ? ? ? 48 0F AF C8 41 8B 40 ? 48 03 C1 48 3B 05 ? ? ? ? 0F 93 C0 C3 ? ? ? ? ? 40 53</value>
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="Sig_IsPointingToNativeCode" xml:space="preserve">
-    <value>48 83 EC 28 B8 ? ? ? ? 4C 8B D1</value>
+    <value>40 53 48 83 EC ? B8 ? ? ? ? 4C 8B C9</value>
     <comment>MethodDesc::IsPointingToNativeCode</comment>
   </data>
   <data name="Sig_ObjGetSize" xml:space="preserve">
-    <value>4C 8B 01 49 83 E0 F8</value>
+    <value>? ? ? 49 83 E0 ? ? ? ? 00 41 8B 40</value>
     <comment>Object::GetSize</comment>
   </data>
   <data name="Sig_Reset" xml:space="preserve">
-    <value>40 53 48 83 EC 20 48 8B D9 E8 ? ? ? ? 84 C0 74 0D</value>
+    <value>40 53 48 83 EC ? 48 8B D9 E8 ? ? ? ? 84 C0 74 ? 48 8B CB 48 83 C4</value>
     <comment>MethodDesc::ResetCodeEntryPoint</comment>
   </data>
   <data name="Sig_SetCodeEntryPoint" xml:space="preserve">
-    <value>48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B F2 48 8B D9</value>
+    <value>48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B F2</value>
     <comment>MethodDesc::SetCodeEntryPoint</comment>
   </data>
   <data name="Sig_SetEntryPoint" xml:space="preserve">
-    <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC 20 48 8B FA 48 8B F1 E8 ? ? ? ? 48 8B CE</value>
+    <value>48 89 5C 24 ? 57 48 83 EC ? 48 8B DA 48 8B F9 E8 ? ? ? ? 48 8B CF 4C 8B D0</value>
     <comment>MethodDesc::SetStableEntryPointInterlocked</comment>
   </data>
   <data name="Sym_GCHeap" xml:space="preserve">
     <value>g_pGCHeap</value>
     <comment>g_pGCHeap</comment>
+  </data>
+  <data name="Sym_GetMethodTable" xml:space="preserve">
+    <value>TypeHandle::GetMethodTable</value>
   </data>
   <data name="Sym_IsHeapPointer" xml:space="preserve">
     <value>WKS::GCHeap::IsHeapPointer</value>

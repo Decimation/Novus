@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Novus.Runtime.VM.IL;
 using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
+using Novus.Runtime.VM.Tokens;
 using Novus.Win32;
 
 // ReSharper disable InconsistentNaming
@@ -18,6 +19,25 @@ namespace Novus.Runtime.VM;
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct MethodDesc
 {
+
+/*
+ *#ifdef TARGET_64BIT
+	   static const int ALIGNMENT_SHIFT = 3;
+   #else
+	   static const int ALIGNMENT_SHIFT = 2;
+   #endif
+	   static const size_t ALIGNMENT = (1 << ALIGNMENT_SHIFT);
+	   static const size_t ALIGNMENT_MASK = (ALIGNMENT - 1);
+ */
+
+	public const int ALIGNMENT_SHIFT = 3;
+	public const int ALIGNMENT       = 1 << ALIGNMENT_SHIFT;
+	public const int ALIGNMENT_MASK  = ALIGNMENT - 1;
+
+	public const ushort METHOD_TOKEN_REMAINDER_BIT_COUNT = 12;
+	public const ushort METHOD_TOKEN_REMAINDER_MASK      = ((1 << METHOD_TOKEN_REMAINDER_BIT_COUNT) - 1);
+	public const ushort METHOD_TOKEN_RANGE_BIT_COUNT     = (24                                      - METHOD_TOKEN_REMAINDER_BIT_COUNT);
+	public const ushort METHOD_TOKEN_RANGE_MASK          = ((1 << METHOD_TOKEN_RANGE_BIT_COUNT)     - 1);
 
 	static MethodDesc()
 	{
@@ -44,6 +64,27 @@ public unsafe struct MethodDesc
 	///     non-abstract, non-generic (size of this <see cref="MethodDesc"/> <c>== 16</c>)
 	/// </summary>
 	internal void* Function { get; set; }
+
+	/*internal MethodDescChunk* MethodDescChunk
+	{
+		get
+		{
+			fixed(MethodDesc* ptr = &this) {
+				Pointer<byte> ptr2 = ptr;
+				return ((ptr2) - (sizeof(MethodDescChunk) + (ChunkIndex * ALIGNMENT))).Cast<MethodDescChunk>();
+			}
+		}
+	}*/
+	internal Pointer<MethodDescChunk> MethodDescChunk
+	{
+		get
+		{
+			// PTR_MethodDescChunk(dac_cast<TADDR>(this) -(sizeof(MethodDescChunk) + (GetMethodDescIndex() * MethodDesc::ALIGNMENT)));
+
+			var thisptr = Mem.AddressOf(ref this).Cast();
+			return (thisptr - (sizeof(MethodDescChunk) + (ChunkIndex * ALIGNMENT))).Cast<MethodDescChunk>();
+		}
+	}
 
 	internal RuntimeMethodHandle RuntimeMethodHandle
 	{
@@ -89,12 +130,7 @@ public unsafe struct MethodDesc
 
 	internal int Token
 	{
-		get
-		{
-			fixed (MethodDesc* p = &this) {
-				return Func_GetToken(p);
-			}
-		}
+		get { return (int) GetMemberDef(); }
 	}
 
 	internal long RVA
@@ -107,7 +143,7 @@ public unsafe struct MethodDesc
 		}
 	}
 
-	private static int Alignment
+	/*private static int Alignment
 	{
 		get
 		{
@@ -118,7 +154,7 @@ public unsafe struct MethodDesc
 
 			return alignment;
 		}
-	}
+	}*/
 
 	internal CorILMethod* ILHeader
 	{
@@ -131,15 +167,28 @@ public unsafe struct MethodDesc
 		}
 	}
 
-	internal Pointer<MethodDescChunk> MethodDescChunk
+	internal uint GetMemberDef()
 	{
-		get
-		{
-			// PTR_MethodDescChunk(dac_cast<TADDR>(this) -(sizeof(MethodDescChunk) + (GetMethodDescIndex() * MethodDesc::ALIGNMENT)));
+/*
+ *LIMITED_METHOD_DAC_CONTRACT;
 
-			var thisptr = Mem.AddressOf(ref this).Cast();
-			return (thisptr - (sizeof(MethodDescChunk) + (ChunkIndex * Alignment))).Cast<MethodDescChunk>();
-		}
+   MethodDescChunk *pChunk = GetMethodDescChunk();
+   _ASSERTE(pChunk != NULL);
+   UINT16   tokrange = pChunk->GetTokRange();
+
+   UINT16 tokremainder = m_wFlags3AndTokenRemainder & enum_flag3_TokenRemainderMask;
+   static_assert(enum_flag3_TokenRemainderMask == METHOD_TOKEN_REMAINDER_MASK);
+ */
+		var chunk        = MethodDescChunk;
+		var tokRange     = (ushort) chunk.Reference.FlagsAndTokenRange;
+		var tokRemainder = Flags3AndTokenRemainder & (ushort) CodeFlags.TokenRemainderMask;
+		return MergeToken(tokRange, (ushort) tokRemainder);
+	}
+
+	internal static uint MergeToken(ushort tokRange, ushort tokRemainder)
+	{
+		//return (tokrange << METHOD_TOKEN_REMAINDER_BIT_COUNT) | tokremainder | mdtMethodDef;
+		return (uint) (tokRange << METHOD_TOKEN_REMAINDER_BIT_COUNT | tokRemainder | (uint) CorTokenType.MethodDef);
 	}
 
 	internal void Reset()
@@ -163,11 +212,11 @@ public unsafe struct MethodDesc
 	[field: ImportClr("Sig_GetNativeCode")]
 	private static delegate* unmanaged[Thiscall]<MethodDesc*, void*> Func_GetNativeCode { get; }
 
-	/// <summary>
+	/*/// <summary>
 	/// <see cref="MethodDesc.Token"/>
 	/// </summary>
 	[field: ImportClr("Sig_GetMemberDef")]
-	private static delegate* unmanaged[Thiscall]<MethodDesc*, int> Func_GetToken { get; }
+	private static delegate* unmanaged[Thiscall]<MethodDesc*, int> Func_GetToken { get; }*/
 
 	/// <summary>
 	/// <see cref="MethodDesc.RVA"/>
@@ -193,8 +242,6 @@ public unsafe struct MethodDesc
 	/// </summary>
 	[field: ImportClr("Sig_SetCodeEntryPoint")]
 	private static delegate* unmanaged[Thiscall]<MethodDesc*, void*, void> Func_SetCodeEntryPoint { get; }
-
-
 
 }
 
@@ -228,6 +275,9 @@ public enum CodeFlags : byte
 	IsJitIntrinsic = 0x10
 }*/
 
+/// <summary>
+/// Flag 3
+/// </summary>
 [Flags]
 public enum CodeFlags : ushort
 {

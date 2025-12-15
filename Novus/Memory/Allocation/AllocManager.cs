@@ -31,7 +31,7 @@ public static class AllocManager
 
 	public static IAllocator Allocator { get; set; } = new NativeAllocator();
 
-	private static List<Pointer<byte>> Allocated { get; } = new();
+	private static List<Pointer<byte>> Allocated { get; } = [];
 
 	public static int AllocCount => Allocated.Count;
 

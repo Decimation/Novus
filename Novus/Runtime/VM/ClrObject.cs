@@ -32,6 +32,8 @@ public unsafe struct ClrObject
 		}
 	}*/
 
+	public const int MARKED_BIT = 0x1;
+
 	[UnscopedRef]
 	public ref ClrObjHeader Header
 	{
@@ -47,6 +49,16 @@ public unsafe struct ClrObject
 
 	public byte Data { get; set; }
 
-	
+
+	/*public ref byte Data
+	{
+		get
+		{
+			fixed (ClrObject* p = &this) {
+				return ref Unsafe.AsRef<byte>(p);
+
+			}
+		}
+	}*/
 
 }

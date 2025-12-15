@@ -55,51 +55,151 @@ public static class ReflectionHelper
 
 #region Members
 
-	public static IEnumerable<FI> GetAllFields(this Type t)
-		=> t.GetFields(ALL_FLAGS);
-
-	public static IEnumerable<MI> GetAllMethods(this Type t)
-		=> t.GetMethods(ALL_FLAGS);
-
-	public static IEnumerable<MMI> GetAllMembers(this Type t)
-		=> t.GetMembers(ALL_FLAGS);
-
-	public static IEnumerable<MMI> GetAnyMember(this Type t, string name)
-		=> t.GetMember(name, ALL_FLAGS);
-
-	public static FI GetAnyField(this Type t, string name)
-		=> t.GetField(name, ALL_FLAGS);
-
-	public static MI GetAnyMethod(this Type t, string name)
-		=> t.GetMethod(name, ALL_FLAGS);
-
-	public static MI GetAnyMethod(this Type t, string name, Type[] a)
-		=> t.GetMethod(name, ALL_FLAGS, a);
-
-	public static PI GetAnyProperty(this Type t, string name)
-		=> t.GetProperty(name, ALL_FLAGS);
-
-	/// <summary>
-	/// Resolves the internal field from the member with name <paramref name="fname"/>.
-	/// </summary>
-	/// <remarks>Returns the backing field if <paramref name="fname"/> is a property; otherwise returns the normal field</remarks>
-	public static FI GetAnyResolvedField(this Type t, string fname)
+	extension(Type t)
 	{
-		var infos  = t.GetAnyMember(fname);
-		var member = infos.FirstOrDefault();
 
-		switch (member) {
-			case PI { MemberType: MemberTypes.Property } prop:
-				return prop.GetBackingField();
-
-			case FI fi:
-				return fi;
-
-			default:
-				return null;
+		public (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>()
+			where TAttribute : Attribute
+		{
+			return (
+				       from member in t.GetAllMembers()
+				       where Attribute.IsDefined(member, typeof(TAttribute))
+				       select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
 		}
 
+		[return: MN]
+		public ConstructorInfo GetConstructor(params object[] args)
+		{
+			if (args.Length == 0) {
+				var ctor = t.GetConstructor(Type.EmptyTypes);
+
+				return ctor;
+			}
+
+			var ctors    = t.GetConstructors();
+			var argTypes = args.Select(x => x.GetType()).ToArray();
+
+			foreach (var ctor in ctors) {
+				var paramz = ctor.GetParameters();
+
+				if (paramz.Length != args.Length) {
+					continue;
+				}
+
+				if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
+					return ctor;
+				}
+			}
+
+			return null;
+		}
+
+		public IEnumerable<FI> GetAllFields() => t.GetFields(ALL_FLAGS);
+
+		public IEnumerable<MI> GetAllMethods() => t.GetMethods(ALL_FLAGS);
+
+		public IEnumerable<MMI> GetAllMembers() => t.GetMembers(ALL_FLAGS);
+
+		public IEnumerable<MMI> GetAnyMember(string name) => t.GetMember(name, ALL_FLAGS);
+
+		public FI GetAnyField(string name) => t.GetField(name, ALL_FLAGS);
+
+		public MI GetAnyMethod(string name) => t.GetMethod(name, ALL_FLAGS);
+
+		public MI GetAnyMethod(string name, Type[] a) => t.GetMethod(name, ALL_FLAGS, a);
+
+		public PI GetAnyProperty(string name) => t.GetProperty(name, ALL_FLAGS);
+
+		/// <summary>
+		/// Resolves the internal field from the member with name <paramref name="fname"/>.
+		/// </summary>
+		/// <remarks>Returns the backing field if <paramref name="fname"/> is a property; otherwise returns the normal field</remarks>
+		public FI GetAnyResolvedField(string fname)
+		{
+			var infos  = t.GetAnyMember(fname);
+			var member = infos.FirstOrDefault();
+
+			switch (member) {
+				case PI { MemberType: MemberTypes.Property } prop:
+					return prop.GetBackingField();
+
+				case FI fi:
+					return fi;
+
+				default:
+					return null;
+			}
+
+		}
+
+#region
+
+		public bool IsSigned
+		{
+			get
+			{
+				var c = GetCodeInfo(t, out var b);
+
+				var bb = b && (int) c % 2 == 1;
+				return /*t.IsInteger() && */bb || ExtraSInt.Contains(t) || t.IsReal;
+			}
+		}
+
+		public bool IsUnsigned
+		{
+			get
+			{
+				var c = GetCodeInfo(t, out var b);
+
+				var bb = b && (int) c % 2 == 0;
+				return /*t.IsInteger() && */bb || ExtraUInt.Contains(t);
+			}
+		}
+
+		public bool IsNumeric => t.IsInteger || t.IsReal;
+
+
+		private TypeCode GetCodeInfo(out bool isIntCode)
+		{
+			var c = Type.GetTypeCode(t);
+			isIntCode = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
+			return c;
+		}
+
+		public bool IsInteger
+		{
+			get
+			{
+				TypeCode c = GetCodeInfo(t, out bool b);
+
+				// var b2 = t == typeof(BigInteger) || t == typeof(Int128) || t == typeof(UInt128);
+				// var b3 = t == typeof(nint) || t == typeof(nuint);
+
+				return b || ExtraSInt.Contains(t) || ExtraUInt.Contains(t);
+			}
+		}
+
+		public bool IsReal
+		{
+			get
+			{
+				var c = Type.GetTypeCode(t);
+
+				var case1 = c is <= TypeCode.Decimal and >= TypeCode.Single;
+
+				// Special case
+				var case2 = t == typeof(Half);
+
+				return case1 || case2;
+			}
+		}
+
+#endregion
+
 	}
+
+	private static readonly Type[] ExtraUInt = [typeof(UInt128), typeof(nuint)];
+	private static readonly Type[] ExtraSInt = [typeof(Int128), typeof(nint), typeof(BigInteger)];
 
 	public static FI GetResolvedField(this MMI member)
 	{
@@ -108,42 +208,6 @@ public static class ReflectionHelper
 			            : member as FI;
 
 		return field;
-	}
-
-	public static (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>(this Type t)
-		where TAttribute : Attribute
-	{
-		return (
-			       from member in t.GetAllMembers()
-			       where Attribute.IsDefined(member, typeof(TAttribute))
-			       select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
-	}
-
-	[return: MN]
-	public static ConstructorInfo GetConstructor(this Type type, params object[] args)
-	{
-		if (args.Length == 0) {
-			var ctor = type.GetConstructor(Type.EmptyTypes);
-
-			return ctor;
-		}
-
-		var ctors    = type.GetConstructors();
-		var argTypes = args.Select(x => x.GetType()).ToArray();
-
-		foreach (var ctor in ctors) {
-			var paramz = ctor.GetParameters();
-
-			if (paramz.Length != args.Length) {
-				continue;
-			}
-
-			if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
-				return ctor;
-			}
-		}
-
-		return null;
 	}
 
 	public static Dictionary<FI, bool> GetNullMembers(this object value, Func<Type, object, bool> fn = null,
@@ -252,114 +316,68 @@ public static class ReflectionHelper
 
 #region Properties
 
-	public static bool ExtendsType(this Type myType, Type superType)
+	extension(Type t)
 	{
-		return myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(superType);
+
+		public bool ExtendsType(Type superType)
+		{
+			return t.IsClass && !t.IsAbstract && t.IsSubclassOf(superType);
+		}
+
+		public bool ImplementsInterface(Type interfaceType)
+			=> t.ImplementsInterface(interfaceType.Name);
+
+		public bool ImplementsInterface(string interfaceName)
+			=> t.GetInterface(interfaceName) != null;
+
+		public bool ImplementsGenericInterface(Type genericType)
+		{
+			return t.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericType);
+		}
+
+		/// <summary>
+		///     Determines whether this type fits the <c>unmanaged</c> type constraint.
+		/// </summary>
+		[DebuggerHidden]
+		public bool IsUnmanaged
+		{
+			get
+			{
+				try {
+					// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
+					typeof(UnmanagedDummyType<>).MakeGenericType(t);
+					return true;
+				}
+				catch {
+					return false;
+				}
+			}
+		}
+
+		public bool CanBePointerSurrogate => t.IsValueType && (t.IsAnyPointer || t.AsMetaType().NativeSize == Mem.Size);
+
+		public bool IsAnyPointer
+		{
+			get
+			{
+				bool isPointer = t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Pointer<>);
+
+				bool isIntPtr = t == typeof(nint) || t == typeof(nuint);
+
+				return t.IsPointer || isPointer || isIntPtr || t.IsUnmanagedFunctionPointer;
+			}
+		}
+
+		public bool IsEnumerableType => t.ImplementsInterface(nameof(IEnumerable));
+
 	}
 
-	public static bool ImplementsInterface(this Type type, Type interfaceType)
-		=> type.ImplementsInterface(interfaceType.Name);
-
-	public static bool ImplementsInterface(this Type type, string interfaceName)
-		=> type.GetInterface(interfaceName) != null;
-
-	public static bool ImplementsGenericInterface(this Type type, Type genericType)
-	{
-		return type.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericType);
-	}
-
-#region
-
-	public static bool IsSigned(this Type t)
-	{
-		var c = GetCodeInfo(t, out var b);
-
-		var bb = b && (int) c % 2 == 1;
-		return /*t.IsInteger() && */bb || ExtraSInt.Contains(t) || t.IsReal();
-	}
-
-	public static bool IsUnsigned(this Type t)
-	{
-		var c = GetCodeInfo(t, out var b);
-
-		var bb = b && (int) c % 2 == 0;
-		return /*t.IsInteger() && */bb || ExtraUInt.Contains(t);
-	}
-
-	public static bool IsNumeric(this Type t)
-		=> t.IsInteger() || t.IsReal();
-
-	private static readonly Type[] ExtraUInt = [typeof(UInt128), typeof(nuint)];
-	private static readonly Type[] ExtraSInt = [typeof(Int128), typeof(nint), typeof(BigInteger)];
-
-	private static TypeCode GetCodeInfo(Type t, out bool isIntCode)
-	{
-		var c = Type.GetTypeCode(t);
-		isIntCode = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
-		return c;
-	}
-
-	public static bool IsInteger(this Type t)
-	{
-		TypeCode c = GetCodeInfo(t, out bool b);
-
-		// var b2 = t == typeof(BigInteger) || t == typeof(Int128) || t == typeof(UInt128);
-		// var b3 = t == typeof(nint) || t == typeof(nuint);
-
-		return b || ExtraSInt.Contains(t) || ExtraUInt.Contains(t);
-	}
-
-	public static bool IsReal(this Type t)
-	{
-		var c = Type.GetTypeCode(t);
-
-		var case1 = c is <= TypeCode.Decimal and >= TypeCode.Single;
-
-		// Special case
-		var case2 = t == typeof(Half);
-
-		return case1 || case2;
-	}
-
-#endregion
 
 	/// <summary>
 	///     Dummy class for use with <see cref="IsUnmanaged" /> and <see cref="IsUnmanaged" />
 	/// </summary>
 	private sealed class UnmanagedDummyType<T> where T : unmanaged { }
 
-	/// <summary>
-	///     Determines whether this type fits the <c>unmanaged</c> type constraint.
-	/// </summary>
-	[DebuggerHidden]
-	public static bool IsUnmanaged(this Type t)
-	{
-		try {
-			// ReSharper disable once ReturnValueOfPureMethodIsNotUsed
-			typeof(UnmanagedDummyType<>).MakeGenericType(t);
-			return true;
-		}
-		catch {
-			return false;
-		}
-	}
-
-	public static bool CanBePointerSurrogate(this Type t)
-	{
-		return t.IsValueType && (t.IsAnyPointer() || t.AsMetaType().NativeSize == Mem.Size);
-	}
-
-	public static bool IsAnyPointer(this Type t)
-	{
-		bool isPointer = t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Pointer<>);
-
-		bool isIntPtr = t == typeof(nint) || t == typeof(nuint);
-
-		return t.IsPointer || isPointer || isIntPtr || t.IsUnmanagedFunctionPointer;
-	}
-
-	public static bool IsEnumerableType(this Type type)
-		=> type.ImplementsInterface(nameof(IEnumerable));
 
 	public static Type GetType2<T>([CBN] this T t)
 		=> t?.GetType() ?? typeof(T);
@@ -456,7 +474,7 @@ public static class ReflectionHelper
 			.Select(Activator.CreateInstance);
 	}
 
-	public static HashSet<AssemblyName> DumpDependencies([CanBeNull] Assembly asm2)
+	public static HashSet<AssemblyName> DumpDependencies([CanBeNull] this Assembly asm2)
 	{
 
 		/*

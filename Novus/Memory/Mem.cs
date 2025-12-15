@@ -314,6 +314,27 @@ public static unsafe class Mem
 		return ref p.Cast<TTo>().Reference;
 	}
 
+	/*public static ref T PinToRef<T>(this Memory<T> sp, [MDR] out MemoryHandle mh)
+	{
+		var p = sp.ToPointer(out mh);
+		return ref p.Reference;
+	}*/
+
+	public static Pointer<T> ToPointer<T>(this Memory<T> sp, [MDR] out MemoryHandle mh)
+	{
+		mh = sp.Pin();
+		return mh.Pointer;
+	}
+	/*public static Pointer<T> ToPointer<T>(this Span<T> s)
+		=> s.ToPointer(ref s.GetPinnableReference());*/
+
+	public static Pointer<T> ToPointer<T>(this Span<T> s, ref T t)
+	{
+		t = ref s.GetPinnableReference();
+
+		return AddressOf(ref t);
+	}
+
 #endregion
 
 #region Read/write
@@ -706,25 +727,25 @@ public static unsafe class Mem
 
 #region
 
-	private static readonly HashSet<SizeOfOption> TypeValue = new()
-	{
+	private static readonly HashSet<SizeOfOption> TypeValue =
+	[
 		SizeOfOption.BaseFields,
 		SizeOfOption.BaseInstance,
 		SizeOfOption.Heap,
-		SizeOfOption.Data,
+		SizeOfOption.Data
 
-	};
+	];
 
-	private static readonly HashSet<SizeOfOption> TypeParameter = new()
-	{
+	private static readonly HashSet<SizeOfOption> TypeParameter =
+	[
 		SizeOfOption.Native,
 		SizeOfOption.Managed,
 		SizeOfOption.Intrinsic,
 		SizeOfOption.BaseFields,
 		SizeOfOption.BaseInstance,
-		SizeOfOption.BaseData,
+		SizeOfOption.BaseData
 
-	};
+	];
 
 	public static bool RequiresTypeValue(this SizeOfOption option)
 		=> TypeValue.Contains(option);
@@ -960,18 +981,25 @@ public static unsafe class Mem
 	public static T ReadFromBytes<T>(byte[] rg)
 	{
 		Memory<byte> asMemory = rg.AsMemory();
-		using var    pin      = asMemory.Pin();
 
-		var p2 = (byte*) pin.Pointer;
+		var p2 = asMemory.ToPointer(out var mh);
 
 		if (!typeof(T).IsValueType) {
 			p2 += RuntimeProperties.ObjHeaderSize;
-			return Unsafe.Read<T>(&p2);
+			return AddressOf(ref p2).Cast<T>().Value;
 		}
 
-		return Unsafe.Read<T>(p2);
+		return p2.Cast<T>().Value;
 	}
 
+	/// <summary>
+	/// Reads a value fo type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
+	/// </summary>
+	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
+	public static object ReadFromBytes(byte[] rg)
+	{
+		return ReadFromBytes<object>(rg);
+	}
 
 	/// <summary>
 	/// <see cref="RuntimeHelpers.GetRawData"/>
@@ -999,6 +1027,7 @@ public static unsafe class Mem
 	/// <param name="ptrOrig">Original base pointer</param>
 	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
 	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
+	[MURV]
 	public static T InitInline<T>(Pointer<byte> ptr, out Pointer<byte> ptrOrig) where T : class
 	{
 		ptrOrig = ptr;
@@ -1011,42 +1040,26 @@ public static unsafe class Mem
 
 #endregion
 
+#region
+
 	/// <summary>
 	/// Parses a <see cref="byte"/> array formatted as <c>00 01 02 ...</c>
 	/// </summary>
+	/// <seealso cref="SigScanner.ReadSignature" />
 	public static byte[] ParseAOBString(string s)
 	{
 		return s.Split(Strings.Constants.SPACE)
-			.Select(s1 => Byte.Parse(s1, NumberStyles.HexNumber))
+			.Select(static s1 => Byte.Parse(s1, NumberStyles.HexNumber))
 			.ToArray();
 	}
 
-	/// <summary>
-	///     Reads a <see cref="byte" /> array as a <see cref="string" /> delimited by spaces in
-	///     hex number format
-	/// </summary>
-	/// <seealso cref="SigScanner.ReadSignature" />
-	public static byte[] ParseBinaryString(string s)
-	{
-		string[] bytes = s.Split(Strings.Constants.SPACE);
-		var      rg    = new List<byte>(bytes.Length);
-
-		foreach (string b in bytes) {
-			var n = Byte.Parse(b, NumberStyles.HexNumber);
-
-			rg.Add(n);
-		}
-
-		return rg.ToArray();
-	}
-
-	public static string ToBinaryString<T>(T value, int totalBits = -1) where T : struct
+	public static string ToBinaryString<T>(T value, int totalBits = Native.ERROR_SV) where T : struct
 	{
 		// int sizeInBytes = sizeof(T) * BitCalculator.BITS_PER_BYTE;
 
 		int sizeInBytes = SizeOf<T>(SizeOfOption.Intrinsic) * BitCalculator.BITS_PER_BYTE;
 
-		if (totalBits <= -1) {
+		if (totalBits <= Native.ERROR_SV) {
 			// throw new ArgumentOutOfRangeException(nameof(totalBits), "Total bits must be at least 1.");
 			totalBits = sizeInBytes;
 		}
@@ -1069,15 +1082,7 @@ public static unsafe class Mem
 		return new string(bits);
 	}
 
-	/*public static void Write<T>(Pointer<byte> p, T value)
-	{
-		Unsafe.Write(p.ToPointer(), value);
-	}
-
-	public static T Read<T>(Pointer<byte> p)
-	{
-		return Unsafe.Read<T>(p.ToPointer());
-	}*/
+#endregion
 
 	/*
 	public static ref T ReadRef<T>(this Span<T> sp)
@@ -1115,23 +1120,6 @@ public static unsafe class Mem
 		return (default, default);
 	}
 
-	public static ref T PinToRef<T>(this Memory<T> sp, [MDR] out MemoryHandle mh)
-	{
-		mh = sp.Pin();
-		Pointer<T> p = mh.Pointer;
-		return ref p.Reference;
-	}
-
-	/*public static Pointer<T> ToPointer<T>(this Span<T> s)
-		=> s.ToPointer(ref s.GetPinnableReference());*/
-
-	public static Pointer<T> ToPointer<T>(this Span<T> s, ref T t)
-	{
-		t = ref s.GetPinnableReference();
-
-		return AddressOf(ref t);
-	}
-
 	public static int GetOffsetValue(this OffsetOptions offset)
 	{
 		int offsetValue = offset switch
@@ -1155,7 +1143,7 @@ public enum OffsetOptions
 {
 
 	/// <summary>
-	///     Return the pointer offset by <c>-</c><see cref="Size" />,
+	///     Return the pointer offset by <c>-</c><see cref="RuntimeProperties.OffsetToData" />,
 	///     so it points to the object's <see cref="ClrObjHeader" />.
 	/// </summary>
 	Header,
@@ -1182,7 +1170,7 @@ public enum OffsetOptions
 
 	/// <summary>
 	///     If the type is a reference type, return
-	///     the pointer offset by <see cref="Size" /> so it points
+	///     the pointer offset by <see cref="RuntimeProperties.OffsetToData" /> so it points
 	///     to the object's fields.
 	/// </summary>
 	Fields,

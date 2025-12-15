@@ -24,7 +24,7 @@ public static class MetaExtensions
 	public static MetaType GetMetaType(this object o)
 		=> o.GetType().AsMetaType();
 
-	public static MetaMethod AsMetaMethod(this MethodInfo t)
+	public static MetaMethod AsMetaMethod(this MI t)
 		=> new(t);
 
 	public static MetaField AsMetaField(this FI t)
@@ -39,7 +39,7 @@ public static class MetaExtensions
 ///     <list type="bullet">
 ///         <item>
 ///             <description>
-///                 CLR structure: <see cref="VM.MethodTable" />, <see cref="VM.EE.EEClass" />,
+///                 CLR structure: <see cref="VM.MethodTable" />, <see cref="VM.EE.EEClass" />, <see cref="TypeHandle"/>
 ///                 <see cref="VM.TypeHandle" />, <see cref="VM.EE.EEClassLayoutInfo" />, <see cref="VM.EE.ArrayClass" />
 ///             </description>
 ///         </item>
@@ -172,8 +172,6 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	/// </summary>
 	public override int Token => TokenHelper.TokenFromRid(Value.Reference.RawToken, CorTokenType.TypeDef);
 
-	public CorElementType CorElementType => RuntimeType.GetCorElementType();
-
 	public int BaseDataSize
 	{
 		get
@@ -228,15 +226,15 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public int VirtualsCount => Value.Reference.NumVirtuals;
 
-	public bool IsInteger => RuntimeType.IsInteger();
+	public bool IsInteger => RuntimeType.IsInteger;
 
-	public bool IsReal => RuntimeType.IsReal();
+	public bool IsReal => RuntimeType.IsReal;
 
-	public bool IsNumeric => RuntimeType.IsNumeric();
+	public bool IsNumeric => RuntimeType.IsNumeric;
 
-	public bool IsUnmanaged => RuntimeType.IsUnmanaged();
+	public bool IsUnmanaged => RuntimeType.IsUnmanaged;
 
-	public bool IsAnyPointer => RuntimeType.IsAnyPointer();
+	public bool IsAnyPointer => RuntimeType.IsAnyPointer;
 
 	public MetaField GetField(string name)
 		=> RuntimeType.GetAnyField(name);
@@ -290,5 +288,4 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 	{
 		return Equals(left, right);
 	}
-
 }

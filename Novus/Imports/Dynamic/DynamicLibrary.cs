@@ -73,8 +73,8 @@ public sealed class DynamicLibrary
 			.DefinePInvokeMethod(name, DllName, name, MethodAttributes.Static | MethodAttributes.Public,
 			                     CallingConventions.Standard, returnType, parameterTypes, callingConvention, charSet)
 			.SetCustomAttribute(new CustomAttributeBuilder(
-				                    typeof(DllImportAttribute).GetConstructor(new[] { typeof(string) }),
-				                    new[] { DllName }));
+				                    typeof(DllImportAttribute).GetConstructor([typeof(string)]),
+				                    [DllName]));
 
 		return typeBuilder.CreateType().GetMethod(name, BindingFlags.Static | BindingFlags.Public);
 	}

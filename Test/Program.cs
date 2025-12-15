@@ -92,9 +92,6 @@ namespace Test;
  *
  * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
  *
- * todo: integrate pdbex
- *
- *
  */
 
 /*
@@ -160,8 +157,30 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
+
 		// var mc=new MyClass2b();
 
+		var  obj           = new MyClass(){s = "foo", a = 123};
+		var mt=RuntimeProperties.GetMethodTable(obj);
+		var t=typeof(MyClass);
+		var mt2 = RuntimeProperties.ResolveTypeHandle(t);
+
+		ref var data = ref RuntimeProperties.AsClrObject(obj).Reference;
+		ref var data2 = ref obj.GetRawData();
+		Console.WriteLine(data);
+		Console.WriteLine(data2);
+		var rg = Mem.GetBytes(obj);
+		var obj2 = Mem.ReadFromBytes<MyClass>(rg);
+		var obj3 = Mem.ReadFromBytes(rg);
+		Console.WriteLine(obj);
+		Console.WriteLine(obj2);
+		Console.WriteLine(obj3);
+
+		return;
+	}
+
+	private static void Test4()
+	{
 		var pss = Process.GetCurrentProcess().Modules;
 
 		foreach (ProcessModule processModule in pss) {
@@ -176,8 +195,6 @@ public static class Program
 		foreach (string s in SymbolReader.EnumerateSymbolPath("coreclr.pdb")) {
 			Console.WriteLine(s);
 		}
-
-		return;
 	}
 
 	static IDictionary<string, Func<int, object>> fns = new Dictionary<string, Func<int, object>>()

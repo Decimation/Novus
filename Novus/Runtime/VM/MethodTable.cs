@@ -149,59 +149,67 @@ public unsafe struct MethodTable
 	/// <see cref="NativeLayoutInfo"/>
 	/// </summary>
 	[field: ImportClr("Sig_GetNativeLayoutInfo")]
-	private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*>
-		Func_GetNativeLayoutInfo { get; }
+	private static delegate* unmanaged[Thiscall]<MethodTable*, EEClassNativeLayoutInfo*> Func_GetNativeLayoutInfo { get; }
 
 	//
 
 }
 
-[NativeStructure]
-[StructLayout(LayoutKind.Sequential)]
-public unsafe struct MethodTableAuxiliaryData
+#region Enums
+// This should match the TypeFlags enum in the managed type system.
+public enum EETypeElementType : byte
 {
+	// Primitive
+	ElementType_Unknown = 0x00,
+	ElementType_Void    = 0x01,
+	ElementType_Boolean = 0x02,
+	ElementType_Char    = 0x03,
+	ElementType_SByte   = 0x04,
+	ElementType_Byte    = 0x05,
+	ElementType_Int16   = 0x06,
+	ElementType_UInt16  = 0x07,
+	ElementType_Int32   = 0x08,
+	ElementType_UInt32  = 0x09,
+	ElementType_Int64   = 0x0A,
+	ElementType_UInt64  = 0x0B,
+	ElementType_IntPtr  = 0x0C,
+	ElementType_UIntPtr = 0x0D,
+	ElementType_Single  = 0x0E,
+	ElementType_Double  = 0x0F,
 
-	public enum AuxiliaryFlags
-	{
+	ElementType_ValueType = 0x10,
+	// Enum = 0x11, // EETypes store enums as their underlying type
+	ElementType_Nullable = 0x12,
+	// Unused 0x13,
 
-		// AS YOU ADD NEW FLAGS PLEASE CONSIDER WHETHER Generics::NewInstantiation NEEDS
-		// TO BE UPDATED IN ORDER TO ENSURE THAT METHODTABLES DUPLICATED FOR GENERIC INSTANTIATIONS
-		// CARRY THE CORRECT INITIAL FLAGS.
+	ElementType_Class     = 0x14,
+	ElementType_Interface = 0x15,
 
-		Initialized = 0x0001,
+	ElementType_SystemArray = 0x16, // System.Array type
 
-		HasCheckedCanCompareBitsOrUseFastGetHashCode = 0x0002, // Whether we have checked the overridden Equals or GetHashCode
-
-		CanCompareBitsOrUseFastGetHashCode = 0x0004, // Is any field type or sub field type overridden Equals or GetHashCode
-		IsTlsIndexAllocated = 0x0008,
-		HasApproxParent = 0x0010,
-		MayHaveOpenInterfaceInInterfaceMap = 0x0020,
-		IsNotFullyLoaded = 0x0040,
-		DependenciesLoaded = 0x0080, // class and all dependencies loaded up to CLASS_LOADED_BUT_NOT_VERIFIED
-
-		IsInitError = 0x0100,
-
-		IsStaticDataAllocated =
-			0x0200, // When this is set, if the class can be marked as initialized without any further code execution it will be.
-		HasCheckedStreamOverride = 0x0400,
-		StreamOverriddenRead     = 0x0800,
-		StreamOverriddenWrite    = 0x1000,
-		EnsuredInstanceActive    = 0x2000,
-
-		// unused enum                      = 0x4000,
-		// unused enum                      = 0x8000,
-
-	};
-
-	public uint Flags { get; set; }
-
-	public void* LoaderModule { get; set; }
-
-	public void* ExposedClassObject { get; set; }
-
+	ElementType_Array           = 0x17,
+	ElementType_SzArray         = 0x18,
+	ElementType_ByRef           = 0x19,
+	ElementType_Pointer         = 0x1A,
+	ElementType_FunctionPointer = 0x1B,
 }
 
-#region Enums
+public enum EETypeField
+{
+	ETF_TypeManagerIndirection,
+	ETF_WritableData,
+	ETF_DispatchMap,
+	ETF_Finalizer,
+	ETF_SealedVirtualSlots,
+	ETF_DynamicTemplateType,
+	ETF_GenericDefinition,
+	ETF_GenericComposition,
+	ETF_FunctionPointerParameters,
+	ETF_DynamicTypeFlags,
+	ETF_DynamicGcStatics,
+	ETF_DynamicNonGcStatics,
+	ETF_DynamicThreadStaticOffset,
+};
 
 /// <summary>
 ///     <remarks>

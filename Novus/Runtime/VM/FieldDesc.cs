@@ -16,12 +16,14 @@ using Novus.Win32;
 
 namespace Novus.Runtime.VM;
 #pragma warning disable CA1416, IDE0251
+
 // #pragma warning disable IDE0251
 
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct FieldDesc
 {
+
 	static FieldDesc()
 	{
 		Global.Clr.LoadImports(typeof(FieldDesc));
@@ -105,6 +107,20 @@ public unsafe struct FieldDesc
 		}
 	}
 
+	internal void GetInstanceField(ClrObject* obj, void* pOut)
+	{
+		fixed (FieldDesc* p = &this) {
+			Func_GetInstanceField(p, obj, pOut);
+		}
+	}
+
+	internal void SetInstanceField(ClrObject* obj, void* pIn)
+	{
+		fixed (FieldDesc* p = &this) {
+			Func_SetInstanceField(p, obj, pIn);
+		}
+	}
+
 	/// <summary>
 	/// <see cref="FieldDesc.Size"/>
 	/// </summary>
@@ -117,6 +133,18 @@ public unsafe struct FieldDesc
 	[field: ImportClr("Sig_GetStaticAddr")]
 	private static delegate* unmanaged[Thiscall]<FieldDesc*, void*> Func_StaticAddress { get; }
 
+	/// <summary>
+	/// <see cref="GetInstanceField"/>
+	/// </summary>
+	[field: ImportClr("Sig_GetInstanceField")]
+	private static delegate* unmanaged[Thiscall]<FieldDesc*, ClrObject*, void*, void> Func_GetInstanceField { get; }
+
+	/// <summary>
+	/// <see cref="GetInstanceField"/>
+	/// </summary>
+	[field: ImportClr("Sig_SetInstanceField")]
+	private static delegate* unmanaged[Thiscall]<FieldDesc*, ClrObject*, void*, void> Func_SetInstanceField { get; }
+
 }
 
 /// <summary>
@@ -124,6 +152,7 @@ public unsafe struct FieldDesc
 /// </summary>
 public enum AccessModifiers
 {
+
 	/// <summary>
 	///     <remarks>Equals <see cref="FieldInfo.IsPrivate" /></remarks>
 	/// </summary>
@@ -153,6 +182,7 @@ public enum AccessModifiers
 	///     <remarks>Equals <see cref="FieldInfo.IsPublic" /></remarks>
 	/// </summary>
 	Public = 12
+
 }
 
 /// <summary>
@@ -161,6 +191,7 @@ public enum AccessModifiers
 [Flags]
 public enum FieldBitFlags
 {
+
 	// <summary>
 	// <c>DWORD</c> #1
 	//     <para>unsigned m_mb : 24;</para>
@@ -180,6 +211,7 @@ public enum FieldBitFlags
 	RVA = 1 << 26,
 
 	RequiresFullMBValue = 1 << 31
+
 }
 
 /// <summary>
@@ -187,6 +219,8 @@ public enum FieldBitFlags
 /// </summary>
 internal enum PackedLayoutMask
 {
+
 	MBMask       = 0x01FFFF,
 	NameHashMask = 0xFE0000
+
 }

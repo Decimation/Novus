@@ -99,7 +99,10 @@ public static unsafe class RuntimeProperties
 	/// <see cref="RuntimeHelpers.GetElementSize"/>
 	public static int GetElementSize(object o) => Func_GetElementSize(o);
 
-	#endregion
+	public static Pointer<ClrObject> AsClrObject(this object o)
+		=> Mem.AddressOfHeap(o).Cast<ClrObject>();
+
+#endregion
 
 
 #region Metadata
@@ -166,11 +169,6 @@ public static unsafe class RuntimeProperties
 		var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;
 		return value;
-	}
-
-	public static Pointer<ClrObject> AsClrObject(object o)
-	{
-		return Mem.AddressOfHeap(o).Cast<ClrObject>();
 	}
 
 #endregion

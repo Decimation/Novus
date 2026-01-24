@@ -173,6 +173,14 @@
     <value>48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B D9 44 0F B6 41</value>
     <comment>MethodDesc::GetILHeader</comment>
   </data>
+  <data name="Sig_GetInstanceField" xml:space="preserve">
+    <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 49 8B F8 48 8B D9 E8</value>
+    <comment>FieldDesc::GetInstanceField</comment>
+  </data>
+  <data name="Sig_SetInstanceField" xml:space="preserve">
+    <value>48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 49 8B F8 48 8B F1 E8</value>
+    <comment>FieldDesc::SetInstanceField</comment>
+  </data>
   <data name="Sig_GetMethodTable" xml:space="preserve">
     <value>? ? ? A8 ? 75 ? C3 48 8D 48</value>
     <comment>TypeHandle::GetMethodTable</comment>

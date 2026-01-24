@@ -215,6 +215,15 @@ namespace Novus.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 49 8B F8 48 8B D9 E8.
+        /// </summary>
+        internal static string Sig_GetInstanceField {
+            get {
+                return ResourceManager.GetString("Sig_GetInstanceField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ? ? ? A8 ? 75 ? C3 48 8D 48.
         /// </summary>
         internal static string Sig_GetMethodTable {
@@ -319,6 +328,15 @@ namespace Novus.Properties {
         internal static string Sig_SetEntryPoint {
             get {
                 return ResourceManager.GetString("Sig_SetEntryPoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 48 89 5C 24 ? 48 89 74 24 ? 57 48 83 EC ? 49 8B F8 48 8B F1 E8.
+        /// </summary>
+        internal static string Sig_SetInstanceField {
+            get {
+                return ResourceManager.GetString("Sig_SetInstanceField", resourceCulture);
             }
         }
         

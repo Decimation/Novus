@@ -79,4 +79,18 @@ public unsafe class MetaField : EmbeddedClrStructure<FieldDesc>
 	public static implicit operator MetaField(FI t)
 		=> new(t);
 
+	public void GetInstanceField(object obj, Pointer<byte> pOut)
+	{
+		var   clrObject = obj.AsClrObject().ToPointer<ClrObject>();
+		void* pOut2      = pOut.ToPointer();
+		Value.Reference.GetInstanceField(clrObject, pOut2);
+	}
+
+	public void SetInstanceField(object obj, Pointer<byte> pIn)
+	{
+		var   clrObject = obj.AsClrObject().ToPointer<ClrObject>();
+		void* pIn2      = pIn.ToPointer();
+		Value.Reference.SetInstanceField(clrObject, pIn2);
+	}
+
 }

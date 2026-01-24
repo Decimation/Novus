@@ -164,6 +164,8 @@ public static unsafe class Mem
 
 	private static readonly ActionFunctor PinImpl;
 
+	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
+
 	[NN]
 	private static ActionFunctor CreatePinImpl()
 	{
@@ -203,8 +205,6 @@ public static unsafe class Mem
 	/// </summary>
 	public static PinHelperProxy GetPinningHelper(object value)
 		=> Unsafe.As<PinHelperProxy>(value);
-
-	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
 
 	public static bool IsPinned(object obj)
 		=> PinResetEvents.ContainsKey(obj);
@@ -499,24 +499,6 @@ public static unsafe class Mem
 
 #endregion
 
-#region Copy
-
-	public static T CopyInstance<T>(T t) where T : class
-	{
-		var t2 = Activator.CreateInstance<T>();
-
-		Pointer<byte> p  = AddressOfData(ref t);
-		int           s  = SizeOf(t, SizeOfOption.Data);
-		Pointer<byte> p2 = AddressOfData(ref t2);
-
-		//p2.WriteAll(p.Copy(s));
-		p2.WriteAll(p.ToArray(s));
-
-		// Copy(p, s, p2);
-
-		return t2;
-	}
-
 	/*public static void Copy(Pointer<byte>src, int cb, Pointer<byte> dest)
 		=> dest.WriteAll(src.ToArray(cb));
 
@@ -528,8 +510,6 @@ public static unsafe class Mem
 
 	public static byte[] Copy(Pointer<byte> src, int cb)
 		=> src.ToArray(cb);*/
-
-#endregion
 
 #region Size
 
@@ -912,6 +892,22 @@ public static unsafe class Mem
 	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 
 #region Object memory operations
+
+	public static T CopyInstance<T>(T t) where T : class
+	{
+		var t2 = Activator.CreateInstance<T>();
+
+		Pointer<byte> p  = AddressOfData(ref t);
+		int           s  = SizeOf(t, SizeOfOption.Data);
+		Pointer<byte> p2 = AddressOfData(ref t2);
+
+		//p2.WriteAll(p.Copy(s));
+		p2.WriteAll(p.ToArray(s));
+
+		// Copy(p, s, p2);
+
+		return t2;
+	}
 
 	/// <summary>
 	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />

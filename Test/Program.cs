@@ -73,6 +73,7 @@ using System.Security.Cryptography;
 using Novus.Numerics;
 using Novus.FileTypes.Uni;
 using Novus.Memory.Types;
+using System.Runtime.InteropServices.Marshalling;
 
 // ReSharper disable UnusedMember.Local
 // ReSharper disable ClassNeverInstantiated.Local
@@ -154,12 +155,40 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
-		
+		Test7();
+	}
+
+	private static unsafe void Test7()
+	{
+		MyClass obj    = new MyClass() { s = "foo", a = 123 };
+		Console.WriteLine(obj.s);
+
+		var mt  =obj.GetMetaType();
+		var mf  =mt.GetField(nameof(MyClass.s));
+		var buf = stackalloc byte[8];
+		mf.GetInstanceField(obj,buf);
+
+		var fld = Mem.AddressOfField(obj, nameof(MyClass.s)).Cast<string>();
+		Console.WriteLine(fld.ReadPointer());
+		var ptr = (ulong*) buf;
+		Console.WriteLine($"{*ptr:X}");
+
+		var str2    ="bar";
+		var str2Val = Mem.AddressOf(ref str2);
+		Console.WriteLine(str2Val);
+
+		mf.SetInstanceField(obj, str2Val);
+
+		Console.WriteLine(obj.s);
+	}
+
+	private static unsafe void Test6()
+	{
 		// var mc=new MyClass2b();
 
-		MyClass obj  = new MyClass() { s = "foo", a = 123 };
-		var addr = (Pointer<byte>) Unsafe.AsPointer(ref obj);
-		var addr2 = (Pointer<byte>) addr.ReadPointer();
+		MyClass obj   = new MyClass() { s = "foo", a = 123 };
+		var     addr  = (Pointer<byte>) Unsafe.AsPointer(ref obj);
+		var     addr2 = (Pointer<byte>) addr.ReadPointer();
 		Console.WriteLine($"&obj = {addr} -> {addr2}");
 
 		var heap = Mem.AddressOfHeap(obj);

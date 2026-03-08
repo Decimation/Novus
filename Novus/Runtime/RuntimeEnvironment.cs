@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using JetBrains.Annotations;
 
 // ReSharper disable InconsistentNaming
@@ -14,6 +15,16 @@ public static class RuntimeEnvironment
 	 *
 	 */
 
+
+	[SupportedOSPlatformGuard(OS_WIN)]
+	public static readonly bool IsWindows = OperatingSystem.IsWindows();
+
+	[SupportedOSPlatformGuard(OS_LINUX)]
+	public static readonly bool IsLinux = OperatingSystem.IsLinux();
+
+	public const string OS_WIN = "windows";
+
+	public const string OS_LINUX = "linux";
 
 	[PublicAPI]
 	public static bool IsNetNative => RuntimeInformation.FrameworkDescription.StartsWith(".NET Native", StringComparison.OrdinalIgnoreCase);

@@ -2,6 +2,7 @@
 using System.Runtime.Versioning;
 using System.Text;
 using Novus.Win32.Structures.DbgHelp;
+
 // ReSharper disable ArrangeAttributes
 
 // ReSharper disable IdentifierTypo
@@ -18,7 +19,7 @@ public static unsafe partial class Native
 	[DllImport(DBGHELP_DLL)]
 	private static extern ImageNtHeaders* ImageNtHeader([In] nint hModule);
 
-	#region Symbols
+#region Symbols
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 	internal static extern bool SymInitialize(nint hProcess, nint userSearchPath, bool fInvadeProcess);
@@ -30,8 +31,8 @@ public static unsafe partial class Native
 	internal delegate bool EnumSymbolsCallback(nint symInfo, uint symbolSize, nint pUserContext);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern bool SymEnumSymbols(nint hProcess, ulong modBase, string mask,
-	                                           EnumSymbolsCallback callback, nint pUserContext);
+	internal static extern bool SymEnumSymbols(nint                hProcess, ulong modBase, string mask,
+	                                           EnumSymbolsCallback callback, nint  pUserContext);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 	internal static extern SymbolOptions SymGetOptions();
@@ -49,24 +50,27 @@ public static unsafe partial class Native
 	internal static extern bool SymUnloadModule64(nint hProc, ulong baseAddr);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern ulong SymLoadModuleEx(nint hProcess, nint hFile, string imageName,
-	                                             string moduleName, ulong baseOfDll, uint dllSize, nint data,
-	                                             uint flags);
+	internal static extern ulong SymLoadModuleEx(nint   hProcess,   nint  hFile,     string imageName,
+	                                             string moduleName, ulong baseOfDll, uint   dllSize, nint data,
+	                                             uint   flags);
 
 	[return: MA(UT.Bool)]
 	public delegate bool PFINDFILEINPATHCALLBACK([MA(UT.LPTStr)] string filename,
-	                                             [In, Opt]  nint context);
+	                                             [In, Opt]       nint   context);
 
 
 	[return: MA(UT.Bool)]
-	public static extern bool SymFindFileInPath(nint hprocess,
-	                                            [CBN, Opt, MA(UT.LPTStr)]   string SearchPath,
-	                                            [MA(UT.LPTStr)] string FileName,
-	                                            [In, Opt]  nint id, uint two, uint three, SymbolServerOptions flags,
-	                                            [MA(UT.LPTStr)] StringBuilder FoundFile,
-	                                            [CBN, In, Opt]   PFINDFILEINPATHCALLBACK callback,
-	                                            [In, Opt]  nint context);
+	public static extern bool SymFindFileInPath(nint                                    hprocess,
+	                                            [CBN, Opt, MA(UT.LPTStr)] string        SearchPath,
+	                                            [MA(UT.LPTStr)]           string        FileName,
+	                                            [In, Opt]                 nint          id,
+	                                            uint                                    two,
+	                                            uint                                    three,
+	                                            SymbolServerOptions                     flags,
+	                                            [MA(UT.LPTStr)] StringBuilder           FoundFile,
+	                                            [CBN, In, Opt]  PFINDFILEINPATHCALLBACK callback,
+	                                            [In, Opt]       nint                    context);
 
-	#endregion
+#endregion
 
 }

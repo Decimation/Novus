@@ -125,7 +125,6 @@ public sealed class DelegateFactory
 	///     Creates a delegate to a constructor of the specified type.
 	/// </summary>
 	/// <param name="type">The type containing the constructor.</param>
-	/// <param name="binder">An optional binder.</param>
 	/// <param name="modifiers">Optional parameter modifiers.</param>
 	/// <param name="argumentTypes">The types of constructor arguments.</param>
 	/// <returns>A delegate to the constructor.</returns>
@@ -206,9 +205,7 @@ public sealed class DelegateFactory
 	/// <returns>A delegate representing the provided MethodInfo.</returns>
 	public static Delegate MakeDelegate(MI methodInfo, object? instance, bool throwOnFailure = true)
 	{
-		Type delegateType = MakeNewDelegateType(methodInfo.ReturnType,
-		                                        methodInfo.GetParameters().Select(x => x.ParameterType)
-			                                        .ToArray());
+		Type delegateType = MakeNewDelegateType(methodInfo.ReturnType, [.. methodInfo.GetParameters().Select(x => x.ParameterType)]);
 
 		return MakeDelegate(delegateType, methodInfo, instance, throwOnFailure);
 	}

@@ -18,9 +18,9 @@ using Kantan.Utilities;
 using Novus.Streams;
 
 // ReSharper disable UseSymbolAlias
-
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StaticMemberInGenericType
+#pragma warning disable IDE0251
 
 namespace Novus.Memory;
 
@@ -48,7 +48,7 @@ namespace Novus.Memory;
 ///             <description>Minimum type safety</description>
 ///         </item>
 /// <item>
-///             <description>Pointer<byte> semantics</description>
+///             <description><see cref="Pointer{byte}"/> semantics</description>
 ///         </item>
 ///     </list>
 /// </remarks>

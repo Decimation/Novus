@@ -10,7 +10,7 @@ using Novus.OS;
 
 namespace Novus.FileTypes.Uni;
 
-public class UniSourceUrl : UniSource, IUniSource
+internal class UniSourceUrl : UniSource, IUniSource
 {
 
 	public Url Url { get; }

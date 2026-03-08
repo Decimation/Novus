@@ -5,7 +5,7 @@ using Novus.OS;
 
 namespace Novus.FileTypes.Uni;
 
-public class UniSourceStream : UniSource, IUniSource
+internal class UniSourceStream : UniSource, IUniSource
 {
 
 	internal UniSourceStream(Stream stream) : base(UniSourceType.Stream, stream)

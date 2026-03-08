@@ -61,10 +61,10 @@ public static class ReflectionHelper
 		public (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>()
 			where TAttribute : Attribute
 		{
-			return (
+			return [.. (
 				       from member in t.GetAllMembers()
 				       where Attribute.IsDefined(member, typeof(TAttribute))
-				       select (member.GetCustomAttribute<TAttribute>(), member)).ToArray();
+				       select (member.GetCustomAttribute<TAttribute>(), member))];
 		}
 
 		[return: MN]
@@ -159,13 +159,6 @@ public static class ReflectionHelper
 		public bool IsNumeric => t.IsInteger || t.IsReal;
 
 
-		private TypeCode GetCodeInfo(out bool isIntCode)
-		{
-			var c = Type.GetTypeCode(t);
-			isIntCode = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
-			return c;
-		}
-
 		public bool IsInteger
 		{
 			get
@@ -194,6 +187,13 @@ public static class ReflectionHelper
 			}
 		}
 
+		private TypeCode GetCodeInfo(out bool isIntCode)
+		{
+			var c = Type.GetTypeCode(t);
+			isIntCode = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
+			return c;
+		}
+
 #endregion
 
 	}
@@ -210,12 +210,12 @@ public static class ReflectionHelper
 		return field;
 	}
 
-	public static Dictionary<FI, bool> GetNullMembers(this object value, Func<Type, object, bool> fn = null,
+	public static Dictionary<FI, bool> GetNullMembers(this object  value, Func<Type, object, bool> fn = null,
 	                                                  BindingFlags flags = ALL_INSTANCE_FLAGS)
 	{
 		var fields = value.GetType().GetFields(flags);
 
-		fn ??= (_, o) => RuntimeProperties.IsNull(o);
+		fn ??= static (_, o) => RuntimeProperties.IsNull(o);
 
 		var rg = new Dictionary<FI, bool>();
 
@@ -243,12 +243,45 @@ public static class ReflectionHelper
 
 #region Special
 
-	public static IEnumerable<FI> GetAllBackingFields(this Type t)
+	extension(Type t)
 	{
-		var rg = t.GetRuntimeFields()
-			.Where(f => f.Name.Contains(SN_BACKING_FIELD));
 
-		return rg;
+		public IEnumerable<FI> GetAllBackingFields()
+		{
+			var rg = t.GetRuntimeFields()
+			          .Where(f => f.Name.Contains(SN_BACKING_FIELD));
+			return rg;
+		}
+
+		public bool IsAnonymous()
+		{
+			/*
+		   |       Method |      Mean |    Error |   StdDev |
+		   |------------- |----------:|---------:|---------:|
+		   | IsAnonymous1 | 640.90 ns | 6.119 ns | 5.724 ns |
+		   | IsAnonymous2 |  20.36 ns | 0.125 ns | 0.117 ns |
+		 */
+
+			return t.Name.Contains(SN_ANONYMOUS_TYPE);
+
+			// HACK: The only way to detect anonymous types right now.
+			/*return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
+		       && type.IsGenericType && type.Name.Contains("AnonymousType")
+		       && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
+		       && type.Attributes.HasFlag(TypeAttributes.NotPublic);*/
+		}
+
+		public bool IsRecord()
+			=> t.GetMethods().Any(m => m.Name == SN_CLONE);
+
+		public FI GetBackingField(string name)
+		{
+			var fi = t.GetRuntimeFields()
+			          .FirstOrDefault(a => Regex.IsMatch(a.Name, $@"\A<{name}>{SN_BACKING_FIELD}\Z"));
+
+			return fi;
+		}
+
 	}
 
 	[CBN]
@@ -259,7 +292,7 @@ public static class ReflectionHelper
 		 */
 
 		if (!pi.CanRead || !pi.GetGetMethod(nonPublic: true)
-			    .IsDefined(typeof(CompilerGeneratedAttribute), inherit: true)) {
+		                      .IsDefined(typeof(CompilerGeneratedAttribute), inherit: true)) {
 			return null;
 		}
 
@@ -272,13 +305,7 @@ public static class ReflectionHelper
 		return backingField;
 	}
 
-	public static FI GetBackingField(this Type t, string name)
-	{
-		var fi = t.GetRuntimeFields()
-			.FirstOrDefault(a => Regex.IsMatch(a.Name, $@"\A<{name}>{SN_BACKING_FIELD}\Z"));
-
-		return fi;
-	}
+	public static bool IsIndexed(this PI p) => p.GetIndexParameters().Length > 0;
 
 	private const string SN_BACKING_FIELD  = "k__BackingField";
 	private const string SN_ANONYMOUS_TYPE = "<>f__AnonymousType";
@@ -288,33 +315,17 @@ public static class ReflectionHelper
 	public static bool IsExtensionMethod(this MI m)
 		=> m.IsDefined(typeof(ExtensionAttribute));
 
-	public static bool IsRecord(this Type t)
-		=> t.GetMethods().Any(m => m.Name == SN_CLONE);
-
 	public static bool IsFixedBuffer(this FI field)
 		=> Regex.IsMatch(field.FieldType.Name, $@"\A<{field.Name}>{SN_FIXED_BUFFER}\Z");
 
-	public static bool IsAnonymous(this Type type)
+	public static bool IsCalculated(this PI property)
 	{
-		/*
-		   |       Method |      Mean |    Error |   StdDev |
-		   |------------- |----------:|---------:|---------:|
-		   | IsAnonymous1 | 640.90 ns | 6.119 ns | 5.724 ns |
-		   | IsAnonymous2 |  20.36 ns | 0.125 ns | 0.117 ns |
-		 */
-
-		return type.Name.Contains(SN_ANONYMOUS_TYPE);
-
-		// HACK: The only way to detect anonymous types right now.
-		/*return Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
-		       && type.IsGenericType && type.Name.Contains("AnonymousType")
-		       && (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$"))
-		       && type.Attributes.HasFlag(TypeAttributes.NotPublic);*/
+		return property.GetBackingField() == null && property.CanRead;
 	}
 
 #endregion
 
-#region Properties
+#region Type properties
 
 	extension(Type t)
 	{
@@ -378,27 +389,28 @@ public static class ReflectionHelper
 	/// </summary>
 	private sealed class UnmanagedDummyType<T> where T : unmanaged { }
 
-
-	public static Type GetType2<T>([CBN] this T t)
-		=> t?.GetType() ?? typeof(T);
-
 #endregion
 
 #region Invocation
 
-	/// <summary>
-	///     Executes a generic method
-	/// </summary>
 	/// <param name="method">Method to execute</param>
-	/// <param name="args">Generic type parameters</param>
-	/// <param name="value">Instance of type; <c>null</c> if the method is static</param>
-	/// <param name="fnArgs">Method arguments</param>
-	/// <returns>Return value of the method specified by <paramref name="method"/></returns>
-	public static object CallGeneric(this MI method, Type[] args, object value, params object[] fnArgs)
-		=> method.MakeGenericMethod(args).Invoke(value, fnArgs);
+	extension(MI method)
+	{
 
-	public static object CallGeneric(this MI method, Type arg, object value, params object[] fnArgs)
-		=> method.CallGeneric([arg], value, fnArgs);
+		/// <summary>
+		///     Executes a generic method
+		/// </summary>
+		/// <param name="args">Generic type parameters</param>
+		/// <param name="value">Instance of type; <c>null</c> if the method is static</param>
+		/// <param name="fnArgs">Method arguments</param>
+		/// <returns>Return value of the method specified by <paramref name="method"/></returns>
+		public object CallGeneric(Type[] args, object value, params object[] fnArgs)
+			=> method.MakeGenericMethod(args).Invoke(value, fnArgs);
+
+		public object CallGeneric(Type arg, object value, params object[] fnArgs)
+			=> method.CallGeneric([arg], value, fnArgs);
+
+	}
 
 	/// <summary>
 	///     Runs a constructor whose parameters match <paramref name="args" />
@@ -429,87 +441,74 @@ public static class ReflectionHelper
 
 #region Assemblies
 
-	public static Type[] GetImplementations(this Type type)
+	extension(Type type)
 	{
-		var types = type.Assembly.GetTypes()
-			.Where(p => type.IsAssignableFrom(p) && p.IsClass)
-			.ToArray();
-		return types;
-	}
 
-	public static IEnumerable<Type> GetAllInAssembly(this Type t1, InheritanceProperties p)
-	{
-		Func<Type, bool> fn = p switch
+		public Type[] GetImplementations()
 		{
-			InheritanceProperties.Subclass  => t => t.ExtendsType(t1),
-			InheritanceProperties.Interface => t => t.ImplementsInterface(t1),
+			var types = type.Assembly.GetTypes()
+			                .Where(p => type.IsAssignableFrom(p) && p.IsClass)
+			                .ToArray();
+			return types;
+		}
 
-			_ => throw new ArgumentOutOfRangeException(nameof(p), p, null)
-		};
+		public IEnumerable<Type> GetAllInAssembly(InheritanceProperties p)
+		{
+			Func<Type, bool> fn = p switch
+			{
+				InheritanceProperties.Subclass  => t => t.ExtendsType(type),
+				InheritanceProperties.Interface => t => t.ImplementsInterface(type),
 
-		return GetAllInAssembly(t1, fn);
-	}
+				_ => throw new ArgumentOutOfRangeException(nameof(p), p, null)
+			};
 
-	public static IEnumerable<Type> GetAllInAssembly(this Type t, Func<Type, bool> fn)
-	{
-		var assembly = Assembly.GetAssembly(t);
+			return GetAllInAssembly(type, fn);
+		}
 
-		Require.NotNull(assembly);
+		public IEnumerable<Type> GetAllInAssembly(Func<Type, bool> fn)
+		{
+			var assembly = Assembly.GetAssembly(type);
 
-		var asmTypes = assembly.GetTypes();
+			Require.NotNull(assembly);
 
-		var types = asmTypes.Where(fn);
+			var asmTypes = assembly.GetTypes();
 
-		return types;
+			var types = asmTypes.Where(fn);
+
+			return types;
+		}
+
 	}
 
 	public static IEnumerable<T> CreateAllInAssembly<T>(InheritanceProperties p)
 	{
-		return typeof(T).CreateAllInAssembly(p).Cast<T>();
+		return typeof(T).GetAllInAssembly(p)
+		                .Select(Activator.CreateInstance).Cast<T>();
 	}
 
-	public static IEnumerable<object> CreateAllInAssembly(this Type type, InheritanceProperties p)
+	public static HashSet<AssemblyName> DumpDependencies([CBN] this Assembly asm2)
 	{
-		return type.GetAllInAssembly(p)
-			.Select(Activator.CreateInstance);
-	}
-
-	public static HashSet<AssemblyName> DumpDependencies([CanBeNull] this Assembly asm2)
-	{
-
-		/*
-		var rg = new[]
-		{
-			//
-			//typeof(Global).Assembly,
-			//Assembly.GetExecutingAssembly(),
-			//
-			Assembly.GetCallingAssembly()
-		};
-		*/
 		asm2 ??= Assembly.GetCallingAssembly();
 
 		var asm = new HashSet<AssemblyName>();
 
-		var dependencies = GetUserDependencies(asm2);
+		var dependencies = asm2.GetNonSystemReferencedAssemblies();
 		asm.UnionWith(dependencies);
 
-		// foreach (var assembly in rg) { }
-
 		return asm;
+	}
+
+	public static IEnumerable<AssemblyName> GetNonSystemReferencedAssemblies(this Assembly asm)
+	{
+		const string SYSTEM = "System";
+
+		return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
 	}
 
 	public static Assembly FindAssemblyByName(string name)
 	{
 		return AppDomain.CurrentDomain.GetAssemblies()
-			.SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
-	}
-
-	public static IEnumerable<AssemblyName> GetUserDependencies(this Assembly asm)
-	{
-		const string SYSTEM = "System";
-
-		return asm.GetReferencedAssemblies().Where(a => a.Name != null && !a.Name.Contains(SYSTEM));
+		                .SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
 	}
 
 #endregion
@@ -600,6 +599,22 @@ public static class ReflectionHelper
 		x.Set(input);
 	}*/
 
+	/*public static object GetDefaultFieldValue(this Type t)
+	{
+		//todo
+		object o = default;
+
+		if (t.IsFunctionPointer) {
+			o = IntPtr.Zero;
+
+		}
+
+		return o;
+	}*/
+
+	public static Type GetType2<T>([CBN] this T t)
+		=> t?.GetType() ?? typeof(T);
+
 	/// <summary>
 	/// <a href="https://stackoverflow.com/questions/1402803/passing-properties-by-reference-in-c-sharp">See</a>
 	/// </summary>
@@ -619,36 +634,23 @@ public static class ReflectionHelper
 					parameter).Compile();
 
 				getter = Expression.Lambda<Func<T>>(Expression.Call(instanceExpression, pi.GetGetMethod()))
-					.Compile();
+				                   .Compile();
 				break;
 
 			case FI fi:
 				setter = Expression.Lambda<Action<T>>(Expression.Assign(memberExpression, parameter), parameter)
-					.Compile();
+				                   .Compile();
 
 				getter = Expression.Lambda<Func<T>>(
-						Expression.Field(instanceExpression, fi))
-					.Compile();
+					                   Expression.Field(instanceExpression, fi))
+				                   .Compile();
 				break;
 		}
 
 		return (setter, getter);
 	}
 
-	public static object GetDefaultFieldValue(this Type t)
-	{
-		//todo
-		object o = default;
-
-		if (t.IsFunctionPointer) {
-			o = IntPtr.Zero;
-
-		}
-
-		return o;
-	}
-
-	public static void Deconstruct(this object o, Func<MMI, bool> m = null)
+	/*public static void Deconstruct(this object o, Func<MMI, bool> m = null)
 	{
 		var mem  = o.GetType().GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.Default);
 		var dict = new Dictionary<string, object>();
@@ -656,9 +658,7 @@ public static class ReflectionHelper
 		foreach (var info in mem) {
 			//todo
 		}
-	}
-
-	public static bool IsIndexed(this PI p) => p.GetIndexParameters().Length > 0;
+	}*/
 
 }
 
@@ -666,68 +666,14 @@ public static class ReflectionHelper
 public enum InheritanceProperties
 {
 
+	/// <summary>
+	/// <see cref="ReflectionHelper.ExtendsType"/>
+	/// </summary>
 	Subclass,
+
+	/// <summary>
+	/// <see cref="ReflectionHelper.ImplementsInterface(Type,string)"/>
+	/// </summary>
 	Interface
-
-}
-
-public static class ReflectionOperatorHelpers
-{
-
-	public static Expression property_to_expr<T>(PI property)
-	{
-		var parameter          = Expression.Parameter(typeof(T));
-		var propertyExpression = Expression.Property(parameter, property);
-		var lambdaExpression   = Expression.Lambda(propertyExpression, parameter);
-
-		return lambdaExpression;
-	}
-
-	public static MMI member_of<T>(Expression<Func<T>> expression)
-	{
-		if (expression.Body is ConstantExpression) {
-			return null;
-		}
-
-		var body = (MemberExpression) expression.Body;
-		return body.Member;
-	}
-
-	public static ConstantExpression const_of<T>(Expression<Func<T>> expression)
-	{
-		var body = (ConstantExpression) expression.Body;
-		return body;
-	}
-
-	public static MMI member_of2<T>(Expression<Func<T>> expression)
-	{
-		var mi = member_of(expression);
-
-		return mi switch
-		{
-			FI f => f,
-			PI p => p,
-
-			_ => mi
-		};
-	}
-
-	public static FI field_of<T>(Expression<Func<T>> expression)
-		=> (FI) member_of(expression);
-
-	public static PI property_of<T>(Expression<Func<T>> expression)
-		=> (PI) member_of(expression);
-
-	public static MI method_of<T>(Expression<Func<T>> expression)
-	{
-		var body = (MethodCallExpression) expression.Body;
-		return body.Method;
-	}
-
-	public static MI method_of(Expression<Action> expression)
-	{
-		var body = (MethodCallExpression) expression.Body;
-		return body.Method;
-	}
 
 }

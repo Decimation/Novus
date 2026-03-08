@@ -170,7 +170,16 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 10.0.1.
+        ///   Looks up a localized string similar to Novus.
+        /// </summary>
+        internal static string Name {
+            get {
+                return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 10.0.3.
         /// </summary>
         internal static string RequiredVersion {
             get {

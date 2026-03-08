@@ -56,6 +56,7 @@ using Novus.Runtime;
 using Novus.Utilities;
 using System.Xml.Linq;
 using Kantan.Utilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes.Impl;
 using Novus.Imports;
@@ -63,15 +64,14 @@ using Novus.Win32;
 using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable InconsistentNaming
-
 // ReSharper disable LocalizableElement
-
 // ReSharper disable UnusedMember.Global
-// [assembly: InternalsVisibleTo("Ultrakiller")]
+#pragma warning disable CA1873
+#nullable disable
+
 [assembly: InternalsVisibleTo("Test")]
 [assembly: InternalsVisibleTo("TestBenchmark")]
 [assembly: InternalsVisibleTo("UnitTest")]
-#nullable disable
 
 namespace Novus;
 
@@ -139,11 +139,6 @@ namespace Novus;
 ///                 <see cref="FileSystem" />
 ///             </description>
 ///         </item>
-///         <item>
-///             <description>
-///                 <see cref="Command" />
-///             </description>
-///         </item>
 ///     </list>
 /// </remarks>
 [DAM(DAMT.All)]
@@ -185,7 +180,9 @@ public static class Global
 
 	internal static readonly ILoggerFactory LoggerFactoryInt;
 
-	internal static readonly ILogger Logger;
+	private static readonly ILogger s_logger;
+
+	private static readonly IConfigurationRoot s_config;
 
 	public static readonly bool IsWorkstationGC = !GCSettings.IsServerGC;
 
@@ -193,7 +190,7 @@ public static class Global
 
 	public static readonly bool IsCompatible;
 
-	public const string BUILD_NCLRI = "NCLRI";
+	internal const string BUILD_NCLRI = "NCLRI";
 
 
 	/// <summary>
@@ -201,6 +198,11 @@ public static class Global
 	/// </summary>
 	static Global()
 	{
+		s_config = new ConfigurationBuilder()
+		           .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+		           .AddEnvironmentVariables()
+		           .Build();
+
 		LoggerFactoryInt = LoggerFactory.Create(builder =>
 		{
 			builder.AddDebug();
@@ -208,22 +210,21 @@ public static class Global
 			builder.SetMinimumLevel(LogLevel.Trace);
 		});
 
-		Logger = LoggerFactoryInt.CreateLogger(LIB_NAME);
-
-		Logger.LogTrace($"{nameof(Global)} invoked");
+		s_logger = LoggerFactoryInt.CreateLogger(LIB_NAME);
+		s_logger.LogTrace($"{nameof(Global)} invoked");
 
 		// Assembly = Assembly.GetExecutingAssembly();
 
 #if NCLRI
 #warning NCLRI mode
-		Logger.LogInformation("{Build} build!", BUILD_NCLRI);
+		s_logger.LogInformation("{Build} build!", BUILD_NCLRI);
 #endif
 
-		ClrVersion       = Version.Parse(ER.RequiredVersion);
-		IsCorrectVersion = Environment.Version == ClrVersion;
-		IsCompatible     = IsCorrectVersion && IsWorkstationGC && FileSystem.IsWindows;
+		ClrVersion = Version.Parse(ER.RequiredVersion);
 
-		DataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
+		IsCorrectVersion = Environment.Version == ClrVersion;
+		IsCompatible     = IsCorrectVersion && IsWorkstationGC && RuntimeEnvironment.IsWindows;
+		DataFolder       = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
 
 		if (!Directory.Exists(DataFolder)) {
 			Directory.CreateDirectory(DataFolder);
@@ -244,21 +245,23 @@ public static class Global
 		 * Setup
 		 */
 
-		Logger.LogTrace($"Module init :: {nameof(Setup)}");
-		Logger.LogTrace($"Runtime: {Environment.Version} | Target: {ClrVersion}");
+		using var setupScope = s_logger.BeginScope(nameof(Setup));
+
+		s_logger.LogTrace("Module init :: {Name}", ER.Name);
+		s_logger.LogTrace("Runtime: {EnvVer} | Target: {ClrVer}", Environment.Version, ClrVersion);
 
 		if (RuntimeEnvironment.IsInteractiveHost) {
-			Logger.LogWarning("Interactive host");
+			s_logger.LogWarning("Interactive host");
 		}
 
-		if (!FileSystem.IsWindows) {
-			Logger.LogWarning("Not on Windows!");
+		if (!RuntimeEnvironment.IsWindows) {
+			s_logger.LogWarning("Not on Windows!");
 
 			return;
 		}
 
 		if (!IsCompatible) {
-			Logger.LogWarning("Compatibility check failed!");
+			s_logger.LogWarning("Compatibility check failed!");
 		}
 
 		NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
@@ -266,11 +269,9 @@ public static class Global
 		ClrPdb = GetPdbFile();
 		Clr    = new RuntimeResource(CLR_MODULE, ClrPdb);
 
-
 		/*
 		 * Close
 		 */
-
 
 		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 		{
@@ -279,12 +280,11 @@ public static class Global
 
 		IsSetup = true;
 
-		Logger.LogDebug("Loaded pdb {ClrPdb}", ClrPdb);
+		s_logger.LogDebug("Loaded pdb {ClrPdb}", ClrPdb);
 	}
 
 	public static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
 	{
-
 		if (libraryName == MagicNative.MAGIC_LIB_PATH) {
 			return NativeLibrary.Load(Path.Combine(DataFolder, MagicNative.MAGIC_LIB_PATH), assembly, searchPath);
 		}
@@ -293,7 +293,7 @@ public static class Global
 	}
 
 	[CBN]
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static string GetPdbFile()
 	{
 		// var pdbFile = Path.Join(DataFolder, CLR_PDB);

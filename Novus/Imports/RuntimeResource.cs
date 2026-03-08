@@ -24,28 +24,40 @@ using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 using Novus.Imports.Factory;
 using Novus.OS;
+using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable UnusedMember.Local
-
-
+// ReSharper disable LoopCanBeConvertedToQuery
+// ReSharper disable UnusedMember.Global
+#pragma warning disable CA1873
 #pragma warning disable IDE0059
 
-// ReSharper disable LoopCanBeConvertedToQuery
-
-// ReSharper disable UnusedMember.Global
 
 namespace Novus.Imports;
+
+[Flags]
+public enum RuntimeResourceOptions
+{
+
+	None                 = 0,
+	FaultOnImportError   = 1 << 0,
+	UnloadAllOnDispose   = 1 << 1,
+	WriteDefaultOnUnload = 1 << 2,
+
+}
 
 /// <summary>
 /// Represents a runtime component which contains data and resources.
 /// </summary>
 /// <seealso cref="ER"/>
 [DAM(DAMT.All)]
-[SupportedOSPlatform(FileSystem.OS_WIN)]
+[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 public sealed class RuntimeResource : IDisposable
 {
 
 	public const string RSRC_MGR_NAME = "EmbeddedResources";
+
+	private static readonly ILogger s_logger = Global.LoggerFactoryInt.CreateLogger(nameof(RuntimeResource));
 
 	public Pointer<byte> Address => Module.BaseAddress;
 
@@ -59,6 +71,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
+	public RuntimeResourceOptions Options { get; set; } = RuntimeResourceOptions.UnloadAllOnDispose | RuntimeResourceOptions.WriteDefaultOnUnload;
 
 	private readonly List<Type> m_loadedTypes = [];
 
@@ -83,11 +96,7 @@ public sealed class RuntimeResource : IDisposable
 			throw new NullReferenceException($"{moduleName} not found");
 		}
 
-		Scanner = new Lazy<SigScanner>(() =>
-		{
-			//
-			return new SigScanner(Module);
-		});
+		Scanner = new Lazy<SigScanner>(() => new SigScanner(Module));
 
 		Symbols      = new Lazy<SymbolReader>(() => File.Exists(pdb) ? new SymbolReader(pdb) : null);
 		LoadedModule = false;
@@ -100,7 +109,7 @@ public sealed class RuntimeResource : IDisposable
 	{
 		var f = new FileInfo(moduleFile);
 
-		Debug.WriteLine($"Loading {f.Name}", nameof(LoadModule));
+		s_logger.LogDebug("Loading {Mod}", f.Name);
 
 		//var l = Native.LoadLibrary(f.FullName);
 		h = NativeLibrary.Load(f.FullName);
@@ -114,6 +123,8 @@ public sealed class RuntimeResource : IDisposable
 	}
 
 	/*
+	 * DOC
+	 *
 	 * Native internal CLR functions
 	 *
 	 * Originally, IL had to be used to call native functions as the calli opcode was needed.
@@ -144,21 +155,32 @@ public sealed class RuntimeResource : IDisposable
 		}
 	}
 
-	public bool IsLoaded(Type t)
-		=> m_loadedTypes.Contains(t);
+	public bool IsLoaded(Type t) => m_loadedTypes.Contains(t);
 
 	public void Unload(Type t)
 	{
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
-		foreach (var (k, member) in annotatedTuples) {
-			var field = (FI) member;
+		if (Options.HasFlag(RuntimeResourceOptions.WriteDefaultOnUnload)) {
+			foreach (var (k, member) in annotatedTuples) {
+				var field = (FI) member;
 
-			var o = field.FieldType.GetDefaultFieldValue();
-			field.SetValue(null, o);
+				var    o = field.FieldType;
+				object val;
+
+				if (o.IsFunctionPointer) {
+					val = IntPtr.Zero;
+				}
+				else {
+					val = o.IsValueType ? /*Activator.CreateInstance(o)*/ default : null;
+				}
+
+				field.SetValue(null, val);
+			}
+
 		}
 
-		Trace.WriteLine($"Unloaded type {t.Name}", LogCategories.C_INFO);
+		s_logger.LogTrace("Unloaded {Name}", t.Name);
 		m_loadedTypes.Remove(t);
 	}
 
@@ -177,8 +199,7 @@ public sealed class RuntimeResource : IDisposable
 	/// Loads imported values for members annotated with <see cref="ImportAttribute"/>.
 	/// </summary>
 	/// <param name="t">Enclosing type</param>
-	/// <param name="throwOnErr">Passed to <see cref="GetImportValue"/></param>
-	public void LoadImports(Type t, bool throwOnErr = true)
+	public void LoadImports(Type t)
 	{
 		if (m_loadedTypes.Contains(t)) {
 			return;
@@ -186,29 +207,27 @@ public sealed class RuntimeResource : IDisposable
 
 		var mgr = GetOrAddManager(t.Assembly);
 
-		Debug.WriteLine($"Loading type {t.Name}", nameof(LoadImports));
-
+		s_logger.LogDebug("Loading type {Name}", t.Name);
 
 		var iiaTuple = t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-			.Where(mi => Attribute.IsDefined(mi, typeof(ImportInitializerAttribute)))
-			.Select(mi => (mi.GetCustomAttribute<ImportInitializerAttribute>(), mi));
+		                .Where(mi => Attribute.IsDefined(mi, typeof(ImportInitializerAttribute)))
+		                .Select(mi => (mi.GetCustomAttribute<ImportInitializerAttribute>(), mi));
 
 		foreach ((ImportInitializerAttribute iia, MI mi) in iiaTuple) {
 			var res = mi.Invoke(null, null);
-			Trace.WriteLine($"Invoking {iia} -> {res}");
-
+			s_logger.LogTrace("Invoking {Iia} -> {Res}", iia, res);
 		}
 
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
-		LoadType(t, throwOnErr, annotatedTuples);
+		LoadType(t, annotatedTuples);
 	}
 
-	private void LoadType(Type t, bool throwOnErr, IEnumerable<(ImportAttribute Attribute, MMI Member)> annotatedTuples)
+	private void LoadType(Type t, IEnumerable<(ImportAttribute Attribute, MMI Member)> annotatedTuples)
 	{
 		foreach (var (attribute, member) in annotatedTuples) {
 			var field = (FI) member;
 
-			var fieldValue = GetImportValue(attribute, field, throwOnErr);
+			var fieldValue = GetImportValue(attribute, field);
 
 			// Set value
 
@@ -242,7 +261,7 @@ public sealed class RuntimeResource : IDisposable
 		return null;
 	}
 
-	private object GetImportValue(ImportAttribute attribute, FI field, bool throwOnErr)
+	private object GetImportValue(ImportAttribute attribute, FI field)
 	{
 		object fieldValue = null;
 
@@ -283,9 +302,9 @@ public sealed class RuntimeResource : IDisposable
 				if (addr.IsNull) {
 					// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 
-					Global.Logger.LogError("Could not find import value for {Name}", unmanagedAttr.Name);
+					s_logger.LogError("Could not find import value for {Name}", unmanagedAttr.Name);
 
-					if (throwOnErr) {
+					if (Options.HasFlag(RuntimeResourceOptions.FaultOnImportError)) {
 						throw new InvalidOperationException($"Could not find import value for {unmanagedAttr.Name}!");
 					}
 					else {
@@ -325,6 +344,7 @@ public sealed class RuntimeResource : IDisposable
 				if (fn == null) {
 					Debugger.Break();
 				}
+
 				var ptr = fn.MethodHandle.GetFunctionPointer();
 
 				fieldValue = ptr;
@@ -339,9 +359,7 @@ public sealed class RuntimeResource : IDisposable
 #endregion Import
 
 	public bool TryAddManager(Assembly asm, ResourceManager mgr)
-	{
-		return m_managers.TryAdd(asm, mgr);
-	}
+		=> m_managers.TryAdd(asm, mgr);
 
 
 	[CBN]
@@ -436,11 +454,7 @@ public sealed class RuntimeResource : IDisposable
 #region
 
 	public Pointer<byte> GetOffset(string s)
-	{
-		return Address + (IntPtr.TryParse(s, NumberStyles.HexNumber, null, out var l)
-			                  ? l
-			                  : IntPtr.Parse(s));
-	}
+		=> Address + (IntPtr.TryParse(s, NumberStyles.HexNumber, null, out var l) ? l : Mem.Nullptr);
 
 	public Pointer<byte> GetExport(string name)
 		=> NativeLibrary.GetExport(Module.BaseAddress, name);
@@ -455,13 +469,11 @@ public sealed class RuntimeResource : IDisposable
 		}
 
 		var symbols1 = Symbols.Value.GetSymbols(name)
-			.Where(static s => s.Tag is SymbolTag.Function or SymbolTag.Data);
+		                      .Where(static s => s.Tag is SymbolTag.Function or SymbolTag.Data);
 
 		Symbol symbol = null;
 
-		Func<Symbol, bool> predicate = absolute
-			                               ? s => s.Name == name
-			                               : s => s.Name.Contains(name);
+		Func<Symbol, bool> predicate = absolute ? s => s.Name == name : s => s.Name.Contains(name);
 
 		symbol = symbols1.FirstOrDefault(predicate);
 
@@ -481,7 +493,10 @@ public sealed class RuntimeResource : IDisposable
 
 	public void Dispose()
 	{
-		UnloadAll();
+		if (Options.HasFlag(RuntimeResourceOptions.UnloadAllOnDispose)) {
+			UnloadAll();
+		}
+
 		Symbols.Value?.Dispose();
 
 		if (LoadedModule) {

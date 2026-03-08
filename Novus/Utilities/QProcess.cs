@@ -6,7 +6,9 @@ using System.Text;
 namespace Novus.Utilities;
 
 //todo: WIP
-// [Experimental(Global.DIAG_ID_EXPERIMENTAL)]
+#if EXPERIMENTAL
+
+[Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 public class QProcess : IDisposable
 {
 
@@ -141,3 +143,4 @@ public class QProcess : IDisposable
 	#endregion
 
 }
+#endif

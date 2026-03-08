@@ -19,6 +19,7 @@ using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
+using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 #pragma warning disable 8603
 
@@ -50,16 +51,6 @@ namespace Novus.OS;
 public static class FileSystem
 {
 
-	[SupportedOSPlatformGuard(OS_WIN)]
-	public static readonly bool IsWindows = OperatingSystem.IsWindows();
-
-	[SupportedOSPlatformGuard(OS_LINUX)]
-	public static readonly bool IsLinux = OperatingSystem.IsLinux();
-
-	public const string OS_WIN = "windows";
-
-	public const string OS_LINUX = "linux";
-
 	/// <summary>
 	///     Environment variable PATH
 	/// </summary>
@@ -70,13 +61,13 @@ public static class FileSystem
 
 	static FileSystem()
 	{
-		PathDelimiter = IsLinux ? ':' : ';';
+		PathDelimiter = RuntimeEnvironment.IsLinux ? ':' : ';';
 	}
 
 #region KnownFolder
 
 	/// <remarks><a href="https://stackoverflow.com/questions/10667012/getting-downloads-folder-in-c">Adapted from here</a></remarks>
-	[SupportedOSPlatform(OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	private static readonly string[] KnownFolderGuids =
 	[
 		"{56784854-C6CB-462B-8169-88E350ACB882}", // Contacts
@@ -100,7 +91,7 @@ public static class FileSystem
 	/// <returns>The default path of the known folder.</returns>
 	/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 	///     could not be retrieved.</exception>
-	[SupportedOSPlatform(OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static string GetPath(KnownFolder knownFolder)
 		=> GetPath(knownFolder, false);
 
@@ -114,11 +105,11 @@ public static class FileSystem
 	/// <returns>The default path of the known folder.</returns>
 	/// <exception cref="System.Runtime.InteropServices.ExternalException">Thrown if the path
 	///     could not be retrieved.</exception>
-	[SupportedOSPlatform(OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static string GetPath(KnownFolder knownFolder, bool defaultUser)
 		=> GetPath(knownFolder, KnownFolderFlags.DontVerify, defaultUser);
 
-	[SupportedOSPlatform(OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	private static string GetPath(KnownFolder knownFolder, KnownFolderFlags flags, bool defaultUser)
 	{
 		int result = Native.SHGetKnownFolderPath(new Guid(KnownFolderGuids[(int) knownFolder]),
@@ -140,7 +131,7 @@ public static class FileSystem
 	public static string GetRootDirectory()
 		=> Path.GetPathRoot(Environment.GetFolderPath(Environment.SpecialFolder.System));
 
-	[SupportedOSPlatform(OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static string GetShortPath(string dir)
 	{
 		unsafe {
@@ -312,7 +303,7 @@ public static class FileSystem
 		}
 	}
 
-	[SupportedOSPlatform(OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static bool SendFileToRecycleBin(string filePath)
 	{
 		if (!File.Exists(filePath) || String.IsNullOrEmpty(filePath))
@@ -487,7 +478,7 @@ public static class FileSystem
 
 #endregion
 
-	[SupportedOSPlatform(OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static bool IsAdministrator()
 	{
 		using var identity = WindowsIdentity.GetCurrent();
@@ -502,10 +493,10 @@ public static class FileSystem
 	{
 		get
 		{
-			if (IsLinux) {
+			if (RuntimeEnvironment.IsLinux) {
 				return Environment.UserName == "root";
 			}
-			else if (IsWindows) {
+			else if (RuntimeEnvironment.IsWindows) {
 				return IsAdministrator();
 
 			}

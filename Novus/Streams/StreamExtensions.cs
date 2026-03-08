@@ -35,7 +35,7 @@ public static class StreamExtensions
 			}
 		}
 
-		return list.ToArray();
+		return [.. list];
 	}
 
 	public static async Task<string[]> ReadLinesToEndAsync(this StreamReader stream, CancellationToken ct = default)
@@ -52,7 +52,7 @@ public static class StreamExtensions
 			}
 		}
 
-		return list.ToArray();
+		return [.. list];
 	}
 
 #if EXTRA

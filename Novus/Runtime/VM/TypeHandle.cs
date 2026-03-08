@@ -8,11 +8,10 @@ using Novus.Runtime.VM.Tokens;
 using Novus.Win32;
 
 // ReSharper disable InconsistentNaming
-
 // ReSharper disable UnusedMember.Global
-
 // ReSharper disable FieldCanBeMadeReadOnly.Local
 
+#pragma warning disable IDE0251
 namespace Novus.Runtime.VM;
 
 [NativeStructure]
@@ -85,6 +84,6 @@ public enum TypeHandleBits
 
 	MethodTable = 0,
 	TypeDesc    = 2,
-	ValidMask   = 2
+	ValidMask   = 2 //todo?
 
 }

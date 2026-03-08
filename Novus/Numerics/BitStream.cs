@@ -510,7 +510,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 			data.Add(value);
 		}
 
-		return data.ToArray();
+		return [.. data];
 	}
 
 	public T Read<T>()

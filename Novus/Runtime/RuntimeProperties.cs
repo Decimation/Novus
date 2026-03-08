@@ -56,7 +56,7 @@ public static unsafe class RuntimeProperties
 	}
 
 
-	#region 
+#region
 
 	/// <summary>
 	///     <see cref="IsPinnable" />
@@ -65,7 +65,7 @@ public static unsafe class RuntimeProperties
 	private static delegate* managed<object, bool> Func_IsPinnable { get; }
 
 	/// <summary>
-	///     <see cref="ResolveType" />
+	///     <see cref="ResolveToType" />
 	/// </summary>
 	[field: ImportManaged(typeof(Type), "GetTypeFromHandle")]
 	private static delegate* managed<nint, Type> Func_GetTypeFromHandle { get; }
@@ -82,10 +82,10 @@ public static unsafe class RuntimeProperties
 	[field: ImportManaged(typeof(RuntimeHelpers), "GetElementSize")]
 	private static delegate* managed<object, int> Func_GetElementSize { get; }
 
-	#endregion
+#endregion
 
 
-	#region 
+#region
 
 	/// <summary>
 	/// Equals <see cref="Mem.SizeOf()"/> with <see cref="SizeOfOption.Data"/>
@@ -114,7 +114,7 @@ public static unsafe class RuntimeProperties
 	public static Pointer<MethodTable> GetMethodTable<T>(in T value)
 	{
 		/*var type = value.GetType();
-		return ResolveMethodTable(type);*/
+		return ResolveToMethodTable(type);*/
 		return Func_GetMethodTable(value);
 	}
 
@@ -140,14 +140,14 @@ public static unsafe class RuntimeProperties
 	/// <summary>
 	///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ResolveMethodTable" /></remarks>
-	public static Type ResolveType(Pointer<MethodTable> handle) => Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
+	/// <remarks>Inverse of <see cref="ResolveToMethodTable" /></remarks>
+	public static Type ResolveToType(Pointer<MethodTable> handle) => Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ResolveType" /></remarks>
-	public static Pointer<MethodTable> ResolveMethodTable(Type t)
+	/// <remarks>Inverse of <see cref="ResolveToType" /></remarks>
+	public static Pointer<MethodTable> ResolveToMethodTable(Type t)
 	{
 		/*var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;
@@ -163,7 +163,7 @@ public static unsafe class RuntimeProperties
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ResolveType" /></remarks>
+	/// <remarks>Inverse of <see cref="ResolveToType" /></remarks>
 	public static TypeHandle ResolveTypeHandle(Type t)
 	{
 		var handle = t.TypeHandle.Value;
@@ -226,17 +226,13 @@ public static unsafe class RuntimeProperties
 	public static bool IsDefault<T>([CBN] in T value)
 		=> EqualityComparer<T>.Default.Equals(value, default);
 
-	public static bool IsUnmanaged<T>([NN] T value)
-		=> value.GetType().IsUnmanaged;
+	public static bool IsUnmanaged<T>([NN] T value) => value.GetType().IsUnmanaged;
 
-	public static bool IsStruct<T>([NN] T value)
-		=> value.GetType().IsValueType;
+	public static bool IsStruct<T>([NN] T value) => value.GetType().IsValueType;
 
-	public static bool IsArray<T>([NN] T value)
-		=> value is Array;
+	public static bool IsArray<T>([NN] T value) => value is Array;
 
-	public static bool IsString<T>([NN] T value)
-		=> value is string;
+	public static bool IsString<T>([NN] T value) => value is string;
 
 	/// <summary>
 	///     Determines whether <paramref name="value" /> is boxed.
@@ -296,7 +292,7 @@ public static unsafe class RuntimeProperties
 	///     <c>true</c> if <paramref name="value" /> is <c>null</c> or <c>default</c>; or
 	///     if <paramref name="value" /> is heuristically determined to be <em>empty</em>.
 	/// </returns>
-	public static bool IsEmpty<T>([CBN] T value)
+	public static bool IsEmptyOrDefault<T>([CBN] T value)
 	{
 		/*if (IsDefault(value)) {
 			return true;
@@ -410,4 +406,5 @@ public static unsafe class RuntimeProperties
 	public static readonly int EEClassSize = sizeof(EEClass);
 
 #endregion
+
 }

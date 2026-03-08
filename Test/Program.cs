@@ -160,7 +160,7 @@ public static class Program
 
 	private static unsafe void Test7()
 	{
-		MyClass obj    = new MyClass() { s = "foo", a = 123 };
+		MyClass obj    = new MyClass { s = "foo", a = 123 };
 		Console.WriteLine(obj.s);
 
 		var mt  =obj.GetMetaType();
@@ -186,7 +186,7 @@ public static class Program
 	{
 		// var mc=new MyClass2b();
 
-		MyClass obj   = new MyClass() { s = "foo", a = 123 };
+		MyClass obj   = new MyClass { s = "foo", a = 123 };
 		var     addr  = (Pointer<byte>) Unsafe.AsPointer(ref obj);
 		var     addr2 = (Pointer<byte>) addr.ReadPointer();
 		Console.WriteLine($"&obj = {addr} -> {addr2}");
@@ -228,15 +228,12 @@ public static class Program
 		}
 	}
 
-	static IDictionary<string, Func<int, object>> fns = new Dictionary<string, Func<int, object>>()
+	static IDictionary<string, Func<int, object>> fns = new Dictionary<string, Func<int, object>>
 		{ }.AsReadOnly();
 
 	public static IDictionary<string, int> Get<T>(T t = default)
 	{
-		Dictionary<string, int> vals = new Dictionary<string, int>
-		{
-			// { nameof(Marshal.SizeOf), Marshal.SizeOf<T>() },
-		};
+		Dictionary<string, int> vals = [];
 
 		foreach (SizeOfOption i in Enum.GetValues<SizeOfOption>()) {
 
@@ -277,7 +274,7 @@ public static class Program
 
 	private static void Test1()
 	{
-		MyClass mc = new MyClass() { a = 321, s = "butt" };
+		MyClass mc = new MyClass { a = 321, s = "butt" };
 		byte[]  rg = Mem.GetBytes(mc);
 		Console.WriteLine(rg.FormatJoin("X", delim: " "));
 		object mc2 = Mem.ReadFromBytes<object>(rg);

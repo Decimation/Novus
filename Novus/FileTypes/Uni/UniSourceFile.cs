@@ -1,11 +1,12 @@
 ﻿// Deci Novus UniSourceFile.cs
 // $File.CreatedYear-$File.CreatedMonth-9 @ 2:39
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft;
 
 namespace Novus.FileTypes.Uni;
 
-public class UniSourceFile : UniSource, IUniSource
+internal class UniSourceFile : UniSource, IUniSource
 {
 
 	internal UniSourceFile(FileInfo value) : base(UniSourceType.File, value)

@@ -70,6 +70,8 @@ public class Clazz
 
 	public static int sprop { get; set; }
 
+	public string calc => "foo" + " butt!";
+
 	public Clazz()
 	{
 		a = i;

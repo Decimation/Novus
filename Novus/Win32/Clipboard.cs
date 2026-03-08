@@ -10,13 +10,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Novus.OS;
+using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 namespace Novus.Win32;
 
 //TODO: WIP
 //https://github.com/aayush-pokharel/ClipboardMonitor
 
-[SupportedOSPlatform(FileSystem.OS_WIN)]
+[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 public static class Clipboard
 {
 
@@ -68,7 +69,7 @@ public static class Clipboard
 			rg.Add(file.ToString());
 		}
 
-		return rg.ToArray();
+		return [.. rg];
 	}
 
 	[CBN]
@@ -126,7 +127,7 @@ public static class Clipboard
 			rg.Add(u);
 		}
 
-		return rg.ToArray();
+		return [.. rg];
 	}
 
 	#region

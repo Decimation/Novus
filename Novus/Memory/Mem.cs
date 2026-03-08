@@ -31,6 +31,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Wrappers;
+using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 
@@ -98,6 +99,8 @@ public static unsafe class Mem
 	public static readonly nint  Invalid   = Native.ERROR_SV;
 	public static readonly nuint Invalid_u = unchecked((nuint) Invalid);
 
+	private static readonly ILogger s_logger = Global.LoggerFactoryInt.CreateLogger(nameof(Mem));
+
 	static Mem()
 	{
 		Is64Bit = Environment.Is64BitProcess;
@@ -164,7 +167,7 @@ public static unsafe class Mem
 
 	private static readonly ActionFunctor PinImpl;
 
-	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = new();
+	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = [];
 
 	[NN]
 	private static ActionFunctor CreatePinImpl()
@@ -283,7 +286,7 @@ public static unsafe class Mem
 		=> ref Unsafe.AsRef(ref t);*/
 
 	public static ref T ref_cast<T>(in T t)
-		=> ref Unsafe.AsRef(t);
+		=> ref Unsafe.AsRef(in t);
 
 	/*public static object as_cast(object t)
 		=> as_cast<object, object>(t);
@@ -345,7 +348,7 @@ public static unsafe class Mem
 	///     Writes a value of type <typeparamref name="T" /> with value <paramref name="value" /> to
 	///     <paramref name="baseAddr" /> in <paramref name="proc" />
 	/// </summary>
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 	{
 		int dwSize = Unsafe.SizeOf<T>();
@@ -357,7 +360,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Root abstraction of <see cref="Native.WriteProcessMemory" />
 	/// </summary>
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> ptrBuffer, int dwSize)
 	{
 		nint hProc = Native.OpenProcess(proc);
@@ -370,7 +373,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, [NN] byte[] value)
 	{
 		fixed (byte* rg = value) {
@@ -381,7 +384,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, ReadOnlySpan<byte> value)
 	{
 		fixed (byte* rg = value) {
@@ -400,7 +403,7 @@ public static unsafe class Mem
 	/// <param name="addr">Address within the specified process from which to read</param>
 	/// <param name="buffer">Buffer that receives the read contents from the address space</param>
 	/// <param name="cb">Number of bytes to read</param>
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, nint cb)
 	{
 		nint h = Native.OpenProcess(proc);
@@ -413,7 +416,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static Memory<byte> ReadProcessMemory(Process proc, Pointer<byte> addr, nint cb)
 	{
 		Memory<byte> mem = new byte[(int) cb];
@@ -427,7 +430,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads a value of type <typeparamref name="T" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static T ReadProcessMemory<T>(Process proc, Pointer<byte> addr)
 	{
 		T   value = default;
@@ -661,7 +664,7 @@ public static unsafe class Mem
 		var isStruct = RuntimeProperties.IsStruct(value);
 		var isBoxed  = RuntimeProperties.IsBoxed(value);
 
-		Global.Logger.LogTrace("{Value} [{T}] | Struct={Strct} | Boxed={Bxd}", value, typeof(T), isStruct, isBoxed);
+		s_logger.LogTrace("{Value} [{T}] | Struct={Strct} | Boxed={Bxd}", value, typeof(T), isStruct, isBoxed);
 
 		if (throwOnErr && !isStruct) {
 			throw new ArgumentException($"Value must be reference type", nameof(value));
@@ -913,7 +916,7 @@ public static unsafe class Mem
 	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
 	[CBN]
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static object ReadProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
 	{
 		//todo
@@ -1057,9 +1060,7 @@ public static unsafe class Mem
 	/// <seealso cref="SigScanner.ReadSignature" />
 	public static byte[] ParseAOBString(string s)
 	{
-		return s.Split(Strings.Constants.SPACE)
-			.Select(static s1 => Byte.Parse(s1, NumberStyles.HexNumber))
-			.ToArray();
+		return [.. s.Split(Strings.Constants.SPACE).Select(static s1 => Byte.Parse(s1, NumberStyles.HexNumber))];
 	}
 
 	public static string ToBinaryString<T>(T value, int totalBits = Native.ERROR_SV) where T : struct
@@ -1100,7 +1101,7 @@ public static unsafe class Mem
 	}
 	*/
 
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer<byte> ptr)
 	{
 		var modules = Native.EnumProcessModules((uint) proc.Id);

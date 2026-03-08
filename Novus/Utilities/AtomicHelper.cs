@@ -15,7 +15,7 @@ namespace Novus.Utilities;
 public static class AtomicHelper
 {
 
-	private static readonly Dictionary<Type, nint> s_cache = new();
+	private static readonly Dictionary<Type, nint> s_cache = [];
 
 	private static nint GetExchangeFunction<T>()
 	{

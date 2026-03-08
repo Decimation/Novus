@@ -11,13 +11,13 @@ using Novus.Win32;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable CommentTypo
-
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace Novus.Runtime.VM.EE;
 #pragma warning disable CA1069
+#pragma warning disable IDE0251
 
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]

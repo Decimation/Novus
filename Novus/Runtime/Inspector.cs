@@ -13,14 +13,12 @@ using Kantan.Model;
 using Kantan.Utilities;
 
 // ReSharper disable ConvertIfStatementToConditionalTernaryExpression
-
 // ReSharper disable UnusedMember.Global
-
 // ReSharper disable CognitiveComplexity
 
 namespace Novus.Runtime;
 
-// TODO: UPDATE
+// TODO: UPDATE/WIP
 
 /// <summary>
 ///     Utilities for inspecting and analyzing objects, data, etc.

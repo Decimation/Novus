@@ -23,6 +23,7 @@ using Novus.Win32.Wrappers;
 using Novus.OS;
 using Novus.Win32;
 using System.Text;
+using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 
 // ReSharper disable UnusedParameter.Local
@@ -39,7 +40,7 @@ namespace Novus.Utilities;
 /// <summary>
 /// Windows PDB reader
 /// </summary>
-[SupportedOSPlatform(FileSystem.OS_WIN)]
+[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 public sealed class SymbolReader : IDisposable
 {
 
@@ -49,13 +50,19 @@ public sealed class SymbolReader : IDisposable
 
 	private static readonly Func<Symbol, bool> AnyPredicate = static _ => true;
 
-	public bool AllLoaded => m_modBase != 0 && Symbols.Any();
+	public bool AllLoaded => m_modBase != 0 && !Symbols.IsEmpty;
 
 	public string Image { get; }
 
 	public nint Handle { get; }
 
 	public ConcurrentBag<Symbol> Symbols { get; }
+
+	public static string SymbolPath => Environment.GetEnvironmentVariable(ENV_VAR_NT_SYMBOL_PATH, EnvironmentVariableTarget.Machine);
+
+	public const string ENV_VAR_NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
+
+	private const string EXT_PDB = ".pdb";
 
 	private const string MASK_ALL = "*!*";
 
@@ -92,10 +99,7 @@ public sealed class SymbolReader : IDisposable
 		 * https://github.com/moyix/pdbparse
 		 */
 
-		if (m_disposed)
-		{
-			throw new ObjectDisposedException(nameof(SymbolReader));
-		}
+		ObjectDisposedException.ThrowIf(m_disposed, this);
 
 		var sym = Symbols.Where(s => s.Name.Contains(name) && pred(s)).ToArray();
 
@@ -124,13 +128,9 @@ public sealed class SymbolReader : IDisposable
 
 	public void LoadAll(string mask = MASK_ALL)
 	{
-		if (m_disposed)
-		{
-			throw new ObjectDisposedException(nameof(SymbolReader));
-		}
+		ObjectDisposedException.ThrowIf(m_disposed, this);
 
-		if (AllLoaded)
-		{
+		if (AllLoaded) {
 			return;
 		}
 
@@ -176,18 +176,6 @@ public sealed class SymbolReader : IDisposable
 		return modBase;
 	}
 
-	private void Cleanup()
-	{
-		Native.SymCleanup(Handle);
-		Native.SymUnloadModule64(Handle, m_modBase);
-		Symbols.Clear();
-		m_modBase  = 0;
-		m_disposed = true;
-	}
-
-
-	public const  string NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
-	private const string EXT_PDB        = ".pdb";
 
 	public static async Task<string> SymchkSymbolFileAsync(string fname, [CBN] string o = null)
 	{
@@ -197,14 +185,13 @@ public sealed class SymbolReader : IDisposable
 		//symchk /os <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /oc <output>
 		//symchk <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /osc <output>
 
-		if (!File.Exists(fname))
-		{
+		if (!File.Exists(fname)) {
 			throw new FileNotFoundException(null, fname);
 		}
 
 		var cmd = Cli.Wrap(ER.E_Symchk)
-			.WithArguments(["/if", fname, "/su", $"SRV**{ER.MicrosoftSymbolServer}", "/oscdb", o], true)
-			.WithValidation(CommandResultValidation.None);
+		             .WithArguments(["/if", fname, "/su", $"SRV**{ER.MicrosoftSymbolServer}", "/oscdb", o], true)
+		             .WithValidation(CommandResultValidation.None);
 
 		var bcr = await cmd.ExecuteBufferedAsync();
 
@@ -220,8 +207,7 @@ public sealed class SymbolReader : IDisposable
 
 		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(fname) + EXT_PDB);
 
-		if (!File.Exists(outFile))
-		{
+		if (!File.Exists(outFile)) {
 			throw new FileNotFoundException(null, outFile);
 		}
 
@@ -237,7 +223,7 @@ public sealed class SymbolReader : IDisposable
 		using var peReader = new PEReader(File.OpenRead(fname));
 
 		var codeViewEntry = peReader.ReadDebugDirectory()
-			.First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+		                            .First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
 
 		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 
@@ -251,23 +237,20 @@ public sealed class SymbolReader : IDisposable
 		var fileName   = Path.GetFileName(path);
 		var pdbDirPath = Path.Combine(o, fileName);
 
-		if (!Directory.Exists(pdbDirPath))
-		{
+		if (!Directory.Exists(pdbDirPath)) {
 			Directory.CreateDirectory(pdbDirPath);
 		}
 
 		var pdbPlusGuidDirPath = Path.Combine(pdbDirPath, pdbData.Guid.ToString());
 
-		if (!Directory.Exists(pdbPlusGuidDirPath))
-		{
+		if (!Directory.Exists(pdbPlusGuidDirPath)) {
 			Directory.CreateDirectory(pdbPlusGuidDirPath);
 		}
 
 		//var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, path);
 		var pdbFilePath = Path.Combine(pdbPlusGuidDirPath, fileName);
 
-		if (File.Exists(pdbFilePath))
-		{
+		if (File.Exists(pdbFilePath)) {
 			goto ret;
 		}
 
@@ -282,7 +265,7 @@ public sealed class SymbolReader : IDisposable
 		return pdbFilePath;
 	}
 
-	public static IEnumerable<string> EnumerateSymbolPath(string pattern, string symPath = NT_SYMBOL_PATH)
+	public static IEnumerable<string> EnumerateSymbolPath(string pattern, string symPath = ENV_VAR_NT_SYMBOL_PATH)
 	{
 		// var nt = Environment.ExpandEnvironmentVariables(symPath);
 		var nt = Environment.GetEnvironmentVariable(symPath, EnvironmentVariableTarget.Machine);
@@ -292,8 +275,7 @@ public sealed class SymbolReader : IDisposable
 			.Split(FileSystem.PathDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 			*/
 
-		if (!Path.Exists(nt) || nt == null)
-		{
+		if (!Path.Exists(nt) || nt == null) {
 			return [];
 		}
 
@@ -305,13 +287,18 @@ public sealed class SymbolReader : IDisposable
 		});
 	}
 
+	private void Cleanup()
+	{
+		Native.SymCleanup(Handle);
+		Native.SymUnloadModule64(Handle, m_modBase);
+		Symbols.Clear();
+		m_modBase  = 0;
+		m_disposed = true;
+	}
+
 	public void Dispose()
 	{
 		Cleanup();
 	}
-
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
-	public static string SymbolPath
-		=> Environment.GetEnvironmentVariable(SymbolReader.NT_SYMBOL_PATH, EnvironmentVariableTarget.Machine);
 
 }

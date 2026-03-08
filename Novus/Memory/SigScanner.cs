@@ -11,6 +11,7 @@ using Microsoft;
 using Novus.OS;
 using Novus.Utilities;
 using Novus.Memory;
+using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable UnusedMember.Global
 
@@ -76,7 +77,7 @@ public sealed class SigScanner
 		Address = ptr;
 	}
 
-	[SupportedOSPlatform(FileSystem.OS_WIN)]
+	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 	public static SigScanner FromProcess(Process proc, ProcessModule module)
 	{
 		var ptr    = module.BaseAddress;
@@ -118,12 +119,12 @@ public sealed class SigScanner
 
 #endregion
 
-	private bool PatternCheck(int nOffset, IReadOnlyList<byte> arrPattern)
+	private bool PatternCheck(int nOffset, byte[] arrPattern)
 	{
 		// ReSharper disable once LoopCanBeConvertedToQuery
 		var span = Buffer.Span;
 
-		int l = arrPattern.Count;
+		int l = arrPattern.Length;
 
 		for (int i = 0; i < l; i++) {
 			if (arrPattern[i] == UNKNOWN_BYTE)

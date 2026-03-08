@@ -25,8 +25,8 @@ public partial class FileType
 		      */
 
 		All   = ReadDatabase();
-		Image = All.Where(a => MT_IMAGE == a.Type).ToArray();
-		Video = All.Where(a => MT_VIDEO == a.Type).ToArray();
+		Image = [.. All.Where(a => MT_IMAGE == a.Type)];
+		Video = [.. All.Where(a => MT_VIDEO == a.Type)];
 
 		Trace.WriteLine($"Read {All.Length} file signatures | {Image.Length} image | {Video.Length} video");
 	}

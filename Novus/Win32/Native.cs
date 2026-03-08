@@ -15,6 +15,7 @@ using Novus.Win32.Structures.Ntdll;
 using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
+using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable UnusedVariable
 
@@ -32,7 +33,7 @@ namespace Novus.Win32;
 /// <summary>
 ///     Native interop; Win32 API
 /// </summary>
-[SupportedOSPlatform(FileSystem.OS_WIN)]
+[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
 public static unsafe partial class Native
 {
 
@@ -269,7 +270,7 @@ public static unsafe partial class Native
 
 		var mod = new ModuleEntry32
 		{
-			dwSize = (uint) Marshal.SizeOf(typeof(ModuleEntry32))
+			dwSize = (uint) Marshal.SizeOf<ModuleEntry32>()
 		};
 
 		if (!Module32First(snapshot, ref mod))
@@ -285,16 +286,10 @@ public static unsafe partial class Native
 	}
 
 	public static void RemoveWindowOnTop(nint p)
-	{
-		SetWindowPos(p, new((int) HandleWindowPosition.HWND_NOTOPMOST),
-		             0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
-	}
+		=> SetWindowPos(p, new((int) HandleWindowPosition.HWND_NOTOPMOST), 0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 
 	public static void KeepWindowOnTop(nint p)
-	{
-		SetWindowPos(p, new((int) HandleWindowPosition.HWND_TOPMOST),
-		             0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
-	}
+		=> SetWindowPos(p, new((int) HandleWindowPosition.HWND_TOPMOST), 0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
 
 	public static nint FindWindow(string lpWindowName)
 		=> FindWindow(IntPtr.Zero, lpWindowName);
@@ -437,7 +432,7 @@ public static unsafe partial class Native
 
 		long lpMem = 0L;
 
-		uint sizeOf = (uint) Marshal.SizeOf(typeof(MemoryBasicInformation));
+		uint sizeOf = (uint) Marshal.SizeOf<MemoryBasicInformation>();
 
 		long maxAddr = sysInfo.MaximumApplicationAddress.ToInt64();
 
@@ -477,7 +472,7 @@ public static unsafe partial class Native
 	public static nint NtQueryObject(nint handle, ObjectInformationClass infoClass, uint infoLength = 0)
 	{
 		if (infoLength == 0)
-			infoLength = (uint) Marshal.SizeOf(typeof(uint));
+			infoLength = (uint) Marshal.SizeOf<uint>();
 
 		nint infoPtr = Marshal.AllocHGlobal((int) infoLength);
 

@@ -346,3 +346,4 @@ healthchecksdb
 /UnitTest/
 /UnitTest/*
 *.bndb
+/Novus/appsettings.json

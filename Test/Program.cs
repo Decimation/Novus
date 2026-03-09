@@ -72,7 +72,6 @@ using System.Text.RegularExpressions;
 using System.Security.Cryptography;
 using Novus.Numerics;
 using Novus.FileTypes.Uni;
-using Novus.Memory.Types;
 using System.Runtime.InteropServices.Marshalling;
 
 // ReSharper disable UnusedMember.Local
@@ -292,12 +291,7 @@ public static class Program
 		int i = 123;
 	}
 
-	private static unsafe void run3()
-	{
-		Pointer<byte> p = stackalloc byte[Mem.Size];
-		any           a = new();
-
-	}
+	
 
 	public static unsafe delegate* managed<int> f;
 

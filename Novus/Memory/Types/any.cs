@@ -11,7 +11,7 @@ using Novus.Memory.Allocation;
 
 #pragma warning disable CS1574
 namespace Novus.Memory.Types;
-
+#if EXPERIMENTAL
 [Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 public struct any
 {
@@ -51,3 +51,4 @@ public struct any
 	}*/
 
 }
+#endif

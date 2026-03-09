@@ -4,9 +4,7 @@ public sealed class DefaultResolver : IFileTypeResolver
 {
 	public void Dispose() { }
 
-	private DefaultResolver() { }
-
-	public static readonly IFileTypeResolver Instance = new DefaultResolver();
+	public DefaultResolver() { }
 
 	public FileType Resolve(byte[] rg, int l = FileType.RSRC_HEADER_LEN)
 		=> FileType.Resolve(rg);

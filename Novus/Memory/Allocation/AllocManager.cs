@@ -101,23 +101,15 @@ public static class AllocManager
 	[MURV]
 	public static Pointer<T> Alloc<T>(nuint elemCnt)
 	{
-
 		var elemSize = (nuint) Mem.SizeOf<T>();
 		var cb       = (nuint) Mem.GetByteCount(elemSize, elemCnt);
 
-		Pointer<T> h = (Pointer<T>) Allocator.Alloc(cb);
+		var h = Allocator.Alloc(cb).Cast<T>();
 		h.Clear((int) elemCnt);
 
 		Allocated.Add(h);
 
 		return h;
-	}
-
-	public static void Close()
-	{
-		foreach (var pointer in Allocated) {
-			FreeInternal(pointer);
-		}
 	}
 
 	/*[MustUseReturnValue]
@@ -168,7 +160,7 @@ public static class AllocManager
 	public static object New(Type t, object[] ctor)
 	{
 		var m = typeof(AllocManager).GetRuntimeMethods()
-			.First(x => x.Name == nameof(New) && x.ContainsGenericParameters);
+		                            .First(x => x is { Name: nameof(New), ContainsGenericParameters: true });
 
 		return m.CallGeneric(t, null, [ctor]);
 
@@ -189,6 +181,13 @@ public static class AllocManager
 		}
 
 		return value;
+	}
+
+	public static void Close()
+	{
+		foreach (var pointer in Allocated) {
+			FreeInternal(pointer);
+		}
 	}
 
 }

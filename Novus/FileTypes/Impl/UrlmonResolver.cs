@@ -5,9 +5,8 @@ namespace Novus.FileTypes.Impl;
 
 public sealed class UrlmonResolver : IFileTypeResolver
 {
-	private UrlmonResolver() { }
 
-	public static readonly IFileTypeResolver Instance = new UrlmonResolver();
+	public UrlmonResolver() { }
 
 	public void Dispose() { }
 
@@ -15,8 +14,7 @@ public sealed class UrlmonResolver : IFileTypeResolver
 	                                               MimeFromDataFlags.RETURN_UPDATED_IMG_MIMES |
 	                                               MimeFromDataFlags.IGNORE_MIME_TEXT_PLAIN;
 
-	public static string ResolveFromData(byte[] dataBytes, string mimeProposed = null,
-	                                     MimeFromDataFlags flags = FLAGS_DEFAULT)
+	public static string ResolveFromData(byte[] dataBytes, string mimeProposed = null, MimeFromDataFlags flags = FLAGS_DEFAULT)
 	{
 		//https://stackoverflow.com/questions/2826808/how-to-identify-the-extension-type-of-the-file-using-c/2826884#2826884
 		//https://stackoverflow.com/questions/18358548/urlmon-dll-findmimefromdata-works-perfectly-on-64bit-desktop-console-but-gener
@@ -60,16 +58,17 @@ public sealed class UrlmonResolver : IFileTypeResolver
 	                                          MimeFromDataFlags dwMimeFlags, out nint ppwzMimeOut,
 	                                          int dwReserved);
 
-	/// <see cref="FindMimeFromData"/>
-	[Flags]
-	public enum MimeFromDataFlags
-	{
-		DEFAULT                  = 0x00000000,
-		URL_AS_FILENAME          = 0x00000001,
-		ENABLE_MIME_SNIFFING     = 0x00000002,
-		IGNORE_MIME_TEXT_PLAIN   = 0x00000004,
-		SERVER_MIME              = 0x00000008,
-		RESPECT_TEXT_PLAIN       = 0x00000010,
-		RETURN_UPDATED_IMG_MIMES = 0x00000020,
-	}
+}
+
+/// <see cref="UrlmonResolver.FindMimeFromData"/>
+[Flags]
+public enum MimeFromDataFlags
+{
+	DEFAULT                  = 0x00000000,
+	URL_AS_FILENAME          = 0x00000001,
+	ENABLE_MIME_SNIFFING     = 0x00000002,
+	IGNORE_MIME_TEXT_PLAIN   = 0x00000004,
+	SERVER_MIME              = 0x00000008,
+	RESPECT_TEXT_PLAIN       = 0x00000010,
+	RETURN_UPDATED_IMG_MIMES = 0x00000020,
 }

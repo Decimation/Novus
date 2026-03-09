@@ -22,7 +22,7 @@ public interface IFileTypeResolver : IDisposable
 		return Resolve(header);
 	}
 
-	public static IFileTypeResolver Default { get; set; } = DefaultResolver.Instance; //todo
+	public static IFileTypeResolver Default { get; set; } = new DefaultResolver();
 
 	/*
 		| Method |        Mean |     Error |    StdDev |

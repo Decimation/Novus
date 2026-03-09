@@ -53,8 +53,7 @@ public unsafe struct TypeHandle
 
 	internal TypeDesc* AsTypeDesc1 => (TypeDesc*) ((nuint) Value - 2);
 
-	internal bool IsMethodTable
-		=> ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.MethodTable;
+	internal bool IsMethodTable => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.MethodTable;
 
 	internal bool IsTypeDesc => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.TypeDesc;
 

@@ -358,9 +358,7 @@ public sealed class RuntimeResource : IDisposable
 
 #endregion Import
 
-	public bool TryAddManager(Assembly asm, ResourceManager mgr)
-		=> m_managers.TryAdd(asm, mgr);
-
+#region Manager
 
 	[CBN]
 	public ResourceManager GetOrAddManager(Assembly assembly, [CBN] string rsrcName = RSRC_MGR_NAME)
@@ -407,6 +405,12 @@ public sealed class RuntimeResource : IDisposable
 
 		return name;
 	}
+
+	public bool TryAddManager(Assembly asm, ResourceManager mgr)
+		=> m_managers.TryAdd(asm, mgr);
+
+#endregion
+
 
 #region
 

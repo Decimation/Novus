@@ -39,10 +39,12 @@ namespace Novus.Imports;
 public enum RuntimeResourceOptions
 {
 
-	None                 = 0,
-	FaultOnImportError   = 1 << 0,
-	UnloadAllOnDispose   = 1 << 1,
-	WriteDefaultOnUnload = 1 << 2,
+	None                  = 0,
+	ThrowOnImportError    = 1 << 0,
+	UnloadAllOnDispose    = 1 << 1,
+	WriteDefaultOnUnload  = 1 << 2,
+	NullOnImportError     = 1 << 3,
+	GenerateOnImportError = 1 << 4,
 
 }
 
@@ -71,7 +73,8 @@ public sealed class RuntimeResource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
-	public RuntimeResourceOptions Options { get; set; } = RuntimeResourceOptions.UnloadAllOnDispose | RuntimeResourceOptions.WriteDefaultOnUnload;
+	public RuntimeResourceOptions Options { get; } = RuntimeResourceOptions.UnloadAllOnDispose | RuntimeResourceOptions.WriteDefaultOnUnload
+	                                                                                           | RuntimeResourceOptions.NullOnImportError;
 
 	private readonly List<Type> m_loadedTypes = [];
 
@@ -304,21 +307,23 @@ public sealed class RuntimeResource : IDisposable
 
 					s_logger.LogError("Could not find import value for {Name}", unmanagedAttr.Name);
 
-					if (Options.HasFlag(RuntimeResourceOptions.FaultOnImportError)) {
+					if (Options.HasFlag(RuntimeResourceOptions.ThrowOnImportError)) {
 						throw new InvalidOperationException($"Could not find import value for {unmanagedAttr.Name}!");
 					}
-					else {
-						unsafe {
-							DynamicMethod dyn = MethodFactory.GetOrGenerateThrowingFunction(field.FieldType);
-							addr = dyn.MethodHandle.GetFunctionPointer();
 
-							/*var dyn = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
-							var fnPtr=dyn.MethodHandle.GetFunctionPointer();
-							addr = fnPtr;*/
-						}
+					if (Options.HasFlag(RuntimeResourceOptions.NullOnImportError)) {
+						/*var dyn   = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
+						var fnPtr = dyn.MethodHandle.GetFunctionPointer();
+						addr = fnPtr;*/
 
+						/*DynamicMethod dyn = MethodFactory.GetOrGenerateThrowingFunction(field.FieldType);
+						addr = dyn.MethodHandle.GetFunctionPointer();*/
+
+						addr = Mem.Nullptr;
 					}
-
+					else {
+						addr = Mem.Nullptr;
+					}
 				}
 
 				if (field.FieldType == typeof(Pointer<byte>)) {

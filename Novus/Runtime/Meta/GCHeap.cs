@@ -74,6 +74,12 @@ public static unsafe class GCHeap
 		return obj;
 	}*/
 
+	public static bool IsLargeObject(object o)
+		=> IsLargeObject(Mem.AddressOfHeap(o));
+
+	public static bool IsLargeObject(Pointer<byte> obj)
+		=> Func_IsLargeObject(GlobalHeap.ToPointer(), obj.ToPointer());
+
 	/// <summary>
 	/// <c>g_pGCHeap</c>
 	/// </summary>
@@ -91,6 +97,12 @@ public static unsafe class GCHeap
 	/// </summary>
 	[field: ImportClr("Sig_AllocObject")]
 	private static delegate* unmanaged<MethodTable*, GCAllocFlags, BOOL, void*> Func_AllocObject { get; }
+
+	/// <summary>
+	/// <see cref="IsLargeObject"/>
+	/// </summary>
+	[field: ImportClr("Sym_IsLargeObj", ImportType.Symbol)]
+	private static delegate* unmanaged[Thiscall]<void*, void*, bool> Func_IsLargeObject { get; }
 
 }
 

@@ -140,7 +140,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	public static explicit operator nint(Pointer<T> ptr)
 		=> ptr.Address;
 
-	public static explicit operator void*(Pointer<T> ptr)
+	public static /*explicit*/ implicit operator void*(Pointer<T> ptr)
 		=> ptr.ToPointer();
 
 	public static explicit operator long(Pointer<T> ptr)
@@ -473,9 +473,9 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 		var count = Mem.GetByteCount((nuint) elemCnt, ElementSize);
 
-		// Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest, count, count);
+		Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest, count, count);
 
-		Unsafe.CopyBlock((void*) dest, (void*) (this + startIndex), (uint) count);
+		//Unsafe.CopyBlock((void*) dest, (void*) (this + startIndex), (uint) count);
 		/*for (int i = startIndex; i < elemCnt + startIndex; i++) {
 			dest[i - startIndex] = this[i];
 		}*/
@@ -537,8 +537,11 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 #region Format
 
+	const string FMT_HEX = "X";
+	const string FMT_PTR = "P";
+
 	public readonly override string ToString()
-		=> ToString(FormatHelper.HexFormatter.FMT_P);
+		=> ToString(FMT_PTR);
 
 	public readonly string ToString(string format)
 		=> ToString(format, null);
@@ -547,18 +550,19 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	{
 		//if (String.IsNullOrEmpty(format))
 		//	format = FMT_HEX;
+		
+		format   ??= FMT_HEX;
+		provider ??= CultureInfo.CurrentCulture;
+		
+		return format.ToUpperInvariant() switch
+		{
+			FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
+			FMT_PTR => "0x" + ToString(FMT_HEX),
+			_       => throw new FormatException()
+		};
 
-		//provider ??= CultureInfo.CurrentCulture;
-
-		//return format.ToUpperInvariant() switch
-		//{
-		//	FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
-		//	FMT_PTR => Strings.HexFormatter.HEX_PREFIX + ToString(FMT_HEX),
-		//	_       => throw new FormatException()
-		//};
-
-		return FormatHelper.ToHexString(Address, format);
-
+		// return FormatHelper.ToHexString(Address, format);
+		
 	}
 
 #endregion

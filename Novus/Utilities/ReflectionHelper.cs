@@ -50,21 +50,22 @@ public static class ReflectionHelper
 	///     <see cref="BindingFlags.Public" />, <see cref="BindingFlags.Instance" />,
 	///     and <see cref="BindingFlags.NonPublic" />
 	/// </summary>
-	public const BindingFlags ALL_INSTANCE_FLAGS =
-		BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+	public const BindingFlags ALL_INSTANCE_FLAGS = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
 
 #region Members
 
 	extension(Type t)
 	{
 
-		public (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>()
-			where TAttribute : Attribute
+		public (TAttribute Attribute, MMI Member)[] GetAnnotated<TAttribute>() where TAttribute : Attribute
 		{
-			return [.. (
-				       from member in t.GetAllMembers()
-				       where Attribute.IsDefined(member, typeof(TAttribute))
-				       select (member.GetCustomAttribute<TAttribute>(), member))];
+			return
+			[
+				..
+				from member in t.GetAllMembers()
+				where Attribute.IsDefined(member, typeof(TAttribute))
+				select (member.GetCustomAttribute<TAttribute>(), member)
+			];
 		}
 
 		[return: MN]
@@ -77,7 +78,7 @@ public static class ReflectionHelper
 			}
 
 			var ctors    = t.GetConstructors();
-			var argTypes = args.Select(x => x.GetType()).ToArray();
+			var argTypes = args.Select(static x => x.GetType()).ToArray();
 
 			foreach (var ctor in ctors) {
 				var paramz = ctor.GetParameters();
@@ -86,7 +87,7 @@ public static class ReflectionHelper
 					continue;
 				}
 
-				if (paramz.Select(x => x.ParameterType).SequenceEqual(argTypes)) {
+				if (paramz.Select(static x => x.ParameterType).SequenceEqual(argTypes)) {
 					return ctor;
 				}
 			}
@@ -120,14 +121,11 @@ public static class ReflectionHelper
 			var member = infos.FirstOrDefault();
 
 			switch (member) {
-				case PI { MemberType: MemberTypes.Property } prop:
-					return prop.GetBackingField();
+				case PI { MemberType: MemberTypes.Property } prop: return prop.GetBackingField();
 
-				case FI fi:
-					return fi;
+				case FI fi: return fi;
 
-				default:
-					return null;
+				default: return null;
 			}
 
 		}
@@ -138,7 +136,8 @@ public static class ReflectionHelper
 		{
 			get
 			{
-				var c = GetCodeInfo(t, out var b);
+				var c = Type.GetTypeCode(t);
+				var      b        = c.IsInteger;
 
 				var bb = b && (int) c % 2 == 1;
 				return /*t.IsInteger() && */bb || ExtraSInt.Contains(t) || t.IsReal;
@@ -149,7 +148,8 @@ public static class ReflectionHelper
 		{
 			get
 			{
-				var c = GetCodeInfo(t, out var b);
+				var c = Type.GetTypeCode(t);
+				var      b        = c.IsInteger;
 
 				var bb = b && (int) c % 2 == 0;
 				return /*t.IsInteger() && */bb || ExtraUInt.Contains(t);
@@ -163,10 +163,7 @@ public static class ReflectionHelper
 		{
 			get
 			{
-				TypeCode c = GetCodeInfo(t, out bool b);
-
-				// var b2 = t == typeof(BigInteger) || t == typeof(Int128) || t == typeof(UInt128);
-				// var b3 = t == typeof(nint) || t == typeof(nuint);
+				bool b = Type.GetTypeCode(t).IsInteger;
 
 				return b || ExtraSInt.Contains(t) || ExtraUInt.Contains(t);
 			}
@@ -176,9 +173,8 @@ public static class ReflectionHelper
 		{
 			get
 			{
-				var c = Type.GetTypeCode(t);
-
-				var case1 = c is <= TypeCode.Decimal and >= TypeCode.Single;
+				var c     = Type.GetTypeCode(t);
+				var case1 = c.IsReal;
 
 				// Special case
 				var case2 = t == typeof(Half);
@@ -187,16 +183,19 @@ public static class ReflectionHelper
 			}
 		}
 
-		private TypeCode GetCodeInfo(out bool isIntCode)
-		{
-			var c = Type.GetTypeCode(t);
-			isIntCode = c is <= TypeCode.UInt64 and >= TypeCode.SByte;
-			return c;
-		}
-
 #endregion
 
 	}
+
+	extension(TypeCode c)
+	{
+
+		private bool IsInteger => c is <= TypeCode.UInt64 and >= TypeCode.SByte;
+
+		private bool IsReal => c is <= TypeCode.Decimal and >= TypeCode.Single;
+
+	}
+
 
 	private static readonly Type[] ExtraUInt = [typeof(UInt128), typeof(nuint)];
 	private static readonly Type[] ExtraSInt = [typeof(Int128), typeof(nint), typeof(BigInteger)];
@@ -210,8 +209,7 @@ public static class ReflectionHelper
 		return field;
 	}
 
-	public static Dictionary<FI, bool> GetNullMembers(this object  value, Func<Type, object, bool> fn = null,
-	                                                  BindingFlags flags = ALL_INSTANCE_FLAGS)
+	public static Dictionary<FI, bool> GetNullMembers(object value, Func<Type, object, bool> fn = null, BindingFlags flags = ALL_INSTANCE_FLAGS)
 	{
 		var fields = value.GetType().GetFields(flags);
 
@@ -228,16 +226,6 @@ public static class ReflectionHelper
 
 		return rg;
 	}
-
-	/*public static T GetStaticValue<T>(this PI p)
-	{
-		return (T) p.GetValue(null);
-	}
-
-	public static T GetStaticValue<T>(this FI p)
-	{
-		return (T) p.GetValue(null);
-	}*/
 
 #endregion
 
@@ -346,8 +334,17 @@ public static class ReflectionHelper
 			return t.GetInterfaces().Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == genericType);
 		}
 
+		public IEnumerable<Type> GetGenericImplementations()
+		{
+			var impl = t.Assembly.GetTypes()
+			            .Where(static t1 => t1 is { IsAbstract: false, IsInterface: false })
+			            .Where(t2 => t2.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == t));
+
+			return impl;
+		}
+
 		/// <summary>
-		///     Determines whether this type fits the <c>unmanaged</c> type constraint.
+		///     Determines whether <paramref name="t"/> type fits the <c>unmanaged</c> type constraint.
 		/// </summary>
 		[DebuggerHidden]
 		public bool IsUnmanaged
@@ -385,7 +382,7 @@ public static class ReflectionHelper
 
 
 	/// <summary>
-	///     Dummy class for use with <see cref="IsUnmanaged" /> and <see cref="IsUnmanaged" />
+	///     Dummy class for use with <see cref="IsUnmanaged" />
 	/// </summary>
 	private sealed class UnmanagedDummyType<T> where T : unmanaged { }
 
@@ -462,7 +459,7 @@ public static class ReflectionHelper
 				_ => throw new ArgumentOutOfRangeException(nameof(p), p, null)
 			};
 
-			return GetAllInAssembly(type, fn);
+			return type.GetAllInAssembly(fn);
 		}
 
 		public IEnumerable<Type> GetAllInAssembly(Func<Type, bool> fn)
@@ -510,39 +507,6 @@ public static class ReflectionHelper
 		return AppDomain.CurrentDomain.GetAssemblies()
 		                .SingleOrDefault(assembly => assembly.GetName().FullName.Contains(name));
 	}
-
-#endregion
-
-#region Field ID
-
-	/*//todo
-	[AttributeUsage(
-		AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Class | AttributeTargets.Property)]
-	[MeansImplicitUse]
-	public class FieldIdAttribute : Attribute { }
-
-	public static FieldInfo[] GetFieldsById(Type t, Assembly[] asmName)
-	{
-		//TODO
-
-		var f = t.GetRuntimeFields().Where(f =>
-		{
-			var asm  = f.FieldType.Assembly;
-			var name = asm.GetName().Name;
-
-			var contains = name != null && asmName.Any(a => a.GetName().Name.Contains(name));
-
-			var b = f.GetCustomAttribute<FieldIdAttribute>() is { } fa;
-
-			if (!contains) {
-				return false;
-			}
-
-			return contains && !b;
-		});
-
-		return f.ToArray();
-	}*/
 
 #endregion
 

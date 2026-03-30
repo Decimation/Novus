@@ -33,16 +33,13 @@ public static class ProcessHelper
 		/// </param>
 		/// <returns>The found <see cref="ProcessModule" />; <c>null</c> otherwise</returns>
 		[CBN]
-		public ProcessModule FindModule(string moduleName)
-			=> p.GetModules().FirstOrDefault(module => module.ModuleName == moduleName);
+		public ProcessModule FindModule(string moduleName) => p.GetModules().FirstOrDefault(module => module.ModuleName == moduleName);
 
 		/// <param name="p">Process from which to load modules</param>
-		public IEnumerable<ProcessModule> GetModules()
-			=> p.Modules.Cast<ProcessModule>();
+		public IEnumerable<ProcessModule> GetModules() => p.Modules.Cast<ProcessModule>();
 
 		[CBN]
-		public Process GetParent()
-			=> GetParent(p.Handle);
+		public Process GetParent() => GetParent(p.Handle);
 
 	}
 
@@ -71,10 +68,6 @@ public static class ProcessHelper
 		}
 	}
 #endif
-
-	[CBN]
-	public static Process GetParent()
-		=> Process.GetCurrentProcess().GetParent();
 
 	[CBN]
 	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]

@@ -664,7 +664,7 @@ public static unsafe class Mem
 		var isStruct = RuntimeProperties.IsStruct(value);
 		var isBoxed  = RuntimeProperties.IsBoxed(value);
 
-		s_logger.LogTrace("{Value} [{T}] | Struct={Strct} | Boxed={Bxd}", value, typeof(T), isStruct, isBoxed);
+		s_logger.LogTrace("[{T}] | Struct={Strct} | Boxed={Bxd}", typeof(T), isStruct, isBoxed);
 
 		if (throwOnErr && !isStruct) {
 			throw new ArgumentException($"Value must be reference type", nameof(value));

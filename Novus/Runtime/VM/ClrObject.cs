@@ -19,19 +19,6 @@ public unsafe struct ClrObject
 		Global.Clr.LoadImports(typeof(ClrObject));
 	}
 
-	/*[field: ImportClr("Sig_ObjGetSize")]
-	private static delegate* unmanaged[Thiscall]<void*, ulong> Func_ObjGetSize { get; }
-
-	public ulong Size
-	{
-		get
-		{
-			fixed (ClrObject* __this = &this) {
-				return Func_ObjGetSize(__this);
-			}
-		}
-	}*/
-
 	public const int MARKED_BIT = 0x1;
 
 	[UnscopedRef]
@@ -57,6 +44,19 @@ public unsafe struct ClrObject
 			fixed (ClrObject* p = &this) {
 				return ref Unsafe.AsRef<byte>(p);
 
+			}
+		}
+	}*/
+
+	/*[field: ImportClr("Sig_ObjGetSize")]
+	private static delegate* unmanaged[Thiscall]<void*, ulong> Func_ObjGetSize { get; }
+
+	public ulong Size
+	{
+		get
+		{
+			fixed (ClrObject* __this = &this) {
+				return Func_ObjGetSize(__this);
 			}
 		}
 	}*/

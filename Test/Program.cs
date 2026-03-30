@@ -154,7 +154,12 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
-		Test7();
+
+		decimal[] rg = new Decimal[369];
+		Console.WriteLine(Mem.SizeOf(rg, SizeOfOption.Auto));
+		Console.WriteLine(Mem.HeapSizeOf(rg));
+		Console.WriteLine(GCHeap.IsLargeObject(rg));
+		// Test7();
 	}
 
 	private static unsafe void Test7()

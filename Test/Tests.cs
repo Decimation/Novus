@@ -166,7 +166,7 @@ internal class Tests1
 	{
 		var type = new MyStruct2();
 
-		foreach (var nullMember in type.GetNullMembers()) {
+		foreach (var nullMember in ReflectionHelper.GetNullMembers(type)) {
 			Console.WriteLine($"{nullMember.Key.Name} {nullMember}");
 		}
 	}

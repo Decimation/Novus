@@ -179,7 +179,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 10.0.3.
+        ///   Looks up a localized string similar to 10.0.5.
         /// </summary>
         internal static string RequiredVersion {
             get {
@@ -373,6 +373,15 @@ namespace Novus.Properties {
         internal static string Sym_IsHeapPointer {
             get {
                 return ResourceManager.GetString("Sym_IsHeapPointer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WKS::GCHeap::IsLargeObject.
+        /// </summary>
+        internal static string Sym_IsLargeObj {
+            get {
+                return ResourceManager.GetString("Sym_IsLargeObj", resourceCulture);
             }
         }
         

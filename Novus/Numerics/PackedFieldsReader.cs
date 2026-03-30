@@ -18,6 +18,7 @@ public readonly struct PackedFieldsReader
 {
 
 	// NOTE: This is only for use with packed EEClass fields
+	// TODO: Use BitArray or unmanaged buffer
 
 	private const int PACKED_FIELDS_RG_LEN = 1;
 

@@ -321,8 +321,7 @@ public static class Global
 	}
 
 
-	internal const MImplO IMPL_OPTIONS =
-		MImplO.AggressiveInlining | MImplO.AggressiveOptimization;
+	internal const MImplO IMPL_OPTIONS = MImplO.AggressiveInlining | MImplO.AggressiveOptimization;
 
 #if EXTRA
 	#region QWrite

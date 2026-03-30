@@ -397,7 +397,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	}
 
 	[Pure]
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	[MImpl(MImplO.AggressiveInlining)]
 	public readonly Pointer<T> AddressOfIndex(nint index)
 		=> Offset(index);
 
@@ -471,11 +471,11 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	{
 		//|  Copy3 | 7.428 ns | 0.0473 ns | 0.0395 ns |
 
-		var count = (long) Mem.GetByteCount((nuint) elemCnt, ElementSize);
+		var count = Mem.GetByteCount((nuint) elemCnt, ElementSize);
 
-		Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest,
-		                  count, count);
+		// Buffer.MemoryCopy((void*) (this + startIndex), (void*) dest, count, count);
 
+		Unsafe.CopyBlock((void*) dest, (void*) (this + startIndex), (uint) count);
 		/*for (int i = startIndex; i < elemCnt + startIndex; i++) {
 			dest[i - startIndex] = this[i];
 		}*/
@@ -576,7 +576,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		// ...
 	}
 
-	#region 
+#region
 
 	public static Pointer<T> operator &(Pointer<T> ptr, Pointer<T> n) => ptr.Address & n.Address;
 
@@ -584,7 +584,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 
 	public static Pointer<T> operator ~(Pointer<T> ptr) => ~ptr.Address;
 
-	#endregion
+#endregion
 
 	/*public readonly MemoryBasicInformation Query()
 		=> Native.QueryMemoryPage(this);*/

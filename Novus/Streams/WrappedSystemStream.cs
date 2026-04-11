@@ -12,7 +12,7 @@ public class WrappedSystemStream : Stream
 
 	public WrappedSystemStream(OutputStream ost)
 	{
-		this.OutputStream = ost;
+		OutputStream = ost;
 	}
 
 	public InputStream InputStream { get; }

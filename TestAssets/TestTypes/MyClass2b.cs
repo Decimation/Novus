@@ -29,7 +29,7 @@ public unsafe class MyClass2b
 	static MyClass2b()
 	{
 		Trace.WriteLine($"{nameof(MyClass2b)}");
-		_rr = RuntimeResource.LoadModule(MyClass2b.s, out _);
+		_rr = RuntimeResource.LoadModule(s, out _);
 		_rr.LoadImports(typeof(MyClass2b));
 	}
 

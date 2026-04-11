@@ -57,7 +57,10 @@ namespace Novus.Memory;
 /// <seealso cref="IntPtr" />
 /// <seealso cref="UIntPtr" />
 /// <seealso cref="Unsafe" />
-public unsafe struct Pointer<T> : IFormattable, IPinnable
+public unsafe struct Pointer<T> : IFormattable, IPinnable, 
+                                  IAdditionOperators<Pointer<T>, Pointer<T>, Pointer<T>>, ISubtractionOperators<Pointer<T>, Pointer<T>, Pointer<T>>,
+                                  IIncrementOperators<Pointer<T>>, IDecrementOperators<Pointer<T>>,
+                                  IComparisonOperators<Pointer<T>, Pointer<T>, bool>
 {
 
 	private static readonly nuint s_elementSize;
@@ -254,6 +257,16 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		// ReSharper disable once NonReadonlyMemberInGetHashCode
 		return unchecked((int) (long) m_value);
 	}
+
+	// [lo, hi]
+
+	// if ((ptrStack < stackBase) && (ptrStack > (stackBase - stackSize)))
+	// (p >= regionStart && p < regionStart + regionSize) ;
+	// return target >= start && target < end;
+	// return m_CacheStackLimit < addr && addr <= m_CacheStackBase;
+	// if (!((object < g_gc_highest_address) && (object >= g_gc_lowest_address)))
+	// return max.ToInt64() < p.ToInt64() && p.ToInt64() <= min.ToInt64();
+
 
 	public static bool operator ==(Pointer<T> left, Pointer<byte> right)
 		=> left.Equals(right);
@@ -550,10 +563,10 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 	{
 		//if (String.IsNullOrEmpty(format))
 		//	format = FMT_HEX;
-		
+
 		format   ??= FMT_HEX;
 		provider ??= CultureInfo.CurrentCulture;
-		
+
 		return format.ToUpperInvariant() switch
 		{
 			FMT_HEX => Address.ToInt64().ToString(FMT_HEX, provider),
@@ -562,7 +575,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable
 		};
 
 		// return FormatHelper.ToHexString(Address, format);
-		
+
 	}
 
 #endregion

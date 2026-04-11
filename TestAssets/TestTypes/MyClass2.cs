@@ -15,7 +15,7 @@ namespace Test.TestTypes
 
 		static MyClass2()
 		{
-			_rr = RuntimeResource.LoadModule(MyClass2.s, out _);
+			_rr = RuntimeResource.LoadModule(s, out _);
 			_rr.LoadImports(typeof(MyClass2));
 		}
 	}

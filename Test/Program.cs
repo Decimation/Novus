@@ -266,7 +266,7 @@ public static class Program
 
 	private static unsafe void Test2()
 	{
-		Clazz3     clazz = new TestTypes.Clazz3();
+		Clazz3     clazz = new Clazz3();
 		MetaMethod mm    = clazz.GetType().GetAnyMethod("SayHi").AsMetaMethod();
 		MetaMethod mm2   = clazz.GetType().GetAnyMethod("SayBar").AsMetaMethod();
 		clazz.SayHi();

@@ -37,7 +37,16 @@ public unsafe struct ClrObject
 
 	public TypeHandle TypeHandle { get; set; }
 
-	public byte Data { get; set; }
+	[UnscopedRef]
+
+	public ref byte Data
+	{
+		get
+		{
+			ref var hdr = ref Unsafe.AddByteOffset(ref this, OffsetOptions.Fields.GetOffsetValue());
+			return ref Unsafe.As<ClrObject, byte>(ref hdr);
+		}
+	}
 
 
 	/*public ref byte Data

@@ -195,7 +195,7 @@ public partial class FileType
 		return true;
 	}
 
-	public static FileType Resolve(Stream s, int l = FileType.RSRC_HEADER_LEN)
+	public static FileType Resolve(Stream s, int l = RSRC_HEADER_LEN)
 	{
 		// var          j  = All.Max(x => x.Pattern.Length);
 		Memory<byte> rg = s.ReadHeader(l: l);
@@ -223,7 +223,7 @@ public partial class FileType
 
 	}
 
-	public static async Task<FileType> ResolveAsync(Stream s, int l = FileType.RSRC_HEADER_LEN,
+	public static async Task<FileType> ResolveAsync(Stream s, int l = RSRC_HEADER_LEN,
 	                                                CancellationToken ct = default)
 	{
 		// return Resolve(await s.ReadHeaderAsync(ct: ct));

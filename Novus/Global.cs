@@ -249,7 +249,7 @@ public static class Global
 		s_logger.LogTrace("Module init :: {Name}", ER.Name);
 		s_logger.LogTrace("Runtime: {EnvVer} | Target: {ClrVer}", Environment.Version, ClrVersion);
 
-		if (System.Runtime.InteropServices.RuntimeInformation.IsInteractiveHost) {
+		if (RuntimeInformation.IsInteractiveHost) {
 			s_logger.LogWarning("Interactive host");
 		}
 

@@ -158,7 +158,7 @@
     <value>10.0.5</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
-    <value>48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 83 EC ? 44 8B 0D ? ? ? ? 48 8B D9 65 48 8B 04 25 ? ? ? ? B9</value>
+    <value>48 89 5C 24 ? 55 56 57 41 54 41 55 41 56 41 57 48 83 EC ? 48 8B F1</value>
     <comment>AllocateObject</comment>
   </data>
   <data name="Sig_GetAttrs" xml:space="preserve">
@@ -170,7 +170,7 @@
     <comment>TypeHandle_GetCorElementType</comment>
   </data>
   <data name="Sig_GetIL" xml:space="preserve">
-    <value>48 89 5C 24 ? 55 56 57 41 56 41 57 48 83 EC ? 48 8B D9 44 0F B6 41</value>
+    <value>48 89 5C 24 ? 48 89 6C 24 ? 56 57 41 56 48 83 EC ? 48 8B D9 44 0F B6 41</value>
     <comment>MethodDesc::GetILHeader</comment>
   </data>
   <data name="Sig_GetInstanceField" xml:space="preserve">
@@ -210,7 +210,7 @@
     <comment>WKS::GCHeap::IsHeapPointer</comment>
   </data>
   <data name="Sig_IsPointingToNativeCode" xml:space="preserve">
-    <value>40 53 48 83 EC ? B8 ? ? ? ? 4C 8B C9</value>
+    <value>40 53 48 83 EC ? B8 ? ? ? ? 4C 8B D1</value>
     <comment>MethodDesc::IsPointingToNativeCode</comment>
   </data>
   <data name="Sig_ObjGetSize" xml:space="preserve">

@@ -58,10 +58,10 @@ using ActionFunctor = Action<object, Action<object>>;
 
 /// <summary>
 ///     Provides utilities for manipulating pointers, memory, and types.
-///     <para>Also see JitHelpers from <see cref="System.Runtime.CompilerServices" />.</para>
 /// </summary>
 /// <seealso cref="Pointer"/>
 /// <seealso cref="Mem" />
+/// <seealso cref="PinManager"/>
 /// <seealso cref="BitConverter" />
 /// <seealso cref="BinaryPrimitives" />
 /// <seealso cref="Convert" />
@@ -87,40 +87,27 @@ using ActionFunctor = Action<object, Action<object>>;
 /// <seealso cref="NativeMemory"/>
 /// <seealso cref="NativeLibrary"/>
 /// <seealso cref="System.Runtime.CompilerServices" />
+/// <seealso cref="System.Runtime.CompilerServices.JitHelpers"/>
 public static unsafe class Mem
 {
+
+#region
 
 	/// <summary>
 	///     Address size
 	/// </summary>
 	public static readonly int Size = IntPtr.Size;
 
-	public static readonly nint  Invalid   = Native.ERROR_SV;
-	public static readonly nuint Invalid_u = unchecked((nuint) Invalid);
-
-	private static readonly ILogger s_logger = Global.LoggerFactoryInt.CreateLogger(nameof(Mem));
-
-	static Mem()
-	{
-		Is64Bit = Environment.Is64BitProcess;
-
-		if (!RuntimeFeature.IsDynamicCodeSupported) {
-			return;
-		}
-
-		PinImpl = CreatePinImpl();
-
-		/*fixed (nint* n = &Invalid) {
-			Invalid_u = *(nuint*) n;
-		}*/
-	}
-
 	/// <summary>
 	///     Represents a <c>null</c> <see cref="Pointer{T}" /> or <see cref="ReadOnlyPointer{T}" />
 	/// </summary>
 	public static readonly Pointer<byte> Nullptr = null;
 
-	public static readonly bool Is64Bit;
+	public static readonly bool Is64Bit = Environment.Is64BitProcess;
+
+	private static readonly ILogger s_logger = Global.LoggerFactoryInt.CreateLogger(nameof(Mem));
+
+#endregion
 
 	/// <summary>
 	///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
@@ -140,144 +127,6 @@ public static unsafe class Mem
 
 		return f.Offset;
 	}
-
-	/// <param name="p">Operand</param>
-	/// <param name="lo">Start address (inclusive)</param>
-	/// <param name="hi">End address (inclusive)</param>
-	public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, Pointer<byte> hi)
-	{
-		// [lo, hi]
-
-		// if ((ptrStack < stackBase) && (ptrStack > (stackBase - stackSize)))
-		// (p >= regionStart && p < regionStart + regionSize) ;
-		// return target >= start && target < end;
-		// return m_CacheStackLimit < addr && addr <= m_CacheStackBase;
-		// if (!((object < g_gc_highest_address) && (object >= g_gc_lowest_address)))
-		// return max.ToInt64() < p.ToInt64() && p.ToInt64() <= min.ToInt64();
-
-		return p <= hi && p >= lo;
-	}
-
-	public static bool IsAddressInRange(Pointer<byte> p, Pointer<byte> lo, nint size)
-		=> p >= lo && p <= lo.AddBytes(size);
-
-
-#region Pin
-
-	private static readonly ActionFunctor PinImpl;
-
-	private static Dictionary<object, ManualResetEvent> PinResetEvents { get; } = [];
-
-	[NN]
-	private static ActionFunctor CreatePinImpl()
-	{
-		var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
-		                               [typeof(object), typeof(Action<object>)],
-		                               typeof(ObjectUtility).Module);
-
-		ILGenerator il = method.GetILGenerator();
-
-		// create a pinned local variable of type object
-		// this wouldn't be valid in C#, but the runtime doesn't complain about the IL
-		LocalBuilder local = il.DeclareLocal(typeof(object), true);
-
-		// store first argument obj in the pinned local variable
-		il.Emit(OpCodes.Ldarg_0);
-		il.Emit(OpCodes.Stloc_0);
-
-		// invoke the delegate
-		il.Emit(OpCodes.Ldarg_1);
-		il.Emit(OpCodes.Ldarg_0);
-		il.EmitCall(OpCodes.Callvirt, typeof(Action<object>).GetMethod("Invoke")!, null);
-
-		il.Emit(OpCodes.Ret);
-
-		return (ActionFunctor) method.CreateDelegate(typeof(ActionFunctor));
-	}
-
-	/// <summary>
-	///     <paramref name="obj" /> will be *temporarily* pinned while action is being invoked
-	/// </summary>
-	public static void InvokeWhilePinned(object obj, Action<object> action)
-		=> PinImpl(obj, action);
-
-	/// <summary>
-	///     Used for unsafe pinning of arbitrary objects.
-	///     This allows for pinning of unblittable objects, with the <c>fixed</c> statement.
-	/// </summary>
-	public static PinHelperProxy GetPinningHelper(object value)
-		=> Unsafe.As<PinHelperProxy>(value);
-
-	public static bool IsPinned(object obj)
-		=> PinResetEvents.ContainsKey(obj);
-
-	public static bool Pin(object obj, [CBN] object s = null)
-	{
-		var value = new ManualResetEvent(false);
-
-		if (PinResetEvents.TryAdd(obj, value)) {
-			var b = ThreadPool.QueueUserWorkItem(_ =>
-			{
-				fixed (byte* p = &GetPinningHelper(obj).Data) {
-					value.WaitOne();
-				}
-			}, s);
-
-			if (b) {
-				Debug.WriteLine($"Pinned obj: {obj.GetHashCode()}");
-
-			}
-
-			return b;
-		}
-
-		return false;
-	}
-
-	public static bool Unpin(object obj)
-	{
-
-		if (PinResetEvents.TryGetValue(obj, out var p)) {
-			var o = p.Set();
-
-			if (o) {
-				Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
-				o = PinResetEvents.Remove(obj);
-			}
-
-			return o;
-		}
-
-		return false;
-	}
-
-	/// <summary>
-	///     <para>Helper class to assist with unsafe pinning of arbitrary objects. The typical usage pattern is:</para>
-	///     <code>
-	///  fixed (byte* pData = &amp;PinHelper.GetPinningHelper(value).Data)
-	///  {
-	///  }
-	///  </code>
-	///     <remarks>
-	///         <para><c>pData</c> is what <c>Object::GetData()</c> returns in VM.</para>
-	///         <para><c>pData</c> is also equal to offsetting the pointer by <see cref="OffsetOptions.Fields" />. </para>
-	///         <para>From <see cref="System.Runtime.CompilerServices.JitHelpers" />. </para>
-	///     </remarks>
-	/// </summary>
-	public sealed class PinHelperProxy
-	{
-
-		/// <summary>
-		///     Represents the first field in an object.
-		/// </summary>
-		/// <remarks>Equals <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" /> with <see cref="OffsetOptions.Fields" />.</remarks>
-		public byte Data;
-
-		private PinHelperProxy() { }
-
-	}
-
-#endregion
 
 #region Cast
 
@@ -307,28 +156,11 @@ public static unsafe class Mem
 		return t2;
 	}*/
 
-	public static ref TTo reinterpret_cast<TFrom, TTo>(ref TFrom t)
-		=> ref reinterpret_cast<TFrom, TTo>(new Pointer<TFrom>(ref t));
-
-	public static ref TTo reinterpret_cast<TFrom, TTo>(Pointer<TFrom> t)
-	{
-		var p = AddressOf(ref t);
-		return ref p.Cast<TTo>().Reference;
-	}
-
-	/*public static ref T PinToRef<T>(this Memory<T> sp, [MDR] out MemoryHandle mh)
-	{
-		var p = sp.ToPointer(out mh);
-		return ref p.Reference;
-	}*/
-
 	public static Pointer<T> ToPointer<T>(this Memory<T> sp, [MDR] out MemoryHandle mh)
 	{
 		mh = sp.Pin();
 		return mh.Pointer;
 	}
-	/*public static Pointer<T> ToPointer<T>(this Span<T> s)
-		=> s.ToPointer(ref s.GetPinnableReference());*/
 
 	public static Pointer<T> ToPointer<T>(this Span<T> s, ref T t)
 	{
@@ -444,98 +276,9 @@ public static unsafe class Mem
 
 #endregion
 
-
-	/*public static object ReadStructure(Type t, byte[] rg, int ofs = 0)
-	{
-		var handle = GCHandle.Alloc(rg, GCHandleType.Pinned);
-
-		//var stackAlloc = stackalloc byte[byteArray.Length];
-
-		nint   objAddr = handle.AddrOfPinnedObject() + ofs;
-		object value   = Marshal.PtrToStructure(objAddr, t);
-
-		handle.Free();
-
-		return value;
-	}*/
-
-	/*public static object ReadStructure(Type t, Memory<byte> rg, int ofs = 0)
-	{
-		using var    mh    = rg.Pin();
-		object value = Marshal.PtrToStructure((nint) mh.Pointer, t);
-
-		return value;
-	}*/
-
-	/*public static byte[] GetStringBytes(string s)
-	{
-		byte[] rg = new byte[s.Length * sizeof(char)];
-
-		fixed (char* p = s) {
-			Pointer<byte> p2 = p;
-
-			p2.Copy(rg);
-		}
-
-		return rg;
-	}*/
-
-	/*public static string ToBinaryString(object obj)
-	{
-		byte[] bytes = null;
-
-		if (obj is string s) {
-			bytes = Encoding.Default.GetBytes(s);
-			// bytes = GetStringBytes(s);
-		}
-		else if (obj.GetType().IsNumeric()) {
-			bytes = BitConverter.GetBytes((nint) obj);
-		}
-
-		if (bytes != null) {
-			return string.Join(String.Empty, bytes.Select(x => Convert.ToString(x, 2)));
-		}
-
-		return null;
-	}*/
-
 #endregion
 
-	/*public static void Copy(Pointer<byte>src, int cb, Pointer<byte> dest)
-		=> dest.WriteAll(src.ToArray(cb));
-
-	public static void Copy(Pointer<byte> src, int startIndex, int cb, Pointer<byte> dest)
-		=> dest.WriteAll(src.ToArray(startIndex, cb));
-
-	public static byte[] Copy(Pointer<byte> src, int startIndex, int cb)
-		=> src.ToArray(startIndex, cb);
-
-	public static byte[] Copy(Pointer<byte> src, int cb)
-		=> src.ToArray(cb);*/
-
 #region Size
-
-	/// <summary>
-	///     Calculates the total byte size of <paramref name="elemCnt" /> elements with
-	///     the size of <paramref name="elemSize" />.
-	/// </summary>
-	/// <param name="elemSize">Byte size of one element</param>
-	/// <param name="elemCnt">Number of elements</param>
-	/// <returns>Total byte size of all elements</returns>
-	[MethodImpl(MImplO.AggressiveInlining)]
-	public static nuint GetByteCount(nuint elemCnt, nuint elemSize)
-	{
-		// This is based on the `mi_count_size_overflow` and `mi_mul_overflow` methods from microsoft/mimalloc.
-		// Original source is Copyright (c) 2019 Microsoft Corporation, Daan Leijen. Licensed under the MIT license
-
-		// sqrt(nuint.MaxValue)
-		nuint multiplyNoOverflow = (nuint) 1 << (4 * sizeof(nuint));
-
-		return (elemSize >= multiplyNoOverflow || elemCnt >= multiplyNoOverflow)
-		       && elemSize > 0 && UIntPtr.MaxValue / elemSize < elemCnt
-			       ? UIntPtr.MaxValue
-			       : elemCnt * elemSize;
-	}
 
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
@@ -584,17 +327,13 @@ public static unsafe class Mem
 		var mt = value.GetMetaType();
 
 		switch (option) {
-			case SizeOfOption.BaseFields:
-				return mt.InstanceFieldsSize;
+			case SizeOfOption.BaseFields: return mt.InstanceFieldsSize;
 
-			case SizeOfOption.BaseInstance:
-				return mt.BaseSize;
+			case SizeOfOption.BaseInstance: return mt.BaseSize;
 
-			case SizeOfOption.BaseData:
-				return mt.BaseDataSize;
+			case SizeOfOption.BaseData: return mt.BaseDataSize;
 
-			case SizeOfOption.Heap:
-				return HeapSizeOfInternal(value);
+			case SizeOfOption.Heap: return HeapSizeOfInternal(value);
 
 			case SizeOfOption.Data:
 				if (ObjectUtility.IsStruct(value)) {
@@ -706,6 +445,28 @@ public static unsafe class Mem
 		return baseSize + length * componentSize;
 	}
 
+	/// <summary>
+	///     Calculates the total byte size of <paramref name="elemCnt" /> elements with
+	///     the size of <paramref name="elemSize" />.
+	/// </summary>
+	/// <param name="elemSize">Byte size of one element</param>
+	/// <param name="elemCnt">Number of elements</param>
+	/// <returns>Total byte size of all elements</returns>
+	[MethodImpl(MImplO.AggressiveInlining)]
+	public static nuint GetByteCount(nuint elemCnt, nuint elemSize)
+	{
+		// This is based on the `mi_count_size_overflow` and `mi_mul_overflow` methods from microsoft/mimalloc.
+		// Original source is Copyright (c) 2019 Microsoft Corporation, Daan Leijen. Licensed under the MIT license
+
+		// sqrt(nuint.MaxValue)
+		nuint multiplyNoOverflow = (nuint) 1 << (4 * sizeof(nuint));
+
+		return (elemSize >= multiplyNoOverflow || elemCnt >= multiplyNoOverflow)
+		       && elemSize > 0 && UIntPtr.MaxValue / elemSize < elemCnt
+			       ? UIntPtr.MaxValue
+			       : elemCnt * elemSize;
+	}
+
 
 #region
 
@@ -729,11 +490,30 @@ public static unsafe class Mem
 
 	];
 
-	public static bool RequiresTypeValue(this SizeOfOption option)
-		=> TypeValue.Contains(option);
+	extension(SizeOfOption option)
+	{
 
-	public static bool RequiresTypeParameter(this SizeOfOption option)
-		=> TypeParameter.Contains(option);
+		public bool RequiresTypeValue()
+			=> TypeValue.Contains(option);
+
+		public bool RequiresTypeParameter()
+			=> TypeParameter.Contains(option);
+
+	}
+
+	public static int GetOffsetValue(this OffsetOptions offset)
+	{
+		int offsetValue = offset switch
+		{
+			OffsetOptions.ArrayData  => ObjectUtility.OffsetToArrayData,
+			OffsetOptions.StringData => ObjectUtility.OffsetToStringData,
+			OffsetOptions.Fields     => ObjectUtility.OffsetToData,
+			OffsetOptions.Header     => -ObjectUtility.OffsetToData,
+
+			OffsetOptions.None or _ => 0
+		};
+		return offsetValue;
+	}
 
 #endregion
 
@@ -777,7 +557,7 @@ public static unsafe class Mem
 	///             This may require pinning to prevent the GC from moving the object.
 	///             If the GC compacts the heap, this pointer may become invalid.
 	///         </para>
-	///         <seealso cref="Mem.GetPinningHelper" />
+	///         <seealso cref="PinManager.GetPinProxy" />
 	///     </remarks>
 	/// </summary>
 	/// <param name="value">Reference type to return the heap address of</param>
@@ -795,8 +575,8 @@ public static unsafe class Mem
 		//var tr = __makeref(value);
 		//var heapPtr = **(IntPtr**) (&tr);
 
-		var     pointer = AddressOf(ref value);
-		Pointer<byte> heapPtr   = pointer.ReadPointer();
+		var           pointer = AddressOf(ref value);
+		Pointer<byte> heapPtr = pointer.ReadPointer();
 
 		// NOTE:
 		// Strings have their data offset by RuntimeInfo.OffsetToStringData
@@ -805,13 +585,9 @@ public static unsafe class Mem
 		int offsetValue = offset.GetOffsetValue();
 
 		switch (offset) {
-			case OffsetOptions.StringData:
-				Require.Assert(ObjectUtility.IsString(value));
-				break;
+			case OffsetOptions.StringData: Require.Assert(ObjectUtility.IsString(value)); break;
 
-			case OffsetOptions.ArrayData:
-				Require.Assert(ObjectUtility.IsArray(value));
-				break;
+			case OffsetOptions.ArrayData: Require.Assert(ObjectUtility.IsArray(value)); break;
 		}
 
 		return heapPtr + offsetValue;
@@ -912,11 +688,12 @@ public static unsafe class Mem
 	}
 
 	/// <summary>
-	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
+	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" /> using
+	/// <see cref="ReadProcessMemory(System.Diagnostics.Process,Novus.Memory.Pointer{byte},nint)"/> (<see cref="Native.Kernel32.ReadProcessMemory"/>)
 	/// </summary>
 	[CBN]
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static object ReadProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
+	public static object ReadTypeFromProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
 	{
 		//todo
 
@@ -1013,21 +790,6 @@ public static unsafe class Mem
 	}
 
 	/// <summary>
-	/// <see cref="RuntimeHelpers.GetRawData"/>
-	/// </summary>
-	[MURV]
-	public static ref byte GetRawData(this object obj)
-	{
-
-		/*
-		 * internal static ref byte GetRawData(this object obj) =>
-					ref Unsafe.As<RawData>(obj).Data;
-		 */
-
-		return ref Unsafe.As<PinHelperProxy>(obj).Data;
-	}
-
-	/// <summary>
 	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
 	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
 	/// <see cref="SizeOfOption.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
@@ -1093,20 +855,14 @@ public static unsafe class Mem
 
 #endregion
 
-	/*
-	public static ref T ReadRef<T>(this Span<T> sp)
-	{
-		return ref sp.GetPinnableReference();
-	}
-	*/
-
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer<byte> ptr)
 	{
 		var modules = Native.EnumProcessModules((uint) proc.Id);
 
 		foreach (var m in modules) {
-			var b = IsAddressInRange(ptr, m.modBaseAddr, (nint) m.modBaseSize);
+			nint size = (nint) m.modBaseSize;
+			var  b    = ptr >= m.modBaseAddr && ptr <= (m.modBaseAddr +(size));
 
 			if (!b) {
 				continue;
@@ -1117,7 +873,7 @@ public static unsafe class Mem
 			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
 
 			foreach (var e in pe) {
-				var b2 = IsAddressInRange(ptr, e.Address, e.Size);
+				var b2 = ptr >= e.Address && ptr <= (e.Address + size);
 
 				if (b2) {
 					return (m, e);
@@ -1127,20 +883,6 @@ public static unsafe class Mem
 		}
 
 		return (default, default);
-	}
-
-	public static int GetOffsetValue(this OffsetOptions offset)
-	{
-		int offsetValue = offset switch
-		{
-			OffsetOptions.ArrayData  => ObjectUtility.OffsetToArrayData,
-			OffsetOptions.StringData => ObjectUtility.OffsetToStringData,
-			OffsetOptions.Fields     => ObjectUtility.OffsetToData,
-			OffsetOptions.Header     => -ObjectUtility.OffsetToData,
-
-			OffsetOptions.None or _ => 0
-		};
-		return offsetValue;
 	}
 
 }

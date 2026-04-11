@@ -187,8 +187,14 @@ public static unsafe class ObjectUtility
 	/// <see cref="RuntimeHelpers.GetElementSize"/>
 	public static int GetElementSize(object o) => Func_GetElementSize(o);
 
-	public static Pointer<ClrObject> AsClrObject(this object o)
-		=> Mem.AddressOfHeap(o).Cast<ClrObject>();
+	extension(object o)
+	{
+		public Pointer<ClrObject> AsClrObject()
+			=> Mem.AddressOfHeap(o).Cast<ClrObject>();
+
+		public ObjectProxy AsObjectProxy() 
+			=> Unsafe.As<ObjectProxy>(o);
+	}
 
 #endregion
 

@@ -13,7 +13,7 @@ public struct Bit
 
 	private Bit(int value)
 	{
-		this.m_value = (byte) (value & 1);
+		m_value = (byte) (value & 1);
 	}
 
 	public static Bit Create<T>(T t) where T : IShiftOperators<T, T, T>, IBitwiseOperators<T, T, T>, INumber<T>
@@ -73,11 +73,11 @@ public struct Bit
 
 	public int AsInt()
 	{
-		return this.m_value;
+		return m_value;
 	}
 
 	public bool AsBool()
 	{
-		return this.m_value == 1;
+		return m_value == 1;
 	}
 }

@@ -518,7 +518,7 @@ public static unsafe partial class Native
 
 	public static byte[] CopyGlobalObject(nint u)
 	{
-		var size = Native.GlobalSize(u);
+		var size = GlobalSize(u);
 		var rg   = new byte[size];
 		Marshal.Copy(u, rg, 0, (int) size);
 		return rg;

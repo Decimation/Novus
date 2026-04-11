@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Novus.Runtime;
 using Novus.Win32;
 using Novus.Win32.Structures.Ntdll;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable UnusedMember.Global
 #pragma warning disable CA1416
@@ -70,7 +70,7 @@ public static class ProcessHelper
 #endif
 
 	[CBN]
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static Process GetParent(nint handle)
 	{
 		int returnLength;

@@ -1,6 +1,7 @@
 ﻿using Novus.Imports;
 using Novus.Memory;
 using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Novus.Runtime.VM.IL;
 using Kantan.Diagnostics;
@@ -15,6 +16,9 @@ namespace Novus.Runtime.VM;
 
 #pragma warning disable CA1416
 
+/// <summary>
+/// Represents a <see cref="MethodInfo"/>> as defined in the CLR
+/// </summary>
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct MethodDesc

@@ -14,6 +14,9 @@ using Novus.Win32;
 #pragma warning disable IDE0251
 namespace Novus.Runtime.VM;
 
+/// <summary>
+/// Represents the <see cref="TypeHandle"/> as defined in the CLR
+/// </summary>
 [NativeStructure]
 [StructLayout(LayoutKind.Explicit)]
 public unsafe struct TypeHandle

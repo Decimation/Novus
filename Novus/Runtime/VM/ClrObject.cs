@@ -9,6 +9,9 @@ using Novus.Memory;
 
 namespace Novus.Runtime.VM;
 
+/// <summary>
+/// Represents an <see cref="object"/> as defined in the CLR
+/// </summary>
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct ClrObject

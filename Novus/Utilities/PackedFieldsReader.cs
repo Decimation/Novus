@@ -7,7 +7,7 @@ using Novus.Memory;
 // ReSharper disable BuiltInTypeReferenceStyle
 #pragma warning disable IDE0052
 
-namespace Novus.Numerics;
+namespace Novus.Utilities;
 
 using DWORD = UInt32;
 

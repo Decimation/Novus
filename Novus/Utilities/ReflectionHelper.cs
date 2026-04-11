@@ -213,7 +213,7 @@ public static class ReflectionHelper
 	{
 		var fields = value.GetType().GetFields(flags);
 
-		fn ??= static (_, o) => RuntimeProperties.IsNull(o);
+		fn ??= static (_, o) => ObjectUtility.IsNull(o);
 
 		var rg = new Dictionary<FI, bool>();
 

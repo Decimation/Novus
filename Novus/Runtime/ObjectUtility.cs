@@ -38,22 +38,110 @@ using Novus.Runtime.VM.Tokens;
 namespace Novus.Runtime;
 
 /// <summary>
-///     Runtime properties and utilities.
+///     CLR <see cref="object"/> properties and utilities.
 /// </summary>
 /// <seealso cref="Mem" />
 /// <seealso cref="RuntimeHelpers" />
 /// <seealso cref="System.Runtime.InteropServices.RuntimeEnvironment" />
-/// <seealso cref="RuntimeInformation" />
-/// <see cref="RuntimeEnvironment"/>
-public static unsafe class RuntimeProperties
+/// <seealso cref="System.Runtime.InteropServices.RuntimeInformation" />
+/// <see cref="RuntimeInformationExtensions"/>
+public static unsafe class ObjectUtility
 {
 
 	// https://github.com/dotnet/runtime/blob/master/src/coreclr/src/vm/object.h
 
-	static RuntimeProperties()
+	static ObjectUtility()
 	{
-		Global.Clr.LoadImports(typeof(RuntimeProperties));
+		Global.Clr.LoadImports(typeof(ObjectUtility));
 	}
+
+#region Constants
+
+	/// <summary>
+	///     Size of the length field and first character
+	///     <list type="bullet">
+	///         <item>
+	///             <description>+ sizeof <see cref="char" />: First character</description>
+	///         </item>
+	///         <item>
+	///             <description>+ sizeof <see cref="int" />: String length</description>
+	///         </item>
+	///     </list>
+	/// </summary>
+	public static readonly int StringOverhead = sizeof(char) + sizeof(int);
+
+	/// <summary>
+	///     Size of the length field and padding (x64)
+	///     <list type="bullet">
+	///         <item>
+	///             <description>+ sizeof <see cref="int" />: Length field</description>
+	///         </item>
+	///         <item>
+	///             <description>+ sizeof <see cref="int" />: Padding (x64)</description>
+	///         </item>
+	///     </list>
+	/// </summary>
+	public static readonly int ArrayOverhead = Mem.Size;
+
+	/// <summary>
+	///     Heap offset to the first field.
+	///     <list type="bullet">
+	///         <item>
+	///             <description>+ <see cref="Mem.Size" /> for <see cref="TypeHandle" /></description>
+	///         </item>
+	///     </list>
+	/// </summary>
+	public static readonly int OffsetToData = Mem.Size;
+
+	/// <summary>
+	///     Heap offset to the first array element.
+	///     <list type="bullet">
+	///         <item>
+	///             <description>+ <see cref="Mem.Size" /> for <see cref="TypeHandle" /></description>
+	///         </item>
+	///         <item>
+	///             <description>+ sizeof (<see cref="uint" />) for length </description>
+	///         </item>
+	///         <item>
+	///             <description>+ sizeof (<see cref="uint" />) for padding (x64 only)</description>
+	///         </item>
+	///     </list>
+	/// </summary>
+	public static readonly int OffsetToArrayData = OffsetToData + ArrayOverhead;
+
+	/// <summary>
+	///     Heap offset to the first string character.
+	///     On 64 bit platforms, this should be 12 and on 32 bit 8.
+	///     (<see cref="Mem.Size" /> + <see cref="int" />)
+	/// </summary>
+	public static readonly int OffsetToStringData = RuntimeHelpers.OffsetToStringData;
+
+	public static readonly int ObjHeaderSize = sizeof(ClrObjHeader);
+
+	/// <summary>
+	///     Size of <see cref="TypeHandle" /> and <see cref="ClrObjHeader" />
+	///     <list type="bullet">
+	///         <item>
+	///             <description>+ <see cref="ObjHeaderSize" />: <see cref="ClrObjHeader" /></description>
+	///         </item>
+	///         <item>
+	///             <description>+ sizeof <see cref="TypeHandle" />: <see cref="TypeHandle" /></description>
+	///         </item>
+	///     </list>
+	/// </summary>
+	public static readonly int ObjectBaseSize = ObjHeaderSize + sizeof(TypeHandle);
+
+	/// <summary>
+	///     <para>Minimum GC object heap size</para>
+	/// </summary>
+	public static readonly int MinObjectSize = Mem.Size * 2 + ObjHeaderSize;
+
+	/// <summary>
+	/// Equals <see cref="LayoutEEClass.OFFSET_LAYOUTINFO"/>
+	/// </summary>
+	public static readonly int EEClassSize = sizeof(EEClass);
+
+#endregion
 
 
 #region
@@ -316,94 +404,6 @@ public static unsafe class RuntimeProperties
 		return test;
 
 	}
-
-#endregion
-
-#region Constants
-
-	/// <summary>
-	///     Size of the length field and first character
-	///     <list type="bullet">
-	///         <item>
-	///             <description>+ sizeof <see cref="char" />: First character</description>
-	///         </item>
-	///         <item>
-	///             <description>+ sizeof <see cref="int" />: String length</description>
-	///         </item>
-	///     </list>
-	/// </summary>
-	public static readonly int StringOverhead = sizeof(char) + sizeof(int);
-
-	/// <summary>
-	///     Size of the length field and padding (x64)
-	///     <list type="bullet">
-	///         <item>
-	///             <description>+ sizeof <see cref="int" />: Length field</description>
-	///         </item>
-	///         <item>
-	///             <description>+ sizeof <see cref="int" />: Padding (x64)</description>
-	///         </item>
-	///     </list>
-	/// </summary>
-	public static readonly int ArrayOverhead = Mem.Size;
-
-	/// <summary>
-	///     Heap offset to the first field.
-	///     <list type="bullet">
-	///         <item>
-	///             <description>+ <see cref="Mem.Size" /> for <see cref="TypeHandle" /></description>
-	///         </item>
-	///     </list>
-	/// </summary>
-	public static readonly int OffsetToData = Mem.Size;
-
-	/// <summary>
-	///     Heap offset to the first array element.
-	///     <list type="bullet">
-	///         <item>
-	///             <description>+ <see cref="Mem.Size" /> for <see cref="TypeHandle" /></description>
-	///         </item>
-	///         <item>
-	///             <description>+ sizeof (<see cref="uint" />) for length </description>
-	///         </item>
-	///         <item>
-	///             <description>+ sizeof (<see cref="uint" />) for padding (x64 only)</description>
-	///         </item>
-	///     </list>
-	/// </summary>
-	public static readonly int OffsetToArrayData = OffsetToData + ArrayOverhead;
-
-	/// <summary>
-	///     Heap offset to the first string character.
-	///     On 64 bit platforms, this should be 12 and on 32 bit 8.
-	///     (<see cref="Mem.Size" /> + <see cref="int" />)
-	/// </summary>
-	public static readonly int OffsetToStringData = RuntimeHelpers.OffsetToStringData;
-
-	public static readonly int ObjHeaderSize = sizeof(ClrObjHeader);
-
-	/// <summary>
-	///     Size of <see cref="TypeHandle" /> and <see cref="ClrObjHeader" />
-	///     <list type="bullet">
-	///         <item>
-	///             <description>+ <see cref="ObjHeaderSize" />: <see cref="ClrObjHeader" /></description>
-	///         </item>
-	///         <item>
-	///             <description>+ sizeof <see cref="TypeHandle" />: <see cref="TypeHandle" /></description>
-	///         </item>
-	///     </list>
-	/// </summary>
-	public static readonly int ObjectBaseSize = ObjHeaderSize + sizeof(TypeHandle);
-
-	/// <summary>
-	///     <para>Minimum GC object heap size</para>
-	/// </summary>
-	public static readonly int MinObjectSize = Mem.Size * 2 + ObjHeaderSize;
-
-	/// <summary>
-	/// Equals <see cref="LayoutEEClass.OFFSET_LAYOUTINFO"/>
-	/// </summary>
-	public static readonly int EEClassSize = sizeof(EEClass);
 
 #endregion
 

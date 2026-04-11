@@ -48,7 +48,7 @@ public class Clazz3
 
 	public void SayHi()
 		=> Console.WriteLine("hi");
-	public void SayButt()
+	public void SayBar()
 		=> Console.WriteLine("butt");
 	public override string ToString()
 	{

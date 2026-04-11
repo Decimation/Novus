@@ -23,7 +23,7 @@ using Novus.Win32.Wrappers;
 using Novus.OS;
 using Novus.Win32;
 using System.Text;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
+using Novus.Runtime;
 
 
 // ReSharper disable UnusedParameter.Local
@@ -40,7 +40,7 @@ namespace Novus.Utilities;
 /// <summary>
 /// Windows PDB reader
 /// </summary>
-[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 public sealed class SymbolReader : IDisposable
 {
 

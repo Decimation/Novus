@@ -1,6 +1,8 @@
 ﻿// Read S Novus Int24.cs
 // 2023-08-11 @ 11:15 PM
 
+using System.Numerics;
+
 namespace Novus.Numerics;
 
 // TODO: IMPLEMENT GENERIC MATH INTERFACES

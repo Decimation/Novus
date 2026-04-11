@@ -25,24 +25,27 @@ namespace Novus.Runtime;
 /// </summary>
 /// 
 /// <seealso cref="Mem" />
-/// <seealso cref="RuntimeProperties" />
+/// <seealso cref="ObjectUtility" />
 /// <seealso cref="Utilities.ReflectionHelper" />
 [Experimental(Global.DIAG_ID_EXPERIMENTAL)]
 public static class Inspector
 {
-	[Flags]
-	public enum InspectorOptions
-	{
-		None = 0,
 
-		Offset  = 1,
-		Size    = 1 << 1,
-		Type    = 1 << 2,
-		Name    = 1 << 3,
-		Address = 1 << 4,
-		Value   = 1 << 5,
 
-		All = Offset | Size | Type | Name | Address | Value
-	}
 
+}
+
+[Flags]
+public enum InspectorOptions
+{
+	None = 0,
+
+	Offset  = 1,
+	Size    = 1 << 1,
+	Type    = 1 << 2,
+	Name    = 1 << 3,
+	Address = 1 << 4,
+	Value   = 1 << 5,
+
+	All = Offset | Size | Type | Name | Address | Value
 }

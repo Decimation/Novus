@@ -11,7 +11,7 @@ using Microsoft;
 using Novus.OS;
 using Novus.Utilities;
 using Novus.Memory;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
+using Novus.Runtime;
 
 // ReSharper disable UnusedMember.Global
 
@@ -64,9 +64,6 @@ public sealed class SigScanner
 	public SigScanner(ProcessModule module)
 		: this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }
 
-	/*public SigScanner(Span<byte> m)
-		: this((Pointer) m, (ulong) m.Length) { }*/
-
 	public SigScanner(Pointer<byte> p, ulong c)
 		: this(p, c, p.ToArray((int) c)) { }
 
@@ -77,7 +74,7 @@ public sealed class SigScanner
 		Address = ptr;
 	}
 
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static SigScanner FromProcess(Process proc, ProcessModule module)
 	{
 		var ptr    = module.BaseAddress;

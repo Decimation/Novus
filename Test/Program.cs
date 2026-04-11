@@ -152,6 +152,7 @@ public static class Program
 		Global.Clr.LoadImports(typeof(Program));
 	}
 
+
 	private static unsafe void Main(string[] args)
 	{
 
@@ -160,6 +161,7 @@ public static class Program
 		Console.WriteLine(Mem.HeapSizeOf(rg));
 		Console.WriteLine(GCHeap.IsLargeObject(rg));
 		// Test7();
+
 	}
 
 	private static unsafe void Test7()
@@ -198,9 +200,9 @@ public static class Program
 		var heap = Mem.AddressOfHeap(obj);
 		Console.WriteLine($"Heap: {heap}");
 
-		Pointer<MethodTable> mt  = RuntimeProperties.GetMethodTable(obj);
+		Pointer<MethodTable> mt  = ObjectUtility.GetMethodTable(obj);
 		// Type                 t   = typeof(MyClass);
-		// TypeHandle           mt2 = RuntimeProperties.ResolveTypeHandle(t);
+		// TypeHandle           mt2 = ObjectUtility.ResolveTypeHandle(t);
 
 		Console.WriteLine($"MT: {mt}");
 
@@ -266,19 +268,19 @@ public static class Program
 	{
 		Clazz3     clazz = new TestTypes.Clazz3();
 		MetaMethod mm    = clazz.GetType().GetAnyMethod("SayHi").AsMetaMethod();
-		MetaMethod mm2   = clazz.GetType().GetAnyMethod("SayButt").AsMetaMethod();
+		MetaMethod mm2   = clazz.GetType().GetAnyMethod("SayBar").AsMetaMethod();
 		clazz.SayHi();
-		clazz.SayButt();
+		clazz.SayBar();
 		mm.Reset();
 		mm.EntryPoint = (void*) mm2.Function;
 		clazz.SayHi();
 
-		// delegate* unmanaged<void> au = &clazz.SayButt;
+		// delegate* unmanaged<void> au = &clazz.SayBar;
 	}
 
 	private static void Test1()
 	{
-		MyClass mc = new MyClass { a = 321, s = "butt" };
+		MyClass mc = new MyClass { a = 321, s = "bar" };
 		byte[]  rg = Mem.GetBytes(mc);
 		Console.WriteLine(rg.FormatJoin("X", delim: " "));
 		object mc2 = Mem.ReadFromBytes<object>(rg);

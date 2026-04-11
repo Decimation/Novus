@@ -11,14 +11,15 @@ using Novus.Win32;
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
 // ReSharper disable CommentTypo
-
+// #pragma warning disable IDE0251
 // ReSharper disable StructCanBeMadeReadOnly
 
 namespace Novus.Runtime.VM;
 #pragma warning disable CA1416, IDE0251
 
-// #pragma warning disable IDE0251
-
+/// <summary>
+/// Represents a <see cref="FieldInfo"/>> as defined in the CLR
+/// </summary>
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct FieldDesc

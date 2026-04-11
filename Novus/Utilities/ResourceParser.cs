@@ -14,7 +14,7 @@ namespace Novus.Utilities;
  * https://stackoverflow.com/questions/2087682/finding-out-unicode-character-name-in-net
  */
 
-[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 public sealed class ResourceParser : IDisposable
 {
 	private nint m_hModule;

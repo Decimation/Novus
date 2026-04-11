@@ -61,7 +61,6 @@ using Microsoft.Extensions.Logging;
 using Novus.FileTypes.Impl;
 using Novus.Imports;
 using Novus.Win32;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable LocalizableElement
@@ -103,7 +102,7 @@ namespace Novus;
 ///         </item>
 ///         <item>
 ///             <description>
-///                 <see cref="RuntimeProperties" />
+///                 <see cref="ObjectUtility" />
 ///             </description>
 ///         </item>
 ///         <item>
@@ -223,7 +222,7 @@ public static class Global
 		ClrVersion = Version.Parse(ER.RequiredVersion);
 
 		IsCorrectVersion = Environment.Version == ClrVersion;
-		IsCompatible     = IsCorrectVersion && IsWorkstationGC && RuntimeEnvironment.IsWindows;
+		IsCompatible     = IsCorrectVersion && IsWorkstationGC && OperatingSystem.IsWindows();
 		DataFolder       = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
 
 		if (!Directory.Exists(DataFolder)) {
@@ -250,11 +249,11 @@ public static class Global
 		s_logger.LogTrace("Module init :: {Name}", ER.Name);
 		s_logger.LogTrace("Runtime: {EnvVer} | Target: {ClrVer}", Environment.Version, ClrVersion);
 
-		if (RuntimeEnvironment.IsInteractiveHost) {
+		if (System.Runtime.InteropServices.RuntimeInformation.IsInteractiveHost) {
 			s_logger.LogWarning("Interactive host");
 		}
 
-		if (!RuntimeEnvironment.IsWindows) {
+		if (!OperatingSystem.IsWindows()) {
 			s_logger.LogWarning("Not on Windows!");
 
 			return;
@@ -293,7 +292,7 @@ public static class Global
 	}
 
 	[CBN]
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static string GetPdbFile()
 	{
 		// var pdbFile = Path.Join(DataFolder, CLR_PDB);

@@ -40,19 +40,19 @@ public static class Tests2
 	{
 		var o = (MyClass2) RuntimeHelpers.GetUninitializedObject(typeof(MyClass2));
 		Console.WriteLine(GCHeap.IsHeapPointer(o));
-		Console.WriteLine(RuntimeProperties.IsBoxed(o));
+		Console.WriteLine(ObjectUtility.IsBoxed(o));
 
 		var o2 = (MyStruct) RuntimeHelpers.GetUninitializedObject(typeof(MyStruct));
 		Console.WriteLine(GCHeap.IsHeapPointer(&o2));
-		Console.WriteLine(RuntimeProperties.IsBoxed(o2));
+		Console.WriteLine(ObjectUtility.IsBoxed(o2));
 		Console.WriteLine(Mem.AddressOfData(ref o2));
 
-		Console.WriteLine(RuntimeProperties.Box(o2));
+		Console.WriteLine(ObjectUtility.Box(o2));
 
 		var o3 = new MyStruct() { };
-		Console.WriteLine(RuntimeProperties.IsBoxed(o3));
+		Console.WriteLine(ObjectUtility.IsBoxed(o3));
 		Console.WriteLine(GCHeap.IsHeapPointer(&o3));
-		Console.WriteLine(RuntimeProperties.IsBoxed(RuntimeProperties.Box(o3)));
+		Console.WriteLine(ObjectUtility.IsBoxed(ObjectUtility.Box(o3)));
 		Console.WriteLine(GCHeap.IsHeapPointer(Mem.AddressOf(ref o3)));
 
 		int i = 1;

@@ -9,13 +9,13 @@ using System.Runtime.Versioning;
 using System.Text;
 using Novus.Memory;
 using Novus.OS;
+using Novus.Runtime;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.Ntdll;
 using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable UnusedVariable
 
@@ -33,7 +33,7 @@ namespace Novus.Win32;
 /// <summary>
 ///     Native interop; Win32 API
 /// </summary>
-[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 public static unsafe partial class Native
 {
 

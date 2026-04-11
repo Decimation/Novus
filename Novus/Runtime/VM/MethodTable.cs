@@ -20,6 +20,9 @@ using Novus.Win32;
 
 namespace Novus.Runtime.VM;
 
+/// <summary>
+/// Represents a <see cref="Type"/>> as defined in the CLR
+/// </summary>
 [NativeStructure]
 [StructLayout(LayoutKind.Sequential)]
 public unsafe struct MethodTable

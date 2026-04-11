@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading;
+using Novus.Runtime;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable UnusedMember.Global
 
@@ -14,7 +14,7 @@ using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 namespace Novus.OS;
 
-[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 public sealed class KeyboardListener : IDisposable
 {
 	public KeyboardListener() : this(IntPtr.Zero) { }

@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,30 +8,26 @@
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
 
     <GenerateRequiresPreviewFeaturesAttribute>False</GenerateRequiresPreviewFeaturesAttribute>
-    <NoWarn>
-      HAA0601
-      HAA0601,
-      HAA0602,
-      HAA0603,
-      HAA0604,
-      HAA0501,
-      HAA0502,
-      HAA0503,
-      HAA0504,
-      HAA0505,
-      HAA0506,
-      HAA0301,
-      HAA0302,
-      HAA0303,
-      HAA0101,
-      CS1591,
-      CS0219,
-      IDE0059,
-      IDE1006,
-
-      <!-- CA1416: Validate platform compatibility -->
-      CA1416
-
+    <NoWarn>$(NoWarn);
+      HAA0601;
+      HAA0602;
+      HAA0603;
+      HAA0604;
+      HAA0501;
+      HAA0502;
+      HAA0503;
+      HAA0504;
+      HAA0505;
+      HAA0506;
+      HAA0301;
+      HAA0302;
+      HAA0303;
+      HAA0101;
+      CS1591;
+      CS0219;
+      IDE0059;
+      IDE1006;
+      CA1416;
     </NoWarn>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

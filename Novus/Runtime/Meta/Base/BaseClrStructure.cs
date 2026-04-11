@@ -35,7 +35,7 @@ public abstract unsafe class BaseClrStructure<TClr> where TClr : unmanaged
 		Value = ptr;
 	}
 
-	protected BaseClrStructure(MMI member) : this(RuntimeProperties.ResolveMetadataHandle(member).Cast<TClr>()) { }
+	protected BaseClrStructure(MMI member) : this(ObjectUtility.ResolveMetadataHandle(member).Cast<TClr>()) { }
 
 	public override string ToString()
 	{

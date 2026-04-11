@@ -31,7 +31,6 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Wrappers;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 
@@ -76,11 +75,11 @@ using ActionFunctor = Action<object, Action<object>>;
 /// <seealso cref="Unsafe" />
 /// <seealso cref="RuntimeHelpers" />
 /// <seealso cref="System.Runtime.InteropServices.RuntimeEnvironment" />
-/// <seealso cref="RuntimeInformation" />
+/// <seealso cref="System.Runtime.InteropServices.RuntimeInformation" />
 /// <seealso cref="FormatterServices" />
 /// <seealso cref="Activator" />
 /// <seealso cref="GCHeap" />
-/// <seealso cref="RuntimeProperties" />
+/// <seealso cref="ObjectUtility" />
 /// <seealso cref="Inspector" />
 /// <seealso cref="Native" />
 /// <seealso cref="PEReader" />
@@ -174,7 +173,7 @@ public static unsafe class Mem
 	{
 		var method = new DynamicMethod("InvokeWhilePinnedImpl", typeof(void),
 		                               [typeof(object), typeof(Action<object>)],
-		                               typeof(RuntimeProperties).Module);
+		                               typeof(ObjectUtility).Module);
 
 		ILGenerator il = method.GetILGenerator();
 
@@ -348,7 +347,7 @@ public static unsafe class Mem
 	///     Writes a value of type <typeparamref name="T" /> with value <paramref name="value" /> to
 	///     <paramref name="baseAddr" /> in <paramref name="proc" />
 	/// </summary>
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 	{
 		int dwSize = Unsafe.SizeOf<T>();
@@ -360,7 +359,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Root abstraction of <see cref="Native.WriteProcessMemory" />
 	/// </summary>
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> ptrBuffer, int dwSize)
 	{
 		nint hProc = Native.OpenProcess(proc);
@@ -373,7 +372,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, [NN] byte[] value)
 	{
 		fixed (byte* rg = value) {
@@ -384,7 +383,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, ReadOnlySpan<byte> value)
 	{
 		fixed (byte* rg = value) {
@@ -403,7 +402,7 @@ public static unsafe class Mem
 	/// <param name="addr">Address within the specified process from which to read</param>
 	/// <param name="buffer">Buffer that receives the read contents from the address space</param>
 	/// <param name="cb">Number of bytes to read</param>
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, nint cb)
 	{
 		nint h = Native.OpenProcess(proc);
@@ -416,7 +415,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads <paramref name="cb" /> bytes at <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static Memory<byte> ReadProcessMemory(Process proc, Pointer<byte> addr, nint cb)
 	{
 		Memory<byte> mem = new byte[(int) cb];
@@ -430,7 +429,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Reads a value of type <typeparamref name="T" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static T ReadProcessMemory<T>(Process proc, Pointer<byte> addr)
 	{
 		T   value = default;
@@ -598,16 +597,16 @@ public static unsafe class Mem
 				return HeapSizeOfInternal(value);
 
 			case SizeOfOption.Data:
-				if (RuntimeProperties.IsStruct(value)) {
+				if (ObjectUtility.IsStruct(value)) {
 					return SizeOf<T>();
 				}
 
 				// Subtract the size of the ObjHeader and MethodTable*
-				return HeapSizeOfInternal(value) - RuntimeProperties.ObjectBaseSize;
+				return HeapSizeOfInternal(value) - ObjectUtility.ObjectBaseSize;
 
 			case SizeOfOption.Auto:
 
-				if (RuntimeProperties.IsStruct(value)) {
+				if (ObjectUtility.IsStruct(value)) {
 					return SizeOf<T>(SizeOfOption.Intrinsic);
 				}
 
@@ -631,7 +630,7 @@ public static unsafe class Mem
 	///         <item>
 	///             <description>
 	///                 <see cref="MethodTable.BaseSize" /> = The base instance size of a type
-	///                 (<see cref="RuntimeProperties.MinObjectSize" /> by default)
+	///                 (<see cref="ObjectUtility.MinObjectSize" /> by default)
 	///             </description>
 	///         </item>
 	///         <item>
@@ -659,10 +658,10 @@ public static unsafe class Mem
 	private static int HeapSizeOfInternal<T>(T value, bool throwOnErr = false)
 	{
 		// Sanity check
-		// Require.Assert(!RuntimeProperties.IsStruct(value));
+		// Require.Assert(!ObjectUtility.IsStruct(value));
 
-		var isStruct = RuntimeProperties.IsStruct(value);
-		var isBoxed  = RuntimeProperties.IsBoxed(value);
+		var isStruct = ObjectUtility.IsStruct(value);
+		var isBoxed  = ObjectUtility.IsBoxed(value);
 
 		s_logger.LogTrace("[{T}] | Struct={Strct} | Boxed={Bxd}", typeof(T), isStruct, isBoxed);
 
@@ -672,7 +671,7 @@ public static unsafe class Mem
 
 		// By manually reading the MethodTable*, we can calculate the size correctly if the reference
 		// is boxed or cloaked
-		var metaType = (MetaType) RuntimeProperties.GetMethodTable(value);
+		var metaType = (MetaType) ObjectUtility.GetMethodTable(value);
 
 		// Value of GetSizeField()
 
@@ -757,7 +756,7 @@ public static unsafe class Mem
 
 	public static bool TryGetAddressOfHeap<T>(T value, OffsetOptions options, out Pointer<byte> ptr)
 	{
-		if (RuntimeProperties.IsStruct(value)) {
+		if (ObjectUtility.IsStruct(value)) {
 			ptr = null;
 			return false;
 		}
@@ -807,11 +806,11 @@ public static unsafe class Mem
 
 		switch (offset) {
 			case OffsetOptions.StringData:
-				Require.Assert(RuntimeProperties.IsString(value));
+				Require.Assert(ObjectUtility.IsString(value));
 				break;
 
 			case OffsetOptions.ArrayData:
-				Require.Assert(RuntimeProperties.IsArray(value));
+				Require.Assert(ObjectUtility.IsArray(value));
 				break;
 		}
 
@@ -828,7 +827,7 @@ public static unsafe class Mem
 	{
 		Pointer<T> addr = AddressOf(ref value);
 
-		/*if (RuntimeProperties.IsStruct(value)) {
+		/*if (ObjectUtility.IsStruct(value)) {
 			return addr.Cast();
 		}*/
 
@@ -916,7 +915,7 @@ public static unsafe class Mem
 	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" />
 	/// </summary>
 	[CBN]
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static object ReadProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
 	{
 		//todo
@@ -985,7 +984,7 @@ public static unsafe class Mem
 		var p2 = asMemory.ToPointer(out var mh);
 
 		if (!typeof(T).IsValueType) {
-			p2 += RuntimeProperties.ObjHeaderSize;
+			p2 += ObjectUtility.ObjHeaderSize;
 			return AddressOf(ref p2).Cast<T>().Value;
 		}
 
@@ -997,7 +996,7 @@ public static unsafe class Mem
 		var p2 = (byte*) pin.Pointer;
 
 		if (!typeof(T).IsValueType) {
-			p2 += RuntimeProperties.ObjHeaderSize;
+			p2 += ObjectUtility.ObjHeaderSize;
 			return Unsafe.Read<T>(&p2);
 		}
 
@@ -1101,7 +1100,7 @@ public static unsafe class Mem
 	}
 	*/
 
-	[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer<byte> ptr)
 	{
 		var modules = Native.EnumProcessModules((uint) proc.Id);
@@ -1134,10 +1133,10 @@ public static unsafe class Mem
 	{
 		int offsetValue = offset switch
 		{
-			OffsetOptions.ArrayData  => RuntimeProperties.OffsetToArrayData,
-			OffsetOptions.StringData => RuntimeProperties.OffsetToStringData,
-			OffsetOptions.Fields     => RuntimeProperties.OffsetToData,
-			OffsetOptions.Header     => -RuntimeProperties.OffsetToData,
+			OffsetOptions.ArrayData  => ObjectUtility.OffsetToArrayData,
+			OffsetOptions.StringData => ObjectUtility.OffsetToStringData,
+			OffsetOptions.Fields     => ObjectUtility.OffsetToData,
+			OffsetOptions.Header     => -ObjectUtility.OffsetToData,
 
 			OffsetOptions.None or _ => 0
 		};
@@ -1153,14 +1152,14 @@ public enum OffsetOptions
 {
 
 	/// <summary>
-	///     Return the pointer offset by <c>-</c><see cref="RuntimeProperties.OffsetToData" />,
+	///     Return the pointer offset by <c>-</c><see cref="ObjectUtility.OffsetToData" />,
 	///     so it points to the object's <see cref="ClrObjHeader" />.
 	/// </summary>
 	Header,
 
 	/// <summary>
 	///     If the type is a <see cref="string" />, return the
-	///     pointer offset by <see cref="RuntimeProperties.OffsetToStringData" /> so it
+	///     pointer offset by <see cref="ObjectUtility.OffsetToStringData" /> so it
 	///     points to the string's characters.
 	///     <remarks>
 	///         Note: Equal to <see cref="GCHandle.AddrOfPinnedObject" /> and <c>fixed</c>.
@@ -1170,7 +1169,7 @@ public enum OffsetOptions
 
 	/// <summary>
 	///     If the type is an array, return
-	///     the pointer offset by <see cref="RuntimeProperties.OffsetToArrayData" /> so it points
+	///     the pointer offset by <see cref="ObjectUtility.OffsetToArrayData" /> so it points
 	///     to the array's elements.
 	///     <remarks>
 	///         Note: Equal to <see cref="GCHandle.AddrOfPinnedObject" /> and <c>fixed</c>
@@ -1180,7 +1179,7 @@ public enum OffsetOptions
 
 	/// <summary>
 	///     If the type is a reference type, return
-	///     the pointer offset by <see cref="RuntimeProperties.OffsetToData" /> so it points
+	///     the pointer offset by <see cref="ObjectUtility.OffsetToData" /> so it points
 	///     to the object's fields.
 	/// </summary>
 	Fields,

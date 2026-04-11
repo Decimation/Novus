@@ -24,7 +24,7 @@ using System.Runtime.Versioning;
 using Microsoft.Extensions.Logging;
 using Novus.Imports.Factory;
 using Novus.OS;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
+using Novus.Runtime;
 
 // ReSharper disable UnusedMember.Local
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -53,7 +53,7 @@ public enum RuntimeResourceOptions
 /// </summary>
 /// <seealso cref="ER"/>
 [DAM(DAMT.All)]
-[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 public sealed class RuntimeResource : IDisposable
 {
 

@@ -103,7 +103,7 @@ public unsafe struct EEClass
 		{
 			fixed (EEClass* value = &this) {
 				Pointer<byte> p = value;
-				p += RuntimeProperties.EEClassSize;
+				p += ObjectUtility.EEClassSize;
 
 				return p.Cast<ArrayClass>();
 			}

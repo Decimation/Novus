@@ -22,8 +22,8 @@ public unsafe struct LayoutEEClass
 
 	static LayoutEEClass()
 	{
-		if (RuntimeProperties.EEClassSize != OFFSET_LAYOUTINFO) {
-			throw new ImportException($"{nameof(RuntimeProperties.EEClassSize)} != {nameof(OFFSET_LAYOUTINFO)}");
+		if (ObjectUtility.EEClassSize != OFFSET_LAYOUTINFO) {
+			throw new ImportException($"{nameof(ObjectUtility.EEClassSize)} != {nameof(OFFSET_LAYOUTINFO)}");
 		}
 	}
 

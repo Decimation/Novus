@@ -10,14 +10,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Novus.OS;
-using RuntimeEnvironment = Novus.Runtime.RuntimeEnvironment;
+using Novus.Runtime;
 
 namespace Novus.Win32;
 
 //TODO: WIP
 //https://github.com/aayush-pokharel/ClipboardMonitor
 
-[SupportedOSPlatform(RuntimeEnvironment.OS_WIN)]
+[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 public static class Clipboard
 {
 

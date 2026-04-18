@@ -37,6 +37,23 @@ using Novus.Runtime;
 
 namespace Novus.Utilities;
 
+public enum SymImageType
+{
+
+	Unknown = 0,
+
+	/// <summary>
+	/// <seealso cref="SymbolReader.EXT_PDB"/>
+	/// </summary>
+	Pdb,
+
+	/// <summary>
+	/// <seealso cref="SymbolReader.EXT_DLL"/>
+	/// </summary>
+	Dll
+
+}
+
 /// <summary>
 /// Windows PDB reader
 /// </summary>
@@ -44,9 +61,9 @@ namespace Novus.Utilities;
 public sealed class SymbolReader : IDisposable
 {
 
-	private bool m_disposed;
-
-	private ulong m_modBase;
+	private bool              m_disposed;
+	private ulong             m_modBase;
+	private ImageHelpModule64 m_imgInfo;
 
 	private static readonly Func<Symbol, bool> AnyPredicate = static _ => true;
 
@@ -62,25 +79,32 @@ public sealed class SymbolReader : IDisposable
 
 	public const string ENV_VAR_NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
 
-	private const string EXT_PDB = ".pdb";
+	public const string EXT_PDB = ".pdb";
+	public const string EXT_DLL = ".dll";
 
-	private const string MASK_ALL = "*!*";
+	// private const string MASK_ALL = "*!*";
+	public const string MASK_ALL = "*";
+
+	public SymImageType ImageType { get; }
 
 	public SymbolReader(nint handle, string image)
 	{
 		// Require.FileExists(image);
-		Handle     = handle;
-		Image      = image;
+		Handle = handle;
+		Image  = image;
+
+		ImageType = GetImageTypeFromExtension(image);
+
 		m_modBase  = LoadModule();
 		m_disposed = false;
 
 		Symbols = [];
-		LoadAll();
+		LoadAllSymbols();
 	}
 
 	public SymbolReader(string image) : this(Random.Shared.Next(), image) { }
 
-	public Symbol[] GetSymbols(string name, [CBN] Func<Symbol, bool> pred = null)
+	public IEnumerable<Symbol> GetSymbols(string name, [CBN] Func<Symbol, bool> pred = null)
 	{
 		pred ??= AnyPredicate;
 
@@ -101,7 +125,7 @@ public sealed class SymbolReader : IDisposable
 
 		ObjectDisposedException.ThrowIf(m_disposed, this);
 
-		var sym = Symbols.Where(s => s.Name.Contains(name) && pred(s)).ToArray();
+		var sym = Symbols.Where(s => s.Name.Contains(name) && pred(s));
 
 		//todo: SymFromName...
 		/*var d = new DebugSymbol();
@@ -126,7 +150,7 @@ public sealed class SymbolReader : IDisposable
 		return GetSymbols(name).FirstOrDefault(pred);
 	}
 
-	public void LoadAll(string mask = MASK_ALL)
+	public void LoadAllSymbols(string mask = MASK_ALL)
 	{
 		ObjectDisposedException.ThrowIf(m_disposed, this);
 
@@ -141,7 +165,7 @@ public sealed class SymbolReader : IDisposable
 			return b;
 		}, IntPtr.Zero);
 
-		Trace.WriteLine($"Loaded {Symbols.Count} symbols", nameof(LoadAll));
+		Trace.WriteLine($"Loaded {Symbols.Count} symbols", nameof(LoadAllSymbols));
 	}
 
 	private static unsafe bool EnumSymCallback(nint info, uint symbolSize, nint pUserContext, out Symbol item)
@@ -157,25 +181,42 @@ public sealed class SymbolReader : IDisposable
 
 	private ulong LoadModule()
 	{
-		var options = Native.SymGetOptions();
-
-		options |= SymbolOptions.DEBUG;
-
-		Native.SymSetOptions(options);
-
-		// Initialize DbgHelp and load symbols for all modules of the current process 
-		Native.SymInitialize(Handle, IntPtr.Zero, false);
+		bool ok = Initialize(Handle);
 
 		const int BASE_OF_DLL = 0x400000;
 		const int DLL_SIZE    = 0x20000;
 
-		ulong modBase = Native.SymLoadModuleEx(Handle, IntPtr.Zero, Image,
-		                                       null, BASE_OF_DLL, DLL_SIZE,
-		                                       IntPtr.Zero, 0);
+		const ulong VIRTUAL_BASE = 0x10000000;
 
-		return modBase;
+		/*ulong modBase = ImageType switch
+		{
+			SymImageType.Pdb => Native.SymLoadModuleEx(Handle, IntPtr.Zero, Image, null, BASE_OF_DLL, 0, IntPtr.Zero, 0),
+			SymImageType.Dll => Native.SymLoadModuleEx(Handle, 0, Image, null, 0, 0, 0, default),
+			_                => 0
+		};*/
+
+		ulong modBase = Native.SymLoadModuleEx(Handle, IntPtr.Zero, Image, null, BASE_OF_DLL, 0, IntPtr.Zero, 0);
+
+		m_imgInfo = new ImageHelpModule64() { };
+
+		var effectiveBase = modBase != 0 ? modBase : VIRTUAL_BASE;
+
+		Native.SymGetModuleInfoW64(Handle, modBase, ref m_imgInfo);
+
+		return effectiveBase;
 	}
 
+	public static bool Initialize(nint handle)
+	{
+		var options = Native.SymGetOptions();
+
+		options |= SymbolOptions.DEBUG | SymbolOptions.UNDNAME | SymbolOptions.DEFERRED_LOADS;
+
+		Native.SymSetOptions(options);
+
+		// Initialize DbgHelp and load symbols for all modules of the current process 
+		return Native.SymInitialize(handle, SymbolPath, false);
+	}
 
 	public static async Task<string> SymchkSymbolFileAsync(string fname, [CBN] string o = null)
 	{
@@ -287,18 +328,23 @@ public sealed class SymbolReader : IDisposable
 		});
 	}
 
-	private void Cleanup()
+	public static SymImageType GetImageTypeFromExtension(string image)
+	{
+		return Path.GetExtension(image) switch
+		{
+			EXT_PDB => SymImageType.Pdb,
+			EXT_DLL => SymImageType.Dll,
+			_       => SymImageType.Unknown
+		};
+	}
+
+	public void Dispose()
 	{
 		Native.SymCleanup(Handle);
 		Native.SymUnloadModule64(Handle, m_modBase);
 		Symbols.Clear();
 		m_modBase  = 0;
 		m_disposed = true;
-	}
-
-	public void Dispose()
-	{
-		Cleanup();
 	}
 
 }

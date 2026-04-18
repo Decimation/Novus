@@ -55,7 +55,6 @@ using Novus.Runtime.VM;
 using Novus.Runtime.VM.EE;
 using Novus.Streams;
 using Novus.Utilities;
-using Novus.Win32;
 using Novus.Win32.Structures.AdvApi32;
 using Novus.Win32.Structures.DbgHelp;
 using Novus.Win32.Structures.Kernel32;
@@ -149,37 +148,61 @@ public static class Program
 
 	static Program()
 	{
-		Global.Clr.LoadImports(typeof(Program));
+		// Global.Clr.LoadImports(typeof(Program));
 	}
 
 
 	private static unsafe void Main(string[] args)
 	{
+		// Global.Setup();
+		// Global.Clr.LoadImports(typeof(GCHeap));
+		var fileName = Process.GetCurrentProcess().FindModule("coreclr.dll").FileName;
+		var pdb      = @"C:\Symbols\coreclr.pdb\85DECBA7C49F4EDF8283BF735FB7D7C21\coreclr.pdb";
+		var sym      = new SymbolReader(fileName);
 
+		/*var       hProcess = new IntPtr(0x1337);
+
+		Native.SymSetOptions(SymbolOptions.DEFERRED_LOADS | SymbolOptions.UNDNAME);
+		Native.SymInitialize(hProcess, IntPtr.Zero, false);
+		var       baseAddr = Native.SymLoadModuleEx(hProcess, IntPtr.Zero, fileName, null, 0,0, IntPtr.Zero, 0);
+		Console.WriteLine(baseAddr);
+
+		var s = new ImageHelpModule64();
+		s.SizeOfStruct = (uint) Marshal.SizeOf<ImageHelpModule64>();
+		Native.SymGetModuleInfoW64(hProcess, baseAddr, ref s);*/
+
+		/*
 		decimal[] rg = new Decimal[369];
 		Console.WriteLine(Mem.SizeOf(rg, SizeOfOption.Auto));
 		Console.WriteLine(Mem.HeapSizeOf(rg));
-		Console.WriteLine(GCHeap.IsLargeObject(rg));
-		// Test7();
+		*/
 
+		// Console.WriteLine(GCHeap.IsLargeObject(rg));
+		// Global.Setup();
+
+		// Test7();
+		// Global.Clr.Unload(typeof(TypeHandle));
+
+		sym.LoadAllSymbols();
+		sym.Dispose();
 	}
 
 	private static unsafe void Test7()
 	{
-		MyClass obj    = new MyClass { s = "foo", a = 123 };
+		MyClass obj = new MyClass { s = "foo", a = 123 };
 		Console.WriteLine(obj.s);
 
-		var mt  =obj.GetMetaType();
-		var mf  =mt.GetField(nameof(MyClass.s));
+		var mt  = obj.GetMetaType();
+		var mf  = mt.GetField(nameof(MyClass.s));
 		var buf = stackalloc byte[8];
-		mf.GetInstanceField(obj,buf);
+		mf.GetInstanceField(obj, buf);
 
 		var fld = Mem.AddressOfField(obj, nameof(MyClass.s)).Cast<string>();
 		Console.WriteLine(fld.ReadPointer());
 		var ptr = (ulong*) buf;
 		Console.WriteLine($"{*ptr:X}");
 
-		var str2    ="bar";
+		var str2    = "bar";
 		var str2Val = Mem.AddressOf(ref str2);
 		Console.WriteLine(str2Val);
 
@@ -200,7 +223,8 @@ public static class Program
 		var heap = Mem.AddressOfHeap(obj);
 		Console.WriteLine($"Heap: {heap}");
 
-		Pointer<MethodTable> mt  = ObjectUtility.GetMethodTable(obj);
+		Pointer<MethodTable> mt = ObjectUtility.GetMethodTable(obj);
+
 		// Type                 t   = typeof(MyClass);
 		// TypeHandle           mt2 = ObjectUtility.ResolveTypeHandle(t);
 
@@ -209,6 +233,7 @@ public static class Program
 		int hSize = Mem.SizeOf(obj, SizeOfOption.Heap);
 
 		Console.WriteLine($"Heap size: {hSize}");
+
 		for (int i = 0; i < hSize; i++) {
 			Console.Write($"{heap[i]:X} ");
 		}
@@ -298,7 +323,6 @@ public static class Program
 		int i = 123;
 	}
 
-	
 
 	public static unsafe delegate* managed<int> f;
 

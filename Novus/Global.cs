@@ -228,6 +228,8 @@ public static class Global
 		if (!Directory.Exists(DataFolder)) {
 			Directory.CreateDirectory(DataFolder);
 		}
+
+		s_logger.LogInformation("Data folder: {Folder}", DataFolder);
 	}
 
 	/// <summary>
@@ -236,6 +238,10 @@ public static class Global
 	[ModuleInitializer]
 	public static void Setup()
 	{
+#if NCLRI
+		return;		
+#endif
+
 		if (IsSetup) {
 			return;
 		}
@@ -309,6 +315,8 @@ public static class Global
 		var pdbFile = path.FirstOrDefault();
 
 		return pdbFile;
+
+		// return CLR_PDB;
 	}
 
 	public static void Close()

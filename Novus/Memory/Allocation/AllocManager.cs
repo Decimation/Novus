@@ -185,7 +185,8 @@ public static class AllocManager
 
 	public static void Close()
 	{
-		foreach (var pointer in Allocated) {
+		for (int i = Allocated.Count - 1; i >= 0; i--) {
+			Pointer<byte> pointer = Allocated[i];
 			FreeInternal(pointer);
 		}
 	}

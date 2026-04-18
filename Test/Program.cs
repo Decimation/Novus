@@ -148,17 +148,17 @@ public static class Program
 
 	static Program()
 	{
-		// Global.Clr.LoadImports(typeof(Program));
+		Global.Clr.LoadImports(typeof(Program));
 	}
 
 
 	private static unsafe void Main(string[] args)
 	{
 		// Global.Setup();
-		// Global.Clr.LoadImports(typeof(GCHeap));
-		var fileName = Process.GetCurrentProcess().FindModule("coreclr.dll").FileName;
+
+		/*var fileName = Process.GetCurrentProcess().FindModule("coreclr.dll").FileName;
 		var pdb      = @"C:\Symbols\coreclr.pdb\85DECBA7C49F4EDF8283BF735FB7D7C21\coreclr.pdb";
-		var sym      = new SymbolReader(fileName);
+		var sym      = new SymbolReader(fileName);*/
 
 		/*var       hProcess = new IntPtr(0x1337);
 
@@ -171,20 +171,18 @@ public static class Program
 		s.SizeOfStruct = (uint) Marshal.SizeOf<ImageHelpModule64>();
 		Native.SymGetModuleInfoW64(hProcess, baseAddr, ref s);*/
 
-		/*
 		decimal[] rg = new Decimal[369];
 		Console.WriteLine(Mem.SizeOf(rg, SizeOfOption.Auto));
 		Console.WriteLine(Mem.HeapSizeOf(rg));
-		*/
 
-		// Console.WriteLine(GCHeap.IsLargeObject(rg));
+		Console.WriteLine(GCHeap.IsLargeObject(rg));
 		// Global.Setup();
 
 		// Test7();
 		// Global.Clr.Unload(typeof(TypeHandle));
 
-		sym.LoadAllSymbols();
-		sym.Dispose();
+		// sym.LoadAllSymbols();
+		// sym.Dispose();
 	}
 
 	private static unsafe void Test7()

@@ -37,23 +37,6 @@ using Novus.Runtime;
 
 namespace Novus.Utilities;
 
-public enum SymImageType
-{
-
-	Unknown = 0,
-
-	/// <summary>
-	/// <seealso cref="SymbolReader.EXT_PDB"/>
-	/// </summary>
-	Pdb,
-
-	/// <summary>
-	/// <seealso cref="SymbolReader.EXT_DLL"/>
-	/// </summary>
-	Dll
-
-}
-
 /// <summary>
 /// Windows PDB reader
 /// </summary>
@@ -85,18 +68,16 @@ public sealed class SymbolReader : IDisposable
 	// private const string MASK_ALL = "*!*";
 	public const string MASK_ALL = "*";
 
-	public SymImageType ImageType { get; }
-
 	public SymbolReader(nint handle, string image)
 	{
 		// Require.FileExists(image);
 		Handle = handle;
 		Image  = image;
 
-		ImageType = GetImageTypeFromExtension(image);
-
 		m_modBase  = LoadModule();
 		m_disposed = false;
+
+		Trace.WriteLine($"handle {handle:X} | image: {image} @ {m_modBase:X}", nameof(SymbolReader));
 
 		Symbols = [];
 		LoadAllSymbols();
@@ -326,16 +307,6 @@ public sealed class SymbolReader : IDisposable
 			RecurseSubdirectories = true,
 			MaxRecursionDepth     = 3
 		});
-	}
-
-	public static SymImageType GetImageTypeFromExtension(string image)
-	{
-		return Path.GetExtension(image) switch
-		{
-			EXT_PDB => SymImageType.Pdb,
-			EXT_DLL => SymImageType.Dll,
-			_       => SymImageType.Unknown
-		};
 	}
 
 	public void Dispose()

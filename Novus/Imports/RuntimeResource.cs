@@ -73,8 +73,8 @@ public sealed class RuntimeResource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
-	public RuntimeResourceOptions Options { get; } = RuntimeResourceOptions.UnloadAllOnDispose | RuntimeResourceOptions.WriteDefaultOnUnload
-	                                                                                           | RuntimeResourceOptions.NullOnImportError;
+	public RuntimeResourceOptions Options { get; } = RuntimeResourceOptions.UnloadAllOnDispose
+	                                                 | RuntimeResourceOptions.NullOnImportError;
 
 	private readonly List<Type> m_loadedTypes = [];
 
@@ -101,7 +101,7 @@ public sealed class RuntimeResource : IDisposable
 
 		Scanner = new Lazy<SigScanner>(() => new SigScanner(Module));
 
-		Symbols      = new Lazy<SymbolReader>(() => File.Exists(pdb) ? new SymbolReader(pdb) : null);
+		Symbols      = new Lazy<SymbolReader>(() => new SymbolReader(pdb ?? Module.FileName));
 		LoadedModule = false;
 	}
 
@@ -222,6 +222,7 @@ public sealed class RuntimeResource : IDisposable
 		}
 
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
+		s_logger.LogInformation("Found {Len} annotated", annotatedTuples.Length);
 		LoadType(t, annotatedTuples);
 	}
 
@@ -234,15 +235,13 @@ public sealed class RuntimeResource : IDisposable
 
 			// Set value
 
+			s_logger.LogTrace("Loading {Mem} ({AttrName}) with {Fv}", member.Name, attribute.Name, fieldValue);
 			field.SetValue(null, fieldValue);
-
-			Trace.WriteLine($"Loaded {member.Name} ({attribute.Name}) with {fieldValue}");
 		}
 
 
 		m_loadedTypes.Add(t);
-
-		Trace.WriteLine($"Loaded type {t.Name}");
+		s_logger.LogTrace("Loaded type {Type}", t.Name);
 	}
 
 	[CBN]

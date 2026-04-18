@@ -163,8 +163,8 @@ public static class Global
 	/// </summary>
 	public static readonly Version ClrVersion;
 
-	[MN]
-	public static string ClrPdb { get; set; }
+	/*[MN]
+	public static string ClrPdb { get; set; }*/
 
 	/// <summary>
 	///     Runtime CLR resources
@@ -239,7 +239,7 @@ public static class Global
 	public static void Setup()
 	{
 #if NCLRI
-		return;		
+		return;
 #endif
 
 		if (IsSetup) {
@@ -271,8 +271,7 @@ public static class Global
 
 		NativeLibrary.SetDllImportResolver(Assembly.GetExecutingAssembly(), DllImportResolver);
 
-		ClrPdb = GetPdbFile();
-		Clr    = new RuntimeResource(CLR_MODULE, ClrPdb);
+		Clr = new RuntimeResource(CLR_MODULE);
 
 		/*
 		 * Close
@@ -285,7 +284,7 @@ public static class Global
 
 		IsSetup = true;
 
-		s_logger.LogDebug("Loaded pdb {ClrPdb}", ClrPdb);
+		s_logger.LogDebug("Loaded RR {ClrRR}", Clr);
 	}
 
 	public static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
@@ -297,7 +296,7 @@ public static class Global
 		return IntPtr.Zero;
 	}
 
-	[CBN]
+	/*[CBN]
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 	public static string GetPdbFile()
 	{
@@ -317,7 +316,7 @@ public static class Global
 		return pdbFile;
 
 		// return CLR_PDB;
-	}
+	}*/
 
 	public static void Close()
 	{

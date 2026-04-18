@@ -155,7 +155,7 @@
     <value>https://msdl.microsoft.com/download/symbols/</value>
   </data>
   <data name="RequiredVersion" xml:space="preserve">
-    <value>10.0.5</value>
+    <value>10.0.6</value>
   </data>
   <data name="Sig_AllocObject" xml:space="preserve">
     <value>48 89 5C 24 ? 55 56 57 41 54 41 55 41 56 41 57 48 83 EC ? 48 8B F1</value>
@@ -235,6 +235,7 @@
   </data>
   <data name="Sym_GetMethodTable" xml:space="preserve">
     <value>TypeHandle::GetMethodTable</value>
+    <comment>TypeHandle::GetMethodTable</comment>
   </data>
   <data name="Sym_IsHeapPointer" xml:space="preserve">
     <value>WKS::GCHeap::IsHeapPointer</value>

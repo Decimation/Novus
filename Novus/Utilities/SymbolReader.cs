@@ -44,9 +44,12 @@ namespace Novus.Utilities;
 public sealed class SymbolReader : IDisposable
 {
 
-	private bool              m_disposed;
-	private ulong             m_modBase;
-	private ImageHelpModule64 m_imgInfo;
+	private bool  m_disposed;
+	private ulong m_modBase;
+
+	private ImageHelpModule64 m_imageModule;
+
+	public ImageHelpModule64 ImageModule => m_imageModule;
 
 	private static readonly Func<Symbol, bool> AnyPredicate = static _ => true;
 
@@ -74,8 +77,9 @@ public sealed class SymbolReader : IDisposable
 		Handle = handle;
 		Image  = image;
 
-		m_modBase  = LoadModule();
-		m_disposed = false;
+		m_modBase     = LoadModule();
+		m_disposed    = false;
+		m_imageModule = new ImageHelpModule64() { };
 
 		Trace.WriteLine($"handle {handle:X} | image: {image} @ {m_modBase:X}", nameof(SymbolReader));
 
@@ -169,20 +173,12 @@ public sealed class SymbolReader : IDisposable
 
 		const ulong VIRTUAL_BASE = 0x10000000;
 
-		/*ulong modBase = ImageType switch
-		{
-			SymImageType.Pdb => Native.SymLoadModuleEx(Handle, IntPtr.Zero, Image, null, BASE_OF_DLL, 0, IntPtr.Zero, 0),
-			SymImageType.Dll => Native.SymLoadModuleEx(Handle, 0, Image, null, 0, 0, 0, default),
-			_                => 0
-		};*/
-
 		ulong modBase = Native.SymLoadModuleEx(Handle, IntPtr.Zero, Image, null, BASE_OF_DLL, 0, IntPtr.Zero, 0);
-
-		m_imgInfo = new ImageHelpModule64() { };
 
 		var effectiveBase = modBase != 0 ? modBase : VIRTUAL_BASE;
 
-		Native.SymGetModuleInfoW64(Handle, modBase, ref m_imgInfo);
+		Native.SymGetModuleInfoW64(Handle, modBase, ref m_imageModule);
+
 
 		return effectiveBase;
 	}

@@ -101,7 +101,7 @@ public sealed class RuntimeResource : IDisposable
 
 		Scanner = new Lazy<SigScanner>(() => new SigScanner(Module));
 
-		Symbols      = new Lazy<SymbolReader>(() => new SymbolReader(pdb ?? Module.FileName));
+		Symbols      = new Lazy<SymbolReader>(() => new SymbolReader(pdb ?? Module.FileName), LazyThreadSafetyMode.ExecutionAndPublication);
 		LoadedModule = false;
 	}
 
@@ -431,6 +431,9 @@ public sealed class RuntimeResource : IDisposable
 				it    =   iua.Type;
 				break;
 		}
+
+		value ??= n;
+
 
 		return it switch
 		{

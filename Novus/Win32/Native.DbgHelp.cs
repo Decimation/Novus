@@ -1,4 +1,5 @@
 ﻿#nullable enable
+#pragma warning disable SYSLIB1054
 using Novus.Win32.Structures.DbgHelp;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -6,18 +7,13 @@ using System.Runtime.Versioning;
 using System.Text;
 
 // ReSharper disable ArrangeAttributes
-
 // ReSharper disable IdentifierTypo
-
 // ReSharper disable InconsistentNaming
 
 namespace Novus.Win32;
 
 public static unsafe partial class Native
 {
-
-#pragma warning disable SYSLIB1054
-
 	[DllImport(DBGHELP_DLL)]
 	private static extern ImageNtHeaders* ImageNtHeader([In] nint hModule);
 
@@ -52,26 +48,15 @@ public static unsafe partial class Native
 	internal static extern bool SymUnloadModule64(nint hProc, ulong baseAddr);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern ulong SymLoadModuleEx(nint   hProcess,   nint  hFile,     string imageName,
-	                                             string moduleName, ulong baseOfDll, uint   dllSize, nint data,
-	                                             uint   flags);
-
-	/*[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	public static extern ulong SymLoadModuleEx(nint hProcess, [Optional] nint hFile, [Optional, MarshalAs(UnmanagedType.LPTStr)] string? ImageName,
-	                                           [Optional, MarshalAs(UnmanagedType.LPTStr)]
-	                                           string? ModuleName, ulong BaseOfDll, uint DllSize, in nint Data, [Optional] SymbolFlag Flags);
-
-	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode, ExactSpelling = true)]
-	public static extern ulong SymLoadModule64(nint hProcess, [Optional] nint hFile, [Optional, MarshalAs(UnmanagedType.LPStr)] string? ImageName,
-	                                           [Optional, MarshalAs(UnmanagedType.LPStr)]
-	                                           string? ModuleName, ulong BaseOfDll, uint SizeOfDll);*/
+	internal static extern ulong SymLoadModuleEx(nint hProcess, nint hFile, string imageName, string moduleName, ulong baseOfDll, uint dllSize,
+	                                             nint data,     uint flags);
 
 	[DllImport(DBGHELP_DLL, SetLastError = true, CharSet = CharSet.Ansi, ExactSpelling = true)]
-	[return: MA(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool SymGetModuleInfo64(IntPtr hProcess, ulong qwAddr, ref ImageHelpModule64 ModuleInfo);
 
 	[DllImport(DBGHELP_DLL, SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true)]
-	[return: MarshalAs(UnmanagedType.Bool)]
+	[return: MA(UT.Bool)]
 	public static extern bool SymGetModuleInfoW64(IntPtr hProcess, ulong qwAddr, ref ImageHelpModule64 ModuleInfo);
 
 	[return: MA(UT.Bool)]

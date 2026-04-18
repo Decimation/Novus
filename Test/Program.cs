@@ -170,8 +170,11 @@ public static class Program
 		var s = new ImageHelpModule64();
 		s.SizeOfStruct = (uint) Marshal.SizeOf<ImageHelpModule64>();
 		Native.SymGetModuleInfoW64(hProcess, baseAddr, ref s);*/
-
-		decimal[] rg = new Decimal[369];
+		
+		using var r      = new RuntimeResource(Process.GetCurrentProcess(), "coreclr.dll");
+		var       import = r.FindImport(new ImportClrAttribute("g_pGCHeap", ImportType.Symbol));
+		Console.WriteLine(import);
+		decimal[] rg     = new Decimal[369];
 		Console.WriteLine(Mem.SizeOf(rg, SizeOfOption.Auto));
 		Console.WriteLine(Mem.HeapSizeOf(rg));
 

@@ -31,7 +31,6 @@ public static class AtomicHelper
 		return pointer;
 	}
 
-	[MethodImpl(Global.IMPL_OPTIONS)]
 	public static unsafe T Exchange<T>(ref T location1, T location2) /*where T : unmanaged*/
 	{
 		/*fixed (T* p = &location1) {
@@ -50,7 +49,6 @@ public static class AtomicHelper
 	}
 
 	/// <returns><c>(delegate*&lt;ref T, T, T&gt;)</c></returns>
-	[MethodImpl(Global.IMPL_OPTIONS)]
 	public static nint GetCacheExchangeFunction<T>()
 	{
 		var type = typeof(T);

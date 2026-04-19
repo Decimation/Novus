@@ -23,13 +23,11 @@ using Novus.Runtime.VM.EE;
 using Novus.Runtime.VM.Tokens;
 
 // ReSharper disable UnusedVariable
-
 // ReSharper disable ConvertIfStatementToReturnStatement
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable ClassCannotBeInstantiated
 // ReSharper disable UnusedMember.Global
-
 // ReSharper disable ArgumentsStyleLiteral
 
 #pragma warning disable CS0618, CS1574, IDE0059
@@ -190,7 +188,7 @@ public static unsafe class ObjectUtility
 	extension(object o)
 	{
 		public Pointer<ClrObject> AsClrObject()
-			=> Mem.AddressOfHeap(o).Cast<ClrObject>();
+			=> Unsafe.As<object, Pointer<ClrObject>>(ref o);
 
 		public ObjectProxy AsObjectProxy() 
 			=> Unsafe.As<ObjectProxy>(o);

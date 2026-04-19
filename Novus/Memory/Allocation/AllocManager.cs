@@ -23,6 +23,9 @@ namespace Novus.Memory.Allocation;
 public static class AllocManager
 {
 
+	private static readonly MethodInfo s_newFunc = typeof(AllocManager).GetRuntimeMethods()
+	                                                                   .First(x => x is { Name: nameof(New), ContainsGenericParameters: true });
+
 	/*
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.Windows.cs
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Ucrtbase/Interop.MemAlloc.cs
@@ -159,11 +162,7 @@ public static class AllocManager
 
 	public static object New(Type t, params object[] ctor)
 	{
-		var m = typeof(AllocManager).GetRuntimeMethods()
-		                            .First(x => x is { Name: nameof(New), ContainsGenericParameters: true });
-
-		return m.CallGeneric(t, null, [ctor]);
-
+		return s_newFunc.CallGeneric(t, null, [ctor]);
 	}
 
 	/// <summary>
@@ -177,6 +176,7 @@ public static class AllocManager
 		var value = Mem.InitInline<T>(ptr, out var ptr2);
 
 		var cc = ReflectionHelper.CallConstructor(value, ctor);
+
 		// if (ctor.Any()) { }
 
 		return value;

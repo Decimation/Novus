@@ -84,7 +84,7 @@ public sealed class SigScanner
 		return new SigScanner(ptr, size, buffer);
 	}
 
-	public static Pointer<byte>[] ScanProcess(Process p, string sig) => ScanProcess(p, ReadSignature(sig));
+	public static Pointer<byte>[] ScanProcess(Process p, string sig) => ScanProcess(p, ParseSignature(sig));
 
 	public static Pointer<byte>[] ScanProcess(Process p, byte[] s)
 	{
@@ -140,7 +140,7 @@ public sealed class SigScanner
 	/// <c>?</c> indicates wildcard<br />
 	/// Space delimited
 	/// </summary>
-	public static byte[] ReadSignature(string pattern)
+	public static byte[] ParseSignature(string pattern)
 	{
 		//todo: Convert.To/FromHexString
 		string[] strByteArr = pattern.Split(' ');
@@ -157,7 +157,7 @@ public sealed class SigScanner
 	}
 
 	public Pointer<byte> FindSignature(string pattern)
-		=> FindSignature(ReadSignature(pattern));
+		=> FindSignature(ParseSignature(pattern));
 
 	/*public Pointer<byte> FindSignature(byte[] pattern)
 	{

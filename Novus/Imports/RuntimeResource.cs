@@ -25,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using Novus.Imports.Factory;
 using Novus.OS;
 using Novus.Runtime;
+// ReSharper disable AnnotateCanBeNullTypeMember
 
 // ReSharper disable UnusedMember.Local
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -213,8 +214,8 @@ public sealed class RuntimeResource : IDisposable
 		s_logger.LogDebug("Loading type {Name}", t.Name);
 
 		var iiaTuple = t.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-		                .Where(mi => Attribute.IsDefined(mi, typeof(ImportInitializerAttribute)))
-		                .Select(mi => (mi.GetCustomAttribute<ImportInitializerAttribute>(), mi));
+		                .Where(static mi => Attribute.IsDefined(mi, typeof(ImportInitializerAttribute)))
+		                .Select(static mi => (mi.GetCustomAttribute<ImportInitializerAttribute>(), mi));
 
 		foreach ((ImportInitializerAttribute iia, MI mi) in iiaTuple) {
 			var res = mi.Invoke(null, null);
@@ -343,7 +344,7 @@ public sealed class RuntimeResource : IDisposable
 
 				Require.Assert(managedAttr.ManageType == ImportManageType.Managed);
 
-				var fn = managedAttr.Type.GetAnyMethod(name);
+				var fn = managedAttr.Source.GetAnyMethod(name);
 
 				if (fn == null) {
 					Debugger.Break();
@@ -422,7 +423,6 @@ public sealed class RuntimeResource : IDisposable
 	{
 		var n        = ia.Name;
 		var it       = default(ImportType);
-		var resolver = ia.Resolver;
 		var absolute = ia.AbsoluteMatch;
 
 		switch (ia) {
@@ -442,7 +442,7 @@ public sealed class RuntimeResource : IDisposable
 			ImportType.Signature => GetSignature(value),
 			ImportType.Export    => GetExport(value),
 			ImportType.Offset    => GetOffset(value),
-			ImportType.Symbol    => GetSymbol(value, resolver, absolute),
+			ImportType.Symbol    => GetSymbol(value, absolute),
 			_                    => Mem.Nullptr
 		};
 	}
@@ -473,20 +473,20 @@ public sealed class RuntimeResource : IDisposable
 	public Pointer<byte> GetSignature(string signature)
 		=> Scanner.Value.FindSignature(signature);
 
-	public Pointer<byte> GetSymbol(string name, Type t = null, bool absolute = false)
+	public Pointer<byte> GetSymbol(string name, bool absolute = false)
 	{
 		if (Symbols.Value == null) {
 			return Mem.Nullptr;
 		}
 
-		var symbols1 = Symbols.Value.GetSymbols(name)
-		                      .Where(static s => s.Tag is SymbolTag.Function or SymbolTag.Data);
+		var symbols = Symbols.Value.GetSymbols(name)
+		                     .Where(static s => s.Tag is SymbolTag.Function or SymbolTag.Data);
 
 		Symbol symbol = null;
 
 		Func<Symbol, bool> predicate = absolute ? s => s.Name == name : s => s.Name.Contains(name);
 
-		symbol = symbols1.FirstOrDefault(predicate);
+		symbol = symbols.FirstOrDefault(predicate);
 
 		/*if (resolver != null) {
 			var m = (IRuntimeResourceImporter) Activator.CreateInstance(resolver);
@@ -502,6 +502,13 @@ public sealed class RuntimeResource : IDisposable
 
 #endregion
 
+	public override string ToString()
+	{
+		return $"[{Module.ModuleName}] "
+		       + $"| {nameof(Scanner)}: {(Scanner.IsValueCreated ? Scanner.Value.Address : '-')}"
+		       + $"| {nameof(Symbols)} : {(Symbols.IsValueCreated ? Symbols.Value.Image : '-')}";
+	}
+
 	public void Dispose()
 	{
 		if (Options.HasFlag(RuntimeResourceOptions.UnloadAllOnDispose)) {
@@ -516,13 +523,6 @@ public sealed class RuntimeResource : IDisposable
 		}
 
 		// GC.SuppressFinalize(this);
-	}
-
-	public override string ToString()
-	{
-		return $"[{Module.ModuleName}] "
-		       + $"| {nameof(Scanner)}: {(Scanner.IsValueCreated ? Scanner.Value.Address : '-')}"
-		       + $"| {nameof(Symbols)} : {(Symbols.IsValueCreated ? Symbols.Value.Image : '-')}";
 	}
 
 }

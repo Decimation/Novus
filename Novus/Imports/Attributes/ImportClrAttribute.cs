@@ -9,11 +9,11 @@ namespace Novus.Imports.Attributes;
 /// </summary>
 /// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
 [MIU]
-[AttributeUsage(AttributeTargets.Field)]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public sealed class ImportClrAttribute : ImportUnmanagedAttribute
 {
 
 	public ImportClrAttribute(string name = null, ImportType unmanagedType = ImportType.Signature, Type resolver = null)
-		: base(Global.CLR_MODULE, name, unmanagedType, resolver: resolver) { }
+		: base(Global.CLR_MODULE, name, unmanagedType) { }
 
 }

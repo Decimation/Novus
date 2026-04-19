@@ -49,7 +49,7 @@ public class Clazz3
 	public void SayHi()
 		=> Console.WriteLine("hi");
 	public void SayBar()
-		=> Console.WriteLine("butt");
+		=> Console.WriteLine("bar");
 	public override string ToString()
 	{
 		return $"{nameof(a)}: {a}, {nameof(s)}: {s}, {nameof(prop)}: {prop}";
@@ -70,7 +70,7 @@ public class Clazz
 
 	public static int sprop { get; set; }
 
-	public string calc => "foo" + " butt!";
+	public string calc => "foo" + " bar!";
 
 	public Clazz()
 	{

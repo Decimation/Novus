@@ -17,10 +17,7 @@ using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
 
-// ReSharper disable UnusedVariable
-
 // #pragma warning disable CA1401, CA2101
-
 // ReSharper disable IdentifierTypo
 // ReSharper disable UnusedMember.Global
 // ReSharper disable InconsistentNaming

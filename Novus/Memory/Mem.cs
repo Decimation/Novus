@@ -6,6 +6,7 @@ using System.Buffers.Binary;
 using System.Collections.Frozen;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.Linq.Expressions;
@@ -113,8 +114,7 @@ public static unsafe class Mem
 	///     Returns the offset of the field <paramref name="name" /> within the type <typeparamref name="T" />.
 	/// </summary>
 	/// <param name="name">Field name</param>
-	public static int OffsetOf<T>(string name)
-		=> typeof(T).OffsetOf(name);
+	public static int OffsetOf<T>(string name) => typeof(T).OffsetOf(name);
 
 	/// <summary>
 	///     Returns the offset of the field <paramref name="name" /> within the type <paramref name="t" />.
@@ -162,6 +162,9 @@ public static unsafe class Mem
 		return mh.Pointer;
 	}
 
+	public static Pointer<T> ToPointer<T>(this Span<T> s)
+		=> s.ToPointer(ref Unsafe.NullRef<T>());
+
 	public static Pointer<T> ToPointer<T>(this Span<T> s, ref T t)
 	{
 		t = ref s.GetPinnableReference();
@@ -180,47 +183,57 @@ public static unsafe class Mem
 	///     <paramref name="baseAddr" /> in <paramref name="proc" />
 	/// </summary>
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static void WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
+	public static bool WriteProcessMemory<T>(Process proc, Pointer<byte> baseAddr, T value)
 	{
 		int dwSize = Unsafe.SizeOf<T>();
 		var ptr    = AddressOf(ref value);
 
-		WriteProcessMemory(proc, baseAddr.Address, ptr.Address, dwSize);
+		return WriteProcessMemory(proc, baseAddr.Address, ptr.Address, dwSize);
 	}
 
 	/// <summary>
 	///     Root abstraction of <see cref="Native.WriteProcessMemory" />
 	/// </summary>
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> ptrBuffer, int dwSize)
+	public static bool WriteProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> ptrBuffer, int dwSize)
 	{
 		nint hProc = Native.OpenProcess(proc);
+		bool ok    = false;
 
-		Native.WriteProcessMemory(hProc, addr.Address, ptrBuffer.Address, dwSize, out _);
+		ok = Native.WriteProcessMemory(hProc, addr.Address, ptrBuffer.Address, dwSize, out _);
 
-		Native.CloseHandle(hProc);
+		ok |= Native.CloseHandle(hProc);
+		return ok;
 	}
 
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, [NN] byte[] value)
+	public static bool WriteProcessMemory(Process proc, Pointer<byte> addr, [NN] byte[] value)
 	{
+		bool ok = false;
+
 		fixed (byte* rg = value) {
-			WriteProcessMemory(proc, addr, (nint) rg, value.Length);
+			ok = WriteProcessMemory(proc, addr, (nint) rg, value.Length);
 		}
+
+		return ok;
 	}
 
 	/// <summary>
 	///     Writes <paramref name="value" /> bytes to <paramref name="addr" /> in <paramref name="proc" />
 	/// </summary>
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static void WriteProcessMemory(Process proc, Pointer<byte> addr, ReadOnlySpan<byte> value)
+	public static bool WriteProcessMemory(Process proc, Pointer<byte> addr, ReadOnlySpan<byte> value)
 	{
+		bool ok = false;
+
 		fixed (byte* rg = value) {
-			WriteProcessMemory(proc, addr, (nint) rg, value.Length);
+			ok = WriteProcessMemory(proc, addr, (nint) rg, value.Length);
 		}
+
+		return ok;
 	}
 
 #endregion
@@ -234,14 +247,17 @@ public static unsafe class Mem
 	/// <param name="addr">Address within the specified process from which to read</param>
 	/// <param name="buffer">Buffer that receives the read contents from the address space</param>
 	/// <param name="cb">Number of bytes to read</param>
+	/// <remarks>Opens handle to <paramref name="proc"/> and closes it upon return</remarks>
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static void ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, nint cb)
+	public static bool ReadProcessMemory(Process proc, Pointer<byte> addr, Pointer<byte> buffer, nint cb)
 	{
 		nint h = Native.OpenProcess(proc);
 
-		Native.ReadProcessMemory(h, addr.Address, buffer.Address, cb, out _);
+		var ok = Native.ReadProcessMemory(h, addr.Address, buffer.Address, cb, out _);
 
-		Native.CloseHandle(h);
+		ok |= Native.CloseHandle(h);
+
+		return ok;
 	}
 
 	/// <summary>
@@ -283,8 +299,7 @@ public static unsafe class Mem
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
 	/// </summary>
-	public static int SizeOf<T>()
-		=> Unsafe.SizeOf<T>();
+	public static int SizeOf<T>() => Unsafe.SizeOf<T>();
 
 	/// <summary>
 	///     Calculates the size of <typeparamref name="T" />
@@ -585,9 +600,13 @@ public static unsafe class Mem
 		int offsetValue = offset.GetOffsetValue();
 
 		switch (offset) {
-			case OffsetOptions.StringData: Require.Assert(ObjectUtility.IsString(value)); break;
+			case OffsetOptions.StringData:
+				Require.Assert(ObjectUtility.IsString(value));
+				break;
 
-			case OffsetOptions.ArrayData: Require.Assert(ObjectUtility.IsArray(value)); break;
+			case OffsetOptions.ArrayData:
+				Require.Assert(ObjectUtility.IsArray(value));
+				break;
 		}
 
 		return heapPtr + offsetValue;
@@ -667,7 +686,6 @@ public static unsafe class Mem
 	 * https://catonmat.net/low-level-bit-hacks
 	 */
 
-	//public static int ReadBits(int value, int bitOfs, int bitCount) => ((1 << bitCount) - 1) & (value >> bitOfs);
 
 #region Object memory operations
 
@@ -781,7 +799,7 @@ public static unsafe class Mem
 	}
 
 	/// <summary>
-	/// Reads a value fo type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
+	/// Reads a value of type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
 	/// </summary>
 	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
 	public static object ReadFromBytes(byte[] rg)
@@ -801,14 +819,15 @@ public static unsafe class Mem
 	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
 	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
 	[MURV]
-	public static T InitInline<T>(Pointer<byte> ptr, out Pointer<byte> ptrOrig) where T : class
+	public static ref T InitInline<T>(Pointer<byte> ptr, out Pointer<byte> ptrOrig) where T : class
 	{
 		ptrOrig = ptr;
 		ptr.Cast<ClrObjHeader>().Write(default);
-		ptr += Size;
+		ptr += ObjectUtility.ObjHeaderSize;
 		ptr.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
 
-		return AddressOf(ref ptr).Cast<T>().Reference;
+		// return ref Unsafe.AsRef<T>(ptr);
+		return ref AddressOf(ref ptr).Cast<T>().Reference;
 	}
 
 #endregion
@@ -818,30 +837,28 @@ public static unsafe class Mem
 	/// <summary>
 	/// Parses a <see cref="byte"/> array formatted as <c>00 01 02 ...</c>
 	/// </summary>
-	/// <seealso cref="SigScanner.ReadSignature" />
+	/// <seealso cref="SigScanner.ParseSignature" />
 	public static byte[] ParseAOBString(string s)
 	{
 		return [.. s.Split(Strings.Constants.SPACE).Select(static s1 => Byte.Parse(s1, NumberStyles.HexNumber))];
 	}
 
-	public static string ToBinaryString<T>(T value, int totalBits = Native.ERROR_SV) where T : struct
+	public static string ToBinaryString<T>(T value, int? totalBits = null) where T : struct
 	{
 		// int sizeInBytes = sizeof(T) * BitCalculator.BITS_PER_BYTE;
 
 		int sizeInBytes = SizeOf<T>(SizeOfOption.Intrinsic) * BitCalculator.BITS_PER_BYTE;
 
-		if (totalBits <= Native.ERROR_SV) {
-			// throw new ArgumentOutOfRangeException(nameof(totalBits), "Total bits must be at least 1.");
-			totalBits = sizeInBytes;
-		}
+		totalBits ??= sizeInBytes;
 
 		if (totalBits > sizeInBytes) {
 			throw new ArgumentOutOfRangeException(nameof(totalBits), $"Total bits must be less than or equal to {sizeInBytes}.");
 		}
 
 		ulong  numericValue = Convert.ToUInt64(value);
-		char[] bits         = new char[totalBits];
-		int    index        = totalBits - 1;
+		char[] bits         = new char[totalBits.Value];
+
+		int index = totalBits.Value - 1;
 
 		while (index >= 0) {
 			bits[index]  =   (numericValue & 1) == 1 ? '1' : '0';
@@ -861,7 +878,7 @@ public static unsafe class Mem
 
 		foreach (var m in modules) {
 			nint size = (nint) m.modBaseSize;
-			var  b    = ptr >= m.modBaseAddr && ptr <= (m.modBaseAddr +(size));
+			var  b    = ptr >= m.modBaseAddr && ptr <= (m.modBaseAddr + (size));
 
 			if (!b) {
 				continue;

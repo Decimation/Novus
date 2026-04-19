@@ -57,7 +57,7 @@ namespace Novus.Memory;
 /// <seealso cref="IntPtr" />
 /// <seealso cref="UIntPtr" />
 /// <seealso cref="Unsafe" />
-public unsafe struct Pointer<T> : IFormattable, IPinnable, 
+public unsafe struct Pointer<T> : IFormattable, IPinnable,
                                   IAdditionOperators<Pointer<T>, Pointer<T>, Pointer<T>>, ISubtractionOperators<Pointer<T>, Pointer<T>, Pointer<T>>,
                                   IIncrementOperators<Pointer<T>>, IDecrementOperators<Pointer<T>>,
                                   IComparisonOperators<Pointer<T>, Pointer<T>, bool>
@@ -85,7 +85,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// </summary>
 	public ref T this[nint index]
 	{
-		[method: MImpl(Global.IMPL_OPTIONS)]
+		[method: MImpl(IMPL_OPTIONS)]
 		get => ref AsRef(index);
 	}
 
@@ -94,7 +94,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// </summary>
 	public ref T Reference
 	{
-		[method: MImpl(Global.IMPL_OPTIONS)]
+		[method: MImpl(IMPL_OPTIONS)]
 		get => ref AsRef();
 	}
 
@@ -423,7 +423,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// </summary>
 	/// <param name="value">Value to write.</param>
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
-	[method: MImpl(Global.IMPL_OPTIONS)]
+	[method: MImpl(IMPL_OPTIONS)]
 	public readonly void Write(T value, nint elemOffset = OFFSET)
 		=> Unsafe.Write(Offset(elemOffset), value);
 
@@ -433,7 +433,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	/// <returns>The value read from the offset <see cref="Address" />.</returns>
 	[Pure]
-	[method: MImpl(Global.IMPL_OPTIONS)]
+	[method: MImpl(IMPL_OPTIONS)]
 	public readonly T Read(nint elemOffset = OFFSET)
 		=> Unsafe.Read<T>(Offset(elemOffset));
 
@@ -443,7 +443,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 	[Pure]
-	[method: MImpl(Global.IMPL_OPTIONS)]
+	[method: MImpl(IMPL_OPTIONS)]
 	public ref T AsRef(nint elemOffset = OFFSET)
 		=> ref Unsafe.AsRef<T>(Offset(elemOffset));
 
@@ -617,5 +617,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	///     Default increment/decrement/element count for <see cref="Pointer{T}" />
 	/// </summary>
 	private const nint ELEM_CNT = 1;
+
+	private const MethodImplOptions IMPL_OPTIONS = MImplO.AggressiveInlining | MImplO.AggressiveOptimization;
 
 }

@@ -38,7 +38,6 @@ public unsafe struct ClrObject
 	public TypeHandle TypeHandle { get; set; }
 
 	[UnscopedRef]
-
 	public ref byte Data
 	{
 		get

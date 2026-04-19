@@ -85,7 +85,6 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace Test;
 
-
 /*
  * 🌟 Novus				https://github.com/Decimation/Novus
  * ⨉ NeoCore			https://github.com/Decimation/NeoCore
@@ -94,11 +93,9 @@ namespace Test;
  * ◆ Kantan				https://github.com/Decimation/Kantan
  *
  */
-
 /*
  * https://github.com/IS4Code/SharpUtils
  */
-
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -166,13 +163,47 @@ public static class Program
 		var s = new ImageHelpModule64();
 		s.SizeOfStruct = (uint) Marshal.SizeOf<ImageHelpModule64>();
 		Native.SymGetModuleInfoW64(hProcess, baseAddr, ref s);*/
-		
-		var ls=AllocManager.New<List<int>>();
+
+		/*var ls = AllocManager.New<List<int>>();
 		ls.Add(1);
 		Console.WriteLine(ls);
 		Console.WriteLine(GCHeap.IsHeapPointer(ls));
 		AllocManager.Free(ls);
 
+		var obj     = "foo";
+		var clrObj  = obj.AsClrObject();
+		var clrObj2 = Unsafe.As<string, Pointer<ClrObject>>(ref obj);
+
+		Console.WriteLine(clrObj);
+		Console.WriteLine(clrObj2);*/
+
+		Span<byte> stack    = stackalloc byte[Mem.SizeOf<List<int>>()];
+		var        stackPtr = stack.ToPointer();
+
+		var initStack = Mem.InitInline<List<int>>(stackPtr, out var ptrOrig);
+
+		ReflectionHelper.CallConstructor(initStack);
+
+		Console.WriteLine(stackPtr);
+
+		var mt    = typeof(List<int>).AsMetaType();
+		var mtFlds = mt.Fields.Where(f => f is { IsStatic: false, FieldType: { IsReferenceOrContainsReferences: true } });
+
+		foreach (var mf1 in mtFlds) {
+			var fldPtr = stackPtr + mf1.Offset;
+			Console.WriteLine($"{mf1} @ {fldPtr} | {GCHeap.IsHeapPointer(fldPtr)}");
+			var fldPtr2 = fldPtr.ReadPointer();
+			Console.WriteLine($"{mf1} @ {fldPtr2} | {GCHeap.IsHeapPointer(fldPtr2)}");
+
+		}
+
+		Console.WriteLine(stackPtr);
+		Console.WriteLine(ptrOrig);
+
+		Console.WriteLine(initStack);
+		initStack.Add(3);
+		Console.WriteLine(initStack.Count);
+		Console.WriteLine(initStack[0]);
 	}
 
 	private static unsafe void Test7()

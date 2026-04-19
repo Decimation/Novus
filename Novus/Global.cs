@@ -149,6 +149,8 @@ public static class Global
 	/// </summary>
 	public const string LIB_NAME = "Novus";
 
+	#region 
+
 	/// <summary>
 	///     Runtime CLR module name
 	/// </summary>
@@ -159,9 +161,9 @@ public static class Global
 	public const string CLR_PDB = "coreclr.pdb";
 
 	/// <summary>
-	///     Runtime CLR version
+	///     Runtime CLR version (target)
 	/// </summary>
-	public static readonly Version ClrVersion;
+	public static readonly Version Version;
 
 	/*[MN]
 	public static string ClrPdb { get; set; }*/
@@ -170,6 +172,8 @@ public static class Global
 	///     Runtime CLR resources
 	/// </summary>
 	public static RuntimeResource Clr { get; private set; }
+
+	#endregion
 
 	public static bool IsSetup { get; private set; }
 
@@ -188,8 +192,6 @@ public static class Global
 	public static readonly bool IsCorrectVersion;
 
 	public static readonly bool IsCompatible;
-
-	internal const string BUILD_NCLRI = "NCLRI";
 
 
 	/// <summary>
@@ -219,9 +221,9 @@ public static class Global
 		s_logger.LogInformation("{Build} build!", BUILD_NCLRI);
 #endif
 
-		ClrVersion = Version.Parse(ER.RequiredVersion);
+		Version = Version.Parse(ER.RequiredVersion);
 
-		IsCorrectVersion = Environment.Version == ClrVersion;
+		IsCorrectVersion = Environment.Version == Version;
 		IsCompatible     = IsCorrectVersion && IsWorkstationGC && OperatingSystem.IsWindows();
 		DataFolder       = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);
 
@@ -239,6 +241,7 @@ public static class Global
 	public static void Setup()
 	{
 #if NCLRI
+#warning Not running Setup!
 		return;
 #endif
 
@@ -253,7 +256,7 @@ public static class Global
 		using var setupScope = s_logger.BeginScope(nameof(Setup));
 
 		s_logger.LogTrace("Module init :: {Name}", ER.Name);
-		s_logger.LogTrace("Runtime: {EnvVer} | Target: {ClrVer}", Environment.Version, ClrVersion);
+		s_logger.LogTrace("Runtime: {EnvVer} | Target: {ClrVer}", Environment.Version, Version);
 
 		if (RuntimeInformation.IsInteractiveHost) {
 			s_logger.LogWarning("Interactive host");
@@ -284,7 +287,7 @@ public static class Global
 
 		IsSetup = true;
 
-		s_logger.LogDebug("Loaded RR {ClrRR}", Clr);
+		s_logger.LogInformation("Loaded runtime resource {ClrRR}", Clr);
 	}
 
 	public static nint DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
@@ -327,68 +330,8 @@ public static class Global
 	}
 
 
-	internal const MImplO IMPL_OPTIONS = MImplO.AggressiveInlining | MImplO.AggressiveOptimization;
-
-#if EXTRA
-	#region QWrite
-
-	internal static Action<object> DefaultQWriteFunction = Console.WriteLine;
-
-	[StringFormatMethod(nameof(s))]
-	internal static void QWrite(string s, params object[] args)
-		=> QWrite(s, DefaultQWriteFunction, args: args);
-
-	[StringFormatMethod(nameof(s))]
-	internal static void QWrite(string s, Action<object> writeFunction = null, string category = null,
-	                            [CallerArgumentExpression(nameof(s))] string sz = null, params object[] args)
-	{
-		writeFunction ??= DefaultQWriteFunction;
-
-		var fmt = new object[args.Length];
-
-		int i = 0;
-
-		foreach (object obj in args) {
-			string s2 = obj switch
-			{
-				object[] rg => rg.QuickJoin(),
-				Array r     => r.CastObjectArray().QuickJoin(),
-				string str  => str,
-				_           => obj.ToString()
-			};
-
-			if (obj.GetType().IsAnyPointer()) {
-				s = FormatHelper.ToHexString(obj);
-			}
-
-			else if (EnumerableHelper.TryCastDictionary(obj as IDictionary, out var kv)) {
-				s = kv.Select(x => $"{x.Key} = {x.Value}")
-					.QuickJoin("\n");
-			}
-
-			fmt[i++] = s2;
-
-		}
-
-		s = String.Format(s, fmt);
-
-		if (category is { }) {
-			s = $"[{category}] " + s;
-
-		}
-
-		if (sz is { }) {
-			s = $"[{sz}] " + s;
-		}
-
-		writeFunction(s);
-
-	}
-
-	#endregion
-#endif
-
 	//CS8058
+	internal const string BUILD_NCLRI          = "NCLRI";
 	internal const string DIAG_ID_EXPERIMENTAL = "NV0001";
 
 }

@@ -836,8 +836,7 @@ public static unsafe class Mem
 		}
 
 		if (totalBits > sizeInBytes) {
-			throw new ArgumentOutOfRangeException(nameof(totalBits),
-			                                      $"Total bits must be less than or equal to {sizeInBytes}.");
+			throw new ArgumentOutOfRangeException(nameof(totalBits), $"Total bits must be less than or equal to {sizeInBytes}.");
 		}
 
 		ulong  numericValue = Convert.ToUInt64(value);

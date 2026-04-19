@@ -14,6 +14,7 @@ namespace Novus.Win32;
 
 public static unsafe partial class Native
 {
+
 	[DllImport(DBGHELP_DLL)]
 	private static extern ImageNtHeaders* ImageNtHeader([In] nint hModule);
 
@@ -60,8 +61,7 @@ public static unsafe partial class Native
 	public static extern bool SymGetModuleInfoW64(IntPtr hProcess, ulong qwAddr, ref ImageHelpModule64 ModuleInfo);
 
 	[return: MA(UT.Bool)]
-	public delegate bool PFINDFILEINPATHCALLBACK([MA(UT.LPTStr)] string filename,
-	                                             [In, Opt]       nint   context);
+	public delegate bool PFINDFILEINPATHCALLBACK([MA(UT.LPTStr)] string filename, [In, Opt] nint context);
 
 
 	[return: MA(UT.Bool)]

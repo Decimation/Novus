@@ -157,7 +157,7 @@ public static class AllocManager
 	}
 
 
-	public static object New(Type t, object[] ctor)
+	public static object New(Type t, params object[] ctor)
 	{
 		var m = typeof(AllocManager).GetRuntimeMethods()
 		                            .First(x => x is { Name: nameof(New), ContainsGenericParameters: true });
@@ -169,16 +169,15 @@ public static class AllocManager
 	/// <summary>
 	/// <seealso cref="Mem.InitInline{T}"/>
 	/// </summary>
-	public static T New<T>(object[] ctor) where T : class
+	public static T New<T>(params object[] ctor) where T : class
 	{
 		int size = Mem.SizeOf<T>(SizeOfOption.BaseInstance);
 		var ptr  = Alloc((nuint) size);
 
 		var value = Mem.InitInline<T>(ptr, out var ptr2);
 
-		if (ctor.Any()) {
-			var cc = ReflectionHelper.CallConstructor(value, ctor);
-		}
+		var cc = ReflectionHelper.CallConstructor(value, ctor);
+		// if (ctor.Any()) { }
 
 		return value;
 	}

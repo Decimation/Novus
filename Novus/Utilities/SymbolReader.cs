@@ -38,7 +38,7 @@ using Novus.Runtime;
 namespace Novus.Utilities;
 
 /// <summary>
-/// Windows PDB reader
+/// Symbol (PDB) reader
 /// </summary>
 [SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 public sealed class SymbolReader : IDisposable
@@ -194,6 +194,14 @@ public sealed class SymbolReader : IDisposable
 		// Initialize DbgHelp and load symbols for all modules of the current process 
 		return Native.SymInitialize(handle, SymbolPath, false);
 	}
+
+	/*
+	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
+	 * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
+	 *
+	 * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
+	 *
+	 */
 
 	public static async Task<string> SymchkSymbolFileAsync(string fname, [CBN] string o = null)
 	{

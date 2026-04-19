@@ -85,13 +85,7 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace Test;
 
-/*
- * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
- * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
- *
- * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
- *
- */
+
 /*
  * 🌟 Novus				https://github.com/Decimation/Novus
  * ⨉ NeoCore			https://github.com/Decimation/NeoCore
@@ -100,9 +94,11 @@ namespace Test;
  * ◆ Kantan				https://github.com/Decimation/Kantan
  *
  */
+
 /*
  * https://github.com/IS4Code/SharpUtils
  */
+
 /* Runtime
  *
  * https://github.com/dotnet/runtime
@@ -171,21 +167,12 @@ public static class Program
 		s.SizeOfStruct = (uint) Marshal.SizeOf<ImageHelpModule64>();
 		Native.SymGetModuleInfoW64(hProcess, baseAddr, ref s);*/
 		
-		using var r      = new RuntimeResource(Process.GetCurrentProcess(), "coreclr.dll");
-		var       import = r.FindImport(new ImportClrAttribute("g_pGCHeap", ImportType.Symbol));
-		Console.WriteLine(import);
-		decimal[] rg     = new Decimal[369];
-		Console.WriteLine(Mem.SizeOf(rg, SizeOfOption.Auto));
-		Console.WriteLine(Mem.HeapSizeOf(rg));
+		var ls=AllocManager.New<List<int>>();
+		ls.Add(1);
+		Console.WriteLine(ls);
+		Console.WriteLine(GCHeap.IsHeapPointer(ls));
+		AllocManager.Free(ls);
 
-		Console.WriteLine(GCHeap.IsLargeObject(rg));
-		// Global.Setup();
-
-		// Test7();
-		// Global.Clr.Unload(typeof(TypeHandle));
-
-		// sym.LoadAllSymbols();
-		// sym.Dispose();
 	}
 
 	private static unsafe void Test7()

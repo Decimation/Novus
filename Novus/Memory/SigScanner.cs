@@ -75,7 +75,7 @@ public sealed class SigScanner
 	}
 
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static SigScanner FromProcess(Process proc, ProcessModule module)
+	public static SigScanner FromProcessModule(Process proc, ProcessModule module)
 	{
 		var ptr    = module.BaseAddress;
 		var size   = (ulong) module.ModuleMemorySize;
@@ -84,11 +84,7 @@ public sealed class SigScanner
 		return new SigScanner(ptr, size, buffer);
 	}
 
-	public static Pointer<byte>[] ScanCurrentProcess(string sig)
-		=> ScanProcess(Process.GetCurrentProcess(), sig);
-
-	public static Pointer<byte>[] ScanProcess(Process p, string sig)
-		=> ScanProcess(p, ReadSignature(sig));
+	public static Pointer<byte>[] ScanProcess(Process p, string sig) => ScanProcess(p, ReadSignature(sig));
 
 	public static Pointer<byte>[] ScanProcess(Process p, byte[] s)
 	{
@@ -98,7 +94,7 @@ public sealed class SigScanner
 
 		Parallel.ForEach(modules, (module, token) =>
 		{
-			var ss = FromProcess(p, module);
+			var ss = FromProcessModule(p, module);
 
 			var px = ss.FindSignatures(s, pointer =>
 			{

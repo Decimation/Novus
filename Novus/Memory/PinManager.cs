@@ -1,14 +1,10 @@
 ﻿// Author: Deci | Project: Novus | Name: PinManager.cs
 // Date: 2026/04/11 @ 12:04:37
 
-#region
-
 using System.Diagnostics;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using Novus.Runtime;
-
-#endregion
 
 // ReSharper disable ClassCannotBeInstantiated
 
@@ -59,11 +55,9 @@ public static class PinManager
 	/// <summary>
 	///     <paramref name="obj" /> will be *temporarily* pinned while action is being invoked
 	/// </summary>
-	public static void InvokeWhilePinned(object obj, Action<object> action)
-		=> s_pinImpl(obj, action);
+	public static void InvokeWhilePinned(object obj, Action<object> action) => s_pinImpl(obj, action);
 
-	public static bool IsPinned(object obj)
-		=> s_pinResetEvents.ContainsKey(obj);
+	public static bool IsPinned(object obj)=> s_pinResetEvents.ContainsKey(obj);
 
 	public static unsafe bool Pin(object obj, [CBN] object s = null)
 	{

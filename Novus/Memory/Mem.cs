@@ -89,6 +89,7 @@ using ActionFunctor = Action<object, Action<object>>;
 /// <seealso cref="NativeLibrary"/>
 /// <seealso cref="System.Runtime.CompilerServices" />
 /// <seealso cref="System.Runtime.CompilerServices.JitHelpers"/>
+/// <seealso cref="RuntimeHelpers.CoreCLR.cs"/>
 public static unsafe class Mem
 {
 

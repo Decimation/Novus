@@ -23,7 +23,10 @@ using Novus.Win32.Wrappers;
 using Novus.OS;
 using Novus.Win32;
 using System.Text;
+using Flurl;
+using Flurl.Http;
 using Novus.Runtime;
+// ReSharper disable StringLastIndexOfIsCultureSpecific.1
 
 
 // ReSharper disable UnusedParameter.Local
@@ -44,12 +47,11 @@ namespace Novus.Utilities;
 public sealed class SymbolReader : IDisposable
 {
 
-	private bool  m_disposed;
+	private bool m_disposed;
+
 	private ulong m_modBase;
 
-	private ImageHelpModule64 m_imageModule;
-
-	public ImageHelpModule64 ImageModule => m_imageModule;
+	public ImageHelpModule64 ImageModule { get; private set; }
 
 	private static readonly Func<Symbol, bool> AnyPredicate = static _ => true;
 
@@ -60,10 +62,6 @@ public sealed class SymbolReader : IDisposable
 	public nint Handle { get; }
 
 	public ConcurrentBag<Symbol> Symbols { get; }
-
-	public static string SymbolPath => Environment.GetEnvironmentVariable(ENV_VAR_NT_SYMBOL_PATH, EnvironmentVariableTarget.Machine);
-
-	public const string ENV_VAR_NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
 
 	public const string EXT_PDB = ".pdb";
 	public const string EXT_DLL = ".dll";
@@ -77,9 +75,8 @@ public sealed class SymbolReader : IDisposable
 		Handle = handle;
 		Image  = image;
 
-		m_modBase     = LoadModule();
-		m_disposed    = false;
-		m_imageModule = new ImageHelpModule64() { };
+		m_modBase  = LoadModule();
+		m_disposed = false;
 
 		Trace.WriteLine($"handle {handle:X} | image: {image} @ {m_modBase:X}", nameof(SymbolReader));
 
@@ -177,8 +174,11 @@ public sealed class SymbolReader : IDisposable
 
 		var effectiveBase = modBase != 0 ? modBase : VIRTUAL_BASE;
 
-		Native.SymGetModuleInfoW64(Handle, modBase, ref m_imageModule);
+		var im = new ImageHelpModule64();
 
+		bool ok2 = Native.SymGetModuleInfoW64(Handle, modBase, ref im);
+
+		ImageModule = im;
 
 		return effectiveBase;
 	}
@@ -203,20 +203,29 @@ public sealed class SymbolReader : IDisposable
 	 *
 	 */
 
+#region
+
+	public static string SymbolPath => Environment.GetEnvironmentVariable(ENV_VAR_NT_SYMBOL_PATH, EnvironmentVariableTarget.Machine);
+
+	public const string ENV_VAR_NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
+
+	[ICBN]
 	public static async Task<string> SymchkSymbolFileAsync(string fname, [CBN] string o = null)
 	{
+		if (!File.Exists(fname)) {
+			throw new FileNotFoundException(null, fname);
+		}
+
 		o ??= FileSystem.GetPath(KnownFolder.Downloads);
+		
+		var outFile = Path.Combine(o, Path.ChangeExtension(Path.GetFileName(fname), EXT_PDB));
 
 		// symchk.exe .\urlmon.dll /s SRV*"C:\Symbols\"*http://msdl.microsoft.com/download/symbols /osdbc \.
 		//symchk /os <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /oc <output>
 		//symchk <input> /su "SRV**http://msdl.microsoft.com/download/symbols" /osc <output>
 
-		if (!File.Exists(fname)) {
-			throw new FileNotFoundException(null, fname);
-		}
-
 		var cmd = Cli.Wrap(ER.E_Symchk)
-		             .WithArguments(["/if", fname, "/su", $"SRV**{ER.MicrosoftSymbolServer}", "/oscdb", o], true)
+		             .WithArguments(["/if", fname, "/su", $"SRV**{ER.MicrosoftSymbolServer}", "/oscdb", outFile], true)
 		             .WithValidation(CommandResultValidation.None);
 
 		var bcr = await cmd.ExecuteBufferedAsync();
@@ -224,27 +233,41 @@ public sealed class SymbolReader : IDisposable
 		var error  = bcr.StandardError;
 		var stdOut = bcr.StandardOutput;
 
+		const StringSplitOptions OPTIONS = StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries;
+
+		var stdOutSplit = stdOut.Split(Environment.NewLine, OPTIONS);
+
 		/*
-		if (!string.IsNullOrWhiteSpace(error)) {
-			// process.Dispose();
+		 * 0: [SOURCE FILE] [STATUS]
+		 * 1: [PDB]
+		 * 2: [DBG]
+		 */
+
+		var stdOutSplit0 = stdOutSplit[0].Split(["SYMCHK: ", "-", "PDB: ", "DBG: "], OPTIONS);
+
+		const string STATUS_PASSED = "PASSED";
+
+		var indexOf = stdOutSplit0[0].LastIndexOf(STATUS_PASSED);
+
+		if (indexOf == -1) {
 			return null;
 		}
-		*/
 
-		var outFile = Path.Combine(o, Path.GetFileNameWithoutExtension(fname) + EXT_PDB);
+		var srcFile = stdOutSplit0[0][..(indexOf - 1)];
+		var pdbFile = stdOutSplit0[1];
 
-		if (!File.Exists(outFile)) {
-			throw new FileNotFoundException(null, outFile);
-		}
+		outFile = File.Exists(outFile) ? outFile : (File.Exists(pdbFile) ? pdbFile : null);
 
 		return outFile;
 	}
 
 
-	public static async Task<string> DownloadSymbolFileAsync(string fname, string o)
+	[ICBN]
+	public static async Task<string> DownloadSymbolFileAsync(string fname, [CanBeNull] string o = null)
 	{
 		// fname=FileSystem.SearchInPath(fname);
-		fname = Path.GetFullPath(fname);
+		fname =   Path.GetFullPath(fname);
+		o     ??= FileSystem.GetPath(KnownFolder.Downloads);
 
 		using var peReader = new PEReader(File.OpenRead(fname));
 
@@ -255,8 +278,7 @@ public sealed class SymbolReader : IDisposable
 
 		// var cacheDirectoryPath = Global.ProgramData;
 
-		o ??= FileSystem.GetPath(KnownFolder.Downloads);
-		using var wc = new WebClient();
+		IFlurlResponse res = null;
 
 		// Check if the correct version of the PDB is already cached
 		var path       = Path.ChangeExtension(fname, EXT_PDB);
@@ -280,38 +302,47 @@ public sealed class SymbolReader : IDisposable
 			goto ret;
 		}
 
-		var uriString = $"{ER.MicrosoftSymbolServer}{fileName}/{pdbData.Guid:N}{pdbData.Age}/{fileName}";
+		var url = Url.Combine(ER.MicrosoftSymbolServer, fileName, $"{pdbData.Guid:N}{pdbData.Age}", fileName);
 
-		await wc.DownloadFileTaskAsync(new Uri(uriString), pdbFilePath);
+		res = await url.GetAsync();
 
-		// wc.DownloadFile(new Uri(uriString), pdbFilePath);
+		if (!res.ResponseMessage.IsSuccessStatusCode) {
+			pdbFilePath = null;
+			goto ret;
+		}
+
+		var bytes = await res.GetBytesAsync();
+
+		await File.WriteAllBytesAsync(pdbFilePath, bytes);
 
 	ret:
-
+		res?.Dispose();
 		return pdbFilePath;
 	}
 
-	public static IEnumerable<string> EnumerateSymbolPath(string pattern, string symPath = ENV_VAR_NT_SYMBOL_PATH)
+	public static IEnumerable<string> EnumerateSymbolPath(string pattern, string symPath = null)
 	{
 		// var nt = Environment.ExpandEnvironmentVariables(symPath);
-		var nt = Environment.GetEnvironmentVariable(symPath, EnvironmentVariableTarget.Machine);
+		symPath ??= SymbolPath;
 
 		/*
 		var nt = Environment.GetEnvironmentVariable(symPath, EnvironmentVariableTarget.Machine)?
 			.Split(FileSystem.PathDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 			*/
 
-		if (!Path.Exists(nt) || nt == null) {
+		if (!Path.Exists(symPath)) {
 			return [];
 		}
 
-		return Directory.EnumerateFiles(nt, pattern, new EnumerationOptions()
+		return Directory.EnumerateFiles(symPath, pattern, new EnumerationOptions()
 		{
 			MatchType             = MatchType.Simple,
 			RecurseSubdirectories = true,
 			MaxRecursionDepth     = 3
 		});
 	}
+
+#endregion
 
 	public void Dispose()
 	{
@@ -320,6 +351,11 @@ public sealed class SymbolReader : IDisposable
 		Symbols.Clear();
 		m_modBase  = 0;
 		m_disposed = true;
+	}
+
+	public override string ToString()
+	{
+		return $"{nameof(Image)}: {Image} | {nameof(Handle)}: {Handle:X} | {nameof(Symbols)} : {Symbols.Count}";
 	}
 
 }

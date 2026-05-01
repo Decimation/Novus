@@ -26,4 +26,5 @@ public static unsafe partial class Native
 	public const int FOF_ALLOWUNDO      = 0x0040;
 	public const int FOF_NOCONFIRMATION = 0x0010;
 
+
 }

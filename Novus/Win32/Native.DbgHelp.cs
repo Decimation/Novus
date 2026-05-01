@@ -30,8 +30,7 @@ public static unsafe partial class Native
 	internal delegate bool EnumSymbolsCallback(nint symInfo, uint symbolSize, nint pUserContext);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
-	internal static extern bool SymEnumSymbols(nint                hProcess, ulong modBase, string mask,
-	                                           EnumSymbolsCallback callback, nint  pUserContext);
+	internal static extern bool SymEnumSymbols(nint hProcess, ulong modBase, string mask, EnumSymbolsCallback callback, nint pUserContext);
 
 	[DllImport(DBGHELP_DLL, CharSet = CharSet.Unicode)]
 	internal static extern SymbolOptions SymGetOptions();

@@ -1,11 +1,13 @@
 ﻿// global using TADDR = nuint;
 
-using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.Imports.Attributes;
 using Novus.Memory;
 using Novus.Runtime.VM.Tokens;
 using Novus.Win32;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnusedMember.Global
@@ -27,45 +29,65 @@ public unsafe struct TypeHandle
 		Global.Clr.LoadImports(typeof(TypeHandle));
 	}
 
-	[field: FieldOffset(0)]
-	public void* Value { get; set; }
+	/// <summary>
+	/// The address of the current type handle object.
+	/// </summary>
+	[FieldOffset(0)]
+	private void* m_asTAddr;
 
-	[field: FieldOffset(0)]
-	public ulong TAddr { get; set; }
-
-	[field: FieldOffset(0)]
-	public MethodTable* AsMethodTable { get; set; }
-
-	[field: FieldOffset(0)]
-	public TypeDesc* AsTypeDesc { get; set; }
-
-	internal Pointer<MethodTable> MethodTable
+	[MethodImpl(MImplO.AggressiveInlining)]
+	internal TypeHandle(void* tAddr)
 	{
-		get
-		{
-			fixed (TypeHandle* p = &this) {
-				return Func_GetMethodTable(p);
-			}
-		}
+		m_asTAddr = tAddr;
 	}
 
-	/*internal bool IsTypeDesc
-	{
-		get { return (((nuint) Value) & 2) != 0; }
-	}*/
-
-	internal TypeDesc* AsTypeDesc1 => (TypeDesc*) ((nuint) Value - 2);
-
-	internal bool IsMethodTable => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.MethodTable;
-
-	internal bool IsTypeDesc => ((TypeHandleBits) (nuint) Value & TypeHandleBits.ValidMask) == TypeHandleBits.TypeDesc;
-
-	internal CorElementType CorElementType => (CorElementType) Func_GetCorElemType((void*) TAddr);
-
-#region 
+	/// <summary>
+	/// Gets whether the current instance wraps a <see langword="null"/> pointer.
+	/// </summary>
+	public bool IsNull => m_asTAddr is null;
 
 	/// <summary>
-	/// <see cref="TypeHandle.MethodTable"/>
+	/// Gets whether or not this <see cref="TypeHandle"/> wraps a <c>TypeDesc</c> pointer.
+	/// Only if this returns <see langword="false"/> it is safe to call <see cref="AsMethodTable"/>.
+	/// </summary>
+	public bool IsTypeDesc
+	{
+		[MethodImpl(MImplO.AggressiveInlining)]
+		get => ((nint) m_asTAddr & 2) != 0;
+	}
+
+	/// <summary>
+	/// Gets the <see cref="MethodTable"/> pointer wrapped by the current instance.
+	/// </summary>
+	/// <remarks>This is only safe to call if <see cref="IsTypeDesc"/> returned <see langword="false"/>.</remarks>
+	[MethodImpl(MImplO.AggressiveInlining)]
+	public MethodTable* AsMethodTable()
+	{
+		Debug.Assert(!IsTypeDesc);
+
+		return (MethodTable*) m_asTAddr;
+	}
+
+	/// <summary>
+	/// Gets the <see cref="TypeDesc"/> pointer wrapped by the current instance.
+	/// </summary>
+	/// <remarks>This is only safe to call if <see cref="IsTypeDesc"/> returned <see langword="true"/>.</remarks>
+	[MethodImpl(MImplO.AggressiveInlining)]
+	public TypeDesc* AsTypeDesc()
+	{
+		Debug.Assert(IsTypeDesc);
+
+		return (TypeDesc*) ((nint) m_asTAddr & ~2); // Drop the second lowest bit.
+	}
+
+	public static bool AreSameType(TypeHandle left, TypeHandle right) => left.m_asTAddr == right.m_asTAddr;
+
+	internal CorElementType CorElementType => (CorElementType) Func_GetCorElemType(m_asTAddr);
+
+#region
+
+	/// <summary>
+	/// <see cref="MethodTable"/>
 	/// </summary>
 	[field: ImportClr("Sym_GetMethodTable", ImportType.Symbol)]
 	private static delegate* unmanaged<TypeHandle*, MethodTable*> Func_GetMethodTable { get; }
@@ -76,7 +98,7 @@ public unsafe struct TypeHandle
 	[field: ImportClr("Sig_GetCorElemType")]
 	private static delegate* unmanaged<void*, int> Func_GetCorElemType { get; }
 
-	#endregion
+#endregion
 
 }
 

@@ -177,33 +177,10 @@ public static class Program
 		Console.WriteLine(clrObj);
 		Console.WriteLine(clrObj2);*/
 
-		Span<byte> stack    = stackalloc byte[Mem.SizeOf<List<int>>()];
-		var        stackPtr = stack.ToPointer();
-
-		var initStack = Mem.InitInline<List<int>>(stackPtr, out var ptrOrig);
-
-		ReflectionHelper.CallConstructor(initStack);
-
-		Console.WriteLine(stackPtr);
-
-		var mt    = typeof(List<int>).AsMetaType();
-		var mtFlds = mt.Fields.Where(f => f is { IsStatic: false, FieldType: { IsReferenceOrContainsReferences: true } });
-
-		foreach (var mf1 in mtFlds) {
-			var fldPtr = stackPtr + mf1.Offset;
-			Console.WriteLine($"{mf1} @ {fldPtr} | {GCHeap.IsHeapPointer(fldPtr)}");
-			var fldPtr2 = fldPtr.ReadPointer();
-			Console.WriteLine($"{mf1} @ {fldPtr2} | {GCHeap.IsHeapPointer(fldPtr2)}");
-
-		}
-
-		Console.WriteLine(stackPtr);
-		Console.WriteLine(ptrOrig);
-
-		Console.WriteLine(initStack);
-		initStack.Add(3);
-		Console.WriteLine(initStack.Count);
-		Console.WriteLine(initStack[0]);
+		var mem = AllocManager.New<List<int>>();
+		Console.WriteLine(mem);
+		mem.Add(1);
+		Console.WriteLine(mem.Count);
 	}
 
 	private static unsafe void Test7()
@@ -245,7 +222,7 @@ public static class Program
 		Pointer<MethodTable> mt = ObjectUtility.GetMethodTable(obj);
 
 		// Type                 t   = typeof(MyClass);
-		// TypeHandle           mt2 = ObjectUtility.ResolveTypeHandle(t);
+		// TypeHandle           mt2 = ObjectUtility.ToTypeHandle(t);
 
 		Console.WriteLine($"MT: {mt}");
 

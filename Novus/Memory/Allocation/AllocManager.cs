@@ -166,18 +166,28 @@ public static class AllocManager
 	}
 
 	/// <summary>
-	/// <seealso cref="Mem.InitInline{T}"/>
+	/// Allocates and initializes an object of type <typeparamref name="T"/>. <p/>
+	/// <list type="number">
+	/// <item>
+	/// <see cref="SizeOfOption.BaseInstance"/> bytes are allocated
+	///
+	/// </item>
+	/// <item>
+	/// An instance is constructed in-memory using <see cref="Mem.New{T}"/>
+	/// </item>
+	/// <item>
+	/// A constructor is invoked on the instance if one is found matching parameters <paramref name="ctor"/>
+	/// </item>
+	/// </list>
 	/// </summary>
 	public static T New<T>(params object[] ctor) where T : class
 	{
 		int size = Mem.SizeOf<T>(SizeOfOption.BaseInstance);
 		var ptr  = Alloc((nuint) size);
 
-		var value = Mem.InitInline<T>(ptr, out var ptr2);
+		var value = Mem.New<T>(ptr, out var ptr2);
 
 		var cc = ReflectionHelper.CallConstructor(value, ctor);
-
-		// if (ctor.Any()) { }
 
 		return value;
 	}

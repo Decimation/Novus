@@ -145,35 +145,6 @@ public static unsafe class ObjectUtility
 #region
 
 	/// <summary>
-	///     <see cref="IsPinnable" />
-	/// </summary>
-	[field: ImportManaged(typeof(Marshal), "IsPinnable")]
-	private static delegate* managed<object, bool> Func_IsPinnable { get; }
-
-	/// <summary>
-	///     <see cref="ResolveToType" />
-	/// </summary>
-	[field: ImportManaged(typeof(Type), "GetTypeFromHandle")]
-	private static delegate* managed<nint, Type> Func_GetTypeFromHandle { get; }
-
-	/// <summary>
-	///     <see cref="GetMethodTable{T}" />
-	/// </summary>
-	[field: ImportManaged(typeof(RuntimeHelpers), "GetMethodTable")]
-	private static delegate* managed<object, MethodTable*> Func_GetMethodTable { get; }
-
-	[field: ImportManaged(typeof(RuntimeHelpers), "GetRawObjectDataSize")]
-	private static delegate* managed<object, int> Func_GetRawObjDataSize { get; }
-
-	[field: ImportManaged(typeof(RuntimeHelpers), "GetElementSize")]
-	private static delegate* managed<object, int> Func_GetElementSize { get; }
-
-#endregion
-
-
-#region
-
-	/// <summary>
 	/// Equals <see cref="Mem.SizeOf()"/> with <see cref="SizeOfOption.Data"/>
 	/// </summary>
 	/// <see cref="RuntimeHelpers.GetRawObjectDataSize"/>
@@ -206,7 +177,7 @@ public static unsafe class ObjectUtility
 	public static Pointer<MethodTable> GetMethodTable<T>(in T value)
 	{
 		/*var type = value.GetType();
-		return ResolveToMethodTable(type);*/
+		return ToMethodTable(type);*/
 		return Func_GetMethodTable(value);
 	}
 
@@ -232,36 +203,45 @@ public static unsafe class ObjectUtility
 	/// <summary>
 	///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ResolveToMethodTable" /></remarks>
-	public static Type ResolveToType(Pointer<MethodTable> handle) => Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
+	/// <seealso cref="RuntimeTypeHandle.FromIntPtr"/>
+	/// <remarks>Inverse of <see cref="ToMethodTable" /></remarks>
+	public static Type ToType(Pointer<MethodTable> handle) => Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ResolveToType" /></remarks>
-	public static Pointer<MethodTable> ResolveToMethodTable(Type t)
+	/// <remarks>Inverse of <see cref="ToType" /></remarks>
+	public static Pointer<MethodTable> ToMethodTable(Type t)
 	{
 		/*var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;
 		return value.MethodTable;*/
 
 		/*
-		var typeHandle = ResolveTypeHandle(t);
+		var typeHandle = ToTypeHandle(t);
 		return typeHandle.MethodTable;*/
 
-		return t.TypeHandle.Value;
+		// return t.TypeHandle.Value;
+
+		var th = ToTypeHandle(t).AsMethodTable();
+		return th;
 	}
+
+	public static Pointer<MethodTable> ToMethodTable<T>() => ToMethodTable(typeof(T));
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ResolveToType" /></remarks>
-	public static TypeHandle ResolveTypeHandle(Type t)
+	/// <remarks>Inverse of <see cref="ToType" /></remarks>
+	public static TypeHandle ToTypeHandle(Type t)
 	{
-		var handle = t.TypeHandle.Value;
+		/*var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;
-		return value;
+		return value;*/
+		return new TypeHandle((void*) RuntimeTypeHandle.ToIntPtr(t.TypeHandle));
 	}
+
+	public static TypeHandle ToTypeHandle<T>() => ToTypeHandle(typeof(T));
 
 #endregion
 
@@ -408,6 +388,34 @@ public static unsafe class ObjectUtility
 		return test;
 
 	}
+
+#endregion
+
+#region
+
+	/// <summary>
+	///     <see cref="IsPinnable" />
+	/// </summary>
+	[field: ImportManaged(typeof(Marshal), "IsPinnable")]
+	private static delegate* managed<object, bool> Func_IsPinnable { get; }
+
+	/// <summary>
+	///     <see cref="ToType" />
+	/// </summary>
+	[field: ImportManaged(typeof(Type), "GetTypeFromHandle")]
+	private static delegate* managed<nint, Type> Func_GetTypeFromHandle { get; }
+
+	/// <summary>
+	///     <see cref="GetMethodTable{T}" />
+	/// </summary>
+	[field: ImportManaged(typeof(RuntimeHelpers), "GetMethodTable")]
+	private static delegate* managed<object, MethodTable*> Func_GetMethodTable { get; }
+
+	[field: ImportManaged(typeof(RuntimeHelpers), "GetRawObjectDataSize")]
+	private static delegate* managed<object, int> Func_GetRawObjDataSize { get; }
+
+	[field: ImportManaged(typeof(RuntimeHelpers), "GetElementSize")]
+	private static delegate* managed<object, int> Func_GetElementSize { get; }
 
 #endregion
 

@@ -811,7 +811,7 @@ public static unsafe class Mem
 	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
 	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
 	/// <see cref="SizeOfOption.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
-	/// <seealso cref="AllocManager.InitInline{T}"/>
+	/// <seealso cref="AllocManager.New{T}"/>
 	/// </summary>
 	/// <typeparam name="T">Type to initialize</typeparam>
 	/// <param name="ptr">Memory within which to initialize the instance</param>
@@ -819,15 +819,21 @@ public static unsafe class Mem
 	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
 	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
 	[MURV]
-	public static ref T InitInline<T>(Pointer<byte> ptr, out Pointer<byte> ptrOrig) where T : class
+	public static ref T New<T>(Pointer<byte> ptr, out Pointer<byte> ptrOrig) where T : class
 	{
 		ptrOrig = ptr;
-		ptr.Cast<ClrObjHeader>().Write(default);
+		
+		Unsafe.Write(ptr, default(ClrObjHeader));
+		// ptr.Cast<ClrObjHeader>().Write(default);
 		ptr += ObjectUtility.ObjHeaderSize;
-		ptr.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
+		Unsafe.Write(ptr, ObjectUtility.ToTypeHandle<T>());
+		// ptr.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
 
 		// return ref Unsafe.AsRef<T>(ptr);
-		return ref AddressOf(ref ptr).Cast<T>().Reference;
+
+		// return ref AddressOf(ref ptr).Cast<T>().Reference;
+		ref var val = ref Unsafe.AsRef<T>(&ptr);
+		return ref val;
 	}
 
 #endregion

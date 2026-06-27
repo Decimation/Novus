@@ -1,6 +1,8 @@
 ﻿using Novus.Win32.Structures.User32;
 using System.Runtime.InteropServices;
 using System.Text;
+using Novus.Utilities;
+using Novus.Win32.Structures.DbgHelp;
 
 namespace Novus.Win32;
 
@@ -26,5 +28,7 @@ public static unsafe partial class Native
 	public const int FOF_ALLOWUNDO      = 0x0040;
 	public const int FOF_NOCONFIRMATION = 0x0010;
 
+
+	
 
 }

@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
+using Novus.FileTypes.Impl;
 using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
 using InputRecord = Novus.Win32.Structures.User32.InputRecord;
@@ -275,6 +276,7 @@ public static unsafe partial class Native
 	[DllImport(USER32_DLL, SetLastError = true)]
 	[return: MA(UT.U2)]
 	public static extern short RegisterClassEx(ref WNDCLASSEX lpwcx);
+
 
 }
 

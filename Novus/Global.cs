@@ -26,6 +26,7 @@ global using MNW = System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute;
 global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAttribute;
 global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 global using Opt = System.Runtime.InteropServices.OptionalAttribute;
+global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
 
 #endregion
 
@@ -130,7 +131,7 @@ namespace Novus;
 ///         </item>
 ///         <item>
 ///             <description>
-///                 <see cref="SymbolReader" />
+///                 <see cref="SymbolHandler" />
 ///             </description>
 ///         </item>
 ///         <item>
@@ -149,7 +150,7 @@ public static class Global
 	/// </summary>
 	public const string LIB_NAME = "Novus";
 
-	#region 
+#region
 
 	/// <summary>
 	///     Runtime CLR module name
@@ -173,7 +174,7 @@ public static class Global
 	/// </summary>
 	public static RuntimeResource Clr { get; private set; }
 
-	#endregion
+#endregion
 
 	public static bool IsSetup { get; private set; }
 
@@ -256,10 +257,14 @@ public static class Global
 		using var setupScope = s_logger.BeginScope(nameof(Setup));
 
 		s_logger.LogTrace("Module init :: {Name}", ER.Name);
-		s_logger.LogTrace("Runtime: {EnvVer} | Target: {ClrVer}", Environment.Version, Version);
+		s_logger.LogTrace("Runtime version: {EnvVer} | Target version: {ClrVer}", Environment.Version, Version);
+
+		if (!IsCorrectVersion) {
+			s_logger.LogWarning("Target version does not match runtime!");
+		}
 
 		if (RuntimeInformation.IsInteractiveHost) {
-			s_logger.LogWarning("Interactive host");
+			s_logger.LogWarning("Interactive host!");
 		}
 
 		if (!OperatingSystem.IsWindows()) {
@@ -308,7 +313,7 @@ public static class Global
 
 		// var path=FileSystem.EnumerateInPath(CLR_PDB);
 
-		var path = SymbolReader.EnumerateSymbolPath(CLR_PDB);
+		var path = SymbolHandler.EnumerateSymbolPath(CLR_PDB);
 
 		if (path == null) {
 			return null;

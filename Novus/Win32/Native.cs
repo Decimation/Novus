@@ -1,12 +1,12 @@
 ﻿// global using LI = System.Runtime.InteropServices.LibraryImportAttribute;
 
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using JetBrains.Annotations;
 using Novus.Memory;
 using Novus.OS;
 using Novus.Runtime;
@@ -16,6 +16,7 @@ using Novus.Win32.Structures.Ntdll;
 using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
 using Novus.Win32.Wrappers;
+// ReSharper disable AnnotateNotNullParameter
 
 // #pragma warning disable CA1401, CA2101
 // ReSharper disable IdentifierTypo
@@ -92,11 +93,150 @@ public static unsafe partial class Native
 
 #endregion
 
-	public static nint GetStdOutputHandle()
-		=> GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+#region Console
+
+	public static void SetConsoleFont(string name, short y, FontFamily ff = FontFamily.FF_DONTCARE, FontWeight fw = FontWeight.FW_NORMAL)
+	{
+		ConsoleFontInfo ex = new()
+		{
+			FontFamily = ff,
+			FontWeight = fw,
+			FaceName   = name
+		};
+
+		ex.dwFontSize.X = 0;
+		ex.dwFontSize.Y = y;
+
+		SetConsoleFont(ex);
+	}
+
+	public static ConsoleFontInfo GetConsoleFont()
+	{
+		ConsoleFontInfo ex = default;
+		ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
+
+		GetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
+		return ex;
+	}
+
+	public static void SetConsoleFont(ConsoleFontInfo ex)
+	{
+		ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
+
+		SetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
+	}
+
+	public static Coord GetConsoleCursorPosition(nint hConsoleOutput)
+	{
+		ConsoleScreenBufferInfo cbsi = default;
+
+		if (GetConsoleScreenBufferInfo(hConsoleOutput, ref cbsi)) {
+			return cbsi.dwCursorPosition;
+		}
+
+		// The function failed. Call GetLastError() for details.
+		Coord invalid = default;
+		return invalid;
+	}
+
+	public static void BringConsoleWindowToFront()
+		=> SetForegroundWindow(GetConsoleWindow());
+
+#endregion
+
+#region Windows
+
+	public static string GetWindowText(nint hWnd)
+	{
+		var sb = new StringBuilder(SIZE_1024);
+
+		var sz = GetWindowText(hWnd, sb, SIZE_1024);
+
+		sb.Length = sz;
+
+		return sb.ToString();
+	}
+
+	public static nint SearchForWindow(string title)
+	{
+		SearchData sd = new() { Title = title };
+		EnumWindows(EnumProc, ref sd);
+		return sd.hWnd;
+	}
+
+	public static void RemoveWindowOnTop(nint p)
+		=> SetWindowPos(p, new((int) HandleWindowPosition.HWND_NOTOPMOST), 0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
+
+	public static void KeepWindowOnTop(nint p)
+		=> SetWindowPos(p, new((int) HandleWindowPosition.HWND_TOPMOST), 0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
+
+	public static nint FindWindow(string lpWindowName)
+		=> FindWindow(IntPtr.Zero, lpWindowName);
+
+	/*public static void DumpSections(IntPtr hModule)
+	{
+		var s = GetPESectionInfo(hModule);
+
+		var table = new ConsoleTable("Number", "Name", "Address", "Size", "Characteristics");
+
+		foreach (var info in s) {
+			table.AddRow(info.Number, info.Name, $"{info.Address.ToInt64():X}", info.Size, info.Characteristics);
+		}
+
+		table.Write();
+
+	}*/
+
+	public static void FlashWindow(nint hWnd)
+	{
+		var fInfo = new FLASHWINFO
+		{
+			cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
+			hwnd      = hWnd,
+			dwFlags   = FlashWindowType.FLASHW_ALL,
+			uCount    = 8,
+			dwTimeout = 75,
+
+		};
+
+		FlashWindowEx(ref fInfo);
+	}
+
+#endregion
+
+#region
+
+	public static bool VirtualFree(Process hProcess, Pointer<byte> lpAddress, int dwSize, AllocationType dwFreeType)
+		=> VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
+
+	public static MemoryBasicInformation VirtualQuery(Process proc, Pointer<byte> lpAddr)
+	{
+		/*
+		 * https://stackoverflow.com/questions/496034/most-efficient-replacement-for-isbadreadptr
+		 * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-isbadreadptr
+		 */
+
+		var mbi = new MemoryBasicInformation();
+
+		int v = VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
+		                       (uint) Marshal.SizeOf<MemoryBasicInformation>());
+
+		return mbi;
+	}
+
+	public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize, AllocationType type, MemoryProtection mp)
+		=> VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
+
+	public static bool VirtualProtect(Process hProcess, Pointer<byte> lpAddress, int dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
+		=> VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect, out lpflOldProtect);
+
+#endregion
 
 	public static nint OpenProcess(Process proc)
 		=> OpenProcess(ProcessAccess.All, false, proc.Id);
+
+	public static nint GetStdOutputHandle()
+		=> GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 
 	public static bool Inject(string dllPath, int pid)
 	{
@@ -157,65 +297,10 @@ public static unsafe partial class Native
 	}
 
 	public static int SendInput(InputRecord[] inputs)
-	{
-		return (int) SendInput((uint) inputs.Length, inputs, Marshal.SizeOf<InputRecord>() * inputs.Length);
-	}
+		=> (int) SendInput((uint) inputs.Length, inputs, Marshal.SizeOf<InputRecord>() * inputs.Length);
 
-	public static string GetWindowText(nint hWnd)
-	{
-		var sb = new StringBuilder(SIZE_1024);
-
-		var sz = GetWindowText(hWnd, sb, SIZE_1024);
-
-		sb.Length = sz;
-
-		return sb.ToString();
-	}
-
-	public static nint SearchForWindow(string title)
-	{
-		SearchData sd = new() { Title = title };
-		EnumWindows(EnumProc, ref sd);
-		return sd.hWnd;
-	}
-
-	public static nint CreateFile(string fileName, FileAccess access, FileShare share, FileMode mode,
-	                              FileAttributes attributes)
-	{
-		return CreateFile(fileName, access, share, IntPtr.Zero,
-		                  mode, attributes, IntPtr.Zero);
-	}
-
-	public static void SetConsoleFont(string name, short y,
-	                                  FontFamily ff = FontFamily.FF_DONTCARE,
-	                                  FontWeight fw = FontWeight.FW_NORMAL)
-	{
-		ConsoleFontInfo ex = default;
-
-		ex.FontFamily   = ff;
-		ex.FontWeight   = fw;
-		ex.FaceName     = name;
-		ex.dwFontSize.X = 0;
-		ex.dwFontSize.Y = y;
-
-		SetConsoleFont(ex);
-	}
-
-	public static ConsoleFontInfo GetConsoleFont()
-	{
-		ConsoleFontInfo ex = default;
-		ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
-
-		GetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
-		return ex;
-	}
-
-	public static void SetConsoleFont(ConsoleFontInfo ex)
-	{
-		ex.cbSize = (uint) Marshal.SizeOf<ConsoleFontInfo>();
-
-		SetCurrentConsoleFontEx(GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE), false, ref ex);
-	}
+	public static nint CreateFile(string fileName, FileAccess access, FileShare share, FileMode mode, FileAttributes attributes)
+		=> CreateFile(fileName, access, share, IntPtr.Zero, mode, attributes, IntPtr.Zero);
 
 	private static bool EnumProc(nint hWnd, ref SearchData data)
 	{
@@ -282,60 +367,6 @@ public static unsafe partial class Native
 		return modules;
 	}
 
-	public static void RemoveWindowOnTop(nint p)
-		=> SetWindowPos(p, new((int) HandleWindowPosition.HWND_NOTOPMOST), 0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
-
-	public static void KeepWindowOnTop(nint p)
-		=> SetWindowPos(p, new((int) HandleWindowPosition.HWND_TOPMOST), 0, 0, 0, 0, WindowFlags.TOPMOST_FLAGS);
-
-	public static nint FindWindow(string lpWindowName)
-		=> FindWindow(IntPtr.Zero, lpWindowName);
-
-	public static Coord GetConsoleCursorPosition(nint hConsoleOutput)
-	{
-		ConsoleScreenBufferInfo cbsi = default;
-
-		if (GetConsoleScreenBufferInfo(hConsoleOutput, ref cbsi)) {
-			return cbsi.dwCursorPosition;
-		}
-
-		// The function failed. Call GetLastError() for details.
-		Coord invalid = default;
-		return invalid;
-	}
-
-	/*public static void DumpSections(IntPtr hModule)
-	{
-		var s = GetPESectionInfo(hModule);
-
-		var table = new ConsoleTable("Number", "Name", "Address", "Size", "Characteristics");
-
-		foreach (var info in s) {
-			table.AddRow(info.Number, info.Name, $"{info.Address.ToInt64():X}", info.Size, info.Characteristics);
-		}
-
-		table.Write();
-
-	}*/
-
-	public static void FlashWindow(nint hWnd)
-	{
-		var fInfo = new FLASHWINFO
-		{
-			cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
-			hwnd      = hWnd,
-			dwFlags   = FlashWindowType.FLASHW_ALL,
-			uCount    = 8,
-			dwTimeout = 75,
-
-		};
-
-		FlashWindowEx(ref fInfo);
-	}
-
-	public static void BringConsoleToFront()
-		=> SetForegroundWindow(GetConsoleWindow());
-
 	public static string GetUnicodeName(ushort id)
 	{
 		/*using var reader = new Win32ResourceReader(UNAME_DLL);
@@ -367,56 +398,16 @@ public static unsafe partial class Native
 	public static nint LoadLibraryEx(string lpFileName, LoadLibraryFlags dwFlags)
 		=> LoadLibraryEx(lpFileName, IntPtr.Zero, dwFlags);
 
-	public static nint HRFromWin32(nint x)
-	{
-		const int FACILITY_WIN32 = 7;
-
-		return (nint) (x <= 0 ? x : (x & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000);
-	}
-
-	[DoesNotReturn]
+	[DNR]
+	[CA("=> halt")]
 	public static void FailWin32Error()
 	{
-		var hr = Marshal.GetHRForLastWin32Error();
-
+		var hr        = Marshal.GetHRForLastWin32Error();
 		var exception = Marshal.GetExceptionForHR(hr);
 
+		// ReSharper disable once UnthrowableException
 		// ReSharper disable once PossibleNullReferenceException
 		throw exception;
-	}
-
-	public static bool VirtualFree(Process hProcess, Pointer<byte> lpAddress, int dwSize, AllocationType dwFreeType)
-	{
-		bool p = VirtualFreeEx(hProcess.Handle, lpAddress.Address, dwSize, dwFreeType);
-
-		return p;
-	}
-
-	public static MemoryBasicInformation VirtualQuery(Process proc, Pointer<byte> lpAddr)
-	{
-		var mbi = new MemoryBasicInformation();
-
-		int v = VirtualQueryEx(proc.Handle, lpAddr.Address, ref mbi,
-		                       (uint) Marshal.SizeOf<MemoryBasicInformation>());
-
-		return mbi;
-	}
-
-	public static Pointer<byte> VirtualAlloc(Process proc, Pointer<byte> lpAddr, int dwSize,
-	                                         AllocationType type, MemoryProtection mp)
-	{
-		nint ptr = VirtualAllocEx(proc.Handle, lpAddr.Address, (uint) dwSize, type, mp);
-
-		return ptr;
-	}
-
-	public static bool VirtualProtect(Process hProcess, Pointer<byte> lpAddress, int dwSize,
-	                                  MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
-	{
-		bool p = VirtualProtectEx(hProcess.Handle, lpAddress.Address, (uint) dwSize, flNewProtect,
-		                          out lpflOldProtect);
-
-		return p;
 	}
 
 	public static LinkedList<MemoryBasicInformation> EnumeratePages(nint handle)
@@ -447,22 +438,6 @@ public static unsafe partial class Native
 		}
 
 		return ll;
-	}
-
-	public static MemoryBasicInformation QueryMemoryPage(Pointer<byte> p)
-	{
-
-		/*
-		 * https://stackoverflow.com/questions/496034/most-efficient-replacement-for-isbadreadptr
-		 * https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-isbadreadptr
-		 */
-
-		MemoryBasicInformation mbi = default;
-
-		return VirtualQuery(p.Address, ref mbi, Marshal.SizeOf<MemoryBasicInformation>()) != 0
-			       ? mbi
-			       : throw new Win32Exception();
-
 	}
 
 	//helper method with "dynamic" buffer allocation

@@ -1,5 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Kantan.Diagnostics;
+using Novus.Win32;
+using Novus.Win32.Structures.Other;
 
 namespace Novus.FileTypes.Impl;
 
@@ -30,8 +32,8 @@ public sealed class UrlmonResolver : IFileTypeResolver
 			mimeRet = mimeProposed;
 		}
 
-		int ret = FindMimeFromData(IntPtr.Zero, null, dataBytes, dataBytes.Length,
-		                           mimeProposed, flags, out nint outPtr, 0);
+		int ret = Native.FindMimeFromData(IntPtr.Zero, null, dataBytes, dataBytes.Length,
+		                              mimeProposed, flags, out nint outPtr, 0);
 
 		if (ret == 0 && outPtr != IntPtr.Zero) {
 			string str = Marshal.PtrToStringUni(outPtr);
@@ -50,25 +52,5 @@ public sealed class UrlmonResolver : IFileTypeResolver
 		return new FileType(data) { };
 	}
 
-	[DllImport("urlmon.dll", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = false)]
-	public static extern int FindMimeFromData(nint pBC, [MA(UT.LPWStr)] string pwzUrl,
-	                                          [MA(UT.LPArray, ArraySubType = UT.I1, SizeParamIndex = 3)]
-	                                          byte[] pBuffer, int cbSize,
-	                                          [MA(UT.LPWStr)] string pwzMimeProposed,
-	                                          MimeFromDataFlags dwMimeFlags, out nint ppwzMimeOut,
-	                                          int dwReserved);
-
 }
 
-/// <see cref="UrlmonResolver.FindMimeFromData"/>
-[Flags]
-public enum MimeFromDataFlags
-{
-	DEFAULT                  = 0x00000000,
-	URL_AS_FILENAME          = 0x00000001,
-	ENABLE_MIME_SNIFFING     = 0x00000002,
-	IGNORE_MIME_TEXT_PLAIN   = 0x00000004,
-	SERVER_MIME              = 0x00000008,
-	RESPECT_TEXT_PLAIN       = 0x00000010,
-	RETURN_UPDATED_IMG_MIMES = 0x00000020,
-}

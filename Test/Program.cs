@@ -8,10 +8,39 @@
 
 
 global using Native = Novus.Win32.Native;
+using Flurl;
+using Flurl.Http;
+using Kantan.Collections;
+using Kantan.Text;
+using Novus;
+using Novus.FileTypes;
+using Novus.FileTypes.Impl;
+using Novus.FileTypes.Uni;
+using Novus.Imports;
+using Novus.Imports.Attributes;
+using Novus.Memory;
+using Novus.Memory.Allocation;
+using Novus.Numerics;
+using Novus.OS;
+using Novus.Properties;
+using Novus.Runtime;
+using Novus.Runtime.Meta;
+using Novus.Runtime.VM;
+using Novus.Runtime.VM.EE;
+using Novus.Streams;
+using Novus.Utilities;
+using Novus.Win32;
+using Novus.Win32.Structures.AdvApi32;
+using Novus.Win32.Structures.DbgHelp;
+using Novus.Win32.Structures.Kernel32;
+using Novus.Win32.Structures.User32;
+using Novus.Win32.Wrappers;
+using System;
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -21,6 +50,8 @@ using System.Diagnostics.SymbolStore;
 using System.Drawing;
 using System.Dynamic;
 using System.Globalization;
+using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -28,50 +59,23 @@ using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Versioning;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
-using Flurl;
-using Flurl.Http;
-using Kantan.Collections;
-using Kantan.Text;
-using Novus;
-using Novus.FileTypes;
-using Novus.FileTypes.Impl;
-using Novus.Imports;
-using Novus.Imports.Attributes;
-using Novus.Memory;
-using Novus.Memory.Allocation;
-using Novus.OS;
-using Novus.Properties;
-using Novus.Runtime.Meta;
-using Novus.Runtime.VM;
-using Novus.Runtime.VM.EE;
-using Novus.Streams;
-using Novus.Utilities;
-using Novus.Win32.Structures.AdvApi32;
-using Novus.Win32.Structures.DbgHelp;
-using Novus.Win32.Structures.Kernel32;
-using Novus.Win32.Structures.User32;
-using Novus.Win32.Wrappers;
-using Test.TestTypes;
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading;
-using Novus.Runtime;
-using System.IO;
 using System.Text.RegularExpressions;
-using System.Security.Cryptography;
-using Novus.Numerics;
-using Novus.FileTypes.Uni;
-using System.Runtime.InteropServices.Marshalling;
+using System.Threading;
+using System.Threading.Tasks;
+using Test.TestTypes;
+
 
 // ReSharper disable UnusedMember.Local
 // ReSharper disable ClassNeverInstantiated.Local
@@ -151,7 +155,7 @@ public static class Program
 
 		/*var fileName = Process.GetCurrentProcess().FindModule("coreclr.dll").FileName;
 		var pdb      = @"C:\Symbols\coreclr.pdb\85DECBA7C49F4EDF8283BF735FB7D7C21\coreclr.pdb";
-		var sym      = new SymbolReader(fileName);*/
+		var sym      = new SymbolHandler(fileName);*/
 
 		/*var       hProcess = new IntPtr(0x1337);
 
@@ -177,10 +181,34 @@ public static class Program
 		Console.WriteLine(clrObj);
 		Console.WriteLine(clrObj2);*/
 
-		var mem = AllocManager.New<List<int>>();
+		// var sym = Global.Clr.Symbols.Value.GetSymbol("g_pGCHeap");
+		// Console.WriteLine(sym);
+
+		var sb  = new StringBuilder(2048);
+		var sb2 = new StringBuilder(4096);
+
+		var hProcess = Random.Shared.Next();
+
+		var ok = Native.SymInitialize(hProcess);
+
+		Console.WriteLine(ok);
+
+		ok |= Native.SymGetSymbolFile(hProcess: hProcess, ImageFile: "coreclr.pdb", Type: IMAGEHLP_SF_TYPE.sfImage, SymbolFile: sb, cSymbolFile: sb.Capacity,
+		                              DbgFile: sb2, cDbgFile: sb2.Capacity);
+		Console.WriteLine(ok);
+		Console.WriteLine(sb);
+		Console.WriteLine(sb2);
+
+		var peReader = new PEReader(File.OpenRead(Global.Clr.Module.FileName));
+		var codeViewEntry = peReader.ReadDebugDirectory()
+		                            .First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
+		
+		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
+		Console.WriteLine(pdbData.Path);
+		/*var mem = AllocManager.New<List<int>>();
 		Console.WriteLine(mem);
 		mem.Add(1);
-		Console.WriteLine(mem.Count);
+		Console.WriteLine(mem.Count);*/
 	}
 
 	private static unsafe void Test7()
@@ -250,7 +278,7 @@ public static class Program
 			Console.WriteLine(s);
 		}
 
-		foreach (string s in SymbolReader.EnumerateSymbolPath("coreclr.pdb")) {
+		foreach (string s in SymbolHandler.EnumerateSymbolPath("coreclr.pdb")) {
 			Console.WriteLine(s);
 		}
 	}

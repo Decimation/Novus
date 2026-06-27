@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Caching;
 using System.Runtime.InteropServices;
@@ -26,7 +27,9 @@ using System.Text;
 using Flurl;
 using Flurl.Http;
 using Novus.Runtime;
+
 // ReSharper disable StringLastIndexOfIsCultureSpecific.1
+// ReSharper disable AnnotateNotNullParameter
 
 
 // ReSharper disable UnusedParameter.Local
@@ -38,28 +41,29 @@ using Novus.Runtime;
 
 // ReSharper disable UnusedMember.Global
 
+
 namespace Novus.Utilities;
 
 /// <summary>
-/// Symbol (PDB) reader
+/// Symbol (PDB) handler
 /// </summary>
 [SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-public sealed class SymbolReader : IDisposable
+public sealed class SymbolHandler : IDisposable
 {
 
 	private bool m_disposed;
 
-	private ulong m_modBase;
-
-	public ImageHelpModule64 ImageModule { get; private set; }
-
 	private static readonly Func<Symbol, bool> AnyPredicate = static _ => true;
 
-	public bool AllLoaded => m_modBase != 0 && !Symbols.IsEmpty;
+	public bool AllLoaded => ModBase != 0 && !Symbols.IsEmpty;
+
+	public ImageHelpModule64 ImageModule { get; private set; }
 
 	public string Image { get; }
 
 	public nint Handle { get; }
+
+	public ulong ModBase { get; private set; }
 
 	public ConcurrentBag<Symbol> Symbols { get; }
 
@@ -69,25 +73,30 @@ public sealed class SymbolReader : IDisposable
 	// private const string MASK_ALL = "*!*";
 	public const string MASK_ALL = "*";
 
-	public SymbolReader(nint handle, string image)
+	public SymbolHandler(nint handle, string image, bool loadAll = true)
 	{
 		// Require.FileExists(image);
 		Handle = handle;
 		Image  = image;
 
-		m_modBase  = LoadModule();
+		var ok = LoadModule();
+
 		m_disposed = false;
 
-		Trace.WriteLine($"handle {handle:X} | image: {image} @ {m_modBase:X}", nameof(SymbolReader));
+		Trace.WriteLine($"handle {handle:X} | image: {image} @ {ModBase:X} | {ok}", nameof(SymbolHandler));
 
 		Symbols = [];
-		LoadAllSymbols();
+
+		if (loadAll) {
+			LoadAllSymbols();
+		}
 	}
 
-	public SymbolReader(string image) : this(Random.Shared.Next(), image) { }
+	public SymbolHandler(string image) : this(Random.Shared.Next(), image) { }
 
 	public IEnumerable<Symbol> GetSymbols(string name, [CBN] Func<Symbol, bool> pred = null)
 	{
+		ObjectDisposedException.ThrowIf(m_disposed, this);
 		pred ??= AnyPredicate;
 
 		/*
@@ -105,7 +114,6 @@ public sealed class SymbolReader : IDisposable
 		 * https://github.com/moyix/pdbparse
 		 */
 
-		ObjectDisposedException.ThrowIf(m_disposed, this);
 
 		var sym = Symbols.Where(s => s.Name.Contains(name) && pred(s));
 
@@ -132,22 +140,24 @@ public sealed class SymbolReader : IDisposable
 		return GetSymbols(name).FirstOrDefault(pred);
 	}
 
-	public void LoadAllSymbols(string mask = MASK_ALL)
+	public bool LoadAllSymbols(string mask = MASK_ALL)
 	{
 		ObjectDisposedException.ThrowIf(m_disposed, this);
 
 		if (AllLoaded) {
-			return;
+			return true;
 		}
 
-		Native.SymEnumSymbols(Handle, m_modBase, MASK_ALL, (ptr, u, context) =>
+		var ok = Native.SymEnumSymbols(Handle, ModBase, MASK_ALL, (ptr, u, context) =>
 		{
 			var b = EnumSymCallback(ptr, u, context, out var symbol);
 			Symbols.Add(symbol);
 			return b;
 		}, IntPtr.Zero);
 
-		Trace.WriteLine($"Loaded {Symbols.Count} symbols", nameof(LoadAllSymbols));
+		Trace.WriteLine($"Loaded {Symbols.Count} symbols: {ok}", nameof(LoadAllSymbols));
+
+		return ok;
 	}
 
 	private static unsafe bool EnumSymCallback(nint info, uint symbolSize, nint pUserContext, out Symbol item)
@@ -161,9 +171,9 @@ public sealed class SymbolReader : IDisposable
 		return true;
 	}
 
-	private ulong LoadModule()
+	public bool LoadModule()
 	{
-		bool ok = Initialize(Handle);
+		bool ok = Native.SymInitialize(Handle);
 
 		const int BASE_OF_DLL = 0x400000;
 		const int DLL_SIZE    = 0x20000;
@@ -176,35 +186,26 @@ public sealed class SymbolReader : IDisposable
 
 		var im = new ImageHelpModule64();
 
-		bool ok2 = Native.SymGetModuleInfoW64(Handle, modBase, ref im);
+		ok |= Native.SymGetModuleInfoW64(Handle, modBase, ref im);
 
 		ImageModule = im;
+		ModBase   = effectiveBase;
 
-		return effectiveBase;
+		return ok;
 	}
 
-	public static bool Initialize(nint handle)
-	{
-		var options = Native.SymGetOptions();
 
-		options |= SymbolOptions.DEBUG | SymbolOptions.UNDNAME | SymbolOptions.DEFERRED_LOADS;
-
-		Native.SymSetOptions(options);
-
-		// Initialize DbgHelp and load symbols for all modules of the current process 
-		return Native.SymInitialize(handle, SymbolPath, false);
-	}
+#region
 
 	/*
-	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.x.x
+	 * C:\Program Files\dotnet\shared\Microsoft.NETCore.App\
 	 * C:\Windows\Microsoft.NET\Framework64\v4.0.30319
 	 *
 	 * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
 	 *
 	 */
 
-#region
-
+	[CBN]
 	public static string SymbolPath => Environment.GetEnvironmentVariable(ENV_VAR_NT_SYMBOL_PATH, EnvironmentVariableTarget.Machine);
 
 	public const string ENV_VAR_NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
@@ -213,11 +214,11 @@ public sealed class SymbolReader : IDisposable
 	public static async Task<string> SymchkSymbolFileAsync(string fname, [CBN] string o = null)
 	{
 		if (!File.Exists(fname)) {
-			throw new FileNotFoundException(null, fname);
+			return null;
 		}
 
 		o ??= FileSystem.GetPath(KnownFolder.Downloads);
-		
+
 		var outFile = Path.Combine(o, Path.ChangeExtension(Path.GetFileName(fname), EXT_PDB));
 
 		// symchk.exe .\urlmon.dll /s SRV*"C:\Symbols\"*http://msdl.microsoft.com/download/symbols /osdbc \.
@@ -266,16 +267,22 @@ public sealed class SymbolReader : IDisposable
 	public static async Task<string> DownloadSymbolFileAsync(string fname, [CanBeNull] string o = null)
 	{
 		// fname=FileSystem.SearchInPath(fname);
-		fname =   Path.GetFullPath(fname);
-		o     ??= FileSystem.GetPath(KnownFolder.Downloads);
+
+		fname = Path.GetFullPath(fname);
+
+		if (!File.Exists(fname)) {
+			return null;
+		}
+
+		o ??= FileSystem.GetPath(KnownFolder.Downloads);
 
 		using var peReader = new PEReader(File.OpenRead(fname));
 
 		var codeViewEntry = peReader.ReadDebugDirectory()
 		                            .First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
-
+		
 		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
-
+		
 		// var cacheDirectoryPath = Global.ProgramData;
 
 		IFlurlResponse res = null;
@@ -347,9 +354,9 @@ public sealed class SymbolReader : IDisposable
 	public void Dispose()
 	{
 		Native.SymCleanup(Handle);
-		Native.SymUnloadModule64(Handle, m_modBase);
+		Native.SymUnloadModule64(Handle, ModBase);
 		Symbols.Clear();
-		m_modBase  = 0;
+		ModBase  = 0;
 		m_disposed = true;
 	}
 

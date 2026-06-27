@@ -25,6 +25,7 @@ using Microsoft.Extensions.Logging;
 using Novus.Imports.Factory;
 using Novus.OS;
 using Novus.Runtime;
+
 // ReSharper disable AnnotateCanBeNullTypeMember
 
 // ReSharper disable UnusedMember.Local
@@ -66,11 +67,9 @@ public sealed class RuntimeResource : IDisposable
 
 	public ProcessModule Module { get; }
 
-	public string ModuleName { get; }
-
 	public Lazy<SigScanner> Scanner { get; }
 
-	public Lazy<SymbolReader> Symbols { get; }
+	public Lazy<SymbolHandler> Symbols { get; }
 
 	public bool LoadedModule { get; private init; }
 
@@ -88,21 +87,20 @@ public sealed class RuntimeResource : IDisposable
 	/// Creates a <see cref="RuntimeResource"/> from an already-loaded module.
 	/// </summary>
 	public RuntimeResource(string moduleName, string pdb = null)
-		: this(Process.GetCurrentProcess(), moduleName, pdb) { }
+		: this(Process.GetCurrentProcess().FindModule(moduleName), pdb) { }
 
-	public RuntimeResource(Process p, string moduleName, string pdb = null)
+	public RuntimeResource(ProcessModule module, string pdb = null)
 	{
-		ModuleName = moduleName;
-
-		Module = p.FindModule(moduleName);
-
-		if (Module == null) {
-			throw new NullReferenceException($"{moduleName} not found");
-		}
+		Module = module;
 
 		Scanner = new Lazy<SigScanner>(() => new SigScanner(Module));
 
-		Symbols      = new Lazy<SymbolReader>(() => new SymbolReader(pdb ?? Module.FileName), LazyThreadSafetyMode.ExecutionAndPublication);
+		Symbols = new Lazy<SymbolHandler>(() =>
+		{
+			var sh = new SymbolHandler(pdb ?? Module.FileName);
+			return sh;
+		}, LazyThreadSafetyMode.ExecutionAndPublication);
+
 		LoadedModule = false;
 	}
 
@@ -447,18 +445,18 @@ public sealed class RuntimeResource : IDisposable
 		};
 	}
 
-	public static Pointer<byte> FindImport(Process proc, string moduleName, string value, ImportType it, bool absolute = false)
+	public static Pointer<byte> FindImport(ProcessModule module, string value, ImportType it, bool absolute = false)
 	{
-		using var resource = new RuntimeResource(proc, moduleName, value);
+		using var resource = new RuntimeResource(module, value);
 
-		return resource.FindImport(new ImportUnmanagedAttribute(moduleName, it, value)
+		return resource.FindImport(new ImportUnmanagedAttribute(module.ModuleName, it, value)
 		{
 			AbsoluteMatch = absolute
 		}, value);
 	}
 
 	public static Pointer<byte> FindImport(string moduleName, string value, ImportType it)
-		=> FindImport(Process.GetCurrentProcess(), moduleName, value, it);
+		=> FindImport(Process.GetCurrentProcess().FindModule(moduleName), value, it);
 
 #endregion
 

@@ -100,17 +100,31 @@ public static class Clipboard
 		// f ??= ((EnumFormats().FirstOrDefault<uint>(Native.IsClipboardFormatAvailable)));
 		
 		var data = Native.GetClipboardData(f);
-		var func = FormatToObjectConverters[[(ClipboardFormat)f]];
-		var val  = func(data);
 
-		return val;
+		if (data == IntPtr.Zero) {
+			return null;
+		}
+
+		if (FormatToObjectConverters.TryGetValue([(ClipboardFormat)f], out var converter)) {
+			var val  = converter(data);
+
+			return val;
+		}
+
+		return null;
 	}
 
 	public static bool SetData(object s, uint fmt)
 	{
 		bool b = false;
 		unsafe {
-			var ptr = ObjectToFormatConverters[[(ClipboardFormat) fmt]](s);
+			ClipboardFormat[] fmtKey = [(ClipboardFormat) fmt];
+
+			if (!ObjectToFormatConverters.TryGetValue(fmtKey, out Func<object, nint> converter)) {
+				return false;
+			}
+
+			var               ptr              = converter(s);
 			b = Native.SetClipboardData(fmt, ptr.ToPointer()) != IntPtr.Zero;
 
 		}

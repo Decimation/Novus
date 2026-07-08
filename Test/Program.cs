@@ -209,6 +209,8 @@ public static class Program
 		Console.WriteLine(mem);
 		mem.Add(1);
 		Console.WriteLine(mem.Count);*/
+
+		Console.WriteLine(Clipboard.Open());
 	}
 
 	private static unsafe void Test7()

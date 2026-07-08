@@ -126,7 +126,7 @@ public static class Clipboard
 		{ [ClipboardFormat.FileName, ClipboardFormat.CF_TEXT], Marshal.PtrToStringAnsi },
 		{ [ClipboardFormat.PNG, ClipboardFormat.PNG2, ClipboardFormat.PNG3, ClipboardFormat.BMP2], Native.CopyGlobalObject },
 		{
-			default, arg =>
+			[], arg =>
 			{
 				Trace.WriteLine($"No handler found for format -> {arg}");
 				return Native.CopyGlobalObject(arg);
@@ -139,7 +139,7 @@ public static class Clipboard
 		{ [ClipboardFormat.FileNameW, ClipboardFormat.CF_OEMTEXT, ClipboardFormat.CF_UNICODETEXT], static s => Marshal.StringToHGlobalUni((string) s) },
 		{ [ClipboardFormat.FileName, ClipboardFormat.CF_TEXT], static s => Marshal.StringToHGlobalAnsi((string) s) },
 		{
-			default, arg =>
+			[], arg =>
 			{
 				Trace.WriteLine($"No handler found for format -> {arg}");
 				return IntPtr.Zero;

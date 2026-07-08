@@ -27,12 +27,9 @@ using Novus.Win32.Structures.User32;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable TailRecursiveCall
-
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 // ReSharper disable ForeachCanBePartlyConvertedToQueryUsingAnotherGetEnumerator
-
 // ReSharper disable ConvertIfStatementToReturnStatement
-
 // ReSharper disable UnusedMember.Global
 
 #nullable enable
@@ -359,7 +356,7 @@ public static class FileSystem
 
 	}
 
-	public static string? FindInPath(string f)
+	/*public static string? FindInPath(string f)
 	{
 		f = Environment.ExpandEnvironmentVariables(f);
 
@@ -384,9 +381,9 @@ public static class FileSystem
 		}
 
 		return Path.GetFullPath(f);
-	}
+	}*/
 
-	public static string? FindLocation(string exe)
+	/*public static string? FindLocation(string exe)
 	{
 
 		// https://stackoverflow.com/questions/6041332/best-way-to-get-application-folder-path
@@ -399,12 +396,12 @@ public static class FileSystem
 
 		var rg = new List<string>
 		{
-			/* Current directory */
+			/* Current directory #1#
 			Environment.CurrentDirectory,
 
 			// Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
 
-			/* Executing directory */
+			/* Executing directory #1#
 			Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory
 				                      .Replace("file:///", String.Empty)
 				                      .Replace("/", "\\"))!,
@@ -423,32 +420,21 @@ public static class FileSystem
 		}
 
 		return null;
-	}
+	}*/
 
-	public static string? SearchInPath(string s, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
+	public static string? SearchInEnvironmentPath(string s, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		string[] path = GetEnvironmentPathDirectories(t);
-
-		foreach (string directory in path) {
-			if (Directory.Exists(directory)) {
-				foreach (string file in Directory.EnumerateFiles(directory)) {
-					if (Path.GetFileName(file) == s) {
-						//rg.Add(file);
-						return file;
-					}
-				}
-			}
-		}
-
-		return null;
+		return GetEnvironmentPathDirectories(t)?.Where(dir => !String.IsNullOrWhiteSpace(dir))
+		                                       .Select(dir => Path.Combine(dir, s))
+		                                       ?.FirstOrDefault(File.Exists);
 	}
 
 	public static string[] GetEnvironmentPathDirectories(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		return GetEnvironmentPath(t).Split(PathDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+		return GetEnvironmentPath(t)?.Split(PathDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
 	}
 
-	public static string GetEnvironmentPath(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
+	public static string? GetEnvironmentPath(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
 		return Environment.GetEnvironmentVariable(PATH_ENV, t);
 	}
@@ -463,9 +449,11 @@ public static class FileSystem
 	/// </summary>
 	public static void RemoveFromPath(string location, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		string oldValue = GetEnvironmentPath(t);
+		string? oldValue = GetEnvironmentPath(t);
 
-		SetEnvironmentPath(oldValue.Replace(PathDelimiter + location, String.Empty), t);
+		if (!String.IsNullOrWhiteSpace(oldValue)) {
+			SetEnvironmentPath(oldValue.Replace(PathDelimiter + location, String.Empty), t);
+		}
 	}
 
 	/// <summary>
@@ -473,7 +461,9 @@ public static class FileSystem
 	/// </summary>
 	public static bool IsFolderInPath(string location, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
-		return GetEnvironmentPathDirectories(t).Contains(location);
+		var directories = GetEnvironmentPathDirectories(t);
+
+		return directories.Contains(location);
 	}
 
 #endregion

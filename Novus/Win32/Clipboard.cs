@@ -34,25 +34,47 @@ public static class Clipboard
 		return IsOpen = !Native.CloseClipboard();
 	}
 
-	public static bool IsFormatAvailable(uint n)
-		=> Native.IsClipboardFormatAvailable(n);
+	public static bool IsFormatAvailable(uint fmt)
+		=> Native.IsClipboardFormatAvailable(fmt);
 
-	public static bool SetData(object s, uint fmt)
+	[CBN]
+	public static string GetFormatName(uint f)
 	{
-		bool b = false;
+		const int CAPACITY = 0xFFF;
+		var       sb       = new StringBuilder(CAPACITY);
+		int       l        = Native.GetClipboardFormatName(f, sb, sb.Capacity);
 
-		unsafe {
-			switch (s) {
-				case string str:
-					var ptr = ClipboardFormatFromObject(fmt)(str);
-					b = Native.SetClipboardData(fmt, ptr.ToPointer()) != IntPtr.Zero;
-					break;
-
-			}
-
+		if (l == 0) {
+			return Enum.GetName((ClipboardFormat) f);
 		}
 
-		return b;
+		return sb.ToString();
+	}
+
+
+	public static uint[] EnumFormats()
+	{
+		var rg = new uint[Native.CountClipboardFormats()];
+
+		uint u = Native.ZERO_U;
+		int  i = 0;
+
+		while ((u = Native.EnumClipboardFormats(u)) != Native.ZERO_U) {
+			rg[i++] = u;
+		}
+
+		return [.. rg];
+	}
+
+	public static T ParseFormatData<T>(uint format, Func<nint, T> conv)
+	{
+		if (IsFormatAvailable(format)) {
+			var d = Native.GetClipboardData(format);
+			return conv(d);
+		}
+
+
+		return default;
 	}
 
 	public static string[] GetDragQueryList()
@@ -73,108 +95,60 @@ public static class Clipboard
 	}
 
 	[CBN]
-	public static string GetFormatName(uint f)
-	{
-		const int CAPACITY = 0xFFF;
-		var       sb       = new StringBuilder(CAPACITY);
-		int       l        = Native.GetClipboardFormatName(f, sb, sb.Capacity);
-
-		if (l == 0) {
-			return Enum.GetName((ClipboardFormat) f);
-		}
-
-		return sb.ToString();
-	}
-
-
 	public static object GetData(uint f)
 	{
-
 		// f ??= ((EnumFormats().FirstOrDefault<uint>(Native.IsClipboardFormatAvailable)));
-		var fn = ClipboardFormatToObject(f);
+		
+		var data = Native.GetClipboardData(f);
+		var func = FormatToObjectConverters[[(ClipboardFormat)f]];
+		var val  = func(data);
 
-		var d = Native.GetClipboardData(f);
-
-		var v = fn?.Invoke(d) ?? d;
-
-		//todo
-
-		return v;
+		return val;
 	}
 
-	internal static T FormatConvert<T>(uint format, Func<nint, T> conv)
+	public static bool SetData(object s, uint fmt)
 	{
-		if (IsFormatAvailable(format)) {
-			var d = Native.GetClipboardData(format);
-			return conv(d);
+		bool b = false;
+		unsafe {
+			var ptr = ObjectToFormatConverters[[(ClipboardFormat) fmt]](s);
+			b = Native.SetClipboardData(fmt, ptr.ToPointer()) != IntPtr.Zero;
+
 		}
 
-		return default;
+		return b;
 	}
 
-	public static string GetFileName()
+#region
+
+	public static readonly Dictionary<ClipboardFormat[], Func<nint, object>> FormatToObjectConverters = new()
 	{
-		return FormatConvert((uint) ClipboardFormat.FileNameW, Marshal.PtrToStringUni);
-	}
-
-	public static uint[] EnumFormats()
-	{
-		var rg = new List<uint>();
-
-		uint u = Native.ZERO_U;
-
-		while ((u = Native.EnumClipboardFormats(u)) != Native.ZERO_U) {
-			rg.Add(u);
-		}
-
-		return [.. rg];
-	}
-
-	#region
-
-	[CBN]
-	public static Func<nint, object> ClipboardFormatToObject(uint? f)
-	{
-		switch (f) {
-			case (uint) ClipboardFormat.FileNameW or (uint) ClipboardFormat.CF_OEMTEXT
-				or (uint) ClipboardFormat.CF_UNICODETEXT:
-				return Marshal.PtrToStringUni;
-
-			case (uint) ClipboardFormat.FileName or (uint) ClipboardFormat.CF_TEXT:
-				return Marshal.PtrToStringAnsi;
-
-			case (uint) ClipboardFormat.PNG or (uint) ClipboardFormat.PNG2 or (uint) ClipboardFormat.BMP2:
-				return Native.CopyGlobalObject;
-
-
-			default:
-				return _ => default;
-		}
-
-	}
-
-
-	[CBN]
-	public static Func<object, nint> ClipboardFormatFromObject(uint? f)
-	{
-		Func<object, nint> fn = f switch
+		{ [ClipboardFormat.FileNameW, ClipboardFormat.CF_OEMTEXT, ClipboardFormat.CF_UNICODETEXT], Marshal.PtrToStringUni },
+		{ [ClipboardFormat.FileName, ClipboardFormat.CF_TEXT], Marshal.PtrToStringAnsi },
+		{ [ClipboardFormat.PNG, ClipboardFormat.PNG2, ClipboardFormat.PNG3, ClipboardFormat.BMP2], Native.CopyGlobalObject },
 		{
-			(uint) ClipboardFormat.FileNameW or (uint) ClipboardFormat.CF_OEMTEXT
-				or (uint) ClipboardFormat.CF_UNICODETEXT
-				=> static s => Marshal.StringToHGlobalUni((string) s),
+			default, arg =>
+			{
+				Trace.WriteLine($"No handler found for format -> {arg}");
+				return Native.CopyGlobalObject(arg);
+			}
+		}
+	};
 
-			(uint) ClipboardFormat.FileName or (uint) ClipboardFormat.CF_TEXT
-				=> static s => Marshal.StringToHGlobalAnsi((string) s),
+	public static readonly Dictionary<ClipboardFormat[], Func<object, nint>> ObjectToFormatConverters = new()
+	{
+		{ [ClipboardFormat.FileNameW, ClipboardFormat.CF_OEMTEXT, ClipboardFormat.CF_UNICODETEXT], static s => Marshal.StringToHGlobalUni((string) s) },
+		{ [ClipboardFormat.FileName, ClipboardFormat.CF_TEXT], static s => Marshal.StringToHGlobalAnsi((string) s) },
+		{
+			default, arg =>
+			{
+				Trace.WriteLine($"No handler found for format -> {arg}");
+				return IntPtr.Zero;
+			}
+		}
+	};
 
-			_ => default
 
-			// _ => n => nint.Parse((string) n),
-		};
-
-		return fn;
-	}
-
-	#endregion
+#endregion
 
 	public static uint DefaultFormat { get; set; } = (uint) ClipboardFormat.CF_TEXT;
 

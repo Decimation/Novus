@@ -266,7 +266,7 @@ public sealed class SymbolHandler : IDisposable
 	[ICBN]
 	public static async Task<string> DownloadSymbolFileAsync(string fname, [CanBeNull] string o = null)
 	{
-		// fname=FileSystem.SearchInPath(fname);
+		// fname=FileSystem.SearchInEnvironmentPath(fname);
 
 		fname = Path.GetFullPath(fname);
 

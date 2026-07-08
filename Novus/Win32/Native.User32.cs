@@ -345,22 +345,29 @@ public enum HotKeyModifiers
 public enum ClipboardFormat : uint
 {
 
-	CF_TEXT        = 1,
-	CF_UNICODETEXT = 13,
-	CF_OEMTEXT     = 7,
-	CF_HDROP       = 15,
-	CF_DIB         = 8,
-	CF_DIBV5       = 17,
-	CF_BITMAP      = 2,
+	CF_TEXT        = 0b1,
+	CF_UNICODETEXT = 0b1101,
+	CF_OEMTEXT     = 0b111,
+	CF_HDROP       = 0b1111,
+	CF_DIB         = 0b1000,
+	CF_DIBV5       = 0b10001,
+	CF_BITMAP      = 0b10,
 
-	FileName  = 0xC006,
-	FileNameW = 0xC007,
+	FileName  = 0b1100000000000110,
+	FileNameW = 0b1100000000000111,
 
 	// PNG=49273,
 
-	PNG  = 49299,
-	PNG2 = 49496,
-	BMP2 = 49443,
+	PNG  = 0b1100000010010011,
+	PNG2 = 0b1100000101011000,
+	PNG3 = 0b1100000010111111,
+
+	BMP2 = 0b1100000100100011,
+
+	/// <summary>
+	/// <see cref="System.Drawing.Bitmap"/>
+	/// </summary>
+	SystemDrawingBitmap = 0b1100010011100100,
 
 }
 

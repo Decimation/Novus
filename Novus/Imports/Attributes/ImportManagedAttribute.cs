@@ -14,6 +14,8 @@ namespace Novus.Imports.Attributes;
 public class ImportManagedAttribute : ImportAttribute
 {
 
+	public ImportManagedAttribute(string sourceTypeName, string name) : this(Type.GetType(sourceTypeName), name) { }
+
 	public ImportManagedAttribute(Type source, string name = null) : base(name, ImportManageType.Managed)
 	{
 		Source = source;

@@ -24,15 +24,10 @@ public static class Clipboard
 	public static bool IsOpen { get; private set; }
 
 	public static bool Open()
-	{
-		return IsOpen = Native.OpenClipboard(IntPtr.Zero);
-
-	}
+		=> IsOpen = Native.OpenClipboard(IntPtr.Zero);
 
 	public static bool Close()
-	{
-		return IsOpen = !Native.CloseClipboard();
-	}
+		=> IsOpen = !Native.CloseClipboard();
 
 	public static bool IsFormatAvailable(uint fmt)
 		=> Native.IsClipboardFormatAvailable(fmt);
@@ -66,20 +61,15 @@ public static class Clipboard
 		return [.. rg];
 	}
 
-	public static T ParseFormatData<T>(uint format, Func<nint, T> conv)
-	{
-		if (IsFormatAvailable(format)) {
-			var d = Native.GetClipboardData(format);
-			return conv(d);
-		}
-
-
-		return default;
-	}
-
 	public static string[] GetDragQueryList()
 	{
-		var h = Native.GetClipboardData((uint) ClipboardFormat.CF_HDROP);
+		const uint CF_HDROP_UINT = (uint) ClipboardFormat.CF_HDROP;
+
+		if (!IsFormatAvailable(CF_HDROP_UINT)) {
+			return [];
+		}
+
+		var h = Native.GetClipboardData(CF_HDROP_UINT);
 
 		var cn = Native.DragQueryFile(h, UInt32.MaxValue, null, 0);
 		var rg = new List<string>();
@@ -98,38 +88,43 @@ public static class Clipboard
 	public static object GetData(uint f)
 	{
 		// f ??= ((EnumFormats().FirstOrDefault<uint>(Native.IsClipboardFormatAvailable)));
-		
+
 		var data = Native.GetClipboardData(f);
 
 		if (data == IntPtr.Zero) {
 			return null;
 		}
 
-		if (FormatToObjectConverters.TryGetValue([(ClipboardFormat)f], out var converter)) {
-			var val  = converter(data);
-
-			return val;
+		foreach ((ClipboardFormat[] key, Func<nint, object> conv) in FormatToObjectConverters) {
+			if (Array.IndexOf(key, (ClipboardFormat) f) != -1) {
+				return conv(data);
+			}
 		}
 
 		return null;
 	}
 
-	public static bool SetData(object s, uint fmt)
+	public static nint SetData(object s, uint fmt)
 	{
-		bool b = false;
-		unsafe {
-			ClipboardFormat[] fmtKey = [(ClipboardFormat) fmt];
+		nint ptr = IntPtr.Zero;
+		nint hnd = IntPtr.Zero;
 
-			if (!ObjectToFormatConverters.TryGetValue(fmtKey, out Func<object, nint> converter)) {
-				return false;
+		unsafe {
+			foreach (var (key, conv) in ObjectToFormatConverters) {
+				if (Array.IndexOf(key, (ClipboardFormat) fmt) != -1) {
+					ptr = conv(s);
+					break;
+				}
 			}
 
-			var               ptr              = converter(s);
-			b = Native.SetClipboardData(fmt, ptr.ToPointer()) != IntPtr.Zero;
+
+			if (ptr != IntPtr.Zero) {
+				hnd = Native.SetClipboardData(fmt, ptr.ToPointer());
+			}
 
 		}
 
-		return b;
+		return hnd;
 	}
 
 #region
@@ -160,7 +155,6 @@ public static class Clipboard
 			}
 		}
 	};
-
 
 #endregion
 

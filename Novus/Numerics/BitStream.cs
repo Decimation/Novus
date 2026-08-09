@@ -1,4 +1,7 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Buffers;
+using System.Collections;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Memory;
 using static System.Net.WebRequestMethods;
@@ -13,13 +16,18 @@ namespace Novus.Numerics;
 /// Stream wrapper to use bit-level operations
 /// </summary>
 /// <a href="https://github.com/rubendal/BitStream">See</a>
+[Obsolete($"Use {nameof(BitArray)}")]
+//TODO:FIX
 public class BitStream : IDisposable, IAsyncDisposable
 {
-	private long     m_offset;
-	private int      m_bit;
-	private bool     m_msb;
-	public  Stream   Stream   { get; private set; }
-	public  Encoding Encoding { get; set; }
+
+	private long m_offset;
+	private int  m_bit;
+	private bool m_msb;
+
+	public Stream Stream { get; private set; }
+
+	public Encoding Encoding { get; set; }
 
 	/// <summary>
 	/// Allows the <see cref="BitStream"/> auto increase in size when needed
@@ -50,7 +58,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 		get { return m_offset < Length; }
 	}
 
-	#region Constructors
+#region Constructors
 
 	/// <summary>
 	/// Creates a <see cref="BitStream"/> using a Stream
@@ -158,9 +166,9 @@ public class BitStream : IDisposable, IAsyncDisposable
 		return new BitStream(File.ReadAllBytes(path), encoding);
 	}
 
-	#endregion
+#endregion
 
-	#region Methods
+#region Methods
 
 	/// <summary>
 	/// Seek to the specified offset and check if it is a valid position for reading in the stream
@@ -175,6 +183,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 			Seek(offset, bit);
 			return ValidPosition;
 		}
+
 		//set {
 		//    Seek(offset, bit);
 		//}
@@ -353,9 +362,9 @@ public class BitStream : IDisposable, IAsyncDisposable
 		return o < Length;
 	}
 
-	#endregion
+#endregion
 
-	#region BitRead/Write
+#region BitRead/Write
 
 	/// <summary>
 	/// Read current position bit and advances the position within the stream by one bit
@@ -379,7 +388,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 
 		AdvanceBit();
 		Stream.Seek(m_offset, SeekOrigin.Begin);
-		return value;
+		return new Bit(value, BitMode.None);
 	}
 
 	/// <summary>
@@ -387,15 +396,18 @@ public class BitStream : IDisposable, IAsyncDisposable
 	/// </summary>
 	/// <param name="length">Bits to read</param>
 	/// <returns><see cref="Bit"/>[] containing read bits</returns>
-	public Bit[] ReadBits(int length)
+	public BitArray ReadBits(int length)
 	{
-		var bits = new Bit[length];
+		// var bits = new Bit[length];
+
+		var ba=new BitArray(length);
 
 		for (int i = 0; i < length; i++) {
-			bits[i] = ReadBit();
+			ba[i] = ReadBit();
 		}
 
-		return bits;
+
+		return ba;
 	}
 
 	/// <summary>
@@ -477,9 +489,9 @@ public class BitStream : IDisposable, IAsyncDisposable
 		}
 	}
 
-	#endregion
+#endregion
 
-	#region Read
+#region Read
 
 	/// <summary>
 	/// Read from the current position bit the specified number of bits or bytes and creates a byte[] 
@@ -500,10 +512,10 @@ public class BitStream : IDisposable, IAsyncDisposable
 
 			for (int p = 0; p < BITS_PER_BYTE && i < length; i++, p++) {
 				if (!m_msb) {
-					value |= (byte) (ReadBit() << p);
+					value |= (byte) (ReadBit().Value << p);
 				}
 				else {
-					value |= (byte) (ReadBit() << 7 - p);
+					value |= (byte) (ReadBit().Value << (7 - p));
 				}
 			}
 
@@ -515,19 +527,21 @@ public class BitStream : IDisposable, IAsyncDisposable
 
 	public T Read<T>()
 	{
-		var          size  = Mem.SizeOf<T>();
-		var          bsize = size * BITS_PER_BYTE;
+		var      size = Mem.SizeOf<T>();
+		Memory<byte> rg   = ReadBytes(size, true);
+
 		T            val   = default;
-		Memory<byte> rg    = ReadBytes(size, true);
-		using var    mh    = rg.Pin();
+		
 		var          ptr   = Mem.AddressOf(ref val).Cast();
 
 		unsafe {
-			NativeMemory.Copy(mh.Pointer, (void*) ptr.ToPointer(), (nuint) size);
+			var handle = rg.Pin();
+			Unsafe.CopyBlock(ptr.ToPointer(), handle.Pointer, (uint) size);
 
 		}
 
 		return val;
+
 	}
 
 	public void Write<T>(T t)
@@ -712,9 +726,9 @@ public class BitStream : IDisposable, IAsyncDisposable
 		return value;
 	}
 
-	#endregion
+#endregion
 
-	#region Write
+#region Write
 
 	/// <summary>
 	/// Writes as bits a byte[] by a specified number of bits or bytes
@@ -902,9 +916,9 @@ public class BitStream : IDisposable, IAsyncDisposable
 		WriteBytes(BitConverter.GetBytes(value), 64);
 	}
 
-	#endregion
+#endregion
 
-	#region Shifts
+#region Shifts
 
 	/// <summary>
 	/// Do a bitwise shift on the current position of the stream on bit 0
@@ -1030,9 +1044,9 @@ public class BitStream : IDisposable, IAsyncDisposable
 		m_offset++;
 	}
 
-	#endregion
+#endregion
 
-	#region Bitwise Operators
+#region Bitwise Operators
 
 	/// <summary>
 	/// Apply an and operator on the current stream and bit position byte and advances one byte position
@@ -1180,7 +1194,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 		WriteByte(value.ReverseBits());
 	}
 
-	#endregion
+#endregion
 
 	public void Dispose()
 	{
@@ -1193,4 +1207,5 @@ public class BitStream : IDisposable, IAsyncDisposable
 			await Stream.DisposeAsync();
 		}
 	}
+
 }

@@ -74,7 +74,7 @@ public unsafe struct FieldDesc
 		}
 	}
 
-	internal int Offset => BitCalculator.ReadBits((int) UInt2, 0, 27);
+	internal int Offset => ((int) UInt2).ReadBits(0, 27);
 
 	internal int Token
 	{

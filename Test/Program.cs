@@ -151,24 +151,33 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
-		// Global.Setup();
+		var mt = typeof(string).AsMetaType();
+		var th=ObjectUtility.ToTypeHandle<string>();
+		Console.WriteLine(th.CanCastTo(ObjectUtility.ToTypeHandle(typeof(object))));
+		Console.WriteLine(th.CanCastTo(ObjectUtility.ToTypeHandle(typeof(int))));
+	}
 
-		/*var fileName = Process.GetCurrentProcess().FindModule("coreclr.dll").FileName;
+	private static void TestSym2()
+	{
+		var fileName = Process.GetCurrentProcess().FindModule("coreclr.dll").FileName;
 		var pdb      = @"C:\Symbols\coreclr.pdb\85DECBA7C49F4EDF8283BF735FB7D7C21\coreclr.pdb";
-		var sym      = new SymbolHandler(fileName);*/
+		var sym      = new SymbolHandler(fileName);
 
-		/*var       hProcess = new IntPtr(0x1337);
+		var       hProcess = new IntPtr(0x1337);
 
 		Native.SymSetOptions(SymbolOptions.DEFERRED_LOADS | SymbolOptions.UNDNAME);
-		Native.SymInitialize(hProcess, IntPtr.Zero, false);
+		Native.SymInitialize(hProcess, null, false);
 		var       baseAddr = Native.SymLoadModuleEx(hProcess, IntPtr.Zero, fileName, null, 0,0, IntPtr.Zero, 0);
 		Console.WriteLine(baseAddr);
 
 		var s = new ImageHelpModule64();
 		s.SizeOfStruct = (uint) Marshal.SizeOf<ImageHelpModule64>();
-		Native.SymGetModuleInfoW64(hProcess, baseAddr, ref s);*/
+		Native.SymGetModuleInfoW64(hProcess, baseAddr, ref s);
+	}
 
-		/*var ls = AllocManager.New<List<int>>();
+	private static void TestAlloc1()
+	{
+		var ls = AllocManager.New<List<int>>();
 		ls.Add(1);
 		Console.WriteLine(ls);
 		Console.WriteLine(GCHeap.IsHeapPointer(ls));
@@ -179,11 +188,11 @@ public static class Program
 		var clrObj2 = Unsafe.As<string, Pointer<ClrObject>>(ref obj);
 
 		Console.WriteLine(clrObj);
-		Console.WriteLine(clrObj2);*/
+		Console.WriteLine(clrObj2);
+	}
 
-		// var sym = Global.Clr.Symbols.Value.GetSymbol("g_pGCHeap");
-		// Console.WriteLine(sym);
-
+	private static void TestSym1()
+	{
 		var sb  = new StringBuilder(2048);
 		var sb2 = new StringBuilder(4096);
 
@@ -205,12 +214,25 @@ public static class Program
 		
 		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 		Console.WriteLine(pdbData.Path);
+
 		/*var mem = AllocManager.New<List<int>>();
 		Console.WriteLine(mem);
 		mem.Add(1);
 		Console.WriteLine(mem.Count);*/
+	}
 
+	private static void TestClipboard1()
+	{
 		Console.WriteLine(Clipboard.Open());
+
+		var fmt = Clipboard.EnumFormats();
+
+		foreach (uint u in fmt) {
+			Console.WriteLine($"[{Clipboard.GetFormatName(u)}]");
+		}
+		
+		var data=Clipboard.GetData((uint) ClipboardFormat.PNG3);
+		Console.WriteLine(data);
 	}
 
 	private static unsafe void Test7()

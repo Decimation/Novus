@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Runtime.VM.EE;
+using System.Runtime.Intrinsics;
 using Novus.Win32;
 
 namespace Novus.Memory;
@@ -91,6 +93,7 @@ public enum SizeOfOption
 	/// <returns>
 	///     <see cref="MetaType.BaseSize" />
 	/// </returns>
+	/// <seealso cref="RuntimeHelpers.SizeOf"/>
 	BaseInstance,
 
 	/// <summary>
@@ -133,6 +136,7 @@ public enum SizeOfOption
 	/// <see cref="ClrObjHeader" />.
 	/// If the type is a value type, this returns <see cref="Mem.SizeOf{T}()" />.
 	/// </summary>
+	/// <seealso cref="RuntimeHelpers.GetRawObjectDataSize"/>
 	Data,
 
 	/// <summary>

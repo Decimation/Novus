@@ -56,6 +56,8 @@ public unsafe struct TypeHandle
 		get => ((nint) m_asTAddr & 2) != 0;
 	}
 
+	internal CorElementType CorElementType => (CorElementType) Func_GetCorElemType(m_asTAddr);
+
 	/// <summary>
 	/// Gets the <see cref="MethodTable"/> pointer wrapped by the current instance.
 	/// </summary>
@@ -82,7 +84,13 @@ public unsafe struct TypeHandle
 
 	public static bool AreSameType(TypeHandle left, TypeHandle right) => left.m_asTAddr == right.m_asTAddr;
 
-	internal CorElementType CorElementType => (CorElementType) Func_GetCorElemType(m_asTAddr);
+	public bool CanCastTo(TypeHandle handle)
+	{
+		fixed (TypeHandle* __this = &this) {
+			return Func_CanCastTo(__this, handle);
+
+		}
+	}
 
 #region
 
@@ -97,6 +105,12 @@ public unsafe struct TypeHandle
 	/// </summary>
 	[field: ImportClr("Sig_GetCorElemType")]
 	private static delegate* unmanaged<void*, int> Func_GetCorElemType { get; }
+
+	/// <summary>
+	/// <see cref="CanCastTo"/>
+	/// </summary>
+	[field: ImportManaged("System.Runtime.CompilerServices.TypeHandle", "CanCastTo")]
+	private static delegate* unmanaged<TypeHandle*, TypeHandle, bool> Func_CanCastTo { get; }
 
 #endregion
 

@@ -292,7 +292,7 @@ public sealed class RuntimeResource : IDisposable
 				 */
 
 				//string mod           = unmanagedAttr.ModuleName;
-				var unmanagedType = unmanagedAttr.Type;
+				var unmanagedType = unmanagedAttr.ImportType;
 
 				// Find address
 
@@ -426,7 +426,7 @@ public sealed class RuntimeResource : IDisposable
 		switch (ia) {
 			case ImportUnmanagedAttribute iua:
 				value ??= iua.Value;
-				it    =   iua.Type;
+				it    =   iua.ImportType;
 				break;
 		}
 

@@ -31,10 +31,10 @@ public abstract class ImportAttribute : Attribute
 
 	public bool AbsoluteMatch { get; set; }
 
-	public ImportType Type { get; set; }
+	public ImportType ImportType { get; set; }
 
 	/// <summary>
-	/// Import value (<see cref="Type"/>):
+	/// Import value (<see cref="ImportType"/>):
 	/// <list type="bullet">
 	/// <item><see cref="ImportType.Signature"/>: <c>X1 X2 Xn...</c> format where <c>X</c> is an unsigned byte value. <br />
 	/// <c>?</c> indicates wildcard</item>

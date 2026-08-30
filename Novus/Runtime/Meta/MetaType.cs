@@ -123,7 +123,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 		}
 	}
 
-	public int ManagedSize => LayoutInfo.Reference.ManagedSize;
+	// public int ManagedSize => LayoutInfo.Reference.ManagedSize;
 
 	public LayoutFlags LayoutFlags => LayoutInfo.Reference.Flags;
 

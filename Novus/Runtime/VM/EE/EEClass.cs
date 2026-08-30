@@ -185,6 +185,30 @@ public unsafe struct EEClass
 		}
 	}*/
 
+	/*00000000 struct __cppobj EEClass // sizeof=0x58
+	00000000 {                       // XREF: DelegateEEClass/r
+	00000000                     // ArrayClass/r ...
+	00000000     GuidInfo *                        m_pGuidInfo;
+	00000008     EEClassOptionalFields *           m_rpOptionalFields;
+	00000010     MethodTable *                     m_pMethodTable;
+	00000018     FieldDesc *                       m_pFieldDescList;
+	00000020     MethodDescChunk *                 m_pChunks;
+	00000028     $F619AB4F24B57B7A755B141AF9575F12 ___u5;
+	00000030     ComCallWrapperTemplate *          m_pccwTemplate;
+	00000038     unsigned int                      m_dwAttrClass;
+	0000003C                                       unsigned int m_VMFlags;
+	00000040     unsigned __int8                   m_NormType;
+	00000041     unsigned __int8                   m_cbBaseSizePadding;
+	00000042     unsigned __int16                  m_NumInstanceFields;
+	00000044     unsigned __int16                  m_NumMethods;
+	00000046     unsigned __int16                  m_NumStaticFields;
+	00000048     unsigned __int16                  m_NumHandleStatics;
+	0000004A                                       unsigned __int16 m_NumThreadStaticFields;
+	0000004C                                       unsigned __int16 m_NumHandleThreadStatics;
+	0000004E     unsigned __int16                  m_NumNonVirtualSlots;
+	00000050     unsigned int                      m_NonGCStaticFieldBytes;
+	00000054     unsigned int                      m_NonGCThreadStaticFieldBytes;
+	00000058 };*/
 }
 
 [Flags]

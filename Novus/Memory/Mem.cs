@@ -317,7 +317,7 @@ public static unsafe class Mem
 		return option switch
 		{
 			SizeOfOption.Native       => mt.NativeSize,
-			SizeOfOption.Managed      => mt.HasLayout ? mt.ManagedSize : Native.ERROR_SV,
+			// SizeOfOption.Managed      => mt.HasLayout ? mt.ManagedSize : Native.ERROR_SV,
 			SizeOfOption.Intrinsic    => SizeOf<T>(),
 			SizeOfOption.BaseFields   => mt.InstanceFieldsSize,
 			SizeOfOption.BaseInstance => mt.BaseSize,

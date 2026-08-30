@@ -159,7 +159,9 @@ public static class Program
 
 		Console.WriteLine(RuntimeHelpers.SizeOf(typeof(MyClass).TypeHandle));
 		Console.WriteLine(RuntimeHelpers.SizeOf(typeof(MyStruct2).TypeHandle));
-		Console.WriteLine(Mem.SizeOf<MyStruct2>(SizeOfOption.BaseInstance));
+		Console.WriteLine(Mem.SizeOf<MyStruct2>(SizeOfOption.BaseFields));
+		Console.WriteLine(RuntimeHelpers.SizeOf(typeof(string).TypeHandle));
+		Console.WriteLine(Mem.SizeOf<string>(SizeOfOption.BaseFields));
 	}
 
 	private static void TestResType()

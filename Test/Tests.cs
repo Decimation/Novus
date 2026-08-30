@@ -19,7 +19,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
-using Test.TestTypes;
+using UnitTest.TestTypes;
 
 namespace Test;
 

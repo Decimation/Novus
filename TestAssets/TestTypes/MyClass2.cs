@@ -1,7 +1,7 @@
 ﻿using Novus.Imports;
 using Novus.Imports.Attributes;
 
-namespace Test.TestTypes
+namespace UnitTest.TestTypes
 {
 	public unsafe class MyClass2
 	{

@@ -6,13 +6,15 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Novus.Streams;
 
-namespace Novus.FileTypes.Impl;
+// ReSharper disable UnusedMember.Global
+
+namespace Novus.FileTypes.Resolvers;
 
 /*
  * Adapted from https://github.com/hey-red/Mime
  */
 
-public sealed class MagicResolver : IFileTypeResolver
+public sealed class MagicResolver : IResourceTypeResolver
 {
 
 	private bool m_disposed;
@@ -93,7 +95,7 @@ public sealed class MagicResolver : IFileTypeResolver
 	public nint Magic { get; }
 
 
-	public static IFileTypeResolver Instance { get; set; }
+	public static IResourceTypeResolver Instance { get; set; }
 
 	public string LastError
 	{
@@ -232,17 +234,17 @@ public sealed class MagicResolver : IFileTypeResolver
 		return Read(buffer, bufferSize);
 	}
 
-	public FileType Resolve(byte[] rg, int l = FileType.RSRC_HEADER_LEN)
+	public IResourceType Resolve(byte[] rg, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
 	{
-		// var buf1 = stream.ReadBlockAsync(FileType.RSRC_HEADER_LEN);
+		// var buf1 = stream.ReadBlockAsync(ResourceTypeUtilities.RSRC_HEADER_LEN);
 		// buf1.Wait();
 		// var buf  = buf1.Result;
 
 		var s = Read(rg, l);
-		return new FileType(s);
+		return new ResourceType(s);
 	}
 
-	public FileType Resolve(Stream stream, int l = FileType.RSRC_HEADER_LEN)
+	public IResourceType Resolve(Stream stream, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
 	{
 		return Resolve(stream.ReadHeader(), l);
 	}

@@ -8,13 +8,14 @@
 
 
 global using Native = Novus.Win32.Native;
+global using ER = Novus.Properties.EmbeddedResources;
 using Flurl;
 using Flurl.Http;
 using Kantan.Collections;
 using Kantan.Text;
 using Novus;
 using Novus.FileTypes;
-using Novus.FileTypes.Impl;
+using Novus.FileTypes.Resolvers;
 using Novus.FileTypes.Uni;
 using Novus.Imports;
 using Novus.Imports.Attributes;
@@ -55,6 +56,7 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Numerics;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -70,11 +72,14 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Test.TestTypes;
+using UnitTest.TestTypes;
+using UnitTest.TestTypes;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 // ReSharper disable UnusedMember.Local
@@ -151,10 +156,42 @@ public static class Program
 
 	private static unsafe void Main(string[] args)
 	{
-		var mt = typeof(string).AsMetaType();
-		var th=ObjectUtility.ToTypeHandle<string>();
-		Console.WriteLine(th.CanCastTo(ObjectUtility.ToTypeHandle(typeof(object))));
-		Console.WriteLine(th.CanCastTo(ObjectUtility.ToTypeHandle(typeof(int))));
+
+		Console.WriteLine(RuntimeHelpers.SizeOf(typeof(MyClass).TypeHandle));
+		Console.WriteLine(RuntimeHelpers.SizeOf(typeof(MyStruct2).TypeHandle));
+		Console.WriteLine(Mem.SizeOf<MyStruct2>(SizeOfOption.BaseInstance));
+	}
+
+	private static void TestResType()
+	{
+		foreach (var val0 in ResourceTypeUtilities.ApacheBugContentTypes) {
+			Console.WriteLine(val0);
+			var rg = Encoding.Default.GetBytes(val0.ToString());
+
+			for (int i = 0; i < rg.Length; i++) {
+				Console.Write($"{rg[i]:X} ");
+			}
+
+			Console.WriteLine();
+		}
+
+		var bstr      = "74 65 78 74 2F 70 6C 61 69 6E 3B 20 63 68 61 72 73 65 74 3D 49 53 4F 2D 38 38 35 39 2D 31";
+		var aobString = Mem.ParseAOBString(bstr);
+		Console.WriteLine(aobString);
+		var s = Encoding.Default.GetString(aobString);
+		Console.WriteLine(s);
+		Console.WriteLine(s == ResourceTypeUtilities.ApacheBugContentTypes[1].ToString());
+
+		foreach (var type in ResourceTypeUtilities.All) {
+			Console.WriteLine(type);
+			Console.WriteLine($"{type.Signatures.Length}");
+
+			foreach (var signature in type.Signatures) {
+				Console.WriteLine($"\t{signature}");
+			}
+		}
+
+		Console.WriteLine(ResourceTypeUtilities.Find("image/png"));
 	}
 
 	private static void TestSym2()
@@ -163,11 +200,11 @@ public static class Program
 		var pdb      = @"C:\Symbols\coreclr.pdb\85DECBA7C49F4EDF8283BF735FB7D7C21\coreclr.pdb";
 		var sym      = new SymbolHandler(fileName);
 
-		var       hProcess = new IntPtr(0x1337);
+		var hProcess = new IntPtr(0x1337);
 
 		Native.SymSetOptions(SymbolOptions.DEFERRED_LOADS | SymbolOptions.UNDNAME);
 		Native.SymInitialize(hProcess, null, false);
-		var       baseAddr = Native.SymLoadModuleEx(hProcess, IntPtr.Zero, fileName, null, 0,0, IntPtr.Zero, 0);
+		var baseAddr = Native.SymLoadModuleEx(hProcess, IntPtr.Zero, fileName, null, 0, 0, IntPtr.Zero, 0);
 		Console.WriteLine(baseAddr);
 
 		var s = new ImageHelpModule64();
@@ -209,9 +246,10 @@ public static class Program
 		Console.WriteLine(sb2);
 
 		var peReader = new PEReader(File.OpenRead(Global.Clr.Module.FileName));
+
 		var codeViewEntry = peReader.ReadDebugDirectory()
 		                            .First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
-		
+
 		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
 		Console.WriteLine(pdbData.Path);
 
@@ -230,8 +268,8 @@ public static class Program
 		foreach (uint u in fmt) {
 			Console.WriteLine($"[{Clipboard.GetFormatName(u)}]");
 		}
-		
-		var data=Clipboard.GetData((uint) ClipboardFormat.PNG3);
+
+		var data = Clipboard.GetData((uint) ClipboardFormat.PNG3);
 		Console.WriteLine(data);
 	}
 

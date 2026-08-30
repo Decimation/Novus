@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Test")]
 [assembly: InternalsVisibleTo("UnitTest")]
 
-namespace Test.TestTypes;
+namespace UnitTest.TestTypes;
 
 public class Clazz2
 {

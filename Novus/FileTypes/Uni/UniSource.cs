@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using Novus.Imports;
 using Novus.OS;
 using Novus.Utilities;
+using Novus.FileTypes.Resolvers;
 
 namespace Novus.FileTypes.Uni;
 
@@ -44,7 +45,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 
 	public bool IsValid => IsUri || IsFile || IsStream;
 
-	public FileType FileType { get; protected set; }
+	public IResourceType ResourceType { get; protected set; }
 
 	public object Value { get; protected set; }
 
@@ -61,12 +62,12 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 
 	public override string ToString()
 	{
-		return $"[{SourceType}] {FileType}";
+		return $"[{SourceType}] {ResourceType}";
 	}
 
-	public static async Task<UniSource> GetAsync(object o, IFileTypeResolver resolver = null, bool autoAlloc = true, CancellationToken ct = default)
+	public static async Task<UniSource> GetAsync(object o, IResourceTypeResolver resolver = null, bool autoAlloc = true, CancellationToken ct = default)
 	{
-		resolver ??= IFileTypeResolver.Default;
+		resolver ??= IResourceTypeResolver.Default;
 		UniSource buf = null;
 
 		string os;
@@ -108,7 +109,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 			if (ok) {
 				var type = await resolver.ResolveAsync(buf.Stream, ct: ct);
 
-				buf.FileType = type;
+				buf.ResourceType = type;
 				buf.Stream.TrySeek();
 
 			}
@@ -118,7 +119,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 	}
 
 
-	public static Task<UniSource> TryGetAsync(object value, IFileTypeResolver resolver = null,
+	public static Task<UniSource> TryGetAsync(object value, IResourceTypeResolver resolver = null,
 	                                                bool autoAlloc = true,
 	                                                CancellationToken ct = default)
 	{
@@ -182,7 +183,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 		if (ReferenceEquals(this, other))
 			return true;
 
-		return Equals(Stream, other.Stream) && FileType.Equals(other.FileType) && Equals(Value, other.Value);
+		return Equals(Stream, other.Stream) && ResourceType.Equals(other.ResourceType) && Equals(Value, other.Value);
 	}
 
 	public override bool Equals(object obj)
@@ -201,7 +202,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(Stream, FileType, Value);
+		return HashCode.Combine(Stream, ResourceType, Value);
 	}
 
 	public static bool operator ==(UniSource left, UniSource right)
@@ -224,78 +225,6 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 /// <item><see cref="UniSource.Stream"/></item>
 /// </list>
 /// </summary>
-/*
-public class UniSource : UniSourceBase, IEquatable<UniSource>, IEqualityOperators<UniSource, UniSource, bool>
-{
-
-	private UniSource(object value, Stream s, UniSourceType u)
-	{
-		Value      = value;
-		Stream     = s;
-		SourceType = u;
-	}
-
-	public bool Equals(UniSource other)
-	{
-		if (ReferenceEquals(null, other)) {
-			return false;
-		}
-
-		if (ReferenceEquals(this, other)) {
-			return true;
-		}
-
-		return SourceType == other.SourceType
-			   && Equals(Stream, other.Stream)
-			   && IsValid == other.IsValid
-			   && Equals(FileType, other.FileType);
-	}
-
-	public override bool Equals(object obj)
-	{
-		if (ReferenceEquals(null, obj)) {
-			return false;
-		}
-
-		if (ReferenceEquals(this, obj)) {
-			return true;
-		}
-
-		if (obj.GetType() != this.GetType()) {
-			return false;
-		}
-
-		return Equals((UniSource) obj);
-	}
-
-	public override int GetHashCode()
-	{
-		unchecked {
-			int hashCode = (int) SourceType;
-			hashCode = (hashCode * 397) ^ (Stream != null ? Stream.GetHashCode() : 0);
-			hashCode = (hashCode * 397) ^ IsValid.GetHashCode();
-			hashCode = (hashCode * 397) ^ (FileType == default ? 0 : FileType.GetHashCode());
-			return hashCode;
-		}
-	}
-
-	public static bool operator ==(UniSource left, UniSource right)
-	{
-		return Equals(left, right);
-	}
-
-	public static bool operator !=(UniSource left, UniSource right)
-	{
-		return !Equals(left, right);
-	}
-
-	public override string ToString()
-	{
-		return $"[{SourceType}] {FileType}";
-	}
-
-}
-*/
 public enum UniSourceType
 {
 

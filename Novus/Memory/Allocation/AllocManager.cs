@@ -42,7 +42,6 @@ public static class AllocManager
 	{
 		return Allocated.Contains(ptr);
 
-		// return Allocator.IsAllocated(ptr);
 	}
 
 	public static nuint GetSize(Pointer<byte> ptr)
@@ -155,7 +154,7 @@ public static class AllocManager
 	public static void Free<T>(T t) where T : class
 	{
 		var ptr = Mem.AddressOfHeap(t);
-		ptr -= IntPtr.Size;
+		ptr -= ObjectUtility.ObjHeaderSize;
 		Free(ptr);
 	}
 

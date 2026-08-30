@@ -83,7 +83,7 @@ internal class UniSourceUrl : UniSource, IUniSource
 
 		Stream = await res.GetStreamAsync();
 
-		/*if (stream.CanSeek && stream.Length < FileTypes.FileType.RSRC_HEADER_LEN) {
+		/*if (stream.CanSeek && stream.Length < FileTypes.ResourceType.RSRC_HEADER_LEN) {
 
 		}*/
 

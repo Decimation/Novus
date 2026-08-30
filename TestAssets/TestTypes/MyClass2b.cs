@@ -7,7 +7,7 @@ using Novus.Imports.Attributes;
 
 // ReSharper disable InconsistentNaming
 
-namespace Test.TestTypes;
+namespace UnitTest.TestTypes;
 
 public unsafe class MyClass2b
 {

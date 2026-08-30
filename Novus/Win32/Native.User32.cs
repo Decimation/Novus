@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
-using Novus.FileTypes.Impl;
+using Novus.FileTypes.Resolvers;
 using Novus.Win32.Structures.Other;
 using Novus.Win32.Structures.User32;
 using InputRecord = Novus.Win32.Structures.User32.InputRecord;

@@ -203,7 +203,7 @@ public sealed class RuntimeResource : IDisposable
 	/// <param name="t">Enclosing type</param>
 	public void LoadImports(Type t)
 	{
-		if (m_loadedTypes.Contains(t)) {
+		if (IsLoaded(t)) {
 			return;
 		}
 
@@ -227,6 +227,11 @@ public sealed class RuntimeResource : IDisposable
 
 	private void LoadType(Type t, IEnumerable<(ImportAttribute Attribute, MMI Member)> annotatedTuples)
 	{
+		if (IsLoaded(t)) {
+			return;
+		}
+
+
 		foreach (var (attribute, member) in annotatedTuples) {
 			var field = (FI) member;
 
@@ -494,8 +499,17 @@ public sealed class RuntimeResource : IDisposable
 			symbol = symbols.FirstOrDefault();
 		}*/
 
-		return (Pointer<byte>) Module.BaseAddress +
-		       (nint) (symbol?.Offset ?? throw new InvalidOperationException());
+		var  baseAddress = (Pointer<byte>) Module.BaseAddress;
+		nint ofs         = 0;
+
+		if (symbol is null) {
+			return Options.HasFlag(RuntimeResourceOptions.ThrowOnImportError) ? throw new ImportException($"Symbol {name} is null") : Mem.Nullptr;
+		}
+
+		ofs = (nint) symbol.Offset;
+
+		return baseAddress + ofs;
+
 	}
 
 #endregion
@@ -503,7 +517,7 @@ public sealed class RuntimeResource : IDisposable
 	public override string ToString()
 	{
 		return $"[{Module.ModuleName}] "
-		       + $"| {nameof(Scanner)}: {(Scanner.IsValueCreated ? Scanner.Value.Address : '-')}"
+		       + $"| {nameof(Scanner)}: {(Scanner.IsValueCreated ? Scanner.Value.Address : '-')} "
 		       + $"| {nameof(Symbols)} : {(Symbols.IsValueCreated ? Symbols.Value.Image : '-')}";
 	}
 

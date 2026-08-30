@@ -17,7 +17,7 @@ internal class UniSourceStream : UniSource, IUniSource
 
 	public override ValueTask<string> TryWriteToFileAsync(string fn = null, string ext = null)
 	{
-		return base.TryWriteToFileAsync(fn, ext ?? FileType.Subtype);
+		return base.TryWriteToFileAsync(fn, ext);
 	}
 
 	public override ValueTask<bool> AllocStream(CancellationToken ct = default)

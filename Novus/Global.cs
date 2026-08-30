@@ -59,9 +59,10 @@ using System.Xml.Linq;
 using Kantan.Utilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Novus.FileTypes.Impl;
+using Novus.FileTypes.Resolvers;
 using Novus.Imports;
 using Novus.Win32;
+using MagicNative = Novus.FileTypes.Resolvers.MagicNative;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable LocalizableElement

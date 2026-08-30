@@ -1,11 +1,18 @@
 ﻿#pragma warning disable IDE1006
 
 // ReSharper disable RedundantUsingDirective.Global
+
+#region Global usings
+
 global using MI = System.Reflection.MethodInfo;
 global using PI = System.Reflection.PropertyInfo;
 global using MMI = System.Reflection.MemberInfo;
 global using FI = System.Reflection.FieldInfo;
+global using MImplO = System.Runtime.CompilerServices.MethodImplOptions;
+global using MImp = System.Runtime.CompilerServices.MethodImplAttribute;
 global using static Novus.Utilities.ReflectionOperatorHelpers;
+
+#endregion
 using RH = Novus.Utilities.ReflectionHelper;
 using System;
 using System.Collections;
@@ -137,7 +144,7 @@ public static class ReflectionHelper
 			get
 			{
 				var c = Type.GetTypeCode(t);
-				var      b        = c.IsInteger;
+				var b = c.IsInteger;
 
 				var bb = b && (int) c % 2 == 1;
 				return /*t.IsInteger() && */bb || ExtraSInt.Contains(t) || t.IsReal;
@@ -149,7 +156,7 @@ public static class ReflectionHelper
 			get
 			{
 				var c = Type.GetTypeCode(t);
-				var      b        = c.IsInteger;
+				var b = c.IsInteger;
 
 				var bb = b && (int) c % 2 == 0;
 				return /*t.IsInteger() && */bb || ExtraUInt.Contains(t);
@@ -424,7 +431,7 @@ public static class ReflectionHelper
 		 * https://stackoverflow.com/questions/142356/most-efficient-way-to-get-default-constructor-of-a-type
 		 */
 
-		var ct = value.GetType2().GetConstructor(args);
+		var ct = value.TryGetType().GetConstructor(args);
 
 		if (ct is not null) {
 			ct.Invoke(value, args);
@@ -576,7 +583,7 @@ public static class ReflectionHelper
 		return o;
 	}*/
 
-	public static Type GetType2<T>([CBN] this T t)
+	public static Type TryGetType<T>([CBN] this T t)
 		=> t?.GetType() ?? typeof(T);
 
 	/// <summary>

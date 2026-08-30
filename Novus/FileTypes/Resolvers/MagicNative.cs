@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 // ReSharper disable InconsistentNaming
 
-namespace Novus.FileTypes.Impl;
+namespace Novus.FileTypes.Resolvers;
 
 
 public static partial class MagicNative

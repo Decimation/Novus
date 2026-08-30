@@ -3,9 +3,9 @@ using Kantan.Diagnostics;
 using Novus.Win32;
 using Novus.Win32.Structures.Other;
 
-namespace Novus.FileTypes.Impl;
+namespace Novus.FileTypes.Resolvers;
 
-public sealed class UrlmonResolver : IFileTypeResolver
+public sealed class UrlmonResolver : IResourceTypeResolver
 {
 
 	public UrlmonResolver() { }
@@ -46,10 +46,10 @@ public sealed class UrlmonResolver : IFileTypeResolver
 		return mimeRet;
 	}
 
-	public FileType Resolve(byte[] buf, int l = FileType.RSRC_HEADER_LEN)
+	public IResourceType Resolve(byte[] buf, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
 	{
 		var data = ResolveFromData(buf);
-		return new FileType(data) { };
+		return new ResourceType(data) { };
 	}
 
 }

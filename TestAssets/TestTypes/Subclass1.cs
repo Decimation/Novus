@@ -1,5 +1,5 @@
 #pragma warning disable 649
-namespace Test.TestTypes;
+namespace UnitTest.TestTypes;
 
 internal class Subclass1 : Superclass1
 {

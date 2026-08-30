@@ -1,4 +1,4 @@
-﻿namespace Test.TestTypes
+﻿namespace UnitTest.TestTypes
 {
 	internal class MyClass3
 	{

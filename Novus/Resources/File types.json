@@ -1,43 +1,70 @@
 [
 	{
 		"name": "image/gif",
-		"pattern": "47 49 46 38 37 61",
-		"mask": "FF FF FF FF FF FF"
-	},
-	{
-		"name": "image/gif",
-		"pattern": "47 49 46 38 39 61",
-		"mask": "FF FF FF FF FF FF"
+		"signatures": [
+			{
+				"pattern": "47 49 46 38 37 61",
+				"mask": "FF FF FF FF FF FF"
+			},
+			{
+				"pattern": "47 49 46 38 39 61",
+				"mask": "FF FF FF FF FF FF"
+			}
+		]
 	},
 	{
 		"name": "image/webp",
-		"pattern": "52 49 46 46 00 00 00 00 57 45 42 50 56 50",
-		"mask": "FF FF FF FF 00 00 00 00 FF FF FF FF FF FF"
+		"signatures": [
+			{
+				"pattern": "52 49 46 46 00 00 00 00 57 45 42 50 56 50",
+				"mask": "FF FF FF FF 00 00 00 00 FF FF FF FF FF FF"
+			}
+		]
 	},
 	{
 		"name": "image/png",
-		"pattern": "89 50 4E 47 0D 0A 1A 0A",
-		"mask": "FF FF FF FF FF FF FF FF"
+		"signatures": [
+			{
+				"pattern": "89 50 4E 47 0D 0A 1A 0A",
+				"mask": "FF FF FF FF FF FF FF FF"
+			}
+		]
 	},
 	{
 		"name": "image/jpeg",
-		"pattern": "FF D8 FF",
-		"mask": "FF FF FF"
+		"signatures": [
+			{
+				"pattern": "FF D8 FF",
+				"mask": "FF FF FF"
+			}
+		]
 	},
 	{
 		"name": "image/jpg",
-		"pattern": "FF D8 FF",
-		"mask": "FF FF FF"
+		"signatures": [
+			{
+				"pattern": "FF D8 FF",
+				"mask": "FF FF FF"
+			}
+		]
 	},
 	{
 		"name": "image/bmp",
-		"pattern": "42 4D",
-		"mask": "FF FF"
+		"signatures": [
+			{
+				"pattern": "42 4D",
+				"mask": "FF FF"
+			}
+		]
 	},
 	{
 		"name": "video/mp4",
-		"pattern": "66 74 79 70 69 73 6F 6D",
-		"mask": "FF FF FF FF FF FF FF FF",
-		"offset": 4
+		"signatures": [
+			{
+				"pattern": "66 74 79 70 69 73 6F 6D",
+				"mask": "FF FF FF FF FF FF FF FF",
+				"offset": 4
+			}
+		]
 	}
 ]

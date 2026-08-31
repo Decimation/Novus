@@ -187,7 +187,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 					       && infos[1].ParameterType == typeof(SizeOfOption);
 				});
 
-				return (int) mi.CallGeneric(RuntimeType, null, null, SizeOfOption.Intrinsic);
+				return (int) mi.InvokeGeneric(RuntimeType, null, null, SizeOfOption.Intrinsic);
 			}
 
 			// Subtract the size of the ObjHeader and MethodTable*
@@ -218,7 +218,7 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public CorElementType ArrayElementType => EEClass.Reference.ArrayElementType;
 
-	public Type RuntimeType => ObjectUtility.ToType(Value.Cast<MethodTable>());
+	public Type RuntimeType => ObjectUtility.GetType(Value.Cast<MethodTable>());
 
 	public MethodTableFlags2 SlotsFlags => Value.Reference.Flags2;
 

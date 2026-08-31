@@ -136,7 +136,7 @@ internal class Tests1
 		var ptr = GCHeap.GlobalHeap;
 
 		Console.WriteLine(ptr);
-		var currentProcess = Mem.FindInProcessMemory(Process.GetCurrentProcess(), ptr);
+		var currentProcess = ProcessHelper.FindInProcessMemory(Process.GetCurrentProcess(), ptr);
 		Console.WriteLine($"{currentProcess.Item1}");
 		Console.WriteLine($"{currentProcess.Item2}");
 

@@ -177,7 +177,7 @@ public static unsafe class ObjectUtility
 	public static Pointer<MethodTable> GetMethodTable<T>(in T value)
 	{
 		/*var type = value.GetType();
-		return ToMethodTable(type);*/
+		return GetMethodTable(type);*/
 		return Func_GetMethodTable(value);
 	}
 
@@ -204,36 +204,36 @@ public static unsafe class ObjectUtility
 	///     Resolves the <see cref="Type" /> from a <see cref="Pointer{T}" /> to the internal <see cref="MethodTable" />.
 	/// </summary>
 	/// <seealso cref="RuntimeTypeHandle.FromIntPtr"/>
-	/// <remarks>Inverse of <see cref="ToMethodTable" /></remarks>
-	public static Type ToType(Pointer<MethodTable> handle) => Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
+	/// <remarks>Inverse of <see cref="GetMethodTable" /></remarks>
+	public static Type GetType(Pointer<MethodTable> handle) => Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ToType" /></remarks>
-	public static Pointer<MethodTable> ToMethodTable(Type t)
+	/// <remarks>Inverse of <see cref="GetType" /></remarks>
+	public static Pointer<MethodTable> GetMethodTable(Type t)
 	{
 		/*var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;
 		return value.MethodTable;*/
 
 		/*
-		var typeHandle = ToTypeHandle(t);
+		var typeHandle = GetTypeHandle(t);
 		return typeHandle.MethodTable;*/
 
 		// return t.TypeHandle.Value;
 
-		var th = ToTypeHandle(t).AsMethodTable();
+		var th = GetTypeHandle(t).AsMethodTable();
 		return th;
 	}
 
-	public static Pointer<MethodTable> ToMethodTable<T>() => ToMethodTable(typeof(T));
+	public static Pointer<MethodTable> GetMethodTable<T>() => GetMethodTable(typeof(T));
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 	/// </summary>
-	/// <remarks>Inverse of <see cref="ToType" /></remarks>
-	public static TypeHandle ToTypeHandle(Type t)
+	/// <remarks>Inverse of <see cref="GetType" /></remarks>
+	public static TypeHandle GetTypeHandle(Type t)
 	{
 		/*var handle = t.TypeHandle.Value;
 		var value  = *(TypeHandle*) &handle;
@@ -241,13 +241,14 @@ public static unsafe class ObjectUtility
 		return new TypeHandle((void*) RuntimeTypeHandle.ToIntPtr(t.TypeHandle));
 	}
 
-	public static TypeHandle ToTypeHandle<T>() => ToTypeHandle(typeof(T));
+	public static TypeHandle GetTypeHandle<T>() => GetTypeHandle(typeof(T));
 
 #endregion
 
 #region Comparison & Properties
 
 	/// <see cref="RuntimeHelpers.GetObjectValue"/>
+	/// <seealso cref="RuntimeHelpers.Box"/>
 	[CBN]
 	public static object Box([CBN] object o)
 		=> RuntimeHelpers.GetObjectValue(o);
@@ -314,8 +315,7 @@ public static unsafe class ObjectUtility
 	public static bool IsBoxed<T>([CBN] in T value)
 	{
 		// return !typeof(T).IsValueType && (value != null) && value.GetType().IsValueType;
-		return (typeof(T).IsInterface || typeof(T) == typeof(object))
-		       && value != null && IsStruct(value);
+		return (typeof(T).IsInterface || typeof(T) == typeof(object)) && value != null && IsStruct(value);
 	}
 
 	/// <summary>
@@ -400,13 +400,13 @@ public static unsafe class ObjectUtility
 	private static delegate* managed<object, bool> Func_IsPinnable { get; }
 
 	/// <summary>
-	///     <see cref="ToType" />
+	///     <see cref="GetType" />
 	/// </summary>
 	[field: ImportManaged(typeof(Type), "GetTypeFromHandle")]
 	private static delegate* managed<nint, Type> Func_GetTypeFromHandle { get; }
 
 	/// <summary>
-	///     <see cref="GetMethodTable{T}" />
+	///     <see cref="GetMethodTable{T}(in T)" />
 	/// </summary>
 	[field: ImportManaged(typeof(RuntimeHelpers), "GetMethodTable")]
 	private static delegate* managed<object, MethodTable*> Func_GetMethodTable { get; }

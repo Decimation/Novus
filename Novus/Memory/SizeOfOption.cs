@@ -54,6 +54,7 @@ public enum SizeOfOption
 	/// </summary>
 	/// <remarks>
 	/// <para>Only a type parameter is needed</para>
+	/// <para>(<see cref="Mem.SizeOf{T}()" /> with <see cref="Intrinsic"/>) ≡ <see cref="Unsafe.SizeOf{T}()"/> ≡ <see cref="RuntimeHelpers.SizeOf"/></para>
 	/// </remarks>
 	/// <returns><see cref="Mem.Size" /> for reference types, size for value types</returns>
 	Intrinsic,
@@ -93,7 +94,6 @@ public enum SizeOfOption
 	/// <returns>
 	///     <see cref="MetaType.BaseSize" />
 	/// </returns>
-	/// <seealso cref="RuntimeHelpers.SizeOf"/>
 	BaseInstance,
 
 	/// <summary>

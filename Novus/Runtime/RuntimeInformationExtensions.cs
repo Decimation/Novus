@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using JetBrains.Annotations;
+// ReSharper disable UnusedMember.Global
 
 // ReSharper disable InconsistentNaming
 

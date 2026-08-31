@@ -314,7 +314,7 @@ public static class Program
 		Pointer<MethodTable> mt = ObjectUtility.GetMethodTable(obj);
 
 		// Type                 t   = typeof(MyClass);
-		// TypeHandle           mt2 = ObjectUtility.ToTypeHandle(t);
+		// TypeHandle           mt2 = ObjectUtility.GetTypeHandle(t);
 
 		Console.WriteLine($"MT: {mt}");
 

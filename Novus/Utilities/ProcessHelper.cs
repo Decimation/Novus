@@ -9,9 +9,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Novus.Memory;
 using Novus.Runtime;
 using Novus.Win32;
+using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.Ntdll;
+using Novus.Win32.Wrappers;
 
 // ReSharper disable UnusedMember.Global
 #pragma warning disable CA1416
@@ -35,64 +38,77 @@ public static class ProcessHelper
 		[CBN]
 		public ProcessModule FindModule(string moduleName) => p.GetModules().FirstOrDefault(module => module.ModuleName == moduleName);
 
-		/// <param name="p">Process from which to load modules</param>
 		public IEnumerable<ProcessModule> GetModules() => p.Modules.Cast<ProcessModule>();
 
 		[CBN]
-		public Process GetParent() => GetParent(p.Handle);
+		public Process GetParent() => Process.GetParent(p.Handle, out _);
 
 	}
 
-#if DANGEROUS
-	/// <summary>
-	///     Forcefully kills a <see cref="Process" /> and ensures the process has exited.
-	/// </summary>
-	/// <param name="p"><see cref="Process" /> to forcefully kill.</param>
-	/// <param name="ms"></param>
-	/// <returns><c>true</c> if <paramref name="p" /> was killed; <c>false</c> otherwise</returns>
-	public static bool Abort(this Process p, int ms = 0)
+	extension(Process)
 	{
-		Task.Run(p.WaitForExit).Wait(ms);
-		p.Dispose();
+		[CBN]
+		[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
+		public static Process GetParent(nint handle, out ProcessBasicInformation pbi)
+		{
+			int returnLength;
+			pbi = default;
 
-		try {
-			if (!p.HasExited) {
-				p.Kill();
+			unsafe {
+				var pbiBuf = new ProcessBasicInformation();
+			
+				var status = Native.NtQueryInformationProcess(handle, 0, &pbiBuf,
+				                                              Marshal.SizeOf(pbiBuf), out returnLength);
+				pbi = pbiBuf;
+
+				if (status != NtStatus.SUCCESS) {
+					return null;
+				}
+
+				try {
+					return Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
+				}
+				catch (ArgumentException) {
+
+					return null;
+				}
+
 			}
-
-			return true;
 		}
-		catch (Exception) {
 
-			return false;
-		}
+
+
 	}
-#endif
 
-	[CBN]
+
 	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static Process GetParent(nint handle)
+	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer<byte> ptr)
 	{
-		int returnLength;
+		var modules = Native.EnumProcessModules((uint) proc.Id);
 
-		unsafe {
-			var pbi = new ProcessBasicInformation();
+		foreach (var m in modules) {
+			nint size = (nint) m.modBaseSize;
+			var  b    = ptr >= m.modBaseAddr && ptr <= (m.modBaseAddr + (size));
 
-			var status = Native.NtQueryInformationProcess(handle, 0, &pbi,
-			                                              Marshal.SizeOf(pbi), out returnLength);
-
-			if (status != NtStatus.SUCCESS)
-				throw new Win32Exception((int) status);
-
-			try {
-				return Process.GetProcessById(pbi.InheritedFromUniqueProcessId.ToInt32());
-			}
-			catch (ArgumentException) {
-
-				return null;
+			if (!b) {
+				continue;
 			}
 
+			var pe = Native.GetPESectionInfo(m.hModule);
+
+			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
+
+			foreach (var e in pe) {
+				var b2 = ptr >= e.Address && ptr <= (e.Address + size);
+
+				if (b2) {
+					return (m, e);
+
+				}
+			}
 		}
+
+		return (default, default);
 	}
 
 }

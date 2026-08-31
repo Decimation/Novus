@@ -6,6 +6,9 @@ using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using Novus.Runtime;
 
+// ReSharper disable UnusedMember.Global
+// ReSharper disable AssignNullToNotNullAttribute
+
 // ReSharper disable ClassCannotBeInstantiated
 
 namespace Novus.Memory;
@@ -45,7 +48,7 @@ public static class PinManager
 		// invoke the delegate
 		il.Emit(OpCodes.Ldarg_1);
 		il.Emit(OpCodes.Ldarg_0);
-		il.EmitCall(OpCodes.Callvirt, typeof(Action<object>).GetMethod("Invoke")!, null);
+		il.EmitCall(OpCodes.Callvirt, typeof(Action<object>).GetMethod("Invoke"), null);
 
 		il.Emit(OpCodes.Ret);
 
@@ -57,7 +60,7 @@ public static class PinManager
 	/// </summary>
 	public static void InvokeWhilePinned(object obj, Action<object> action) => s_pinImpl(obj, action);
 
-	public static bool IsPinned(object obj)=> s_pinResetEvents.ContainsKey(obj);
+	public static bool IsPinned(object obj) => s_pinResetEvents.ContainsKey(obj);
 
 	public static unsafe bool Pin(object obj, [CBN] object s = null)
 	{
@@ -84,16 +87,15 @@ public static class PinManager
 
 	public static bool Unpin(object obj)
 	{
-
 		if (s_pinResetEvents.TryGetValue(obj, out var p)) {
-			var o = p.Set();
+			var set = p.Set();
 
-			if (o) {
+			if (set) {
 				Debug.WriteLine($"Unpinned obj: {obj.GetHashCode()}");
-				o = s_pinResetEvents.Remove(obj);
+				set = s_pinResetEvents.Remove(obj);
 			}
 
-			return o;
+			return set;
 		}
 
 		return false;

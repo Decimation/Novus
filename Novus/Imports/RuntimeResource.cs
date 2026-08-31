@@ -37,19 +37,6 @@ using Novus.Runtime;
 
 namespace Novus.Imports;
 
-[Flags]
-public enum RuntimeResourceOptions
-{
-
-	None                  = 0,
-	ThrowOnImportError    = 1 << 0,
-	UnloadAllOnDispose    = 1 << 1,
-	WriteDefaultOnUnload  = 1 << 2,
-	NullOnImportError     = 1 << 3,
-	GenerateOnImportError = 1 << 4,
-
-}
-
 /// <summary>
 /// Represents a runtime component which contains data and resources.
 /// </summary>
@@ -73,8 +60,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
-	public RuntimeResourceOptions Options { get; } = RuntimeResourceOptions.UnloadAllOnDispose
-	                                                 | RuntimeResourceOptions.NullOnImportError;
+	public ImportLoadOptions Options { get; } = ImportLoadOptions.UnloadAllOnDispose | ImportLoadOptions.NullOnImportError;
 
 	private readonly List<Type> m_loadedTypes = [];
 
@@ -99,7 +85,7 @@ public sealed class RuntimeResource : IDisposable
 		{
 			var sh = new SymbolHandler(pdb ?? Module.FileName);
 			return sh;
-		}, LazyThreadSafetyMode.ExecutionAndPublication);
+		}, LazyThreadSafetyMode.PublicationOnly);
 
 		LoadedModule = false;
 	}
@@ -116,12 +102,12 @@ public sealed class RuntimeResource : IDisposable
 		//var l = Native.LoadLibrary(f.FullName);
 		h = NativeLibrary.Load(f.FullName);
 
-		var r = new RuntimeResource(f.Name)
+		var rr = new RuntimeResource(f.Name)
 		{
 			LoadedModule = true
 		};
 
-		return r;
+		return rr;
 	}
 
 	/*
@@ -163,7 +149,7 @@ public sealed class RuntimeResource : IDisposable
 	{
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
-		if (Options.HasFlag(RuntimeResourceOptions.WriteDefaultOnUnload)) {
+		if (Options.HasFlag(ImportLoadOptions.WriteDefaultOnUnload)) {
 			foreach (var (k, member) in annotatedTuples) {
 				var field = (FI) member;
 
@@ -310,11 +296,11 @@ public sealed class RuntimeResource : IDisposable
 
 					s_logger.LogError("Could not find import value for {Name}", unmanagedAttr.Name);
 
-					if (Options.HasFlag(RuntimeResourceOptions.ThrowOnImportError)) {
+					if (Options.HasFlag(ImportLoadOptions.ThrowOnImportError)) {
 						throw new InvalidOperationException($"Could not find import value for {unmanagedAttr.Name}!");
 					}
 
-					if (Options.HasFlag(RuntimeResourceOptions.NullOnImportError)) {
+					if (Options.HasFlag(ImportLoadOptions.NullOnImportError)) {
 						/*var dyn   = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
 						var fnPtr = dyn.MethodHandle.GetFunctionPointer();
 						addr = fnPtr;*/
@@ -503,7 +489,7 @@ public sealed class RuntimeResource : IDisposable
 		nint ofs         = 0;
 
 		if (symbol is null) {
-			return Options.HasFlag(RuntimeResourceOptions.ThrowOnImportError) ? throw new ImportException($"Symbol {name} is null") : Mem.Nullptr;
+			return Options.HasFlag(ImportLoadOptions.ThrowOnImportError) ? throw new ImportException($"Symbol {name} is null") : Mem.Nullptr;
 		}
 
 		ofs = (nint) symbol.Offset;
@@ -523,7 +509,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public void Dispose()
 	{
-		if (Options.HasFlag(RuntimeResourceOptions.UnloadAllOnDispose)) {
+		if (Options.HasFlag(ImportLoadOptions.UnloadAllOnDispose)) {
 			UnloadAll();
 		}
 

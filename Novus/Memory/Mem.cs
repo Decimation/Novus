@@ -1,6 +1,4 @@
-﻿// ReSharper disable RedundantUsingDirective.Global
-
-#pragma warning disable IDE0005, CS1574
+﻿#pragma warning disable IDE0005, CS1574
 using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Frozen;
@@ -34,12 +32,10 @@ using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Wrappers;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
-
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-
+// ReSharper disable RedundantUsingDirective.Global
 // ReSharper disable ClassCannotBeInstantiated
-
 // ReSharper disable ConvertIfToOrExpression
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable SwitchStatementMissingSomeEnumCasesNoDefault
@@ -50,7 +46,6 @@ using Novus.Win32.Wrappers;
 
 #pragma warning disable IDE0059
 #pragma warning disable IDE1006
-
 #pragma warning disable CA1416 //todo
 
 namespace Novus.Memory;
@@ -316,7 +311,8 @@ public static unsafe class Mem
 
 		return option switch
 		{
-			SizeOfOption.Native       => mt.NativeSize,
+			SizeOfOption.Native => mt.NativeSize,
+
 			// SizeOfOption.Managed      => mt.HasLayout ? mt.ManagedSize : Native.ERROR_SV,
 			SizeOfOption.Intrinsic    => SizeOf<T>(),
 			SizeOfOption.BaseFields   => mt.InstanceFieldsSize,
@@ -509,11 +505,9 @@ public static unsafe class Mem
 	extension(SizeOfOption option)
 	{
 
-		public bool RequiresTypeValue()
-			=> TypeValue.Contains(option);
+		public bool RequiresTypeValue => TypeValue.Contains(option);
 
-		public bool RequiresTypeParameter()
-			=> TypeParameter.Contains(option);
+		public bool RequiresTypeParameter => TypeParameter.Contains(option);
 
 	}
 
@@ -580,8 +574,7 @@ public static unsafe class Mem
 	/// <param name="offset">Offset type</param>
 	/// <returns>The address of <paramref name="value" /></returns>
 	/// <exception cref="ArgumentOutOfRangeException">If <paramref name="offset"></paramref> is out of range.</exception>
-	public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None)
-		where T : class
+	public static Pointer<byte> AddressOfHeap<T>(T value, OffsetOptions offset = OffsetOptions.None) where T : class
 		=> AddressOfHeapInternal(value, offset);
 
 	private static Pointer<byte> AddressOfHeapInternal<T>(T value, OffsetOptions offset)
@@ -600,15 +593,16 @@ public static unsafe class Mem
 
 		int offsetValue = offset.GetOffsetValue();
 
-		switch (offset) {
-			case OffsetOptions.StringData:
-				Require.Assert(ObjectUtility.IsString(value));
-				break;
+// @formatter:off
 
-			case OffsetOptions.ArrayData:
-				Require.Assert(ObjectUtility.IsArray(value));
-				break;
+		switch (offset) {
+			case OffsetOptions.StringData when !ObjectUtility.IsString(value): 
+				throw new ArgumentException(paramName: nameof(value), message: "Value is not string");
+			case OffsetOptions.ArrayData when !ObjectUtility.IsArray(value): 
+				throw new ArgumentException(paramName: nameof(value), message: "Value is not array");
 		}
+
+// @formatter:on
 
 		return heapPtr + offsetValue;
 	}
@@ -663,20 +657,11 @@ public static unsafe class Mem
 	public static Pointer<TField> AddressOfField<T, TField>(ref T obj, Expression<Func<TField>> mem)
 	{
 		int offsetOf = obj.GetType().OffsetOf(member_of2(mem).Name);
-
+		
 		Pointer<byte> p = AddressOfData(ref obj);
 
 		return (Pointer<TField>) (p + offsetOf);
 	}
-
-	/*public static ref TField ReferenceOfField<TField>(object obj, string name) =>
-		ref AddressOfField<object, TField>(obj, name).Reference;
-
-	public static ref TField ReferenceOfField<T, TField>(in T obj, string name) =>
-		ref AddressOfField<T, TField>(in obj, name).Reference;
-
-	public static ref TField ReferenceOfField<TField>(Type t, string name, object o = null) =>
-		ref AddressOfField<TField>(t, name, o).Reference;*/
 
 #endregion
 
@@ -758,9 +743,9 @@ public static unsafe class Mem
 
 
 		if (typeof(T).IsValueType) {
-			var x    = AddressOfData(ref value);
+			var ptr    = AddressOfData(ref value);
 			var size = SizeOf<T>();
-			return x.ToArray(size);
+			return ptr.ToArray(size);
 		}
 
 		TryGetAddressOfHeap(value, OffsetOptions.Header, out var ptr2);
@@ -823,16 +808,13 @@ public static unsafe class Mem
 	public static ref T New<T>(Pointer<byte> ptr, out Pointer<byte> ptrOrig) where T : class
 	{
 		ptrOrig = ptr;
-		
+
 		Unsafe.Write(ptr, default(ClrObjHeader));
-		// ptr.Cast<ClrObjHeader>().Write(default);
+
 		ptr += ObjectUtility.ObjHeaderSize;
-		Unsafe.Write(ptr, ObjectUtility.ToTypeHandle<T>());
-		// ptr.WritePointer<MethodTable>(typeof(T).TypeHandle.Value);
 
-		// return ref Unsafe.AsRef<T>(ptr);
+		Unsafe.Write(ptr, ObjectUtility.GetTypeHandle<T>());
 
-		// return ref AddressOf(ref ptr).Cast<T>().Reference;
 		ref var val = ref Unsafe.AsRef<T>(&ptr);
 		return ref val;
 	}
@@ -863,9 +845,9 @@ public static unsafe class Mem
 		}
 
 		ulong  numericValue = Convert.ToUInt64(value);
-		char[] bits         = new char[totalBits.Value];
+		char[] bits         = new char[(int) totalBits];
 
-		int index = totalBits.Value - 1;
+		int index = (int) totalBits - 1;
 
 		while (index >= 0) {
 			bits[index]  =   (numericValue & 1) == 1 ? '1' : '0';
@@ -877,82 +859,5 @@ public static unsafe class Mem
 	}
 
 #endregion
-
-	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static (ModuleEntry32, ImageSectionInfo) FindInProcessMemory(Process proc, Pointer<byte> ptr)
-	{
-		var modules = Native.EnumProcessModules((uint) proc.Id);
-
-		foreach (var m in modules) {
-			nint size = (nint) m.modBaseSize;
-			var  b    = ptr >= m.modBaseAddr && ptr <= (m.modBaseAddr + (size));
-
-			if (!b) {
-				continue;
-			}
-
-			var pe = Native.GetPESectionInfo(m.hModule);
-
-			// var seg = pe.FirstOrDefault(e => Mem.IsAddressInRange(ptr, e.Address, e.Address + e.Size));
-
-			foreach (var e in pe) {
-				var b2 = ptr >= e.Address && ptr <= (e.Address + size);
-
-				if (b2) {
-					return (m, e);
-
-				}
-			}
-		}
-
-		return (default, default);
-	}
-
-}
-
-/// <summary>
-///     Offset options for <see cref="Mem.AddressOfHeap{T}(T,OffsetOptions)" />
-/// </summary>
-public enum OffsetOptions
-{
-
-	/// <summary>
-	///     Return the pointer offset by <c>-</c><see cref="ObjectUtility.OffsetToData" />,
-	///     so it points to the object's <see cref="ClrObjHeader" />.
-	/// </summary>
-	Header,
-
-	/// <summary>
-	///     If the type is a <see cref="string" />, return the
-	///     pointer offset by <see cref="ObjectUtility.OffsetToStringData" /> so it
-	///     points to the string's characters.
-	///     <remarks>
-	///         Note: Equal to <see cref="GCHandle.AddrOfPinnedObject" /> and <c>fixed</c>.
-	///     </remarks>
-	/// </summary>
-	StringData,
-
-	/// <summary>
-	///     If the type is an array, return
-	///     the pointer offset by <see cref="ObjectUtility.OffsetToArrayData" /> so it points
-	///     to the array's elements.
-	///     <remarks>
-	///         Note: Equal to <see cref="GCHandle.AddrOfPinnedObject" /> and <c>fixed</c>
-	///     </remarks>
-	/// </summary>
-	ArrayData,
-
-	/// <summary>
-	///     If the type is a reference type, return
-	///     the pointer offset by <see cref="ObjectUtility.OffsetToData" /> so it points
-	///     to the object's fields.
-	/// </summary>
-	Fields,
-
-	/// <summary>
-	///     Don't offset the heap pointer at all, so it
-	///     points to the <see cref="TypeHandle" />
-	/// </summary>
-	None
 
 }

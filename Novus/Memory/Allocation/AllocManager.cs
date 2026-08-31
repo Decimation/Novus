@@ -161,7 +161,7 @@ public static class AllocManager
 
 	public static object New(Type t, params object[] ctor)
 	{
-		return s_newFunc.CallGeneric(t, null, [ctor]);
+		return s_newFunc.InvokeGeneric(t, null, [ctor]);
 	}
 
 	/// <summary>

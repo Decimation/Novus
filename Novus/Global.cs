@@ -163,14 +163,6 @@ public static class Global
 	public const string CLR_PDB = "coreclr.pdb";
 
 	/// <summary>
-	///     Runtime CLR version (target)
-	/// </summary>
-	public static readonly Version Version;
-
-	/*[MN]
-	public static string ClrPdb { get; set; }*/
-
-	/// <summary>
 	///     Runtime CLR resources
 	/// </summary>
 	public static RuntimeResource Clr { get; private set; }
@@ -179,17 +171,20 @@ public static class Global
 
 	public static bool IsSetup { get; private set; }
 
+	/// <summary>
+	///     Runtime CLR version (target)
+	/// </summary>
+	public static readonly Version Version;
+
 	public static readonly string DataFolder;
 
-	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+	public static readonly Assembly Assembly;
 
 	internal static readonly ILoggerFactory LoggerFactoryInt;
 
 	private static readonly ILogger s_logger;
 
-	private static readonly IConfigurationRoot s_config;
-
-	public static readonly bool IsWorkstationGC = !GCSettings.IsServerGC;
+	public static readonly bool IsWorkstationGC;
 
 	public static readonly bool IsCorrectVersion;
 
@@ -201,10 +196,7 @@ public static class Global
 	/// </summary>
 	static Global()
 	{
-		s_config = new ConfigurationBuilder()
-		           .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-		           .AddEnvironmentVariables()
-		           .Build();
+		Assembly = Assembly.GetExecutingAssembly();
 
 		LoggerFactoryInt = LoggerFactory.Create(builder =>
 		{
@@ -225,6 +217,7 @@ public static class Global
 
 		Version = Version.Parse(ER.RequiredVersion);
 
+		IsWorkstationGC  = !GCSettings.IsServerGC;
 		IsCorrectVersion = Environment.Version == Version;
 		IsCompatible     = IsCorrectVersion && IsWorkstationGC && OperatingSystem.IsWindows();
 		DataFolder       = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), LIB_NAME);

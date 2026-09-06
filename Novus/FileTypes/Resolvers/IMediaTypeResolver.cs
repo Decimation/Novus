@@ -5,24 +5,24 @@ using Novus.Win32;
 
 namespace Novus.FileTypes.Resolvers;
 
-public interface IResourceTypeResolver : IDisposable
+public interface IMediaTypeResolver : IDisposable
 {
 
-	public IResourceType Resolve(byte[] rg, int l = ResourceTypeUtilities.RSRC_HEADER_LEN);
+	public IMediaType Resolve(byte[] rg, int l = MediaTypeUtilities.RSRC_HEADER_LEN);
 
-	public async Task<IResourceType> ResolveAsync(Stream m, int l = ResourceTypeUtilities.RSRC_HEADER_LEN, CancellationToken ct = default)
+	public async Task<IMediaType> ResolveAsync(Stream m, int l = MediaTypeUtilities.RSRC_HEADER_LEN, CancellationToken ct = default)
 	{
 		var bytes = await m.ReadHeaderAsync(ct: ct, l: l);
 		return Resolve(bytes);
 	}
 
-	public IResourceType Resolve(Stream m, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
+	public IMediaType Resolve(Stream m, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
 		var header = m.ReadHeader(l: l);
 		return Resolve(header);
 	}
 
-	public static IResourceTypeResolver Default { get; set; } = new DefaultResolver();
+	public static IMediaTypeResolver Default { get; set; } = new DefaultResolver();
 
 	/*
 		| Method |        Mean |     Error |    StdDev |

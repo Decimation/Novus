@@ -9,6 +9,17 @@ using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace Novus.FileTypes;
 
+interface IResourceLoader
+{
+
+	ValueTask<Stream> LoadResourceAsync(string src, CancellationToken tok = default);
+	
+	Stream LoadResource(string src);
+
+}
+
+public enum ResourceType { }
+
 public abstract class UniResource
 {
 
@@ -44,7 +55,7 @@ public class UniHttpResource : UniResource
 			hasSuppliedTypeVal = MediaTypeHeaderValue.TryParse(suppliedType, out suppliedTypeVal);
 		}
 
-		if (hasSuppliedTypeVal && ResourceTypeUtilities.ApacheBugContentTypes.Any(hv => hv.Equals(suppliedTypeVal))) {
+		if (hasSuppliedTypeVal && MediaTypeUtilities.ApacheBugContentTypes.Any(hv => hv.Equals(suppliedTypeVal))) {
 			flags |= UniResourceFlags.CheckForApacheBug;
 		}
 

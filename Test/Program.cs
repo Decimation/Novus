@@ -154,19 +154,37 @@ public static class Program
 	}
 
 
-	private static unsafe void Main(string[] args)
+	private static async Task Main(string[] args)
 	{
 
-		Console.WriteLine(RuntimeHelpers.SizeOf(typeof(MyClass).TypeHandle));
-		Console.WriteLine(RuntimeHelpers.SizeOf(typeof(MyStruct2).TypeHandle));
-		Console.WriteLine(Mem.SizeOf<MyStruct2>(SizeOfOption.BaseFields));
-		Console.WriteLine(RuntimeHelpers.SizeOf(typeof(string).TypeHandle));
-		Console.WriteLine(Mem.SizeOf<string>(SizeOfOption.BaseFields));
+		var u1 = "https://static.zerochan.net/atago.(azur.lane).full.2750747.png";
+		var u2 = "https://yande.re/post/show/1034007";
+
+		await TestMediaType(u1);
+		await TestMediaType(u2);
+	}
+
+	private static async Task TestMediaType(string u1)
+	{
+		var req    = await u1.WithHeaders(new{User_Agent = EmbeddedResources.UserAgent}).GetAsync();
+		var stream = await req.GetStreamAsync();
+
+		var hdrStr = await stream.GetHeaderAsync(MediaTypeUtilities.RSRC_HEADER_LEN);
+		var hdr    = await hdrStr.ReadHeaderAsync(MediaTypeUtilities.RSRC_HEADER_LEN);
+
+		for (int i = 0; i < hdr.Length; i++) {
+			Console.Write($"{hdr[i]:X} ");
+		}
+
+		Console.WriteLine();
+
+		Console.WriteLine(MediaTypeUtilities.IsBinaryResource(hdr));
+		Console.WriteLine(MediaTypeUtilities.Resolve(hdr));
 	}
 
 	private static void TestResType()
 	{
-		foreach (var val0 in ResourceTypeUtilities.ApacheBugContentTypes) {
+		foreach (var val0 in MediaTypeUtilities.ApacheBugContentTypes) {
 			Console.WriteLine(val0);
 			var rg = Encoding.Default.GetBytes(val0.ToString());
 
@@ -182,9 +200,9 @@ public static class Program
 		Console.WriteLine(aobString);
 		var s = Encoding.Default.GetString(aobString);
 		Console.WriteLine(s);
-		Console.WriteLine(s == ResourceTypeUtilities.ApacheBugContentTypes[1].ToString());
+		Console.WriteLine(s == MediaTypeUtilities.ApacheBugContentTypes[1].ToString());
 
-		foreach (var type in ResourceTypeUtilities.All) {
+		foreach (var type in MediaTypeUtilities.All) {
 			Console.WriteLine(type);
 			Console.WriteLine($"{type.Signatures.Length}");
 
@@ -193,7 +211,7 @@ public static class Program
 			}
 		}
 
-		Console.WriteLine(ResourceTypeUtilities.Find("image/png"));
+		Console.WriteLine(MediaTypeUtilities.Find("image/png"));
 	}
 
 	private static void TestSym2()

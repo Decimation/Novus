@@ -14,7 +14,7 @@ namespace Novus.FileTypes.Resolvers;
  * Adapted from https://github.com/hey-red/Mime
  */
 
-public sealed class MagicResolver : IResourceTypeResolver
+public sealed class MagicResolver : IMediaTypeResolver
 {
 
 	private bool m_disposed;
@@ -95,7 +95,7 @@ public sealed class MagicResolver : IResourceTypeResolver
 	public nint Magic { get; }
 
 
-	public static IResourceTypeResolver Instance { get; set; }
+	public static IMediaTypeResolver Instance { get; set; }
 
 	public string LastError
 	{
@@ -234,17 +234,17 @@ public sealed class MagicResolver : IResourceTypeResolver
 		return Read(buffer, bufferSize);
 	}
 
-	public IResourceType Resolve(byte[] rg, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
+	public IMediaType Resolve(byte[] rg, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
-		// var buf1 = stream.ReadBlockAsync(ResourceTypeUtilities.RSRC_HEADER_LEN);
+		// var buf1 = stream.ReadBlockAsync(MediaTypeUtilities.RSRC_HEADER_LEN);
 		// buf1.Wait();
 		// var buf  = buf1.Result;
 
 		var s = Read(rg, l);
-		return new ResourceType(s);
+		return new MediaType(s);
 	}
 
-	public IResourceType Resolve(Stream stream, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
+	public IMediaType Resolve(Stream stream, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
 		return Resolve(stream.ReadHeader(), l);
 	}

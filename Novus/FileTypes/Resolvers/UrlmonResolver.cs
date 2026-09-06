@@ -5,7 +5,7 @@ using Novus.Win32.Structures.Other;
 
 namespace Novus.FileTypes.Resolvers;
 
-public sealed class UrlmonResolver : IResourceTypeResolver
+public sealed class UrlmonResolver : IMediaTypeResolver
 {
 
 	public UrlmonResolver() { }
@@ -46,10 +46,10 @@ public sealed class UrlmonResolver : IResourceTypeResolver
 		return mimeRet;
 	}
 
-	public IResourceType Resolve(byte[] buf, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
+	public IMediaType Resolve(byte[] buf, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
 		var data = ResolveFromData(buf);
-		return new ResourceType(data) { };
+		return new MediaType(data) { };
 	}
 
 }

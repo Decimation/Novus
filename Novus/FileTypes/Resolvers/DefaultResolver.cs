@@ -2,19 +2,19 @@
 
 namespace Novus.FileTypes.Resolvers;
 
-public sealed class DefaultResolver : IResourceTypeResolver
+public sealed class DefaultResolver : IMediaTypeResolver
 {
 
 	public void Dispose() { }
 
 	public DefaultResolver() { }
 
-	public IResourceType Resolve(byte[] rg, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
+	public IMediaType Resolve(byte[] rg, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
-		return ResourceTypeUtilities.Resolve(rg);
+		return MediaTypeUtilities.Resolve(rg);
 	}
 
-	public IResourceType Resolve(Stream m, int l = ResourceTypeUtilities.RSRC_HEADER_LEN)
+	public IMediaType Resolve(Stream m, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
 		return Resolve(m.ReadHeader(l: l), l);
 	}

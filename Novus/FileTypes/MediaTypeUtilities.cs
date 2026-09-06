@@ -1,4 +1,4 @@
-﻿// Author: Deci | Project: Novus | Name: ResourceType.Internal.cs
+﻿// Author: Deci | Project: Novus | Name: MediaType.Internal.cs
 // Date: 2024/12/19 @ 00:12:37
 
 using System.Diagnostics;
@@ -16,19 +16,19 @@ using Novus.Utilities.Converters;
 #nullable disable
 namespace Novus.FileTypes;
 
-public static class ResourceTypeUtilities
+public static class MediaTypeUtilities
 {
 
 #region
 
-	static ResourceTypeUtilities()
+	static MediaTypeUtilities()
 	{
-		s_all = new Lazy<IResourceType[]>(ReadDatabase, LazyThreadSafetyMode.PublicationOnly);
+		s_all = new Lazy<IMediaType[]>(ReadDatabase, LazyThreadSafetyMode.PublicationOnly);
 	}
 
-	private static readonly Lazy<IResourceType[]> s_all;
+	private static readonly Lazy<IMediaType[]> s_all;
 
-	public static IResourceType[] All => s_all.Value;
+	public static IMediaType[] All => s_all.Value;
 
 	internal static readonly JsonSerializerOptions SerializerOptions = new()
 	{
@@ -65,9 +65,9 @@ public static class ResourceTypeUtilities
 #endregion
 
 	/// <summary>
-	///     Reads <see cref="ResourceType" /> from <see cref="ER.File_types" />
+	///     Reads <see cref="MediaType" /> from <see cref="ER.File_types" />
 	/// </summary>
-	private static IResourceType[] ReadDatabase()
+	private static IMediaType[] ReadDatabase()
 	{
 
 		/*var jn     = JsonNode.Parse(ER.File_types);
@@ -87,7 +87,7 @@ public static class ResourceTypeUtilities
 				var jOffset = sig1[ER.K_Offset];
 				var offset  = jOffset == null ? 0 : Int32.Parse(jOffset.ToString());
 
-				var sig1Obj = sig1.Deserialize<ResourceTypeSignature>(new JsonSerializerOptions()
+				var sig1Obj = sig1.Deserialize<MediaTypeSignature>(new JsonSerializerOptions()
 				{
 					PropertyNameCaseInsensitive = true,
 					Converters                  = { new ByteStringConverter() }
@@ -97,7 +97,7 @@ public static class ResourceTypeUtilities
 			}
 		}*/
 
-		return JsonSerializer.Deserialize<ResourceType[]>(ER.File_types, SerializerOptions);
+		return JsonSerializer.Deserialize<MediaType[]>(ER.File_types, SerializerOptions);
 	}
 
 #endregion
@@ -179,7 +179,7 @@ public static class ResourceTypeUtilities
 	/// <remarks>
 	///     <a href="https://mimesniff.spec.whatwg.org/#read-the-resource-header">5.2</a>
 	/// </remarks>
-	public static async Task<Memory<byte>> ReadResourceHeaderAsync(Stream input, CancellationToken ct = default)
+	public static async ValueTask<Memory<byte>> ReadResourceHeaderAsync(Stream input, CancellationToken ct = default)
 	{
 		Memory<byte> buf = new byte[RSRC_HEADER_LEN];
 		var          ms  = await input.ReadAsync(buf, ct);
@@ -188,18 +188,17 @@ public static class ResourceTypeUtilities
 
 #endregion
 
-	public static IEnumerable<IResourceType> Find(string mediaType)
-		=>
-			from ft in All
-			let mt = ft.MediaType.ToString()
-			where mt == mediaType
-			select ft;
+	public static IEnumerable<IMediaType> Find(string mediaType)
+		=> from ft in All
+		   let mt = ft.Value.ToString()
+		   where mt == mediaType
+		   select ft;
 
 	[CBN]
-	public static IResourceType Resolve(in Memory<byte> rg)
+	public static IMediaType Resolve(in Memory<byte> rg)
 	{
 		foreach (var ft in All) {
-			if (ft is ResourceType { } rt && rt.CheckPattern(rg.Span)) {
+			if (ft is MediaType { } rt && rt.CheckPattern(rg.Span)) {
 				return ft;
 			}
 		}
@@ -210,15 +209,15 @@ public static class ResourceTypeUtilities
 	extension(MediaTypeHeaderValue value)
 	{
 
-		[CBN]
+		[MN]
 		public string Type => value.Split().Type;
 
-		[CBN]
+		[MN]
 		public string Subtype => value.Split().Subtype;
 
 		public (string Type, string Subtype) Split()
 		{
-			var split = value.MediaType?.Split(ResourceTypeUtilities.MIME_TYPE_DELIM, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+			var split = value.MediaType?.Split(MediaTypeUtilities.MIME_TYPE_DELIM, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 			return split?.Length >= 2 ? (split[0], split[1]) : (null, null);
 

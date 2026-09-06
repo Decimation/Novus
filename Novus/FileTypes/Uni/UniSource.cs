@@ -45,7 +45,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 
 	public bool IsValid => IsUri || IsFile || IsStream;
 
-	public IResourceType ResourceType { get; protected set; }
+	public IMediaType MediaType { get; protected set; }
 
 	public object Value { get; protected set; }
 
@@ -62,12 +62,12 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 
 	public override string ToString()
 	{
-		return $"[{SourceType}] {ResourceType}";
+		return $"[{SourceType}] {MediaType}";
 	}
 
-	public static async Task<UniSource> GetAsync(object o, IResourceTypeResolver resolver = null, bool autoAlloc = true, CancellationToken ct = default)
+	public static async Task<UniSource> GetAsync(object o, IMediaTypeResolver resolver = null, bool autoAlloc = true, CancellationToken ct = default)
 	{
-		resolver ??= IResourceTypeResolver.Default;
+		resolver ??= IMediaTypeResolver.Default;
 		UniSource buf = null;
 
 		string os;
@@ -109,7 +109,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 			if (ok) {
 				var type = await resolver.ResolveAsync(buf.Stream, ct: ct);
 
-				buf.ResourceType = type;
+				buf.MediaType = type;
 				buf.Stream.TrySeek();
 
 			}
@@ -119,7 +119,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 	}
 
 
-	public static Task<UniSource> TryGetAsync(object value, IResourceTypeResolver resolver = null,
+	public static Task<UniSource> TryGetAsync(object value, IMediaTypeResolver resolver = null,
 	                                                bool autoAlloc = true,
 	                                                CancellationToken ct = default)
 	{
@@ -183,7 +183,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 		if (ReferenceEquals(this, other))
 			return true;
 
-		return Equals(Stream, other.Stream) && ResourceType.Equals(other.ResourceType) && Equals(Value, other.Value);
+		return Equals(Stream, other.Stream) && MediaType.Equals(other.MediaType) && Equals(Value, other.Value);
 	}
 
 	public override bool Equals(object obj)
@@ -202,7 +202,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(Stream, ResourceType, Value);
+		return HashCode.Combine(Stream, MediaType, Value);
 	}
 
 	public static bool operator ==(UniSource left, UniSource right)

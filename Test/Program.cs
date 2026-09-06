@@ -157,11 +157,7 @@ public static class Program
 	private static async Task Main(string[] args)
 	{
 
-		var u1 = "https://static.zerochan.net/atago.(azur.lane).full.2750747.png";
-		var u2 = "https://yande.re/post/show/1034007";
-
-		await TestMediaType(u1);
-		await TestMediaType(u2);
+		
 	}
 
 	private static async Task TestMediaType(string u1)

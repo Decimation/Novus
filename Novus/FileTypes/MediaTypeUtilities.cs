@@ -16,6 +16,12 @@ using Novus.Utilities.Converters;
 #nullable disable
 namespace Novus.FileTypes;
 
+/// <summary>
+/// Provides utilities for interacting with media types (MIME types)
+/// </summary>
+/// <seealso cref="MediaTypeHeaderValue"/>
+/// <seealso cref="MediaTypeNames"/>
+/// <seealso cref="IMediaType"/>
 public static class MediaTypeUtilities
 {
 
@@ -69,33 +75,6 @@ public static class MediaTypeUtilities
 	/// </summary>
 	private static IMediaType[] ReadDatabase()
 	{
-
-		/*var jn     = JsonNode.Parse(ER.File_types);
-		var jArray = jn.AsArray();
-
-		for (int i = 0; i < jArray.Count; i++) {
-			var r = jArray[i];
-			var o = r.AsObject();
-
-			var mediaType = o[ER.K_Name].ToString();
-
-			var sigs = o["signatures"].AsArray();
-
-			foreach (var sig1 in sigs) {
-				var mask    = sig1[ER.K_Mask].ToString();
-				var sig     = sig1[ER.K_Pattern].ToString();
-				var jOffset = sig1[ER.K_Offset];
-				var offset  = jOffset == null ? 0 : Int32.Parse(jOffset.ToString());
-
-				var sig1Obj = sig1.Deserialize<MediaTypeSignature>(new JsonSerializerOptions()
-				{
-					PropertyNameCaseInsensitive = true,
-					Converters                  = { new ByteStringConverter() }
-				});
-
-
-			}
-		}*/
 
 		return JsonSerializer.Deserialize<MediaType[]>(ER.File_types, SerializerOptions);
 	}

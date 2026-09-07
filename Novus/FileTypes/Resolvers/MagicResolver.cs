@@ -222,7 +222,9 @@ public sealed class MagicResolver : IMediaTypeResolver
 		// var buf  = buf1.Result;
 
 		var s = Read(rg, l);
-		return new MediaType(s);
+
+		// return MediaTypeUtilities.Find(s).FirstOrDefault();
+		return new MediaType(s, []);
 	}
 
 	public IMediaType Resolve(Stream stream, int l = MediaTypeUtilities.RSRC_HEADER_LEN)

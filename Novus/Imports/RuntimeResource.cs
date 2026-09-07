@@ -60,7 +60,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public bool LoadedModule { get; private init; }
 
-	public ImportLoadOptions Options { get; } = ImportLoadOptions.UnloadAllOnDispose | ImportLoadOptions.NullOnImportError;
+	public ResourceImportLoadOptions Options { get; } = ResourceImportLoadOptions.UnloadAllOnDispose | ResourceImportLoadOptions.NullOnImportError;
 
 	private readonly List<Type> m_loadedTypes = [];
 
@@ -149,7 +149,7 @@ public sealed class RuntimeResource : IDisposable
 	{
 		var annotatedTuples = t.GetAnnotated<ImportAttribute>();
 
-		if (Options.HasFlag(ImportLoadOptions.WriteDefaultOnUnload)) {
+		if (Options.HasFlag(ResourceImportLoadOptions.WriteDefaultOnUnload)) {
 			foreach (var (k, member) in annotatedTuples) {
 				var field = (FI) member;
 
@@ -242,9 +242,7 @@ public sealed class RuntimeResource : IDisposable
 		}
 
 		foreach (var (asm, manager) in m_managers) {
-			var value = manager.GetObject(attr.Name);
-
-			if (value != null) {
+			if (attr.Name is { } name && manager.GetObject(name) is { } value) {
 				//Debug.WriteLine($"{manager.BaseName}:: {value}", C_DEBUG);
 				return value;
 			}
@@ -289,18 +287,16 @@ public sealed class RuntimeResource : IDisposable
 
 				var addr = FindImport(attribute, resValue);
 
-				//Require.Assert(!addr.IsNull, $"Could not find value for {resValue}!");
 
 				if (addr.IsNull) {
-					// throw new ImportException($"Could not find import value for {unmanagedAttr.Name}");
 
 					s_logger.LogError("Could not find import value for {Name}", unmanagedAttr.Name);
 
-					if (Options.HasFlag(ImportLoadOptions.ThrowOnImportError)) {
+					if (Options.HasFlag(ResourceImportLoadOptions.ThrowOnImportError)) {
 						throw new InvalidOperationException($"Could not find import value for {unmanagedAttr.Name}!");
 					}
 
-					if (Options.HasFlag(ImportLoadOptions.NullOnImportError)) {
+					if (Options.HasFlag(ResourceImportLoadOptions.NullOnImportError)) {
 						/*var dyn   = new DynamicMethod("Err", typeof(void), Type.EmptyTypes);
 						var fnPtr = dyn.MethodHandle.GetFunctionPointer();
 						addr = fnPtr;*/
@@ -308,9 +304,6 @@ public sealed class RuntimeResource : IDisposable
 						/*DynamicMethod dyn = MethodFactory.GetOrGenerateThrowingFunction(field.FieldType);
 						addr = dyn.MethodHandle.GetFunctionPointer();*/
 
-						addr = Mem.Nullptr;
-					}
-					else {
 						addr = Mem.Nullptr;
 					}
 				}
@@ -489,7 +482,7 @@ public sealed class RuntimeResource : IDisposable
 		nint ofs         = 0;
 
 		if (symbol is null) {
-			return Options.HasFlag(ImportLoadOptions.ThrowOnImportError) ? throw new ImportException($"Symbol {name} is null") : Mem.Nullptr;
+			return Options.HasFlag(ResourceImportLoadOptions.ThrowOnImportError) ? throw new ImportException($"Symbol {name} is null") : Mem.Nullptr;
 		}
 
 		ofs = (nint) symbol.Offset;
@@ -509,7 +502,7 @@ public sealed class RuntimeResource : IDisposable
 
 	public void Dispose()
 	{
-		if (Options.HasFlag(ImportLoadOptions.UnloadAllOnDispose)) {
+		if (Options.HasFlag(ResourceImportLoadOptions.UnloadAllOnDispose)) {
 			UnloadAll();
 		}
 

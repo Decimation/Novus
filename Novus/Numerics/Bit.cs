@@ -1,8 +1,6 @@
 ﻿// Author: Deci | Project: Novus | Name: Bit.cs
 // Date: 2023/08/11 @ 23:08:26
 
-#define NEW_BIT
-
 #region
 
 using System.Globalization;
@@ -16,13 +14,12 @@ using Novus.Memory;
 namespace Novus.Numerics;
 
 #if NEW_BIT
-
 public enum BitMode
 {
 
-	None    = 0,
+	None = 0,
 	Bitwise = 1,
-	Clamp   = 2
+	Clamp = 2
 
 }
 
@@ -59,7 +56,7 @@ public partial struct Bit : IBinaryInteger<Bit>, IBitwiseOperators<Bit, Bit, Bit
 
 #region Constants
 
-	public const byte TRUE_1  = 1;
+	public const byte TRUE_1 = 1;
 	public const byte FALSE_0 = 0;
 
 	public bool TruthValue => Value == TRUE_1;
@@ -189,14 +186,14 @@ public partial struct Bit : IBinaryInteger<Bit>, IBitwiseOperators<Bit, Bit, Bit
 	public bool TryWriteBigEndian(Span<byte> destination, out int bytesWritten)
 	{
 		destination[0] = Value;
-		bytesWritten   = GetByteCount();
+		bytesWritten = GetByteCount();
 		return true;
 	}
 
 	public bool TryWriteLittleEndian(Span<byte> destination, out int bytesWritten)
 	{
 		destination[0] = Value;
-		bytesWritten   = GetByteCount();
+		bytesWritten = GetByteCount();
 		return true;
 	}
 
@@ -295,10 +292,13 @@ public partial struct Bit : IBinaryInteger<Bit>, IBitwiseOperators<Bit, Bit, Bit
 #endregion
 
 }
+
 #else
+
 [Serializable]
 public struct Bit
 {
+
 	private byte m_value;
 
 	private Bit(int value)
@@ -370,5 +370,6 @@ public struct Bit
 	{
 		return m_value == 1;
 	}
+
 }
 #endif

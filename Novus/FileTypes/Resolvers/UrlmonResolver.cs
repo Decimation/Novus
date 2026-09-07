@@ -1,10 +1,13 @@
-﻿using System.Runtime.InteropServices;
-using Kantan.Diagnostics;
+﻿using Kantan.Diagnostics;
+using Novus.Runtime;
 using Novus.Win32;
 using Novus.Win32.Structures.Other;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace Novus.FileTypes.Resolvers;
 
+[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 public sealed class UrlmonResolver : IMediaTypeResolver
 {
 
@@ -49,7 +52,7 @@ public sealed class UrlmonResolver : IMediaTypeResolver
 	public IMediaType Resolve(byte[] buf, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
 		var data = ResolveFromData(buf);
-		return new MediaType(data) { };
+		return new MediaType(data, []) { };
 	}
 
 }

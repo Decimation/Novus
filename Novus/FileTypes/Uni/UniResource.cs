@@ -30,11 +30,6 @@ public class UniResource
 		Input = input;
 	}
 
-	public static async Task<UniResource> LoadHttpAsync(Url u, CancellationToken ct = default)
-	{
-
-	}
-
 	public static async Task<UniResource> LoadAsync(string input, CancellationToken ct = default)
 	{
 		UniResource ur = new();

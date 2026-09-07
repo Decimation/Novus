@@ -20,19 +20,21 @@ namespace Novus.FileTypes;
 
 public class MediaType : IEquatable<MediaType>, IEqualityOperators<MediaType, MediaType, bool>, IMediaType
 {
+
 	[JsonPropertyName("name")]
-	public MediaTypeHeaderValue Value { get;  }
+	public MediaTypeHeaderValue Value { get; }
 
 	public MediaTypeSignature[] Signatures { get; }
 
-	internal MediaType() : this(null, []) { }
+	internal MediaType() : this((string) null, []) { }
 
 	public MediaType(MediaTypeHeaderValue value, IEnumerable<MediaTypeSignature> signatures)
 	{
-		Value = value;
+		Value      = value;
 		Signatures = [.. signatures];
 	}
 
+	public MediaType(string value, IEnumerable<MediaTypeSignature> signatures) : this(MediaTypeHeaderValue.Parse(value), signatures) { }
 
 	public bool CheckPattern(ReadOnlySpan<byte> input, ISet<byte> ignored = null)
 	{

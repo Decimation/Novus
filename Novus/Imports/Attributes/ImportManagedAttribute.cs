@@ -10,7 +10,7 @@ namespace Novus.Imports.Attributes;
 /// </summary>
 /// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
 [MIU]
-[AttributeUsage(AttributeTargets.Field)]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class ImportManagedAttribute : ImportAttribute
 {
 

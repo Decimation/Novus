@@ -1,4 +1,4 @@
-﻿// Author: Deci | Project: Novus | Name: ImportLoadOptions.cs
+﻿// Author: Deci | Project: Novus | Name: ResourceImportLoadOptions.cs
 // Date: 2026/08/30 @ 23:08:16
 
 // ReSharper disable UnusedMember.Global
@@ -8,7 +8,7 @@ namespace Novus.Imports;
 /// Options for <see cref="RuntimeResource"/>
 /// </summary>
 [Flags]
-public enum ImportLoadOptions
+public enum ResourceImportLoadOptions
 {
 
 	None                  = 0,

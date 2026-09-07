@@ -12,7 +12,7 @@ namespace Novus.Imports.Attributes;
 /// </summary>
 /// <remarks>For use with <seealso cref="RuntimeResource.LoadImports" /></remarks>
 [MIU]
-[AttributeUsage(AttributeTargets.Field)]
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class ImportUnmanagedAttribute : ImportAttribute
 {
 
@@ -25,33 +25,8 @@ public class ImportUnmanagedAttribute : ImportAttribute
 		: base(name, ImportManageType.Unmanaged)
 	{
 		ModuleName = moduleName;
-		ImportType       = importType;
+		ImportType = importType;
 		Value      = value;
 	}
-
-}
-
-public enum ImportType
-{
-
-	/// <summary>
-	/// <see cref="RuntimeResource.GetSignature"/>
-	/// </summary>
-	Signature,
-
-	/// <summary>
-	/// <see cref="RuntimeResource.GetOffset"/>
-	/// </summary>
-	Offset,
-
-	/// <summary>
-	/// <see cref="RuntimeResource.GetSymbol"/>
-	/// </summary>
-	Symbol,
-
-	/// <summary>
-	/// <see cref="RuntimeResource.GetExport"/>
-	/// </summary>
-	Export
 
 }

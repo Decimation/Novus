@@ -17,6 +17,7 @@ namespace Novus.Numerics;
 /// </summary>
 /// <a href="https://github.com/rubendal/BitStream">See</a>
 [Obsolete($"Use {nameof(BitArray)}")]
+
 //TODO:FIX
 public class BitStream : IDisposable, IAsyncDisposable
 {
@@ -388,7 +389,12 @@ public class BitStream : IDisposable, IAsyncDisposable
 
 		AdvanceBit();
 		Stream.Seek(m_offset, SeekOrigin.Begin);
+
+#if NEW_BIT
 		return new Bit(value, BitMode.None);
+#else
+		return value;
+#endif
 	}
 
 	/// <summary>
@@ -400,7 +406,7 @@ public class BitStream : IDisposable, IAsyncDisposable
 	{
 		// var bits = new Bit[length];
 
-		var ba=new BitArray(length);
+		var ba = new BitArray(length);
 
 		for (int i = 0; i < length; i++) {
 			ba[i] = ReadBit();
@@ -511,11 +517,17 @@ public class BitStream : IDisposable, IAsyncDisposable
 			byte value = 0;
 
 			for (int p = 0; p < BITS_PER_BYTE && i < length; i++, p++) {
+				Bit bv;
+#if NEW_BIT
+				bv = ReadBit().Value;
+#else
+				bv = ReadBit();
+#endif
 				if (!m_msb) {
-					value |= (byte) (ReadBit().Value << p);
+					value |= (byte) (bv << p);
 				}
 				else {
-					value |= (byte) (ReadBit().Value << (7 - p));
+					value |= (byte) (bv << (7 - p));
 				}
 			}
 
@@ -527,12 +539,12 @@ public class BitStream : IDisposable, IAsyncDisposable
 
 	public T Read<T>()
 	{
-		var      size = Mem.SizeOf<T>();
+		var          size = Mem.SizeOf<T>();
 		Memory<byte> rg   = ReadBytes(size, true);
 
-		T            val   = default;
-		
-		var          ptr   = Mem.AddressOf(ref val).Cast();
+		T val = default;
+
+		var ptr = Mem.AddressOf(ref val).Cast();
 
 		unsafe {
 			var handle = rg.Pin();

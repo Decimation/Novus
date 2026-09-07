@@ -47,6 +47,7 @@ public static class ProcessHelper
 
 	extension(Process)
 	{
+
 		[CBN]
 		[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
 		public static Process GetParent(nint handle, out ProcessBasicInformation pbi)
@@ -56,7 +57,7 @@ public static class ProcessHelper
 
 			unsafe {
 				var pbiBuf = new ProcessBasicInformation();
-			
+
 				var status = Native.NtQueryInformationProcess(handle, 0, &pbiBuf,
 				                                              Marshal.SizeOf(pbiBuf), out returnLength);
 				pbi = pbiBuf;
@@ -75,8 +76,6 @@ public static class ProcessHelper
 
 			}
 		}
-
-
 
 	}
 

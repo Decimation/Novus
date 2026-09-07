@@ -1,6 +1,5 @@
 ﻿// Author: Deci | Project: Novus | Name: Bit.Math.cs
 // Date: 2026/08/09 @ 00:08:11
-#define NEW_BIT
 
 namespace Novus.Numerics;
 #if NEW_BIT

@@ -157,11 +157,24 @@ public static class Program
 	private static async Task Main(string[] args)
 	{
 
+		var a = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
+		var b = "https://static.zerochan.net/atago.(azur.lane).full.2750747.png";
+		var c = "https://yande.re/post/show/1034007";
+
+		await TestMediaType2(File.OpenRead(a));
+		await TestMediaType2(await b.GetStreamAsync());
+		await TestMediaType2(await c.GetStreamAsync());
+	}
+
+	private static async Task TestMediaType2(Stream s)
+	{
+		var (mt, stream) = await MediaTypeUtilities.SniffAsync(s);
+		Console.WriteLine($"{mt}, {stream.Length}");
 	}
 
 	private static async Task TestMediaType(string u1)
 	{
-		var req    = await u1.WithHeaders(new{User_Agent = EmbeddedResources.UserAgent}).GetAsync();
+		var req    = await u1.WithHeaders(new { User_Agent = EmbeddedResources.UserAgent }).GetAsync();
 		var stream = await req.GetStreamAsync();
 
 		var hdrStr = await stream.GetHeaderAsync(MediaTypeUtilities.RSRC_HEADER_LEN);

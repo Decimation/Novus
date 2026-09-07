@@ -72,41 +72,6 @@ public static class MediaTypeUtilities
 
 #endregion
 
-	public static async ValueTask<(IMediaType MediaType, Stream Body)> SniffAsync(Stream source, [CBN] string nameHint = null, CancellationToken ct = default)
-	{
-
-		var reader = PipeReader.Create(source, new StreamPipeReaderOptions(leaveOpen: true));
-
-		ReadResult             result = await reader.ReadAtLeastAsync(RSRC_HEADER_LEN, ct);
-		ReadOnlySequence<byte> buffer = result.Buffer;
-
-		int        n = (int) Math.Min(RSRC_HEADER_LEN, buffer.Length);
-		IMediaType mediaType;
-
-		if (buffer.First.Length >= n) {
-			mediaType               = Resolve(buffer.First.Span[..n]);
-			mediaType?.SuppliedType = nameHint;
-		}
-		else {
-			// Sequence is segmented; flatten the header.
-			byte[] tmp = ArrayPool<byte>.Shared.Rent(n);
-
-			try {
-				buffer.Slice(0, n).CopyTo(tmp);
-				mediaType               = Resolve(tmp.AsSpan(0, n));
-				mediaType?.SuppliedType = nameHint;
-			}
-			finally {
-				ArrayPool<byte>.Shared.Return(tmp);
-			}
-		}
-
-		// Examined everything, consumed nothing — bytes remain available to the caller.
-		reader.AdvanceTo(buffer.Start, buffer.End);
-
-		return (mediaType, reader.AsStream());
-	}
-
 	/// <summary>
 	///     Reads <see cref="MediaType" /> from <see cref="ER.File_types" />
 	/// </summary>
@@ -202,7 +167,7 @@ public static class MediaTypeUtilities
 	public static IMediaType Resolve(ReadOnlySpan<byte> rg)
 	{
 		foreach (var ft in All) {
-			if (ft is MediaType { } rt && rt.CheckPattern(rg)) {
+			if (ft.CheckPattern(rg)) {
 				return ft;
 			}
 		}
@@ -221,7 +186,7 @@ public static class MediaTypeUtilities
 
 		public (string Type, string Subtype) Split()
 		{
-			var split = value.MediaType?.Split(MediaTypeUtilities.MIME_TYPE_DELIM, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+			var split = value.MediaType?.Split(MIME_TYPE_DELIM, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
 			return split?.Length >= 2 ? (split[0], split[1]) : (null, null);
 
@@ -241,5 +206,48 @@ public static class MediaTypeUtilities
 		new(MediaTypeNames.Text.Plain, CHARSET_ISO_8859_1.ToLower()),
 		new(MediaTypeNames.Text.Plain, "UTF-8"),
 	];
+
+	public static async ValueTask<(IMediaType MediaType, Stream Body)> SniffAsync(Stream source, [CBN] string nameHint = null, CancellationToken ct = default)
+	{
+		var reader = PipeReader.Create(source, new StreamPipeReaderOptions(leaveOpen: true));
+
+		ReadResult             result = await reader.ReadAtLeastAsync(RSRC_HEADER_LEN, ct);
+		ReadOnlySequence<byte> buffer = result.Buffer;
+
+		int n = (int) Math.Min(RSRC_HEADER_LEN, buffer.Length);
+
+		IMediaType mediaType = nameHint != null ? Find(nameHint).FirstOrDefault() : null;
+
+		ReadOnlySpan<byte> buf;
+
+		if (buffer.First.Length >= n) {
+			buf = buffer.First.Span[..n];
+
+			// mediaType?.SuppliedType = nameHint;
+		}
+		else {
+			// Sequence is segmented; flatten the header.
+			byte[] tmp = ArrayPool<byte>.Shared.Rent(n);
+
+			try {
+				buffer.Slice(0, n).CopyTo(tmp);
+				buf = tmp.AsSpan(0, n);
+
+				// mediaType               = Resolve(buf);
+				// mediaType?.SuppliedType = nameHint;
+			}
+			finally {
+				// todo: premature release?
+				ArrayPool<byte>.Shared.Return(tmp);
+			}
+		}
+
+		mediaType = mediaType != null && mediaType.CheckPattern(buf) ? mediaType : Resolve(buf);
+
+		// Examined everything, consumed nothing — bytes remain available to the caller.
+		reader.AdvanceTo(buffer.Start, buffer.End);
+
+		return (mediaType, reader.AsStream());
+	}
 
 }

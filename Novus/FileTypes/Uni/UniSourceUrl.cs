@@ -28,26 +28,7 @@ internal class UniSourceUrl : UniSource, IUniSource
 		return base.TryWriteToFileAsync(fn, ext);
 	}
 
-	public static async Task<UniHttpResource> FromResponse(IFlurlResponse response, CancellationToken ct = default)
-	{
-		string               suppliedType       = null;
-		MediaTypeHeaderValue suppliedTypeVal    = null;
-		bool                 hasSuppliedTypeVal = false;
-		MediaTypeFlags     flags              = default;
-
-		if (response.Headers.TryGetFirst(HeaderNames.ContentType, out string contentType)) {
-			suppliedType = contentType;
-
-			hasSuppliedTypeVal = MediaTypeHeaderValue.TryParse(suppliedType, out suppliedTypeVal);
-		}
-
-		if (hasSuppliedTypeVal && MediaTypeUtilities.ApacheBugContentTypes.Any(hv => hv.Equals(suppliedTypeVal))) {
-			flags |= MediaTypeFlags.CheckForApacheBug;
-		}
-
-
-		return new MediaType(suppliedType) { Value = suppliedTypeVal}
-	}
+	
 
 #region Overrides of UniSource
 

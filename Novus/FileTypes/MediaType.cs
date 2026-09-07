@@ -20,27 +20,16 @@ namespace Novus.FileTypes;
 
 public class MediaType : IEquatable<MediaType>, IEqualityOperators<MediaType, MediaType, bool>, IMediaType
 {
-
-	[JsonIgnore]
-	public string SuppliedType { get;set; }
-
 	[JsonPropertyName("name")]
-	public MediaTypeHeaderValue Value { get; set; }
+	public MediaTypeHeaderValue Value { get;  }
 
-	public MediaTypeSignature[] Signatures { get; set; }
+	public MediaTypeSignature[] Signatures { get; }
 
-	public MediaType() : this(null, []) { }
+	internal MediaType() : this(null, []) { }
 
-	public MediaType(string suppliedType) : this(suppliedType, []) { }
-
-	public MediaType([MN] string suppliedType, IEnumerable<MediaTypeSignature> signatures)
+	public MediaType(MediaTypeHeaderValue value, IEnumerable<MediaTypeSignature> signatures)
 	{
-		SuppliedType = suppliedType;
-
-		if (SuppliedType != null) {
-			Value = MediaTypeHeaderValue.Parse(suppliedType);
-		}
-
+		Value = value;
 		Signatures = [.. signatures];
 	}
 
@@ -64,7 +53,7 @@ public class MediaType : IEquatable<MediaType>, IEqualityOperators<MediaType, Me
 		=> obj is MediaType other && Equals(other);
 
 	public override int GetHashCode()
-		=> HashCode.Combine(SuppliedType, Value, Signatures);
+		=> HashCode.Combine(Value, Signatures);
 
 	public static bool operator ==(MediaType left, MediaType right)
 		=> left.Equals(right);
@@ -74,7 +63,7 @@ public class MediaType : IEquatable<MediaType>, IEqualityOperators<MediaType, Me
 
 	public override string ToString()
 	{
-		return $"[{SuppliedType}] | {Value}";
+		return $"{Value} | {Signatures?.Length} signatures";
 	}
 
 }

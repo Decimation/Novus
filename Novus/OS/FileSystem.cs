@@ -171,9 +171,6 @@ public static class FileSystem
 
 #region
 
-	public static string GetRandomName()
-		=> Path.GetFileNameWithoutExtension(Path.GetRandomFileName());
-
 	public static string GetTempFileName(string? fn = null, string? ext = "tmp")
 	{
 		string tmp = Path.GetTempFileName();
@@ -205,40 +202,7 @@ public static class FileSystem
 		return tmp;
 	}
 
-	public static string CreateTempFile(string fname, string[] data)
-	{
-		string file = Path.Combine(Path.GetTempPath(), fname);
-
-		File.WriteAllLines(file, data);
-
-		return file;
-	}
-
-	public static Task<string> CreateRandomFileAsync(long cb, string? f = null)
-	{
-		return Task.Run(() =>
-		{
-			f ??= Path.GetTempFileName();
-			using var s = File.OpenWrite(f);
-
-			for (long i = 0; i < cb; i++) {
-				s.WriteByte((byte) (i ^ cb));
-			}
-
-			return f;
-		});
-	}
-
 #endregion
-
-	public static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
-	{
-		string folderExeFull = Path.Combine(folder, exeStr);
-		bool   inFolder      = File.Exists(folderExeFull);
-
-		folderExe = folderExeFull;
-		return inFolder;
-	}
 
 	public static bool ExploreFile(string filePath)
 	{
@@ -257,23 +221,15 @@ public static class FileSystem
 		return true;
 	}
 
-	public static string SanitizeFilename(string s)
+	public static string SanitizeFilename(string s, char replace = '_')
 	{
 		//https://stackoverflow.com/questions/309485/c-sharp-sanitize-file-name
 
 		var invalids = Path.GetInvalidFileNameChars();
-		var newName  = String.Join("_", s.Split(invalids, StringSplitOptions.RemoveEmptyEntries)).TrimEnd('.');
+		var newName  = String.Join(replace, s.Split(invalids, StringSplitOptions.RemoveEmptyEntries)).TrimEnd('.');
 
 		return newName;
 	}
-
-	/// <summary>
-	///     Determines the file size (not size on disk) of <paramref name="file" />
-	/// </summary>
-	/// <param name="file">File location</param>
-	/// <returns>Size of the file, in bytes</returns>
-	public static long GetFileSize(string file)
-		=> new FileInfo(file).Length;
 
 	public static bool Open(string s)
 	{
@@ -305,11 +261,11 @@ public static class FileSystem
 	{
 		if (!File.Exists(filePath) || String.IsNullOrEmpty(filePath))
 			return false;
-
+		
 		var fileOp = new SHFILEOPSTRUCT
 		{
-			wFunc = Native.FO_DELETE,
-			pFrom = filePath + '\0', // The path should be null-terminated
+			wFunc  = Native.FO_DELETE,
+			pFrom  = filePath + '\0', // The path should be null-terminated
 			// Set appropriate flags to enable Undo and avoid confirmation prompt
 			fFlags = Native.FOF_ALLOWUNDO | Native.FOF_NOCONFIRMATION
 		};
@@ -356,72 +312,6 @@ public static class FileSystem
 
 	}
 
-	/*public static string? FindInPath(string f)
-	{
-		f = Environment.ExpandEnvironmentVariables(f);
-
-		if (!File.Exists(f)) {
-			if (Path.GetDirectoryName(f) == String.Empty) {
-				var split = (Environment.GetEnvironmentVariable(PATH_ENV) ?? String.Empty)
-					.Split(PathDelimiter);
-
-				// ReSharper disable once LoopCanBeConvertedToQuery
-				foreach (string test in split) {
-					string path = test.Trim();
-
-					if (!String.IsNullOrEmpty(path) && File.Exists(path = Path.Combine(path, f))) {
-						return Path.GetFullPath(path);
-					}
-				}
-			}
-
-			return null;
-
-			// throw new FileNotFoundException(new FileNotFoundException().Message, f);
-		}
-
-		return Path.GetFullPath(f);
-	}*/
-
-	/*public static string? FindLocation(string exe)
-	{
-
-		// https://stackoverflow.com/questions/6041332/best-way-to-get-application-folder-path
-		// var exeLocation1 = Assembly.GetEntryAssembly().Location;
-		// var exeLocation2 = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
-		// var exeLocation3 = System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase;
-		// var exeLocation = AppDomain.CurrentDomain.BaseDirectory;
-
-		//
-
-		var rg = new List<string>
-		{
-			/* Current directory #1#
-			Environment.CurrentDirectory,
-
-			// Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
-
-			/* Executing directory #1#
-			Path.GetDirectoryName(AppDomain.CurrentDomain.BaseDirectory
-				                      .Replace("file:///", String.Empty)
-				                      .Replace("/", "\\"))!,
-
-			//Assembly.GetCallingAssembly().Location
-		};
-
-		rg.AddRange(GetEnvironmentPathDirectories());
-
-		//
-
-		foreach (string loc in rg) {
-			if (ExistsInFolder(loc, exe, out var folder)) {
-				return folder;
-			}
-		}
-
-		return null;
-	}*/
-
 	public static string? SearchInEnvironmentPath(string s, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
 		return GetEnvironmentPathDirectories(t)?.Where(dir => !String.IsNullOrWhiteSpace(dir))
@@ -435,14 +325,10 @@ public static class FileSystem
 	}
 
 	public static string? GetEnvironmentPath(EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
-	{
-		return Environment.GetEnvironmentVariable(PATH_ENV, t);
-	}
+		=> Environment.GetEnvironmentVariable(PATH_ENV, t);
 
 	public static void SetEnvironmentPath(string s, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
-	{
-		Environment.SetEnvironmentVariable(PATH_ENV, s, t);
-	}
+		=> Environment.SetEnvironmentVariable(PATH_ENV, s, t);
 
 	/// <summary>
 	///     Removes <paramref name="location" /> from <see cref="GetEnvironmentPathDirectories" />
@@ -459,7 +345,7 @@ public static class FileSystem
 	/// <summary>
 	///     Determines whether <paramref name="location" /> is in <see cref="GetEnvironmentPathDirectories" />
 	/// </summary>
-	public static bool IsFolderInPath(string location, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
+	public static bool IsFolderInEnvironmentPath(string location, EnvironmentVariableTarget t = EnvironmentVariableTarget.User)
 	{
 		var directories = GetEnvironmentPathDirectories(t);
 

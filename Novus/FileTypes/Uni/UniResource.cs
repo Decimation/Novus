@@ -21,11 +21,18 @@ public class UniResource
 
 	public UniResourceType Type { get; private set; }
 
+	public Stream Stream { get; set; }
+
 	protected internal UniResource() { }
 
 	protected internal UniResource(string input)
 	{
 		Input = input;
+	}
+
+	public static async Task<UniResource> LoadHttpAsync(Url u, CancellationToken ct = default)
+	{
+
 	}
 
 	public static async Task<UniResource> LoadAsync(string input, CancellationToken ct = default)
@@ -49,17 +56,12 @@ public class UniResource
 		return ur;
 	}
 
-}
-
-public class UniHttpResource : UniResource
-{
-
-	public static async Task<UniHttpResource> FromResponse(IFlurlResponse response, CancellationToken ct = default)
+	public static async Task<UniResource> FromResponse(IFlurlResponse response, CancellationToken ct = default)
 	{
 		string               suppliedType       = null;
 		MediaTypeHeaderValue suppliedTypeVal    = null;
 		bool                 hasSuppliedTypeVal = false;
-		MediaTypeFlags     flags              = default;
+		MediaTypeFlags       flags              = default;
 
 		if (response.Headers.TryGetFirst(HeaderNames.ContentType, out string contentType)) {
 			suppliedType = contentType;
@@ -72,10 +74,9 @@ public class UniHttpResource : UniResource
 		}
 
 
-		var ur = new UniHttpResource() { SuppliedType = suppliedTypeVal, Flags = flags };
+		var ur = new UniResource() { SuppliedType = suppliedTypeVal, Flags = flags };
 		return ur;
 	}
-
 }
 
 public enum UniResourceType

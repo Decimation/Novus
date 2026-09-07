@@ -13,4 +13,6 @@ public interface IMediaType
 	MediaTypeHeaderValue Value { get; }
 
 
+	bool CheckPattern(ReadOnlySpan<byte> input, ISet<byte> ignored = null);
+
 }

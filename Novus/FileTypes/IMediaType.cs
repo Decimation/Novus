@@ -12,4 +12,5 @@ public interface IMediaType
 
 	MediaTypeHeaderValue Value { get; }
 
+
 }

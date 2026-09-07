@@ -22,7 +22,7 @@ public class MediaType : IEquatable<MediaType>, IEqualityOperators<MediaType, Me
 {
 
 	[JsonIgnore]
-	public string SuppliedType { get; }
+	public string SuppliedType { get;set; }
 
 	[JsonPropertyName("name")]
 	public MediaTypeHeaderValue Value { get; set; }
@@ -45,7 +45,7 @@ public class MediaType : IEquatable<MediaType>, IEqualityOperators<MediaType, Me
 	}
 
 
-	public bool CheckPattern(Span<byte> input, ISet<byte> ignored = null)
+	public bool CheckPattern(ReadOnlySpan<byte> input, ISet<byte> ignored = null)
 	{
 		foreach (var signature in Signatures) {
 			if (MediaTypeUtilities.CheckPattern(input[signature.Offset..], signature.Pattern, signature.Mask, ignored)) {

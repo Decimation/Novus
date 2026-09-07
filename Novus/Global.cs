@@ -333,4 +333,17 @@ public static class Global
 	internal const string BUILD_NCLRI          = "NCLRI";
 	internal const string DIAG_ID_EXPERIMENTAL = "NV0001";
 
+	public static string GetMagicFile()
+	{
+		var mgc = Path.Combine(Global.DataFolder, ER.F_Magic);
+
+		if (!(File.Exists(mgc))) {
+			throw new FileNotFoundException(mgc);
+		}
+
+		Debug.WriteLine($"magic file: {mgc}");
+
+		return mgc;
+	}
+
 }

@@ -10,10 +10,9 @@ using Novus.Streams;
 
 namespace Novus.FileTypes.Resolvers;
 
-/*
- * Adapted from https://github.com/hey-red/Mime
- */
-
+/// <summary>
+/// <a href="https://github.com/hey-red/Mime">Source</a>
+/// </summary>
 public sealed class MagicResolver : IMediaTypeResolver
 {
 
@@ -52,7 +51,6 @@ public sealed class MagicResolver : IMediaTypeResolver
 	{
 		_magicLock = new Lock();
 		Version    = MagicNative.magic_version();
-		Instance   = new MagicResolver();
 	}
 
 	/// <summary>
@@ -60,7 +58,7 @@ public sealed class MagicResolver : IMediaTypeResolver
 	/// </summary>
 	/// <param name="dbPath"></param>
 	/// <param name="flags"></param>
-	public MagicResolver([CBN] string dbPath = null, MagicOpenFlags flags = MagicMimeFlags)
+	public MagicResolver(string dbPath, MagicOpenFlags flags = MagicMimeFlags)
 	{
 		lock (_magicLock) {
 			Magic = MagicNative.magic_open(flags);
@@ -68,8 +66,6 @@ public sealed class MagicResolver : IMediaTypeResolver
 			if (Magic == IntPtr.Zero) {
 				throw new MagicException(LastError, "Cannot create magic cookie.");
 			}
-
-			dbPath ??= GetMagicFile();
 
 			if (MagicNative.magic_load(Magic, dbPath) != 0) {
 				throw new MagicException(LastError, "Unable to load magic database file.");
@@ -94,8 +90,6 @@ public sealed class MagicResolver : IMediaTypeResolver
 
 	public nint Magic { get; }
 
-
-	public static IMediaTypeResolver Instance { get; set; }
 
 	public string LastError
 	{
@@ -128,19 +122,6 @@ public sealed class MagicResolver : IMediaTypeResolver
 		}
 	}
 
-
-	private static string GetMagicFile()
-	{
-		var mgc = Path.Combine(Global.DataFolder, ER.F_Magic);
-
-		if (!(File.Exists(mgc))) {
-			throw new FileNotFoundException(mgc);
-		}
-
-		Debug.WriteLine($"magic file: {mgc}");
-
-		return mgc;
-	}
 
 	/// <summary>
 	///     Reads file from given path.
@@ -207,7 +188,7 @@ public sealed class MagicResolver : IMediaTypeResolver
 		ThrowIfDisposed();
 
 		if (stream == null) {
-			throw new ArgumentException(nameof(stream));
+			throw new ArgumentNullException(nameof(stream));
 		}
 
 		using var ms = new MemoryStream(bufferSize);
@@ -258,7 +239,7 @@ public sealed class MagicResolver : IMediaTypeResolver
 	{
 		ThrowIfDisposed();
 
-		dbPath ??= GetMagicFile();
+		dbPath ??= Global.GetMagicFile();
 
 		int result = MagicNative.magic_check(Magic, dbPath);
 

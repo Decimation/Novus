@@ -1,7 +1,9 @@
 ﻿// Author: Deci | Project: Novus | Name: MediaType.Internal.cs
 // Date: 2024/12/19 @ 00:12:37
 
+using System.Buffers;
 using System.Diagnostics;
+using System.IO.Pipelines;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Runtime.Caching;
@@ -70,12 +72,46 @@ public static class MediaTypeUtilities
 
 #endregion
 
+	public static async ValueTask<(IMediaType MediaType, Stream Body)> SniffAsync(Stream source, [CBN] string nameHint = null, CancellationToken ct = default)
+	{
+
+		var reader = PipeReader.Create(source, new StreamPipeReaderOptions(leaveOpen: true));
+
+		ReadResult             result = await reader.ReadAtLeastAsync(RSRC_HEADER_LEN, ct);
+		ReadOnlySequence<byte> buffer = result.Buffer;
+
+		int        n = (int) Math.Min(RSRC_HEADER_LEN, buffer.Length);
+		IMediaType mediaType;
+
+		if (buffer.First.Length >= n) {
+			mediaType               = Resolve(buffer.First.Span[..n]);
+			mediaType?.SuppliedType = nameHint;
+		}
+		else {
+			// Sequence is segmented; flatten the header.
+			byte[] tmp = ArrayPool<byte>.Shared.Rent(n);
+
+			try {
+				buffer.Slice(0, n).CopyTo(tmp);
+				mediaType               = Resolve(tmp.AsSpan(0, n));
+				mediaType?.SuppliedType = nameHint;
+			}
+			finally {
+				ArrayPool<byte>.Shared.Return(tmp);
+			}
+		}
+
+		// Examined everything, consumed nothing — bytes remain available to the caller.
+		reader.AdvanceTo(buffer.Start, buffer.End);
+
+		return (mediaType, reader.AsStream());
+	}
+
 	/// <summary>
 	///     Reads <see cref="MediaType" /> from <see cref="ER.File_types" />
 	/// </summary>
 	private static IMediaType[] ReadDatabase()
 	{
-
 		return JsonSerializer.Deserialize<MediaType[]>(ER.File_types, SerializerOptions);
 	}
 
@@ -117,13 +153,11 @@ public static class MediaTypeUtilities
 	/// <remarks>
 	///     <a href="https://mimesniff.spec.whatwg.org/#matching-a-mime-type-pattern">6</a>
 	/// </remarks>
-	public static bool CheckPattern(Span<byte> input, Span<byte> pattern, Span<byte> mask, ISet<byte> ignored = null)
+	public static bool CheckPattern(ReadOnlySpan<byte> input, ReadOnlySpan<byte> pattern, ReadOnlySpan<byte> mask, ISet<byte> ignored = null)
 	{
 		ArgumentOutOfRangeException.ThrowIfNotEqual(pattern.Length, mask.Length);
 
 		ignored ??= Enumerable.Empty<byte>().ToHashSet();
-
-		// ArgumentOutOfRangeException.ThrowIfLessThan(input.Length, pattern.Length);
 
 		if (input.Length < pattern.Length) {
 			return false;
@@ -155,29 +189,20 @@ public static class MediaTypeUtilities
 		return true;
 	}
 
-	/// <remarks>
-	///     <a href="https://mimesniff.spec.whatwg.org/#read-the-resource-header">5.2</a>
-	/// </remarks>
-	public static async ValueTask<Memory<byte>> ReadResourceHeaderAsync(Stream input, CancellationToken ct = default)
-	{
-		Memory<byte> buf = new byte[RSRC_HEADER_LEN];
-		var          ms  = await input.ReadAsync(buf, ct);
-		return buf[0..ms];
-	}
-
 #endregion
 
 	public static IEnumerable<IMediaType> Find(string mediaType)
-		=> from ft in All
-		   let mt = ft.Value.ToString()
-		   where mt == mediaType
-		   select ft;
+		=>
+			from ft in All
+			let mt = ft.Value.ToString()
+			where mt == mediaType
+			select ft;
 
 	[CBN]
-	public static IMediaType Resolve(in Memory<byte> rg)
+	public static IMediaType Resolve(ReadOnlySpan<byte> rg)
 	{
 		foreach (var ft in All) {
-			if (ft is MediaType { } rt && rt.CheckPattern(rg.Span)) {
+			if (ft is MediaType { } rt && rt.CheckPattern(rg)) {
 				return ft;
 			}
 		}

@@ -1,12 +1,13 @@
 ﻿// Deci Novus UniSourceUri.cs
 // $File.CreatedYear-$File.CreatedMonth-9 @ 2:39
 
-using System.Diagnostics;
-using System.Net;
 using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
+using Microsoft.Net.Http.Headers;
 using Novus.OS;
+using System.Diagnostics;
+using System.Net;
 
 namespace Novus.FileTypes.Uni;
 
@@ -27,12 +28,26 @@ internal class UniSourceUrl : UniSource, IUniSource
 		return base.TryWriteToFileAsync(fn, ext);
 	}
 
-	/*public static IFlurlClient Client { get; set; }
-
-	static UniSourceUrl()
+	public static async Task<UniHttpResource> FromResponse(IFlurlResponse response, CancellationToken ct = default)
 	{
-		Client = FlurlHttp.Clients.GetOrAdd(nameof(UniSourceUrl), null, builder => { });
-	}*/
+		string               suppliedType       = null;
+		MediaTypeHeaderValue suppliedTypeVal    = null;
+		bool                 hasSuppliedTypeVal = false;
+		MediaTypeFlags     flags              = default;
+
+		if (response.Headers.TryGetFirst(HeaderNames.ContentType, out string contentType)) {
+			suppliedType = contentType;
+
+			hasSuppliedTypeVal = MediaTypeHeaderValue.TryParse(suppliedType, out suppliedTypeVal);
+		}
+
+		if (hasSuppliedTypeVal && MediaTypeUtilities.ApacheBugContentTypes.Any(hv => hv.Equals(suppliedTypeVal))) {
+			flags |= MediaTypeFlags.CheckForApacheBug;
+		}
+
+
+		return new MediaType(suppliedType) { Value = suppliedTypeVal}
+	}
 
 #region Overrides of UniSource
 
@@ -43,9 +58,6 @@ internal class UniSourceUrl : UniSource, IUniSource
 		if (Stream != null) {
 			goto ret;
 		}
-
-
-		// value = value.CleanString();
 
 		var res = await Url.AllowAnyHttpStatus()
 			          .WithHeaders(new

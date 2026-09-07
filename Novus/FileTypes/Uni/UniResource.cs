@@ -3,37 +3,49 @@ using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Text;
+using Flurl;
 using Flurl.Http;
 using Microsoft.Net.Http.Headers;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
-namespace Novus.FileTypes;
+namespace Novus.FileTypes.Uni;
 
-interface IResourceLoader
-{
-
-	ValueTask<Stream> LoadResourceAsync(string src, CancellationToken tok = default);
-	
-	Stream LoadResource(string src);
-
-}
-
-public enum ResourceType { }
-
-public abstract class UniResource
+public class UniResource
 {
 
 	public MediaTypeHeaderValue SuppliedType { get; protected set; }
 
 	public string Input { get; }
 
-	public UniResourceFlags Flags { get; protected set; }
+	public MediaTypeFlags Flags { get; protected set; }
 
-	protected UniResource() { }
+	public UniResourceType Type { get; private set; }
+
+	protected internal UniResource() { }
+
+	protected internal UniResource(string input)
+	{
+		Input = input;
+	}
 
 	public static async Task<UniResource> LoadAsync(string input, CancellationToken ct = default)
 	{
-		UniResource ur = default;
+		UniResource ur = new();
+
+		if (Url.IsValid(input)) {
+			var osAsUrl = Url.Parse(input);
+
+			if (osAsUrl.Scheme == "file" && File.Exists(input)) {
+				ur.Type = UniResourceType.File;
+			}
+			else {
+				ur.Type = UniResourceType.Http;
+			}
+		}
+		else if (File.Exists(input)) {
+			ur.Type = UniResourceType.File;
+		}
+
 		return ur;
 	}
 
@@ -47,7 +59,7 @@ public class UniHttpResource : UniResource
 		string               suppliedType       = null;
 		MediaTypeHeaderValue suppliedTypeVal    = null;
 		bool                 hasSuppliedTypeVal = false;
-		UniResourceFlags     flags              = default;
+		MediaTypeFlags     flags              = default;
 
 		if (response.Headers.TryGetFirst(HeaderNames.ContentType, out string contentType)) {
 			suppliedType = contentType;
@@ -56,7 +68,7 @@ public class UniHttpResource : UniResource
 		}
 
 		if (hasSuppliedTypeVal && MediaTypeUtilities.ApacheBugContentTypes.Any(hv => hv.Equals(suppliedTypeVal))) {
-			flags |= UniResourceFlags.CheckForApacheBug;
+			flags |= MediaTypeFlags.CheckForApacheBug;
 		}
 
 
@@ -66,8 +78,18 @@ public class UniHttpResource : UniResource
 
 }
 
+public enum UniResourceType
+{
+
+	None   = 0,
+	File   = 1,
+	Http   = 2,
+	Stream = 3,
+
+}
+
 [Flags]
-public enum UniResourceFlags
+public enum MediaTypeFlags
 {
 
 	None              = 0,

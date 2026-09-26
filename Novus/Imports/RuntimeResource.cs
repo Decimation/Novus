@@ -193,7 +193,7 @@ public sealed class RuntimeResource : IDisposable
 			return;
 		}
 
-		var mgr = GetOrAddManager(t.Assembly);
+		var mgr = GetOrAddResourceManager(t.Assembly);
 
 		s_logger.LogDebug("Loading type {Name}", t.Name);
 
@@ -348,7 +348,7 @@ public sealed class RuntimeResource : IDisposable
 #region Manager
 
 	[CBN]
-	public ResourceManager GetOrAddManager(Assembly assembly, [CBN] string rsrcName = RSRC_MGR_NAME)
+	public ResourceManager GetOrAddResourceManager(Assembly assembly, [CBN] string rsrcName = RSRC_MGR_NAME)
 	{
 		if (m_managers.TryGetValue(assembly, out ResourceManager mgr)) {
 			return mgr;
@@ -362,7 +362,7 @@ public sealed class RuntimeResource : IDisposable
 
 		mgr = new ResourceManager(name, assembly);
 
-		TryAddManager(assembly, mgr);
+		TryAddResourceManager(assembly, mgr);
 
 		return mgr;
 	}
@@ -393,7 +393,7 @@ public sealed class RuntimeResource : IDisposable
 		return name;
 	}
 
-	public bool TryAddManager(Assembly asm, ResourceManager mgr)
+	public bool TryAddResourceManager(Assembly asm, ResourceManager mgr)
 		=> m_managers.TryAdd(asm, mgr);
 
 #endregion

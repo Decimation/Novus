@@ -8,15 +8,16 @@ using Microsoft.Net.Http.Headers;
 using Novus.OS;
 using System.Diagnostics;
 using System.Net;
+using Novus.FileTypes.Media;
 
 namespace Novus.FileTypes.Uni;
 
-internal class UniSourceUrl : UniSource, IUniSource
+public class UniSourceUrl : UniSource, IUniSource
 {
 
 	public Url Url { get; }
 
-	internal UniSourceUrl(Url value) : base(UniSourceType.Uri, value)
+	internal UniSourceUrl(Url value) : base(value, UniSourceType.Url)
 	{
 		Url  = (Url) value;
 		Name = Url.GetFileName();
@@ -28,75 +29,65 @@ internal class UniSourceUrl : UniSource, IUniSource
 		return base.TryWriteToFileAsync(fn, ext);
 	}
 
-	
 
-#region Overrides of UniSource
-
-	public override async ValueTask<bool> AllocStream(CancellationToken ct = default)
+	public override async ValueTask<bool> AllocBuffer(CancellationToken ct = default)
 	{
-		bool ok = true;
+		bool ok = HasBuffer;
 
-		if (Stream != null) {
+		IFlurlResponse res = null;
+
+		if (ok) {
 			goto ret;
 		}
 
-		var res = await Url.AllowAnyHttpStatus()
-			          .WithHeaders(new
-			          {
-				          User_Agent = ER.UserAgent,
-			          })
-			          .WithSettings(act =>
-			          {
-				          act.Redirects.Enabled               = true;
-				          act.Redirects.AllowSecureToInsecure = true;
-				          act.Redirects.MaxAutoRedirects      = 3;
-				          act.HttpVersion                     = "2.0";
-			          })
-			          .WithCookies(out CookieJar jar)
-			          .OnError(err =>
-			          {
-				          Trace.WriteLine($"{err} {err.Exception}");
-				          err.ExceptionHandled = true;
-			          })
-			          .GetAsync(cancellationToken: ct);
+		res = await Url.AllowAnyHttpStatus()
+		               .WithHeaders(new
+		               {
+			               User_Agent = ER.UserAgent,
+		               })
+		               .WithSettings(act =>
+		               {
+			               act.Redirects.Enabled               = true;
+			               act.Redirects.AllowSecureToInsecure = true;
+			               act.Redirects.MaxAutoRedirects      = 3;
+			               act.HttpVersion                     = "2.0";
+		               })
+		               .WithCookies(out CookieJar jar)
+		               .OnError(err =>
+		               {
+			               Trace.WriteLine($"{err} {err.Exception}");
+			               err.ExceptionHandled = true;
+		               }).GetAsync(cancellationToken: ct);
 
-		/*var res2 = await new HttpClient().GetAsync(Url, ct);
-		Trace.WriteLine(res2);*/
-
-		if (res is null or
-		    {
-			    ResponseMessage.IsSuccessStatusCode: false
-			    /*ResponseMessage.StatusCode: HttpStatusCode.NotFound or HttpStatusCode.Moved */
-		    }) {
-			// throw new ArgumentException($"{Url} returned {HttpStatusCode.NotFound}");
+		if (res is null or { ResponseMessage.IsSuccessStatusCode: false }) {
 
 			ok = false;
 			goto ret;
 		}
 
-		Stream = await res.GetStreamAsync();
+		Buffer = await res.GetBytesAsync();
 
-		/*if (stream.CanSeek && stream.Length < FileTypes.MediaType.RSRC_HEADER_LEN) {
-
-		}*/
+		if (!HasMediaType && res.TryGetMediaType(out var hdr)) {
+			MediaType = new MediaType(hdr, []);
+		}
 
 	ret:
+		res?.Dispose();
 		return ok;
 	}
 
-#endregion
+	
 
-
-	/*public static bool IsType(object o, out object u)
+	public static bool IsUrlType(object input, out Url url)
 	{
-		Url ux2 = o switch
+		url = input switch
 		{
-			Url u2   => u2,
-			string s => s,
-			_        => null
+			string { } s when Url.IsValid(s) => Url.Parse(s),
+			Url u                            => u,
+			_                                => null
 		};
-		u = ux2;
-		return Url.IsValid(ux2);
-	}*/
+
+		return url != null && url.Scheme != "file";
+	}
 
 }

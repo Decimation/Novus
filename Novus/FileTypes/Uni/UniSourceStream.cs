@@ -2,38 +2,56 @@
 // $File.CreatedYear-$File.CreatedMonth-9 @ 2:39
 
 using Novus.OS;
+using Novus.Streams;
 
 namespace Novus.FileTypes.Uni;
 
-internal class UniSourceStream : UniSource, IUniSource
+public class UniSourceStream : UniSource, IUniSource
 {
 
-	internal UniSourceStream(Stream stream) : base(UniSourceType.Stream, stream)
+	private readonly Stream m_stream;
+
+	internal UniSourceStream(Stream stream) : base(stream, UniSourceType.Stream)
 	{
-		Stream = stream;
-		Name   = $"<stream {Stream.GetHashCode()}>";
+		m_stream = stream;
+		Name     = $"<stream {m_stream.GetHashCode()}>";
 	}
 
 
-	public override ValueTask<string> TryWriteToFileAsync(string fn = null, string ext = null)
+	public override async ValueTask<bool> AllocBuffer(CancellationToken ct = default)
 	{
-		return base.TryWriteToFileAsync(fn, ext);
-	}
-
-	public override ValueTask<bool> AllocStream(CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-	}
-
-	/*public static bool IsType(object o, out object t2)
-	{
-		t2 = Stream.Null;
-
-		if (o is Stream sz) {
-			t2 = sz;
+		if (HasBuffer) {
+			goto ret;
 		}
 
-		return t2 != Stream.Null;
-	}*/
+		try {
+			Buffer = new byte[m_stream.Length];
+			await m_stream.ReadFullyAsync(Buffer, ct);
+		}
+		finally {
+			m_stream?.Rewind();
+		}
+
+	ret:
+		return HasBuffer;
+	}
+
+	public static bool IsStreamType(object input, out Stream stream)
+	{
+		stream = input switch
+		{
+			Stream str => str,
+			_          => null
+		};
+
+		// todo: check for Stream.Null
+		return stream != null;
+	}
+
+	public override void Dispose()
+	{
+		base.Dispose();
+		m_stream?.Dispose();
+	}
 
 }

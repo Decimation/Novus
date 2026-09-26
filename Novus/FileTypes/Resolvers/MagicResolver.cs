@@ -4,6 +4,7 @@
 global using ER = Novus.Properties.EmbeddedResources;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Novus.FileTypes.Media;
 using Novus.Streams;
 
 // ReSharper disable UnusedMember.Global

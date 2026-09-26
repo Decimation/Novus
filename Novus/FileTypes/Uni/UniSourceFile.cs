@@ -6,10 +6,10 @@ using Microsoft;
 
 namespace Novus.FileTypes.Uni;
 
-internal class UniSourceFile : UniSource, IUniSource
+public class UniSourceFile : UniSource, IUniSource
 {
 
-	internal UniSourceFile(FileInfo value) : base(UniSourceType.File, value)
+	internal UniSourceFile(FileInfo value) : base(value, UniSourceType.File)
 	{
 		FileInfo = value;
 		Name     = FileInfo.Name;
@@ -18,18 +18,13 @@ internal class UniSourceFile : UniSource, IUniSource
 
 	public FileInfo FileInfo { get; }
 
-	public override ValueTask<bool> AllocStream(CancellationToken ct = default)
+	public override ValueTask<bool> AllocBuffer(CancellationToken ct = default)
 	{
-		var b = Stream != null;
-
-		if (b) {
-			goto ret;
+		if (!HasBuffer) {
+			Buffer = File.ReadAllBytes(FileInfo.FullName);
 		}
 
-		Stream = FileInfo.OpenRead();
-
-	ret:
-		return ValueTask.FromResult(true);
+		return ValueTask.FromResult(HasBuffer);
 	}
 
 	public override ValueTask<string> TryWriteToFileAsync(string fn = null, string ext = null)
@@ -37,15 +32,16 @@ internal class UniSourceFile : UniSource, IUniSource
 		return ValueTask.FromResult(FileInfo.FullName);
 	}
 
-	/*public static bool IsType(object o, out object f)
+	public static bool IsFileType(object input, out FileInfo file)
 	{
-		f = null;
+		file = input switch
+		{
+			string { } s when File.Exists(s) => new FileInfo(s),
+			_                                => null
+		};
 
-		if (o is string { } s && File.Exists(s)) {
-			f = new FileInfo(s);
-		}
-
-		return f != null;
-	}*/
+		// todo: check for Stream.Null
+		return file != null;
+	}
 
 }

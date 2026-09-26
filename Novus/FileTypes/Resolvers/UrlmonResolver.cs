@@ -1,4 +1,5 @@
 ﻿using Kantan.Diagnostics;
+using Novus.FileTypes.Media;
 using Novus.Runtime;
 using Novus.Win32;
 using Novus.Win32.Structures.Other;

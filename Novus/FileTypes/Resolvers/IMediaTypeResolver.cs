@@ -1,4 +1,5 @@
 ﻿using Kantan.Utilities;
+using Novus.FileTypes.Media;
 using Novus.FileTypes.Resolvers;
 using Novus.Streams;
 using Novus.Win32;
@@ -8,10 +9,7 @@ namespace Novus.FileTypes.Resolvers;
 public interface IMediaTypeResolver : IDisposable
 {
 
-	public IMediaType Resolve(byte[] rg, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
-	{
-		return MediaTypeUtilities.Resolve(rg);
-	}
+	public IMediaType Resolve(byte[] rg, int l = MediaTypeUtilities.RSRC_HEADER_LEN);
 
 	public async Task<IMediaType> ResolveAsync(Stream m, int l = MediaTypeUtilities.RSRC_HEADER_LEN, CancellationToken ct = default)
 	{
@@ -25,7 +23,7 @@ public interface IMediaTypeResolver : IDisposable
 		return Resolve(header);
 	}
 
-	public static IMediaTypeResolver Default { get; set; } = new DefaultMediaTypeResolver();
+	public static IMediaTypeResolver Default { get; set; } = DatabaseResolver.Instance;
 
 	/*
 		| Method |        Mean |     Error |    StdDev |

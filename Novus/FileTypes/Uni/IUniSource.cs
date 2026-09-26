@@ -3,7 +3,7 @@
 
 namespace Novus.FileTypes.Uni;
 
-internal interface IUniSource
+public interface IUniSource
 {
 
 	static IUniSource()

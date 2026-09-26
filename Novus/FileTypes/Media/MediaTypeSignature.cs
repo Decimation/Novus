@@ -4,7 +4,7 @@
 using Novus.Utilities.Converters;
 using System.Text.Json.Serialization;
 
-namespace Novus.FileTypes;
+namespace Novus.FileTypes.Media;
 
 public class MediaTypeSignature
 {

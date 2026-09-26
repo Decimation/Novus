@@ -14,7 +14,6 @@ using Flurl.Http;
 using Kantan.Collections;
 using Kantan.Text;
 using Novus;
-using Novus.FileTypes;
 using Novus.FileTypes.Resolvers;
 using Novus.FileTypes.Uni;
 using Novus.Imports;
@@ -80,6 +79,7 @@ using System.Threading.Tasks;
 using UnitTest.TestTypes;
 using UnitTest.TestTypes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Novus.FileTypes.Media;
 
 
 // ReSharper disable UnusedMember.Local
@@ -161,14 +161,16 @@ public static class Program
 		var b = "https://static.zerochan.net/atago.(azur.lane).full.2750747.png";
 		var c = "https://yande.re/post/show/1034007";
 
-		await TestMediaType2(File.OpenRead(a));
+		// await TestMediaType2(File.OpenRead(a));
 		await TestMediaType2(await b.GetStreamAsync());
 		await TestMediaType2(await c.GetStreamAsync());
+		var strea = await a.GetStreamAsync();
+		Console.WriteLine(strea);
 	}
 
 	private static async Task TestMediaType2(Stream s)
 	{
-		var (mt, stream) = await MediaTypeUtilities.SniffAsync(s);
+		var (mt, stream) = await ((DatabaseResolver)DatabaseResolver.Instance).SniffAsync(s);
 		Console.WriteLine($"{mt}, {stream.Length}");
 	}
 
@@ -187,7 +189,7 @@ public static class Program
 		Console.WriteLine();
 
 		Console.WriteLine(MediaTypeUtilities.IsBinaryResource(hdr));
-		Console.WriteLine(MediaTypeUtilities.Resolve(hdr));
+		Console.WriteLine(DatabaseResolver.Instance.Resolve(hdr));
 	}
 
 	private static void TestResType()
@@ -210,7 +212,7 @@ public static class Program
 		Console.WriteLine(s);
 		Console.WriteLine(s == MediaTypeUtilities.ApacheBugContentTypes[1].ToString());
 
-		foreach (var type in MediaTypeUtilities.All) {
+		foreach (var type in ((DatabaseResolver)DatabaseResolver.Instance).All) {
 			Console.WriteLine(type);
 			Console.WriteLine($"{type.Signatures.Length}");
 
@@ -219,7 +221,7 @@ public static class Program
 			}
 		}
 
-		Console.WriteLine(MediaTypeUtilities.Find("image/png"));
+		Console.WriteLine(((DatabaseResolver)DatabaseResolver.Instance).Find("image/png"));
 	}
 
 	private static void TestSym2()

@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using Kantan.Utilities;
+using Novus.FileTypes.Resolvers;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -16,17 +17,17 @@ using Kantan.Utilities;
 
 // ReSharper disable InconsistentNaming
 
-namespace Novus.FileTypes;
+namespace Novus.FileTypes.Media;
 
 public class MediaType : IEquatable<MediaType>, IEqualityOperators<MediaType, MediaType, bool>, IMediaType
 {
 
 	[JsonPropertyName("name")]
-	public MediaTypeHeaderValue Value { get; }
+	public MediaTypeHeaderValue Value { get; set; }
 
-	public MediaTypeSignature[] Signatures { get; }
+	public MediaTypeSignature[] Signatures { get; set; }
 
-	internal MediaType() : this((string) null, []) { }
+	public MediaType() { }
 
 	public MediaType(MediaTypeHeaderValue value, IEnumerable<MediaTypeSignature> signatures)
 	{
@@ -39,7 +40,7 @@ public class MediaType : IEquatable<MediaType>, IEqualityOperators<MediaType, Me
 	public bool CheckPattern(ReadOnlySpan<byte> input, ISet<byte> ignored = null)
 	{
 		foreach (var signature in Signatures) {
-			if (MediaTypeUtilities.CheckPattern(input[signature.Offset..], signature.Pattern, signature.Mask, ignored)) {
+			if (DatabaseResolver.CheckPattern(input[signature.Offset..], signature.Pattern, signature.Mask, ignored)) {
 				return true;
 			}
 		}

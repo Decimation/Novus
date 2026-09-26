@@ -49,43 +49,34 @@ public static class StreamExtensions
 
 	}
 
-#if EXTRA
-	public static byte[] ToByteArray(this Stream stream)
-	{
-		// NOTE: throws when stream is not seekable
-		stream.TrySeek();
-		// using var ms = new MemoryStream();
-		// stream.CopyTo(ms);
-		// var rg = ms.ToArray();
 
-		int length = checked((int) stream.Length);
-
-		return stream.ReadHeader(length);
-	}
-
-	public static MemoryStream Copy(this Stream inputStream, int bufferSize = BLOCK_SIZE)
-	{
-
-		var ret = new MemoryStream();
-
-		var buf = new byte[bufferSize];
-
-		int cb = 0;
-
-		while ((cb = inputStream.Read(buf, 0, bufferSize)) > 0)
-			ret.Write(buf, 0, cb);
-
-		ret.Position = 0;
-
-		return ret;
-	}
-#endif
 
 	public const int BLOCK_SIZE = 0xFF;
 
 	/// <param name="stream">Stream to rewind</param>
 	extension(Stream stream)
 	{
+#if EXTRA
+
+		public MemoryStream Copy(int bufferSize = BLOCK_SIZE)
+		{
+			var ret = new MemoryStream();
+
+			var buf = new byte[bufferSize];
+
+			int cb = 0;
+
+			while ((cb = stream.Read(buf, 0, bufferSize)) > 0) {
+				ret.Write(buf, 0, cb);
+			}
+
+			ret.Position = 0;
+
+			return ret;
+		}
+
+#endif
+
 
 		public ValueTask<Stream> EnsureRewindableHeaderAsync(int peek = BLOCK_SIZE, CancellationToken ct = default)
 		{
@@ -119,7 +110,7 @@ public static class StreamExtensions
 
 		public byte[] ReadHeader(int l = BLOCK_SIZE)
 		{
-			using var stream2 = stream.EnsureRewindableHeader(l) as MemoryStream;
+			using var stream2 = stream.EnsureRewindableHeader(l);
 
 			var head = new byte[l];
 			int n    = stream2.ReadAtLeast(head, l, throwOnEndOfStream: false);
@@ -131,7 +122,7 @@ public static class StreamExtensions
 
 		public async Task<byte[]> ReadHeaderAsync(int l = BLOCK_SIZE, CancellationToken ct = default)
 		{
-			using var stream2 = await stream.EnsureRewindableHeaderAsync(l, ct) as MemoryStream;
+			using var stream2 = await stream.EnsureRewindableHeaderAsync(l, ct);
 			var       head    = new byte[l];
 			int       n       = await stream2.ReadAtLeastAsync(head, l, throwOnEndOfStream: false, cancellationToken: ct);
 			

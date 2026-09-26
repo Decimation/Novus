@@ -1,9 +1,8 @@
-﻿using System.Net.Mime;
-using System.Diagnostics;
+﻿using System.IO.Pipelines;
+using System.Net.Mime;
 using System.Linq.Expressions;
 using System.Numerics;
 using Flurl;
-using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Text;
 using Novus.Streams;
@@ -15,165 +14,99 @@ using Novus.Imports;
 using Novus.OS;
 using Novus.Utilities;
 using Novus.FileTypes.Resolvers;
+using Novus.FileTypes.Media;
 
 namespace Novus.FileTypes.Uni;
 
 // TODO: UNISOURCE <--> UNIIMAGE
 
-internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<UniSource, UniSource, bool>, IDisposable
+public abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<UniSource, UniSource, bool>, IDisposable
 {
-
-	/*
-	public static List<IUniSource.IsTypePredicateCallback> Register { get; } =
-		[UniSourceStream.IsType, UniSourceFile.IsType, UniSourceUrl.IsType];
-		*/
 
 	static UniSource() { }
 
 
-	protected UniSource(UniSourceType type, object value)
+	protected UniSource(object value, UniSourceType sourceType)
 	{
-		SourceType = type;
+		SourceType = sourceType;
 		Value      = value;
 	}
 
 	public UniSourceType SourceType { get; }
 
+	public UniSourceFlags Flags { get; protected set; }
+
+	[MNNW(true, nameof(Buffer))]
+	public bool HasBuffer => Buffer != null;
+
 	public string Name { get; protected init; }
 
-	public Stream Stream { get; protected set; }
+	public byte[] Buffer { get; protected set; }
 
-	public bool IsValid => IsUri || IsFile || IsStream;
+	public object Value { get; }
+
+	[MNNW(true, nameof(MediaType))]
+	public bool HasMediaType => MediaType != null;
 
 	public IMediaType MediaType { get; protected set; }
 
-	public object Value { get; protected set; }
-
-	public bool IsUri => SourceType == UniSourceType.Uri;
-
-	public bool IsFile => SourceType == UniSourceType.File;
-
-	public bool IsStream => SourceType == UniSourceType.Stream;
-
-	public virtual void Dispose()
+	public static async Task<UniSource> GetAsync(object input, bool autoAlloc = true, IMediaTypeResolver resolver = null, CancellationToken ct = default)
 	{
-		Stream?.Dispose();
-	}
-
-	public override string ToString()
-	{
-		return $"[{SourceType}] {MediaType}";
-	}
-
-	public static async Task<UniSource> GetAsync(object o, IMediaTypeResolver resolver = null, bool autoAlloc = true, CancellationToken ct = default)
-	{
+		UniSource ur = null;
 		resolver ??= IMediaTypeResolver.Default;
-		UniSource buf = null;
 
-		string os;
-
-		switch (o) {
-			case null:
-				throw new ArgumentNullException(nameof(o));
-
-			case Stream stream:
-				buf = new UniSourceStream(stream);
-				goto resType;
-
-			default:
-				os = o?.ToString()?.CleanString();
-
-				if (Url.IsValid(os)) {
-					var osAsUrl = Url.Parse(os);
-
-					if (osAsUrl.Scheme == "file" && File.Exists(os)) {
-						buf = new UniSourceFile(new FileInfo(os));
-					}
-					else {
-						buf = new UniSourceUrl(osAsUrl);
-					}
-				}
-				else {
-					throw new ArgumentException("Unknown type", nameof(o));
-				}
-
-				break;
+		if (UniSourceUrl.IsUrlType(input, out var url)) {
+			ur = new UniSourceUrl(url);
+		}
+		else if (UniSourceFile.IsFileType(input, out FileInfo file)) {
+			ur = new UniSourceFile(file);
+		}
+		else if (UniSourceStream.IsStreamType(input, out Stream stream)) {
+			ur = new UniSourceStream(stream);
+		}
+		else {
+			goto ret;
 		}
 
-	resType:
-
 		if (autoAlloc) {
-			
-			var ok = await buf.AllocStream(ct);
 
-			if (ok) {
-				var type = await resolver.ResolveAsync(buf.Stream, ct: ct);
+			var allocOk = await ur.AllocBuffer(ct);
+			ur.Flags |= allocOk ? UniSourceFlags.BufferAllocated : UniSourceFlags.None;
 
-				buf.MediaType = type;
-				buf.Stream.TrySeek();
-
+			if (allocOk) {
+				var getMediaTypeOk = await ur.GetMediaType(resolver, ct);
+				ur.Flags |= getMediaTypeOk ? UniSourceFlags.MediaTypeResolved : UniSourceFlags.None;
 			}
 		}
 
-		return buf;
+	ret:
+		return ur;
 	}
 
-
-	public static Task<UniSource> TryGetAsync(object value, IMediaTypeResolver resolver = null,
-	                                                bool autoAlloc = true,
-	                                                CancellationToken ct = default)
+	public virtual ValueTask<bool> GetMediaType(IMediaTypeResolver resolver = null, CancellationToken ct = default)
 	{
-		try {
-			return GetAsync(value, resolver, autoAlloc, ct: ct);
+		if (HasMediaType || !HasBuffer) {
+			goto ret;
 		}
-		catch (FlurlHttpException e) {
-			Debug.WriteLine($"HTTP: {e.Message}", nameof(TryGetAsync));
-		}
-		catch (ArgumentException e) {
-			Debug.WriteLine($"Argument: {e.Message}", nameof(TryGetAsync));
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(TryGetAsync));
-		}
-		finally { }
 
-		return Task.FromResult<UniSource>(null);
+		resolver ??= IMediaTypeResolver.Default;
+		var type = resolver.Resolve(Buffer);
+
+		MediaType = type;
+	ret:
+		return ValueTask.FromResult(HasMediaType);
 	}
+
+	public abstract ValueTask<bool> AllocBuffer(CancellationToken ct = default);
 
 	[ICBN]
 	public virtual async ValueTask<string> TryWriteToFileAsync(string fn = null, string ext = null)
 	{
-		// var tmp = Path.Combine(Path.GetTempPath(), fn);
 		var tmp = FileSystem.GetTempFileName(fn, ext);
+		await File.WriteAllBytesAsync(tmp, Buffer);
 
-		// tmp = FS.SanitizeFilename(tmp);
-
-		var path = await CopyStreamToFileAsync(tmp);
-
-		return path;
+		return tmp;
 	}
-
-	public virtual ValueTask<string> CopyStreamToFileAsync(string fileName)
-	{
-		var fs = new FileStream(fileName, FileMode.Create)
-			{ };
-
-		CopyStream(fs);
-
-		return ValueTask.FromResult(fileName);
-	}
-
-	protected void CopyStream(Stream fs)
-	{
-		lock (Stream) {
-			Stream.CopyTo(fs);
-			fs.Flush();
-			fs.Dispose();
-			Stream.TrySeek();
-		}
-	}
-
-	public abstract ValueTask<bool> AllocStream(CancellationToken ct = default);
 
 	public bool Equals(UniSource other)
 	{
@@ -183,7 +116,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 		if (ReferenceEquals(this, other))
 			return true;
 
-		return Equals(Stream, other.Stream) && MediaType.Equals(other.MediaType) && Equals(Value, other.Value);
+		return MediaType.Equals(other.MediaType) && Equals(Value, other.Value);
 	}
 
 	public override bool Equals(object obj)
@@ -202,7 +135,7 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(Stream, MediaType, Value);
+		return HashCode.Combine(MediaType, Value);
 	}
 
 	public static bool operator ==(UniSource left, UniSource right)
@@ -215,22 +148,37 @@ internal abstract class UniSource : IEquatable<UniSource>, IEqualityOperators<Un
 		return !Equals(left, right);
 	}
 
+	public override string ToString()
+	{
+		return $"[{Value}] | ({SourceType}) ({MediaType})";
+	}
+
+	public virtual void Dispose() { }
+
 }
 
-/// <summary>
-/// Encapsulates a resource from:
-/// <list type="bullet">
-/// <item>File</item>
-/// <item>HTTP</item>
-/// <item><see cref="UniSource.Stream"/></item>
-/// </list>
-/// </summary>
+[Flags]
+public enum UniSourceFlags
+{
+
+	None              = 0,
+	BufferAllocated   = 1 << 0,
+	MediaTypeResolved = 1 << 1,
+
+}
+
 public enum UniSourceType
 {
 
-	NA = 0,
+	Unknown = 0,
+
+	/// <see cref="UniSourceFile"/>
 	File,
-	Uri,
+
+	/// <see cref="UniSourceUrl"/>
+	Url,
+
+	/// <see cref="UniSourceStream"/>
 	Stream
 
 }

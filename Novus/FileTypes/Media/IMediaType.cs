@@ -3,7 +3,7 @@
 
 using System.Net.Http.Headers;
 
-namespace Novus.FileTypes;
+namespace Novus.FileTypes.Media;
 
 public interface IMediaType
 {

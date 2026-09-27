@@ -19,7 +19,7 @@ public interface IMediaTypeResolver : IDisposable
 
 	public IMediaType Resolve(Stream m, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
-		var header = m.ReadHeader(l: l);
+		var header = m.ReadHeader(out _, l: l);
 		return Resolve(header);
 	}
 

@@ -2,7 +2,7 @@
 
 #pragma warning disable IDE0060, IDE0079, IDE0005
 
-#region
+#region Global using aliases
 
 global using UI = JetBrains.Annotations.UsedImplicitlyAttribute;
 global using MIU = JetBrains.Annotations.MeansImplicitUseAttribute;
@@ -27,6 +27,8 @@ global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAtt
 global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 global using Opt = System.Runtime.InteropServices.OptionalAttribute;
 global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
+global using EnuCan = System.Runtime.CompilerServices.EnumeratorCancellationAttribute;
+global using MImpl = System.Runtime.CompilerServices.MethodImplAttribute;
 
 #endregion
 
@@ -335,7 +337,7 @@ public static class Global
 
 	public static string GetMagicFile()
 	{
-		var mgc = Path.Combine(Global.DataFolder, ER.F_Magic);
+		var mgc = Path.Combine(DataFolder, ER.F_Magic);
 
 		if (!(File.Exists(mgc))) {
 			throw new FileNotFoundException(mgc);

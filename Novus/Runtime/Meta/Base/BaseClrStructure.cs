@@ -22,11 +22,6 @@ public abstract unsafe class BaseClrStructure<TClr> where TClr : unmanaged
 	public Pointer<TClr> Value { get; }
 
 	/// <summary>
-	/// The native, built-in form of <see cref="Value"/>
-	/// </summary>
-	protected internal TClr* NativePointer => Value.ToPointer<TClr>();
-
-	/// <summary>
 	/// Root constructor
 	/// </summary>
 	/// <param name="ptr">Metadata structure handle</param>

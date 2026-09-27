@@ -8,6 +8,7 @@ using Novus.Runtime.VM;
 using Novus.Runtime.VM.EE;
 using System.Runtime.Intrinsics;
 using Novus.Win32;
+using System.Runtime;
 
 namespace Novus.Memory;
 
@@ -101,7 +102,7 @@ public enum SizeOfOption
 	///     <para>This is the most accurate size calculation.</para>
 	///     <para>
 	///         This follows the size formula of: (<see cref="MetaType.BaseSize" />) + (length) *
-	///         (<see cref="MetaType.ComponentSize" />)
+	///         (<see cref="MetaType.ComponentSize" /> = <see cref="ObjectUtility.GetElementSize"/>)
 	///     </para>
 	///     <para>where:</para>
 	///     <list type="bullet">
@@ -136,7 +137,7 @@ public enum SizeOfOption
 	/// <see cref="ClrObjHeader" />.
 	/// If the type is a value type, this returns <see cref="Mem.SizeOf{T}()" />.
 	/// </summary>
-	/// <seealso cref="RuntimeHelpers.GetRawObjectDataSize"/>
+	/// <seealso cref="ObjectUtility.GetRawObjDataSize"/> (<seealso cref="RuntimeHelpers.GetRawObjectDataSize"/>)
 	Data,
 
 	/// <summary>

@@ -29,7 +29,7 @@ public unsafe struct ClrObject
 	{
 		get
 		{
-			ref var hdr = ref Unsafe.SubtractByteOffset(ref this, OffsetOptions.Header.GetOffsetValue());
+			ref var hdr = ref Unsafe.SubtractByteOffset(ref this, OffsetOptions.Header.Value);
 			return ref Unsafe.As<ClrObject, ClrObjHeader>(ref hdr);
 
 		}
@@ -42,7 +42,7 @@ public unsafe struct ClrObject
 	{
 		get
 		{
-			ref var hdr = ref Unsafe.AddByteOffset(ref this, OffsetOptions.Fields.GetOffsetValue());
+			ref var hdr = ref Unsafe.AddByteOffset(ref this, OffsetOptions.Fields.Value);
 			return ref Unsafe.As<ClrObject, byte>(ref hdr);
 		}
 	}

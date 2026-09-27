@@ -47,7 +47,7 @@ public struct any
 
 	/*public static any Alloc<T>()
 	{
-		AllocManager.New<>()
+		AllocManager.PreAllocate<>()
 	}*/
 
 }

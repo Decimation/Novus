@@ -8,13 +8,14 @@ namespace Novus.Memory.Allocation;
 // ReSharper disable UnusedMember.Global
 public interface IAllocator
 {
-	public void Free(Pointer<byte> p);
+
+	[MURV]
+	public Pointer<byte> Alloc(nuint n);
 
 	[MURV]
 	public Pointer<byte> ReAlloc(Pointer<byte> p, nuint n);
 
-	[MURV]
-	public Pointer<byte> Alloc(nuint n);
+	public void Free(Pointer<byte> p);
 
 	public bool IsAllocated(Pointer<byte> p)
 	{

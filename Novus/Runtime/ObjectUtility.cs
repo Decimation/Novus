@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -17,10 +18,12 @@ using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
+using Novus.Memory.Allocation;
 using Novus.Utilities;
 using Novus.Numerics;
 using Novus.Runtime.VM.EE;
 using Novus.Runtime.VM.Tokens;
+using Novus.Win32;
 
 // ReSharper disable UnusedVariable
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -147,7 +150,7 @@ public static unsafe class ObjectUtility
 	/// <summary>
 	/// Equals <see cref="Mem.SizeOf()"/> with <see cref="SizeOfOption.Data"/>
 	/// </summary>
-	/// <see cref="RuntimeHelpers.GetRawObjectDataSize"/>
+	/// <seealso cref="RuntimeHelpers.GetRawObjectDataSize"/>
 	public static int GetRawObjDataSize(object o) => Func_GetRawObjDataSize(o);
 
 	/// <summary>
@@ -158,11 +161,13 @@ public static unsafe class ObjectUtility
 
 	extension(object o)
 	{
+
 		public Pointer<ClrObject> AsClrObject()
 			=> Unsafe.As<object, Pointer<ClrObject>>(ref o);
 
-		public ObjectProxy AsObjectProxy() 
+		public ObjectProxy AsObjectProxy()
 			=> Unsafe.As<ObjectProxy>(o);
+
 	}
 
 #endregion
@@ -175,11 +180,7 @@ public static unsafe class ObjectUtility
 	///     <paramref name="value" />
 	/// </summary>
 	public static Pointer<MethodTable> GetMethodTable<T>(in T value)
-	{
-		/*var type = value.GetType();
-		return GetMethodTable(type);*/
-		return Func_GetMethodTable(value);
-	}
+		=> Func_GetMethodTable(value);
 
 	/// <summary>
 	///     Returns a handle to the internal CLR metadata structure of <paramref name="member" />
@@ -189,7 +190,7 @@ public static unsafe class ObjectUtility
 	/// <exception cref="InvalidOperationException">The type of <see cref="MemberInfo" /> doesn't have a handle</exception>
 	public static Pointer<byte> ResolveMetadataHandle(MMI member)
 	{
-		Require.ArgumentNotNull(member, nameof(member));
+		ArgumentNullException.ThrowIfNull(member);
 
 		return member switch
 		{
@@ -205,27 +206,15 @@ public static unsafe class ObjectUtility
 	/// </summary>
 	/// <seealso cref="RuntimeTypeHandle.FromIntPtr"/>
 	/// <remarks>Inverse of <see cref="GetMethodTable" /></remarks>
-	public static Type GetType(Pointer<MethodTable> handle) => Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
+	public static Type GetType(Pointer<MethodTable> handle)
+		=> Type.GetTypeFromHandle(RuntimeTypeHandle.FromIntPtr(handle.Address));
 
 	/// <summary>
 	///     Resolves the <see cref="Pointer{T}" /> to <see cref="MethodTable" /> from <paramref name="t" />.
 	/// </summary>
 	/// <remarks>Inverse of <see cref="GetType" /></remarks>
 	public static Pointer<MethodTable> GetMethodTable(Type t)
-	{
-		/*var handle = t.TypeHandle.Value;
-		var value  = *(TypeHandle*) &handle;
-		return value.MethodTable;*/
-
-		/*
-		var typeHandle = GetTypeHandle(t);
-		return typeHandle.MethodTable;*/
-
-		// return t.TypeHandle.Value;
-
-		var th = GetTypeHandle(t).AsMethodTable();
-		return th;
-	}
+		=> GetTypeHandle(t).AsMethodTable();
 
 	public static Pointer<MethodTable> GetMethodTable<T>() => GetMethodTable(typeof(T));
 
@@ -388,6 +377,217 @@ public static unsafe class ObjectUtility
 		return test;
 
 	}
+
+#endregion
+
+#region Instances
+
+	/// <summary>
+	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" /> using
+	/// <see cref="Mem.ReadProcessMemory(System.Diagnostics.Process,Novus.Memory.Pointer{byte},nint)"/> (<see cref="Native.Kernel32.ReadProcessMemory"/>)
+	/// </summary>
+	[Obsolete]
+	[CBN]
+	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
+	public static object ReadTypeFromProcessMemory(MetaType mt, Process proc, Pointer<byte> addr)
+	{
+		//todo
+
+		bool valueType = mt.RuntimeType.IsValueType;
+		int  size      = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
+
+		Debug.WriteLine($"{size} for {mt.Name}");
+
+		//var i = Activator.CreateInstance(t);
+
+		var    rg  = Mem.ReadProcessMemory(proc, addr, (nint) size);
+		object val = null;
+
+		var mh = rg.Pin();
+
+		if (valueType) {
+			val = Marshal.PtrToStructure((nint) mh.Pointer, mt.RuntimeType);
+		}
+		else {
+			val = Unsafe.Read<object>(mh.Pointer);
+
+		}
+
+		return val;
+	}
+
+	/// <summary>
+	/// Clones <paramref name="src"/> by copying its instance data into a new instance of type <typeparamref name="T"/>.
+	/// </summary>
+	public static T CloneInstanceData<T>(T src) where T : class
+	{
+		var cpyDest = Activator.CreateInstance<T>();
+
+		Pointer<byte> ptrDataSrc  = Mem.AddressOfData(ref src);
+		var           cbDataSrc   = Mem.SizeOf(src, SizeOfOption.Data);
+		Pointer<byte> ptrDataDest = Mem.AddressOfData(ref cpyDest);
+
+		// var  elemSize  = Mem.SizeOf<T>(src, SizeOfOption.Auto);
+		// var cb = (uint) Mem.GetByteCount((nuint) cbDataSrc, (nuint) elemSize);
+
+		Unsafe.CopyBlock(ptrDataDest, ptrDataSrc, (uint) cbDataSrc);
+
+		return cpyDest;
+	}
+
+	/// <summary>
+	/// Copies instance data of <paramref name="value"/> into to a <see cref="byte"/> array.
+	/// Inverse of <see cref="ReadFromBytes{T}"/>
+	/// </summary>
+	public static byte[] GetBytes<T>(T value)
+	{
+		/*if (typeof(T).IsValueType) {
+			var ptr = AddressOf(ref value);
+			var cb  = SizeOf<T>();
+			var rg  = new byte[cb];
+
+			fixed (byte* p = rg) {
+				ptr.Copy(p, cb);
+			}
+
+			return rg;
+		}*/
+
+
+		if (typeof(T).IsValueType) {
+			var ptr  = Mem.AddressOfData(ref value);
+			var size = Mem.SizeOf<T>();
+			return ptr.ToArray(size);
+		}
+
+		Mem.TryGetAddressOfHeap(value, OffsetOptions.Header, out var ptr2);
+		var cb2 = Mem.SizeOf(value, SizeOfOption.Heap);
+
+		return ptr2.ToArray(cb2);
+	}
+
+	/// <summary>
+	/// Reads a value fo type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
+	/// </summary>
+	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
+	public static T ReadFromBytes<T>(byte[] rg)
+	{
+		/*Memory<byte> asMemory = rg.AsMemory();
+
+		var p2 = asMemory.ToPointer(out var mh);
+
+		if (!typeof(T).IsValueType) {
+			p2 += ObjectUtility.ObjHeaderSize;
+			return AddressOf(ref p2).Cast<T>().Value;
+		}
+
+		return p2.Cast<T>().Value;*/
+
+		Memory<byte> asMemory = rg.AsMemory();
+		using var    pin      = asMemory.Pin();
+
+		var p2 = (byte*) pin.Pointer;
+
+		if (!typeof(T).IsValueType) {
+			p2 += ObjHeaderSize;
+			return Unsafe.Read<T>(&p2);
+		}
+
+		return Unsafe.Read<T>(p2);
+	}
+
+	/// <summary>
+	/// Reads a value of type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
+	/// </summary>
+	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
+	public static object ReadFromBytes(byte[] rg)
+		=> ReadFromBytes<object>(rg);
+
+	/// <summary>
+	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
+	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
+	/// <see cref="SizeOfOption.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
+	/// <seealso cref="PreInitInstanceInitInstance"/>
+	/// </summary>
+	/// <typeparam name="T">Type to initialize</typeparam>
+	/// <param name="ptr">Memory within which to initialize the instance</param>
+	/// <param name="ctorArgs"></param>
+	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
+	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
+	[MURV]
+	public static ref T New<T>(Pointer<byte> ptr = default, object[] ctorArgs = null) where T : class
+	{
+		var     destRefPtr = AllocManager.Alloc((nuint) Mem.SizeOf<T>()).Cast<T>();
+		ref var refDestPtr = ref destRefPtr.Reference;
+		return ref New<T>(ref refDestPtr, ptr, ctorArgs);
+	}
+
+	public static ref T New<T>(ref T destRef, Pointer<byte> destInstPtr = default, object[] ctorArgs = null) where T : class
+	{
+		ctorArgs ??= [];
+
+		var mt = typeof(T).AsMetaType();
+
+		var     uninitObj = RuntimeHelpers.GetUninitializedObject(mt.RuntimeType, out var ptrObj);
+		ref var uninitRef = ref ptrObj.Cast<T>().Reference;
+
+		Pointer<T> uninitRefPtr = Unsafe.AsPointer(ref uninitRef);
+
+		Pointer<Pointer<T>> destRefPtr = Unsafe.AsPointer(ref destRef);
+
+		Trace.Assert(uninitRefPtr == destRefPtr);
+
+		Unsafe.Write(destInstPtr, default(ClrObjHeader)); // Write header
+		destInstPtr += ObjHeaderSize;                     // Offset by header
+		Unsafe.Write(destInstPtr, GetTypeHandle<T>());    // Write type handle
+
+		// *destRefPtrPtr = (nint*) destInstPtr.Address;
+		Unsafe.Write(destRefPtr, destInstPtr.Address);
+
+		ref var destRefPtrVal = ref Unsafe.AsRef<T>(destRefPtr);
+
+		// Call constructor
+		if (ctorArgs.Any()) {
+			var ctorOk = ReflectionHelper.CallConstructor(destRefPtrVal, ctorArgs);
+		}
+
+		return ref destRefPtr.Reference.Reference;
+	}
+
+	/// <summary>
+	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="destInstPtr"/>.
+	/// The pre-allocated memory <paramref name="destInstPtr"/> size must be at least &gt;= value returned by
+	/// <see cref="SizeOfOption.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
+	/// <seealso cref="PreInitInstanceInitInstance"/>
+	/// </summary>
+	/// <param name="type">Type to initialize</param>
+	/// <param name="destInstPtr">Memory within which to initialize the instance</param>
+	/// <param name="ctorArgs"></param>
+	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="destInstPtr"/></returns>
+	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
+	[MURV]
+	public static object New(Type type, Pointer<byte> destInstPtr = default, object[] ctorArgs = null)
+	{
+		var ret = s_newFunc.InvokeGeneric(type, null, [destInstPtr, ctorArgs]);
+		return ret;
+	}
+
+	extension(RuntimeHelpers)
+	{
+
+		public static object GetUninitializedObject(Type type, out Pointer<byte> mem)
+		{
+			var obj = RuntimeHelpers.GetUninitializedObject(type);
+
+			mem = Mem.AddressOfHeap(obj);
+
+			return obj;
+		}
+
+	}
+
+	public static readonly MethodInfo s_newFunc = typeof(ObjectUtility).GetMethod(nameof(New), BindingFlags.Static | BindingFlags.Public,
+	                                                                              [typeof(Pointer<byte>), typeof(Pointer<byte>)]);
 
 #endregion
 

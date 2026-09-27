@@ -82,7 +82,7 @@ public static class Tests2
 
 	public static void TestAlloc1()
 	{
-		var v = AllocManager.New<Clazz3>(ctor: [3, "foo", 1]);
+		var v = ObjectUtility.New<Clazz3>(ctorArgs: [3, "foo", 1]);
 		Console.WriteLine(v);
 
 		AllocManager.Free(v);

@@ -1,14 +1,12 @@
-﻿global using MImpl = System.Runtime.CompilerServices.MethodImplAttribute;
-
-// global using Pointer<byte> = Novus.Memory.Pointer<byte>;
+﻿
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Novus.Runtime.Meta;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using Novus.Win32.Structures.Kernel32;
-#nullable enable
 using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -16,11 +14,13 @@ using JetBrains.Annotations;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Streams;
+#pragma warning disable CS8601 // Possible null reference assignment.
 
 // ReSharper disable UseSymbolAlias
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StaticMemberInGenericType
 #pragma warning disable IDE0251
+#nullable disable
 
 namespace Novus.Memory;
 
@@ -57,18 +57,12 @@ namespace Novus.Memory;
 /// <seealso cref="IntPtr" />
 /// <seealso cref="UIntPtr" />
 /// <seealso cref="Unsafe" />
-public unsafe struct Pointer<T> : IFormattable, IPinnable,
-                                  IAdditionOperators<Pointer<T>, Pointer<T>, Pointer<T>>, ISubtractionOperators<Pointer<T>, Pointer<T>, Pointer<T>>,
+public unsafe struct Pointer<T> : IAdditionOperators<Pointer<T>, Pointer<T>, Pointer<T>>, ISubtractionOperators<Pointer<T>, Pointer<T>, Pointer<T>>,
                                   IIncrementOperators<Pointer<T>>, IDecrementOperators<Pointer<T>>,
-                                  IComparisonOperators<Pointer<T>, Pointer<T>, bool>
+                                  IComparisonOperators<Pointer<T>, Pointer<T>, bool>, IEquatable<Pointer<T>>, IFormattable
 {
 
-	private static readonly nuint s_elementSize;
-
-	static Pointer()
-	{
-		s_elementSize = (nuint) Mem.SizeOf<T>();
-	}
+	private static readonly nuint s_elementSize = (nuint) Mem.SizeOf<T>();
 
 	/// <summary>
 	///     Internal pointer value.
@@ -83,6 +77,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// <summary>
 	///     Indexes <see cref="Address" /> as a reference.
 	/// </summary>
+	[UnscopedRef]
 	public ref T this[nint index]
 	{
 		[method: MImpl(IMPL_OPTIONS)]
@@ -92,6 +87,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// <summary>
 	///     Returns the current value as a reference.
 	/// </summary>
+	[UnscopedRef]
 	public ref T Reference
 	{
 		[method: MImpl(IMPL_OPTIONS)]
@@ -121,21 +117,24 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// </summary>
 	public readonly bool IsNull => this == Mem.Nullptr;
 
-	public Pointer()
-		: this(value: null) { }
+#region Constructors
+
+	public Pointer() : this(value: null) { }
 
 	public Pointer(void* value)
 	{
 		m_value = value;
 	}
 
-	public Pointer(nint value)
-		: this(value.ToPointer()) { }
+	public Pointer(nint value) : this(value.ToPointer()) { }
 
-	public Pointer(ref T value)
-		: this(Unsafe.AsPointer(ref value)) { }
+	public Pointer([UnscopedRef] ref T value) : this(Unsafe.AsPointer(ref value)) { }
+
+#endregion
 
 #region Conversion
+
+	#region Conversion operators
 
 	public static explicit operator Pointer<T>(ulong ul)
 		=> new((void*) ul);
@@ -166,6 +165,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 
 	public static implicit operator Pointer<T>(nint value)
 		=> new(value);
+
+	#endregion
 
 	/*public static explicit operator Pointer<T>(Span<T> s)
 		=> s.ToPointer();*/
@@ -233,30 +234,13 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// <param name="other">Other <see cref="Pointer{T}" />.</param>
 	/// <returns></returns>
 	public readonly bool Equals(Pointer<T> other)
-	{
-		return Address == other.Address;
-	}
+		=> Address == other.Address;
 
 	public readonly override bool Equals(object? obj)
-	{
-		return obj is Pointer<T> pointer && Equals(pointer);
-
-		/*if (obj is Pointer<byte> p && Equals(p)) {
-			return true;
-		}
-		else if (obj == null) {
-			return IsNull;
-		}
-		else {
-			return object.Equals(this, obj);
-		}*/
-	}
+		=> obj is Pointer<T> pointer && Equals(pointer);
 
 	public readonly override int GetHashCode()
-	{
-		// ReSharper disable once NonReadonlyMemberInGetHashCode
-		return unchecked((int) (long) m_value);
-	}
+		=> Address.GetHashCode();
 
 	// [lo, hi]
 
@@ -267,6 +251,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	// if (!((object < g_gc_highest_address) && (object >= g_gc_lowest_address)))
 	// return max.ToInt64() < p.ToInt64() && p.ToInt64() <= min.ToInt64();
 
+
+#region Comparison operators
 
 	public static bool operator ==(Pointer<T> left, Pointer<byte> right)
 		=> left.Equals(right);
@@ -294,6 +280,8 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 
 #endregion
 
+#endregion
+
 #region Arithmetic
 
 	/// <summary>
@@ -304,7 +292,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes added
 	/// </returns>
 	[Pure]
-	public readonly Pointer<T> AddBytes(nint byteCnt = ELEM_CNT)
+	public readonly Pointer<T> AddBytes(nint byteCnt = Mem.ELEM_CNT)
 	{
 		nint val = Address + byteCnt;
 		return (void*) val;
@@ -318,8 +306,45 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	///     A new <see cref="Pointer{T}" /> with <paramref name="byteCnt" /> bytes subtracted
 	/// </returns>
 	[Pure]
-	public readonly Pointer<T> SubtractBytes(nint byteCnt = ELEM_CNT)
+	public readonly Pointer<T> SubtractBytes(nint byteCnt = Mem.ELEM_CNT)
 		=> AddBytes(-byteCnt);
+
+	/// <summary>
+	///     Increment <see cref="Address" /> by the specified number of elements
+	/// </summary>
+	/// <param name="elemCnt">Number of elements</param>
+	/// <returns>
+	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
+	/// </returns>
+	[Pure]
+	public readonly Pointer<T> Add(nint elemCnt = Mem.ELEM_CNT)
+		=> Offset(elemCnt);
+
+	/// <summary>
+	///     Decrement <see cref="Address" /> by the specified number of elements
+	/// </summary>
+	/// <param name="elemCnt">Number of elements</param>
+	/// <returns>
+	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
+	/// </returns>
+	[Pure]
+	public readonly Pointer<T> Subtract(nint elemCnt = Mem.ELEM_CNT)
+		=> Add(-elemCnt);
+
+	[Pure]
+	[MImpl(MImplO.AggressiveInlining)]
+	private readonly void* Offset(nint elemCnt)
+	{
+		// return (void*) ((long) m_value + (long) Mem.GetByteCount(ElementSize, elemCnt));
+		return Unsafe.Add<T>(m_value, (int) elemCnt);
+	}
+
+	[Pure]
+	[MImpl(MImplO.AggressiveInlining)]
+	public readonly Pointer<T> AddressOfIndex(nint index)
+		=> Offset(index);
+
+	#region Arithmetic operators
 
 	public static Pointer<T> operator +(Pointer<T> left, nint right)
 		=> left.Add(right);
@@ -379,40 +404,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	public static Pointer<T> operator --(Pointer<T> ptr)
 		=> ptr.Subtract();
 
-	/// <summary>
-	///     Increment <see cref="Address" /> by the specified number of elements
-	/// </summary>
-	/// <param name="elemCnt">Number of elements</param>
-	/// <returns>
-	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements incremented
-	/// </returns>
-	[Pure]
-	public readonly Pointer<T> Add(nint elemCnt = ELEM_CNT)
-		=> Offset(elemCnt);
-
-	/// <summary>
-	///     Decrement <see cref="Address" /> by the specified number of elements
-	/// </summary>
-	/// <param name="elemCnt">Number of elements</param>
-	/// <returns>
-	///     A new <see cref="Pointer{T}" /> with <paramref name="elemCnt" /> elements decremented
-	/// </returns>
-	[Pure]
-	public readonly Pointer<T> Subtract(nint elemCnt = ELEM_CNT)
-		=> Add(-elemCnt);
-
-	[Pure]
-	[MImpl(MImplO.AggressiveInlining)]
-	private readonly void* Offset(nint elemCnt)
-	{
-		// return (void*) ((long) m_value + (long) Mem.GetByteCount(ElementSize, elemCnt));
-		return Unsafe.Add<T>(m_value, (int) elemCnt);
-	}
-
-	[Pure]
-	[MImpl(MImplO.AggressiveInlining)]
-	public readonly Pointer<T> AddressOfIndex(nint index)
-		=> Offset(index);
+	#endregion
 
 #endregion
 
@@ -424,7 +416,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// <param name="value">Value to write.</param>
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	[method: MImpl(IMPL_OPTIONS)]
-	public readonly void Write(T value, nint elemOffset = OFFSET)
+	public readonly void Write(T value, nint elemOffset = Mem.OFFSET)
 		=> Unsafe.Write(Offset(elemOffset), value);
 
 	/// <summary>
@@ -434,7 +426,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// <returns>The value read from the offset <see cref="Address" />.</returns>
 	[Pure]
 	[method: MImpl(IMPL_OPTIONS)]
-	public readonly T Read(nint elemOffset = OFFSET)
+	public readonly T Read(nint elemOffset = Mem.OFFSET)
 		=> Unsafe.Read<T>(Offset(elemOffset));
 
 	/// <summary>
@@ -443,18 +435,19 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 	[Pure]
+	[UnscopedRef]
 	[method: MImpl(IMPL_OPTIONS)]
-	public ref T AsRef(nint elemOffset = OFFSET)
+	public ref T AsRef(nint elemOffset = Mem.OFFSET)
 		=> ref Unsafe.AsRef<T>(Offset(elemOffset));
 
 	/// <summary>
 	///     Zeros <paramref name="elemCnt" /> elements.
 	/// </summary>
 	/// <param name="elemCnt">Number of elements to zero</param>
-	public void Clear(nint elemCnt = ELEM_CNT)
+	public void Clear(nint elemCnt = Mem.ELEM_CNT)
 	{
 		for (int i = 0; i < elemCnt; i++) {
-			this[i] = default!;
+			this[i] = default;
 		}
 	}
 
@@ -469,15 +462,16 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 		}
 	}
 
+
 	[Pure]
-	public readonly Pointer<byte> ReadPointer(nint elemOffset = OFFSET)
+	public readonly Pointer<byte> ReadPointer(nint elemOffset = Mem.OFFSET)
 		=> ReadPointer<byte>(elemOffset);
 
 	[Pure]
-	public readonly Pointer<TType> ReadPointer<TType>(nint elemOffset = OFFSET)
+	public readonly Pointer<TType> ReadPointer<TType>(nint elemOffset = Mem.OFFSET)
 		=> Cast<Pointer<TType>>().Read(elemOffset);
 
-	public readonly void WritePointer<TType>(Pointer<TType> ptr, nint elemOffset = OFFSET)
+	public readonly void WritePointer<TType>(Pointer<TType> ptr, nint elemOffset = Mem.OFFSET)
 		=> Cast<Pointer<TType>>().Write(ptr, elemOffset);
 
 	public readonly void CopyTo(Pointer<T> dest, nint startIndex, nint elemCnt)
@@ -495,7 +489,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	}
 
 	public readonly void CopyTo(Pointer<T> dest, nint elemCnt)
-		=> CopyTo(dest, OFFSET, elemCnt);
+		=> CopyTo(dest, Mem.OFFSET, elemCnt);
 
 	public void CopyTo(T[] rg, nint startIndex, nint elemCnt)
 	{
@@ -511,7 +505,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	}
 
 	public void CopyTo(T[] rg)
-		=> CopyTo(rg, OFFSET, rg.Length);
+		=> CopyTo(rg, Mem.OFFSET, rg.Length);
 
 	/// <summary>
 	///     Copies <paramref name="elemCnt" /> elements into an array of type <typeparamref name="T" />,
@@ -544,7 +538,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	/// </returns>
 	[Pure]
 	public T[] ToArray(nint elemCnt)
-		=> ToArray(OFFSET, elemCnt);
+		=> ToArray(Mem.OFFSET, elemCnt);
 
 #endregion
 
@@ -580,20 +574,7 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 
 #endregion
 
-	[MURV]
-	public readonly MemoryHandle Pin(int elementIndex = OFFSET_I)
-	{
-		var handle = new MemoryHandle(Offset(elementIndex));
-
-		return handle;
-	}
-
-	public readonly void Unpin()
-	{
-		// ...
-	}
-
-#region
+#region Bitwise operators
 
 	public static Pointer<T> operator &(Pointer<T> ptr, Pointer<T> n) => ptr.Address & n.Address;
 
@@ -602,21 +583,6 @@ public unsafe struct Pointer<T> : IFormattable, IPinnable,
 	public static Pointer<T> operator ~(Pointer<T> ptr) => ~ptr.Address;
 
 #endregion
-
-	/*public readonly MemoryBasicInformation Query()
-		=> Native.QueryMemoryPage(this);*/
-
-	/// <summary>
-	///     Default offset for <see cref="Pointer{T}" />
-	/// </summary>
-	private const nint OFFSET = OFFSET_I;
-
-	private const int OFFSET_I = 0;
-
-	/// <summary>
-	///     Default increment/decrement/element count for <see cref="Pointer{T}" />
-	/// </summary>
-	private const nint ELEM_CNT = 1;
 
 	private const MethodImplOptions IMPL_OPTIONS = MImplO.AggressiveInlining | MImplO.AggressiveOptimization;
 

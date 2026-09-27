@@ -225,13 +225,13 @@ public sealed class RuntimeResource : IDisposable
 
 			// Set value
 
-			s_logger.LogTrace("Loading {Mem} ({AttrName}) with {Fv}", member.Name, attribute.Name, fieldValue);
+			s_logger.LogInformation("Loading {Mem} ({AttrName}) with {Fv}", member.Name, attribute.Name, fieldValue);
 			field.SetValue(null, fieldValue);
 		}
 
 
 		m_loadedTypes.Add(t);
-		s_logger.LogTrace("Loaded type {Type}", t.Name);
+		s_logger.LogInformation("Loaded type {Type}", t.Name);
 	}
 
 	[CBN]
@@ -243,7 +243,7 @@ public sealed class RuntimeResource : IDisposable
 
 		foreach (var (asm, manager) in m_managers) {
 			if (attr.Name is { } name && manager.GetObject(name) is { } value) {
-				//Debug.WriteLine($"{manager.BaseName}:: {value}", C_DEBUG);
+				s_logger.LogTrace("{MgrName} -> {Val}", manager.BaseName, value);
 				return value;
 			}
 		}
@@ -253,6 +253,7 @@ public sealed class RuntimeResource : IDisposable
 
 	private object GetImportValue(ImportAttribute attribute, FI field)
 	{
+		s_logger.LogTrace("Getting import value for {Fld} | {Attr}", field.Name, attribute);
 		object fieldValue = null;
 
 		string name = attribute.Name ?? field.Name;

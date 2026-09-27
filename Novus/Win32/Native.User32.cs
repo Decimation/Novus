@@ -393,7 +393,7 @@ public enum HandleWindowPosition
 ///     as BOOL. It is best to never compare BOOL to TRUE. Always use bResult != BOOL.FALSE
 ///     or bResult == BOOL.FALSE .
 /// </remarks>
-public enum BOOL
+public enum BOOL : byte
 {
 
 	FALSE = 0,

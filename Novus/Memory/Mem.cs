@@ -1,35 +1,25 @@
 ﻿#pragma warning disable IDE0005, CS1574
 using System.Buffers;
 using System.Buffers.Binary;
-using System.Collections.Frozen;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Globalization;
 using System.Linq.Expressions;
-using System.Numerics;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Runtime.Versioning;
-using JetBrains.Annotations;
-using Kantan.Diagnostics;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using Novus.Memory.Allocation;
 using Novus.Numerics;
-using Novus.OS;
 using Novus.Runtime;
 using Novus.Runtime.Meta;
 using Novus.Runtime.VM;
 using Novus.Utilities;
 using Novus.Win32;
-using Novus.Win32.Structures.Kernel32;
-using Novus.Win32.Wrappers;
 
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable IdentifierTypo
@@ -100,7 +90,20 @@ public static unsafe class Mem
 	/// </summary>
 	public static readonly Pointer<byte> Nullptr = null;
 
-	public static readonly bool Is64Bit = Environment.Is64BitProcess;
+	/// <summary>
+	///     Default offset for <see cref="Pointer{T}" />
+	/// </summary>
+	public const nint OFFSET = OFFSET_I;
+
+	/// <summary>
+	/// <see cref="OFFSET"/> as <see cref="int"/>
+	/// </summary>
+	public const int OFFSET_I = 0;
+
+	/// <summary>
+	///     Default increment/decrement/element count for <see cref="Pointer{T}" />
+	/// </summary>
+	public const nint ELEM_CNT = 1;
 
 	private static readonly ILogger s_logger = Global.LoggerFactoryInt.CreateLogger(nameof(Mem));
 
@@ -126,46 +129,27 @@ public static unsafe class Mem
 
 #region Cast
 
-	/*public static ref T ref_cast<T>(in T t)
-		=> ref Unsafe.AsRef(ref t);*/
-
-	public static ref T ref_cast<T>(in T t)
-		=> ref Unsafe.AsRef(in t);
-
-	/*public static object as_cast(object t)
-		=> as_cast<object, object>(t);
-
-	/// <summary>
-	/// Shortcut to <see cref="Unsafe.As{T,T}"/>
-	/// </summary>
-	/// <remarks>Can be used similar to <c>const_cast</c>, <c>static_cast</c>,
-	/// <c>dynamic_cast</c> from <em>C++</em></remarks>
-	public static TTo as_cast<TFrom, TTo>(TFrom t)
-		where TFrom : class
-		where TTo : class
+	extension<T>(Memory<T> mem)
 	{
-		// var ptr  = Mem.AddressOfHeap(t);
-		// var ptr2 = ptr.Cast<T2>();
-		// var t2   = Unsafe.As<T2>(ptr2.Reference);
 
-		var t2 = Unsafe.As<TTo>(t);
-		return t2;
-	}*/
+		public Pointer<T> ToPointer([MDR] out MemoryHandle mh)
+		{
+			mh = mem.Pin();
+			return mh.Pointer;
+		}
 
-	public static Pointer<T> ToPointer<T>(this Memory<T> sp, [MDR] out MemoryHandle mh)
-	{
-		mh = sp.Pin();
-		return mh.Pointer;
 	}
 
-	public static Pointer<T> ToPointer<T>(this Span<T> s)
-		=> s.ToPointer(ref Unsafe.NullRef<T>());
-
-	public static Pointer<T> ToPointer<T>(this Span<T> s, ref T t)
+	extension<T>(Span<T> span)
 	{
-		t = ref s.GetPinnableReference();
 
-		return AddressOf(ref t);
+		public Pointer<T> ToPointer()
+		{
+			ref var spanRef = ref MemoryMarshal.GetReference(span);
+
+			return new Pointer<T>(ref spanRef);
+		}
+
 	}
 
 #endregion
@@ -330,7 +314,7 @@ public static unsafe class Mem
 	/// <returns>The size of <paramref name="value" />; <see cref="Native.ERROR_SV" /> otherwise</returns>
 	public static int SizeOf<T>(T value, SizeOfOption option)
 	{
-		ArgumentNullException.ThrowIfNull(value, nameof(value));
+		ArgumentNullException.ThrowIfNull(value);
 
 		//Require.Assert<ArgumentException>(!Inspector.IsNil(value), nameof(value));
 
@@ -361,8 +345,7 @@ public static unsafe class Mem
 					return SizeOf<T>(SizeOfOption.Intrinsic);
 				}
 
-				else
-					goto case SizeOfOption.Heap;
+				goto case SizeOfOption.Heap;
 
 			default:
 				// return Native.ERROR_SV;
@@ -402,11 +385,11 @@ public static unsafe class Mem
 	///     <para>Note: This also includes padding and overhead (<see cref="ClrObjHeader" /> and <see cref="MethodTable" /> ptr.)</para>
 	/// </remarks>
 	/// <returns>The size of the type in heap memory, in bytes</returns>
-	public static int HeapSizeOf<T>(T value, bool throwOnErr = false) where T : class
+	public static int HeapSizeOf<T>([NN] T value, bool throwOnErr = false) where T : class
 		=> HeapSizeOfInternal(value, throwOnErr);
 
 	[MethodImpl(MImplO.AggressiveInlining)]
-	private static int HeapSizeOfInternal<T>(T value, bool throwOnErr = false)
+	private static int HeapSizeOfInternal<T>([NN] T value, bool throwOnErr = false)
 	{
 		// Sanity check
 		// Require.Assert(!ObjectUtility.IsStruct(value));
@@ -417,7 +400,7 @@ public static unsafe class Mem
 		s_logger.LogTrace("[{T}] | Struct={Strct} | Boxed={Bxd}", typeof(T), isStruct, isBoxed);
 
 		if (throwOnErr && !isStruct) {
-			throw new ArgumentException($"Value must be reference type", nameof(value));
+			throw new ArgumentException("Value must be reference type", nameof(value));
 		}
 
 		// By manually reading the MethodTable*, we can calculate the size correctly if the reference
@@ -445,7 +428,7 @@ public static unsafe class Mem
 
 		int baseSize = metaType.BaseSize;
 
-		int componentSize = metaType.TypeFlags.HasFlag(TypeFlags.HasComponentSize) ? metaType.ComponentSize : 0;
+		int componentSize = metaType.HasComponentSize ? metaType.ComponentSize : 0;
 
 		int length = value switch
 		{
@@ -467,6 +450,7 @@ public static unsafe class Mem
 	[MethodImpl(MImplO.AggressiveInlining)]
 	public static nuint GetByteCount(nuint elemCnt, nuint elemSize)
 	{
+		// todo: where did I get this from
 		// This is based on the `mi_count_size_overflow` and `mi_mul_overflow` methods from microsoft/mimalloc.
 		// Original source is Copyright (c) 2019 Microsoft Corporation, Daan Leijen. Licensed under the MIT license
 
@@ -482,47 +466,62 @@ public static unsafe class Mem
 
 #region
 
-	private static readonly HashSet<SizeOfOption> TypeValue =
-	[
+	private static readonly IReadOnlySet<SizeOfOption> TypeValue = new HashSet<SizeOfOption>
+	{
 		SizeOfOption.BaseFields,
 		SizeOfOption.BaseInstance,
 		SizeOfOption.Heap,
 		SizeOfOption.Data
+	}.AsReadOnly();
 
-	];
-
-	private static readonly HashSet<SizeOfOption> TypeParameter =
-	[
+	private static readonly IReadOnlySet<SizeOfOption> TypeParameter = new HashSet<SizeOfOption>
+	{
 		SizeOfOption.Native,
 		SizeOfOption.Managed,
 		SizeOfOption.Intrinsic,
 		SizeOfOption.BaseFields,
 		SizeOfOption.BaseInstance,
 		SizeOfOption.BaseData
-
-	];
+	}.AsReadOnly();
 
 	extension(SizeOfOption option)
 	{
 
+		/// <summary>
+		/// Whether this option requires a value
+		/// </summary>
 		public bool RequiresTypeValue => TypeValue.Contains(option);
 
+		/// <summary>
+		/// Whether this option requires a type (<see cref="Type"/>, <see cref="MetaType"/>, etc.)
+		/// </summary>
 		public bool RequiresTypeParameter => TypeParameter.Contains(option);
 
 	}
 
-	public static int GetOffsetValue(this OffsetOptions offset)
+	extension(OffsetOptions offset)
 	{
-		int offsetValue = offset switch
-		{
-			OffsetOptions.ArrayData  => ObjectUtility.OffsetToArrayData,
-			OffsetOptions.StringData => ObjectUtility.OffsetToStringData,
-			OffsetOptions.Fields     => ObjectUtility.OffsetToData,
-			OffsetOptions.Header     => -ObjectUtility.OffsetToData,
 
-			OffsetOptions.None or _ => 0
-		};
-		return offsetValue;
+		/// <summary>
+		/// Offset value
+		/// </summary>
+		public int Value
+		{
+			get
+			{
+				int offsetValue = offset switch
+				{
+					OffsetOptions.ArrayData  => ObjectUtility.OffsetToArrayData,
+					OffsetOptions.StringData => ObjectUtility.OffsetToStringData,
+					OffsetOptions.Fields     => ObjectUtility.OffsetToData,
+					OffsetOptions.Header     => -ObjectUtility.OffsetToData,
+
+					OffsetOptions.None or _ => 0
+				};
+				return offsetValue;
+			}
+		}
+
 	}
 
 #endregion
@@ -591,7 +590,7 @@ public static unsafe class Mem
 		// Strings have their data offset by RuntimeInfo.OffsetToStringData
 		// Arrays have their data offset by IntPtr.Size * 2 bytes (may be different for 32 bit)
 
-		int offsetValue = offset.GetOffsetValue();
+		int offsetValue = offset.Value;
 
 // @formatter:off
 
@@ -657,7 +656,7 @@ public static unsafe class Mem
 	public static Pointer<TField> AddressOfField<T, TField>(ref T obj, Expression<Func<TField>> mem)
 	{
 		int offsetOf = obj.GetType().OffsetOf(member_of2(mem).Name);
-		
+
 		Pointer<byte> p = AddressOfData(ref obj);
 
 		return (Pointer<TField>) (p + offsetOf);
@@ -672,154 +671,6 @@ public static unsafe class Mem
 	 * https://catonmat.net/low-level-bit-hacks
 	 */
 
-
-#region Object memory operations
-
-	public static T CopyInstance<T>(T t) where T : class
-	{
-		var t2 = Activator.CreateInstance<T>();
-
-		Pointer<byte> p  = AddressOfData(ref t);
-		int           s  = SizeOf(t, SizeOfOption.Data);
-		Pointer<byte> p2 = AddressOfData(ref t2);
-
-		//p2.WriteAll(p.Copy(s));
-		p2.WriteAll(p.ToArray(s));
-
-		// Copy(p, s, p2);
-
-		return t2;
-	}
-
-	/// <summary>
-	///     Reads a value of type <paramref name="mt" /> in <paramref name="proc" /> at <paramref name="addr" /> using
-	/// <see cref="ReadProcessMemory(System.Diagnostics.Process,Novus.Memory.Pointer{byte},nint)"/> (<see cref="Native.Kernel32.ReadProcessMemory"/>)
-	/// </summary>
-	[CBN]
-	[SupportedOSPlatform(RuntimeInformationExtensions.OS_WIN)]
-	public static object ReadTypeFromProcessMemory(Process proc, Pointer<byte> addr, MetaType mt)
-	{
-		//todo
-
-		bool valueType = mt.RuntimeType.IsValueType;
-		int  size      = valueType ? mt.InstanceFieldsSize : mt.BaseSize;
-
-		Debug.WriteLine($"{size} for {mt.Name}");
-
-		//var i = Activator.CreateInstance(t);
-
-		var    rg  = ReadProcessMemory(proc, addr, (nint) size);
-		object val = null;
-
-		var mh = rg.Pin();
-
-		if (valueType) {
-			val = Marshal.PtrToStructure((nint) mh.Pointer, mt.RuntimeType);
-		}
-		else {
-			val = Unsafe.Read<object>(mh.Pointer);
-
-		}
-
-		return val;
-	}
-
-	/// <summary>
-	/// Converts a value of type <typeparamref name="T"/> to a <see cref="byte"/> array.
-	/// </summary>
-	public static byte[] GetBytes<T>(T value)
-	{
-		/*if (typeof(T).IsValueType) {
-			var ptr = AddressOf(ref value);
-			var cb  = SizeOf<T>();
-			var rg  = new byte[cb];
-
-			fixed (byte* p = rg) {
-				ptr.Copy(p, cb);
-			}
-
-			return rg;
-		}*/
-
-
-		if (typeof(T).IsValueType) {
-			var ptr    = AddressOfData(ref value);
-			var size = SizeOf<T>();
-			return ptr.ToArray(size);
-		}
-
-		TryGetAddressOfHeap(value, OffsetOptions.Header, out var ptr2);
-		var cb2 = SizeOf(value, SizeOfOption.Heap);
-
-		return ptr2.ToArray(cb2);
-	}
-
-	/// <summary>
-	/// Reads a value fo type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
-	/// </summary>
-	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
-	public static T ReadFromBytes<T>(byte[] rg)
-	{
-		/*Memory<byte> asMemory = rg.AsMemory();
-
-		var p2 = asMemory.ToPointer(out var mh);
-
-		if (!typeof(T).IsValueType) {
-			p2 += ObjectUtility.ObjHeaderSize;
-			return AddressOf(ref p2).Cast<T>().Value;
-		}
-
-		return p2.Cast<T>().Value;*/
-
-		Memory<byte> asMemory = rg.AsMemory();
-		using var    pin      = asMemory.Pin();
-
-		var p2 = (byte*) pin.Pointer;
-
-		if (!typeof(T).IsValueType) {
-			p2 += ObjectUtility.ObjHeaderSize;
-			return Unsafe.Read<T>(&p2);
-		}
-
-		return Unsafe.Read<T>(p2);
-	}
-
-	/// <summary>
-	/// Reads a value of type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
-	/// </summary>
-	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
-	public static object ReadFromBytes(byte[] rg)
-	{
-		return ReadFromBytes<object>(rg);
-	}
-
-	/// <summary>
-	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
-	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
-	/// <see cref="SizeOfOption.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
-	/// <seealso cref="AllocManager.New{T}"/>
-	/// </summary>
-	/// <typeparam name="T">Type to initialize</typeparam>
-	/// <param name="ptr">Memory within which to initialize the instance</param>
-	/// <param name="ptrOrig">Original base pointer</param>
-	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
-	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
-	[MURV]
-	public static ref T New<T>(Pointer<byte> ptr, out Pointer<byte> ptrOrig) where T : class
-	{
-		ptrOrig = ptr;
-
-		Unsafe.Write(ptr, default(ClrObjHeader));
-
-		ptr += ObjectUtility.ObjHeaderSize;
-
-		Unsafe.Write(ptr, ObjectUtility.GetTypeHandle<T>());
-
-		ref var val = ref Unsafe.AsRef<T>(&ptr);
-		return ref val;
-	}
-
-#endregion
 
 #region
 

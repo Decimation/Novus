@@ -179,7 +179,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 10.0.11.
+        ///   Looks up a localized string similar to 10.0.12.
         /// </summary>
         internal static string RequiredVersion {
             get {

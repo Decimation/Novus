@@ -202,6 +202,9 @@ public unsafe class MetaType : MetaClrStructure<MethodTable>
 
 	public int BaseSize => Value.Reference.BaseSize;
 
+	/// <summary>
+	/// Equals <see cref="ObjectUtility.GetElementSize"/>
+	/// </summary>
 	public int ComponentSize => Value.Reference.ComponentSize;
 
 	private Pointer<EEClass> EEClass => Value.Reference.EEClass;

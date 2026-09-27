@@ -123,5 +123,4 @@ public enum TypeHandleBits
 	MethodTable = 0,
 	TypeDesc    = 2,
 	ValidMask   = 2 //todo?
-
 }

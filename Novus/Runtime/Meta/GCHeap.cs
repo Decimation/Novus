@@ -3,9 +3,7 @@ using System.Runtime.Serialization;
 using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
 using Novus.Memory;
-using Novus.Runtime.VM;
 using Novus.Utilities;
-using Novus.Win32;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 // ReSharper disable InconsistentNaming
@@ -39,41 +37,6 @@ public static unsafe class GCHeap
 	public static bool IsHeapPointer(in Pointer<byte> ptr, bool smallHeapOnly = false)
 		=> Func_IsHeapPointer(GlobalHeap.ToPointer(), ptr.ToPointer(), smallHeapOnly);
 
-	[Obsolete]
-	private static Pointer<byte> AllocObject(Pointer<MethodTable> t, GCAllocFlags flags = GCAllocFlags.GC_ALLOC_NO_FLAGS, BOOL b = BOOL.FALSE)
-		=> Func_AllocObject((MethodTable*) t, flags, b);
-
-	[Obsolete]
-	public static object AllocObject(MetaType type, params object[] args)
-	{
-		Require.Assert(!type.RuntimeType.IsValueType);
-
-		var ptr = (void*) AllocObject(type.Value);
-		var obj = Unsafe.Read<object>(&ptr);
-
-		ReflectionHelper.CallConstructor(obj, args);
-
-		return obj;
-	}
-
-	[Obsolete]
-	public static T AllocObject<T>(params object[] args) where T : class
-	{
-		var ptr = AllocObject(typeof(T), args: args);
-		var obj = Unsafe.As<T>(ptr);
-
-		return obj;
-	}
-
-	/*public static T AllocUninitializedObject<T>()
-		=> (T) AllocUninitializedObject(typeof(T));
-
-	public static object AllocUninitializedObject(Type t)
-	{
-		var obj = RuntimeHelpers.GetUninitializedObject(t);
-		return obj;
-	}*/
-
 	public static bool IsLargeObject(object o)
 		=> IsLargeObject(Mem.AddressOfHeap(o));
 
@@ -93,19 +56,14 @@ public static unsafe class GCHeap
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool, bool> Func_IsHeapPointer { get; }
 
 	/// <summary>
-	/// <see cref="AllocObject{T}"/>
-	/// </summary>
-	[field: ImportClr("Sig_AllocObject")]
-	private static delegate* unmanaged<MethodTable*, GCAllocFlags, BOOL, void*> Func_AllocObject { get; }
-
-	/// <summary>
-	/// <see cref="IsLargeObject"/>
+	/// <see cref="IsLargeObject(Pointer{byte})"/>
 	/// </summary>
 	[field: ImportClr("Sym_IsLargeObj", ImportType.Symbol)]
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool> Func_IsLargeObject { get; }
 
 }
 
+[Flags]
 public enum GCAllocFlags
 {
 

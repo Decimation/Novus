@@ -4,6 +4,7 @@ using System.Text;
 using Novus.Memory;
 using System;
 using System.Runtime.InteropServices;
+using Novus.Runtime;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // ReSharper disable UnusedMember.Global
@@ -17,82 +18,59 @@ public static class StreamExtensions
 	extension(StreamReader stream)
 	{
 
-		public string[] ReadLinesToEnd()
+		public IEnumerable<string> ReadLinesToEnd()
 		{
-			var list = new List<string>();
-
 			while (!stream.EndOfStream) {
 				string? line = stream.ReadLine();
 
 				if (line != null) {
-					list.Add(line);
+					yield return line;
 				}
 			}
-
-			return [.. list];
 		}
 
-		public async Task<string[]> ReadLinesToEndAsync(CancellationToken ct = default)
+		public async IAsyncEnumerable<string> ReadLinesToEndAsync([EnuCan] CancellationToken ct = default)
 		{
-			var list = new List<string>();
-
 			while (!stream.EndOfStream) {
 				string? line = await stream.ReadLineAsync(ct);
 
 				if (line != null) {
-					list.Add(line);
+					yield return line;
 				}
 			}
-
-			return [.. list];
 		}
 
 	}
-
-
 
 	public const int BLOCK_SIZE = 0xFF;
 
 	/// <param name="stream">Stream to rewind</param>
 	extension(Stream stream)
 	{
-#if EXTRA
 
-		public MemoryStream Copy(int bufferSize = BLOCK_SIZE)
+		public async ValueTask<byte[]> CopyToArrayAsync(CancellationToken ct = default)
 		{
-			var ret = new MemoryStream();
+			using var ms = new MemoryStream();
+			await stream.CopyToAsync(ms, ct);
+			byte[] data = ms.ToArray();
 
-			var buf = new byte[bufferSize];
-
-			int cb = 0;
-
-			while ((cb = stream.Read(buf, 0, bufferSize)) > 0) {
-				ret.Write(buf, 0, cb);
-			}
-
-			ret.Position = 0;
-
-			return ret;
+			return data;
 		}
 
-#endif
+		public byte[] CopyToArray(bool isWritable = false, bool isPrivate = false)
+		{
+			using var ms = new MemoryStream();
+			stream.CopyTo(ms);
+			byte[] data = ms.ToArray();
+			return data;
+		}
 
 
 		public ValueTask<Stream> EnsureRewindableHeaderAsync(int peek = BLOCK_SIZE, CancellationToken ct = default)
-		{
-			if (stream.CanSeek)
-				return ValueTask.FromResult(stream);
-
-			return stream.GetHeaderAsync(peek, ct);
-		}
+			=> stream.CanSeek ? ValueTask.FromResult(stream) : stream.GetHeaderAsync(peek, ct);
 
 		public Stream EnsureRewindableHeader(int peek = BLOCK_SIZE)
-		{
-			if (stream.CanSeek)
-				return stream;
-
-			return stream.GetHeader(peek);
-		}
+			=> stream.CanSeek ? stream : stream.GetHeader(peek, out _);
 
 		public async ValueTask<Stream> GetHeaderAsync(int peek, CancellationToken ct = default)
 		{
@@ -101,20 +79,29 @@ public static class StreamExtensions
 			return new MemoryStream(head, 0, n, writable: false, publiclyVisible: true);
 		}
 
-		public Stream GetHeader(int peek)
+		public Stream GetHeader(int peek, out int n)
 		{
 			var head = new byte[peek];
-			int n    = stream.ReadAtLeast(head, peek, throwOnEndOfStream: false);
+			n = stream.ReadAtLeast(head, peek, throwOnEndOfStream: false);
 			return new MemoryStream(head, 0, n, writable: false, publiclyVisible: true);
 		}
 
-		public byte[] ReadHeader(int l = BLOCK_SIZE)
+		public byte[] ReadHeader(out int n, int l = BLOCK_SIZE)
 		{
 			using var stream2 = stream.EnsureRewindableHeader(l);
 
-			var head = new byte[l];
-			int n    = stream2.ReadAtLeast(head, l, throwOnEndOfStream: false);
-			
+			byte[] head;
+			n = 0;
+
+			if (stream2 is MemoryStream ms && ms.TryGetBuffer(out var seg) && seg.Array is { } segArray) {
+				head = segArray;
+				n=segArray.Length;
+			}
+			else {
+				head = new byte[l];
+				n    = stream2.ReadAtLeast(head, l, throwOnEndOfStream: false);
+			}
+
 			stream2.Rewind();
 
 			return head;
@@ -123,9 +110,17 @@ public static class StreamExtensions
 		public async Task<byte[]> ReadHeaderAsync(int l = BLOCK_SIZE, CancellationToken ct = default)
 		{
 			using var stream2 = await stream.EnsureRewindableHeaderAsync(l, ct);
-			var       head    = new byte[l];
-			int       n       = await stream2.ReadAtLeastAsync(head, l, throwOnEndOfStream: false, cancellationToken: ct);
-			
+
+			byte[] head;
+
+			if (stream2 is MemoryStream ms && ms.TryGetBuffer(out var seg) && seg.Array is { } segArray) {
+				head = segArray;
+			}
+			else {
+				head = new byte[l];
+				int n = await stream2.ReadAtLeastAsync(head, l, throwOnEndOfStream: false, cancellationToken: ct);
+			}
+
 			stream2.Rewind();
 
 			return head;
@@ -183,7 +178,7 @@ public static class StreamExtensions
 			var rg2 = new byte[s];
 			var rg  = stream.Read(rg2);
 
-			return Mem.ReadFromBytes<T>(rg2);
+			return ObjectUtility.ReadFromBytes<T>(rg2);
 		}
 
 		public LinkedList<T> ReadUntil<T>(Predicate<T> pred, Func<Stream, T> read, int? max = null, CancellationToken token = default)
@@ -219,7 +214,7 @@ public static class BinaryReaderExtensions
 			var s  = Mem.SizeOf<T>();
 			var rg = br.ReadBytes(s);
 
-			return Mem.ReadFromBytes<T>(rg);
+			return ObjectUtility.ReadFromBytes<T>(rg);
 		}
 
 		public string ReadCString(int count)

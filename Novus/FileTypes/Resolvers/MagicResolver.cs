@@ -74,12 +74,11 @@ public sealed class MagicResolver : IMediaTypeResolver
 		}
 	}
 
-	public const MagicOpenFlags MagicMimeFlags =
-		MagicOpenFlags.MAGIC_ERROR             |
-		MagicOpenFlags.MAGIC_MIME_TYPE         |
-		MagicOpenFlags.MAGIC_NO_CHECK_COMPRESS |
-		MagicOpenFlags.MAGIC_NO_CHECK_ELF      |
-		MagicOpenFlags.MAGIC_NO_CHECK_APPTYPE;
+	public const MagicOpenFlags MagicMimeFlags = MagicOpenFlags.MAGIC_ERROR
+	                                             | MagicOpenFlags.MAGIC_MIME_TYPE
+	                                             | MagicOpenFlags.MAGIC_NO_CHECK_COMPRESS
+	                                             | MagicOpenFlags.MAGIC_NO_CHECK_ELF
+	                                             | MagicOpenFlags.MAGIC_NO_CHECK_APPTYPE;
 
 	private static readonly Lock _magicLock;
 
@@ -195,43 +194,18 @@ public sealed class MagicResolver : IMediaTypeResolver
 		using var ms = new MemoryStream(bufferSize);
 		stream.CopyTo(ms, bufferSize);
 
-		/*byte[]    buffer = new byte[16 * 1024];
-		using var ms     = new MemoryStream(bufferSize);
-		int       readed;
-
-
-		while ((readed = stream.Read(buffer, 0, buffer.Length)) > 0) {
-			ms.Write(buffer, 0, readed);
-
-			if (ms.Length >= bufferSize)
-				break;
-		}
-
-		if (stream.CanSeek)
-			stream.Position = 0;
-
-		return Read(ms.ToArray(), (int) ms.Length);*/
-
 		var buffer = ms.GetBuffer();
 		return Read(buffer, bufferSize);
 	}
 
 	public IMediaType Resolve(byte[] rg, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
 	{
-		// var buf1 = stream.ReadBlockAsync(MediaTypeUtilities.RSRC_HEADER_LEN);
-		// buf1.Wait();
-		// var buf  = buf1.Result;
-
 		var s = Read(rg, l);
-
-		// return MediaTypeUtilities.Find(s).FirstOrDefault();
 		return new MediaType(s, []);
 	}
 
 	public IMediaType Resolve(Stream stream, int l = MediaTypeUtilities.RSRC_HEADER_LEN)
-	{
-		return Resolve(stream.ReadHeader(), l);
-	}
+		=> Resolve(stream.ReadHeader(out _), l);
 
 	/// <summary>
 	///     Can be used to check the validity of entries

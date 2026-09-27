@@ -23,9 +23,6 @@ namespace Novus.Memory.Allocation;
 public static class AllocManager
 {
 
-	private static readonly MethodInfo s_newFunc = typeof(AllocManager).GetRuntimeMethods()
-	                                                                   .First(x => x is { Name: nameof(New), ContainsGenericParameters: true });
-
 	/*
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/System.Private.CoreLib/src/System/Runtime/InteropServices/NativeMemory.Windows.cs
 	 * https://github.com/dotnet/runtime/blob/main/src/libraries/Common/src/Interop/Windows/Ucrtbase/Interop.MemAlloc.cs
@@ -114,43 +111,6 @@ public static class AllocManager
 		return h;
 	}
 
-	/*[MustUseReturnValue]
-	public static T AllocU<T>(params object[] args)
-	{
-		// NOTE: WIP
-
-		var mt = typeof(T).AsMetaType();
-
-		var alloc = Alloc(mt.BaseSize);
-
-		alloc += Mem.Size;
-
-		alloc.WritePointer(mt.Value);
-
-		var alloc2 = Alloc<T>(1);
-
-		alloc2.WritePointer(alloc);
-
-		var val = alloc2.Value;
-
-		//RuntimeHelpers.RunClassConstructor(typeof(T).TypeHandle);
-		ReflectionHelper.CallConstructor(val, args);
-
-		/*var def = Activator.CreateInstance<T>();
-
-		var flds = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-
-		var vals = flds.Select(f => f.GetValue(def)).ToArray();
-
-		var val2 = FormatterServices.PopulateObjectMembers(val, flds, vals);#1#
-
-		//FormatterServices?
-
-		//return (T) val2;
-
-		return val;
-	}*/
-
 	public static void Free<T>(T t) where T : class
 	{
 		var ptr = Mem.AddressOfHeap(t);
@@ -158,38 +118,6 @@ public static class AllocManager
 		Free(ptr);
 	}
 
-
-	public static object New(Type t, params object[] ctor)
-	{
-		return s_newFunc.InvokeGeneric(t, null, [ctor]);
-	}
-
-	/// <summary>
-	/// Allocates and initializes an object of type <typeparamref name="T"/>. <p/>
-	/// <list type="number">
-	/// <item>
-	/// <see cref="SizeOfOption.BaseInstance"/> bytes are allocated
-	///
-	/// </item>
-	/// <item>
-	/// An instance is constructed in-memory using <see cref="Mem.New{T}"/>
-	/// </item>
-	/// <item>
-	/// A constructor is invoked on the instance if one is found matching parameters <paramref name="ctor"/>
-	/// </item>
-	/// </list>
-	/// </summary>
-	public static T New<T>(params object[] ctor) where T : class
-	{
-		int size = Mem.SizeOf<T>(SizeOfOption.BaseInstance);
-		var ptr  = Alloc((nuint) size);
-
-		var value = Mem.New<T>(ptr, out var ptr2);
-
-		var cc = ReflectionHelper.CallConstructor(value, ctor);
-
-		return value;
-	}
 
 	public static void Close()
 	{

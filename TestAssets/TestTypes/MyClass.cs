@@ -5,6 +5,14 @@ internal class MyClass
 	public string s;
 	public int    a;
 
+	public MyClass() { }
+
+	public MyClass(string s, int a)
+	{
+		this.s = s;
+		this.a = a;
+	}
+
 	protected bool Equals(MyClass other)
 	{
 		return s == other.s && a == other.a;

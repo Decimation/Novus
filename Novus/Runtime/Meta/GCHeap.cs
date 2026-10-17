@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
 using Novus.Memory;
+using Novus.Runtime.VM;
 using Novus.Utilities;
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -43,6 +44,9 @@ public static unsafe class GCHeap
 	public static bool IsLargeObject(Pointer<byte> obj)
 		=> Func_IsLargeObject(GlobalHeap.ToPointer(), obj.ToPointer());
 
+	public static Pointer<byte> Alloc(ulong size, GCAllocFlags flags)
+		=> Func_Alloc(size, flags);
+
 	/// <summary>
 	/// <c>g_pGCHeap</c>
 	/// </summary>
@@ -60,6 +64,12 @@ public static unsafe class GCHeap
 	/// </summary>
 	[field: ImportClr("Sym_IsLargeObj", ImportType.Symbol)]
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool> Func_IsLargeObject { get; }
+
+	/// <summary>
+	/// <see cref="Alloc"/>
+	/// </summary>
+	[field: ImportClr("Sym_Alloc", ImportType.Symbol, Ordinal = 0, AbsoluteMatch = true)]
+	private static delegate* unmanaged<ulong, GCAllocFlags, void*> Func_Alloc { get; }
 
 }
 

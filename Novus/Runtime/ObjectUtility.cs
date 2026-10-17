@@ -25,7 +25,6 @@ using Novus.Runtime.VM.EE;
 using Novus.Runtime.VM.Tokens;
 using Novus.Win32;
 
-// ReSharper disable UnusedVariable
 // ReSharper disable ConvertIfStatementToReturnStatement
 // ReSharper disable InconsistentNaming
 // ReSharper disable UnassignedGetOnlyAutoProperty
@@ -517,41 +516,46 @@ public static unsafe class ObjectUtility
 	[MURV]
 	public static ref T New<T>(Pointer<byte> ptr = default, object[] ctorArgs = null) where T : class
 	{
-		var     destRefPtr = AllocManager.Alloc((nuint) Mem.SizeOf<T>()).Cast<T>();
+		var destRefPtr = AllocManager.Alloc((nuint) Mem.SizeOf<T>()).Cast<T>();
+
+		if (ptr == Mem.Nullptr) {
+			RuntimeHelpers.GetUninitializedObject(typeof(T), out var ptrObj);
+			ptr = ptrObj - ObjHeaderSize;
+		}
+
+		// ref var refDestPtr = ref Unsafe.NullRef<T>();
 		ref var refDestPtr = ref destRefPtr.Reference;
-		return ref New<T>(ref refDestPtr, ptr, ctorArgs);
+		return ref New(ref refDestPtr, ptr, ctorArgs);
 	}
 
 	public static ref T New<T>(ref T destRef, Pointer<byte> destInstPtr = default, object[] ctorArgs = null) where T : class
 	{
 		ctorArgs ??= [];
 
-		var mt = typeof(T).AsMetaType();
+		// var mt = typeof(T).AsMetaType();
 
-		var     uninitObj = RuntimeHelpers.GetUninitializedObject(mt.RuntimeType, out var ptrObj);
+		/*var     uninitObj = (T) RuntimeHelpers.GetUninitializedObject(mt.RuntimeType, out var ptrObj);
 		ref var uninitRef = ref ptrObj.Cast<T>().Reference;
 
-		Pointer<T> uninitRefPtr = Unsafe.AsPointer(ref uninitRef);
-
-		Pointer<Pointer<T>> destRefPtr = Unsafe.AsPointer(ref destRef);
-
-		Trace.Assert(uninitRefPtr == destRefPtr);
+		Pointer<Pointer<T>> destRefPtr = Unsafe.AsPointer(ref destRef);*/
 
 		Unsafe.Write(destInstPtr, default(ClrObjHeader)); // Write header
 		destInstPtr += ObjHeaderSize;                     // Offset by header
-		Unsafe.Write(destInstPtr, GetTypeHandle<T>());    // Write type handle
+		var typeHandle = GetTypeHandle<T>();
+		Unsafe.Write(destInstPtr, typeHandle); // Write type handle
 
+		// var destRefPtr = (void**) Unsafe.AsPointer(ref destRef);
 		// *destRefPtrPtr = (nint*) destInstPtr.Address;
-		Unsafe.Write(destRefPtr, destInstPtr.Address);
+		// Unsafe.Write(destRefPtr, destInstPtr.Address);
+		Unsafe.Write(Unsafe.AsPointer(ref destRef), destInstPtr);
 
-		ref var destRefPtrVal = ref Unsafe.AsRef<T>(destRefPtr);
+		// destRef = Unsafe.AsRef<T>(destInstPtr);
+		// ref var destRefPtrVal = ref Unsafe.AsRef<T>(destInstPtr);
 
 		// Call constructor
-		if (ctorArgs.Any()) {
-			var ctorOk = ReflectionHelper.CallConstructor(destRefPtrVal, ctorArgs);
-		}
+		var ctorOk = ReflectionHelper.CallConstructor(destRef, ctorArgs);
 
-		return ref destRefPtr.Reference.Reference;
+		return ref destRef;
 	}
 
 	/// <summary>

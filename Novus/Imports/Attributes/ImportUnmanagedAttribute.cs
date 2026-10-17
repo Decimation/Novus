@@ -18,15 +18,18 @@ public class ImportUnmanagedAttribute : ImportAttribute
 
 	public string ModuleName { get; set; }
 
-	public ImportUnmanagedAttribute(string moduleName, ImportType importType, string value = null)
-		: this(moduleName, null, importType, value) { }
+	public int Ordinal { get; set; }
 
-	public ImportUnmanagedAttribute(string moduleName, string name, ImportType importType, string value = null)
+	public ImportUnmanagedAttribute(string moduleName, ImportType importType, string value = null, int ordinal = 0)
+		: this(moduleName, null, importType, value, ordinal) { }
+
+	public ImportUnmanagedAttribute(string moduleName, string name, ImportType importType, string value = null, int ordinal = 0)
 		: base(name, ImportManageType.Unmanaged)
 	{
 		ModuleName = moduleName;
 		ImportType = importType;
 		Value      = value;
+		Ordinal =  ordinal;
 	}
 
 }

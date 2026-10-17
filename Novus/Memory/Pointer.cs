@@ -236,7 +236,7 @@ public unsafe struct Pointer<T> : IAdditionOperators<Pointer<T>, Pointer<T>, Poi
 	public readonly bool Equals(Pointer<T> other)
 		=> Address == other.Address;
 
-	public readonly override bool Equals(object? obj)
+	public readonly override bool Equals([CanBeNull] object obj)
 		=> obj is Pointer<T> pointer && Equals(pointer);
 
 	public readonly override int GetHashCode()
@@ -553,7 +553,7 @@ public unsafe struct Pointer<T> : IAdditionOperators<Pointer<T>, Pointer<T>, Poi
 	public readonly string ToString(string format)
 		=> ToString(format, null);
 
-	public readonly string ToString(string? format, IFormatProvider? provider)
+	public readonly string ToString(string format, IFormatProvider provider)
 	{
 		//if (String.IsNullOrEmpty(format))
 		//	format = FMT_HEX;

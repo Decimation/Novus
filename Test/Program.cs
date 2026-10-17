@@ -156,9 +156,19 @@ public static partial class Program
 
 	private static async Task Main(string[] args)
 	{
-		ref var obj = ref ObjectUtility.New<MyClass>(ctorArgs: ["foo",321]);
+		/*var obj1 = RuntimeHelpers.GetUninitializedObject(typeof(MyClass)) as MyClass;
+		Console.WriteLine(obj1);
+		obj1.a = 321;
+		obj1.s = "bar";
+		Console.WriteLine(obj1);*/
 
+		/*ref var obj = ref ObjectUtility.New<MyClass>(ctorArgs: ["foo",321]);
 		Console.WriteLine(obj);
+		Console.WriteLine(GCHeap.GlobalHeap);*/
+
+		var gcPtr = GCHeap.Alloc(256, GCAllocFlags.GC_ALLOC_NO_FLAGS);
+		Console.WriteLine(gcPtr);
+		Console.WriteLine(GCHeap.IsHeapPointer(gcPtr));
 	}
 
 }

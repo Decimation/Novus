@@ -407,11 +407,12 @@ public sealed class RuntimeResource : IDisposable
 		var n        = ia.Name;
 		var it       = default(ImportType);
 		var absolute = ia.AbsoluteMatch;
-
+		var ord = 0;
 		switch (ia) {
 			case ImportUnmanagedAttribute iua:
 				value ??= iua.Value;
 				it    =   iua.ImportType;
+				ord = iua.Ordinal;
 				break;
 		}
 
@@ -425,7 +426,7 @@ public sealed class RuntimeResource : IDisposable
 			ImportType.Signature => GetSignature(value),
 			ImportType.Export    => GetExport(value),
 			ImportType.Offset    => GetOffset(value),
-			ImportType.Symbol    => GetSymbol(value, absolute),
+			ImportType.Symbol    => GetSymbols(value, absolute).ToList()[ord],
 			_                    => Mem.Nullptr
 		};
 	}
@@ -458,38 +459,30 @@ public sealed class RuntimeResource : IDisposable
 
 	public Pointer<byte> GetSymbol(string name, bool absolute = false)
 	{
+		return GetSymbols(name, absolute).FirstOrDefault();
+	}
+
+	public IEnumerable<Pointer<byte>> GetSymbols(string name, bool absolute = false)
+	{
 		if (Symbols.Value == null) {
-			return Mem.Nullptr;
+			throw new ImportException("Symbols not loaded");
 		}
 
-		var symbols = Symbols.Value.GetSymbols(name)
-		                     .Where(static s => s.Tag is SymbolTag.Function or SymbolTag.Data);
+		Func<Symbol, bool> pred1 = static s => s.Tag is SymbolTag.Function or SymbolTag.Data;
+		Func<Symbol, bool> pred2 = absolute ? s => s.Name == name : s => s.Name.Contains(name);
 
-		Symbol symbol = null;
+		var pred = (Func<Symbol, bool>) Delegate.Combine(pred1, pred2);
 
-		Func<Symbol, bool> predicate = absolute ? s => s.Name == name : s => s.Name.Contains(name);
+		var symbols = Symbols.Value.GetSymbols(name, pred);
 
-		symbol = symbols.FirstOrDefault(predicate);
+		foreach (var symbol in symbols) {
+			var  baseAddress = (Pointer<byte>) Module.BaseAddress;
+			nint ofs         = 0;
 
-		/*if (resolver != null) {
-			var m = (IRuntimeResourceImporter) Activator.CreateInstance(resolver);
-			symbol = symbols.FirstOrDefault(m.Match);
+			ofs = (nint) symbol.Offset;
+
+			yield return baseAddress + ofs;
 		}
-		else {
-			symbol = symbols.FirstOrDefault();
-		}*/
-
-		var  baseAddress = (Pointer<byte>) Module.BaseAddress;
-		nint ofs         = 0;
-
-		if (symbol is null) {
-			return Options.HasFlag(ResourceImportLoadOptions.ThrowOnImportError) ? throw new ImportException($"Symbol {name} is null") : Mem.Nullptr;
-		}
-
-		ofs = (nint) symbol.Offset;
-
-		return baseAddress + ofs;
-
 	}
 
 #endregion

@@ -60,6 +60,8 @@ public sealed class SigScanner
 	public ulong Size { get; }
 
 #region Constructors
+	
+	// TODO: don't copy into buffer; memory is already in address space!
 
 	public SigScanner(ProcessModule module)
 		: this(module.BaseAddress, (ulong) module.ModuleMemorySize) { }

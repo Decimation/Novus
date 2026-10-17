@@ -179,7 +179,7 @@ namespace Novus.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 10.0.12.
+        ///   Looks up a localized string similar to 10.0.13.
         /// </summary>
         internal static string RequiredVersion {
             get {
@@ -346,6 +346,15 @@ namespace Novus.Properties {
         internal static string Sig_SetInstanceField {
             get {
                 return ResourceManager.GetString("Sig_SetInstanceField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alloc.
+        /// </summary>
+        internal static string Sym_Alloc {
+            get {
+                return ResourceManager.GetString("Sym_Alloc", resourceCulture);
             }
         }
         

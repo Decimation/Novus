@@ -53,7 +53,8 @@ public sealed class SymbolHandler : IDisposable
 
 	private bool m_disposed;
 
-	private static readonly Func<Symbol, bool> AnyPredicate = static _ => true;
+	private static readonly Func<Symbol, bool> AnyPredicate  = static _ => true;
+	
 
 	public bool AllLoaded => ModBase != 0 && !Symbols.IsEmpty;
 

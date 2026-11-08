@@ -404,22 +404,22 @@ public sealed class RuntimeResource : IDisposable
 
 	public Pointer<byte> FindImport(ImportAttribute ia, string value = null)
 	{
-		var n        = ia.Name;
-		var it       = default(ImportType);
+		var name        = ia.Name;
+		var importType       = default(ImportType);
 		var absolute = ia.AbsoluteMatch;
-		var ord = 0;
+		var ord      = 0;
+
 		switch (ia) {
 			case ImportUnmanagedAttribute iua:
 				value ??= iua.Value;
-				it    =   iua.ImportType;
-				ord = iua.Ordinal;
+				importType    =   iua.ImportType;
+				ord   =   iua.Ordinal;
 				break;
 		}
 
-		value ??= n;
+		value ??= name;
 
-
-		return it switch
+		var import = importType switch
 		{
 			// currying
 
@@ -429,6 +429,8 @@ public sealed class RuntimeResource : IDisposable
 			ImportType.Symbol    => GetSymbols(value, absolute).ToList()[ord],
 			_                    => Mem.Nullptr
 		};
+
+		return import;
 	}
 
 	public static Pointer<byte> FindImport(ProcessModule module, string value, ImportType it, bool absolute = false)
@@ -458,9 +460,7 @@ public sealed class RuntimeResource : IDisposable
 		=> Scanner.Value.FindSignature(signature);
 
 	public Pointer<byte> GetSymbol(string name, bool absolute = false)
-	{
-		return GetSymbols(name, absolute).FirstOrDefault();
-	}
+		=> GetSymbols(name, absolute).FirstOrDefault();
 
 	public IEnumerable<Pointer<byte>> GetSymbols(string name, bool absolute = false)
 	{
@@ -468,8 +468,8 @@ public sealed class RuntimeResource : IDisposable
 			throw new ImportException("Symbols not loaded");
 		}
 
-		Func<Symbol, bool> pred1 = static s => s.Tag is SymbolTag.Function or SymbolTag.Data;
-		Func<Symbol, bool> pred2 = absolute ? s => s.Name == name : s => s.Name.Contains(name);
+		Func<Symbol, bool> pred1 = static sym => sym.Tag is SymbolTag.Function or SymbolTag.Data;
+		Func<Symbol, bool> pred2 = absolute ? sym => sym.Name == name : s => s.Name.Contains(name);
 
 		var pred = (Func<Symbol, bool>) Delegate.Combine(pred1, pred2);
 

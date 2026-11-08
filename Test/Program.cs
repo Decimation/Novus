@@ -162,13 +162,17 @@ public static partial class Program
 		obj1.s = "bar";
 		Console.WriteLine(obj1);*/
 
-		/*ref var obj = ref ObjectUtility.New<MyClass>(ctorArgs: ["foo",321]);
+		ref var obj = ref ObjectUtility.New<MyClass>(ctorArgs: ["foo", 321]);
 		Console.WriteLine(obj);
-		Console.WriteLine(GCHeap.GlobalHeap);*/
+		Console.WriteLine(GCHeap.GlobalHeap);
 
 		var gcPtr = GCHeap.Alloc(256, GCAllocFlags.GC_ALLOC_NO_FLAGS);
 		Console.WriteLine(gcPtr);
 		Console.WriteLine(GCHeap.IsHeapPointer(gcPtr));
+
+		var     allocator = new UnmanagedAllocator();
+		ref var obj2      = ref ObjectUtility.New<MyClass>(allocator, ["baz", 0xDEAD]);
+		Console.WriteLine(obj2);
 	}
 
 }

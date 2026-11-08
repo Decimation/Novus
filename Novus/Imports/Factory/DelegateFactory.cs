@@ -13,7 +13,7 @@ using System.Runtime.CompilerServices;
 /// <summary>
 /// <a href="https://github.com/cetio/Cassowary">Original source</a>
 /// </summary>
-public sealed class DelegateFactory
+public static class DelegateFactory
 {
 
 	private const char TYPENAME_DELIM = ' ';
@@ -46,10 +46,8 @@ public sealed class DelegateFactory
 
 		string typeNames = String.Join(TYPENAME_DELIM, parameterTypes.Select(x => x.Name).Append(returnType.Name));
 
-		return MakeNewDelegateType(
-			$"{TypeFactory.NovusCassowary}Multicast{(returnType != typeof(void) ? TYPENAME_DELIM : String.Empty)}{typeNames}",
-			returnType,
-			parameterTypes);
+		return MakeNewDelegateType($"{TypeFactory.NovusCassowary}Multicast{(returnType != typeof(void) ? TYPENAME_DELIM : String.Empty)}{typeNames}",
+		                           returnType, parameterTypes);
 	}
 
 	/// <summary>
@@ -76,19 +74,25 @@ public sealed class DelegateFactory
 	/// <param name="argumentTypes">The types of constructor arguments.</param>
 	/// <returns>A delegate to the constructor.</returns>
 	[MImp(MImplO.AggressiveInlining)]
-	public static Delegate MakeConstructorDelegate(Type type, Binder? binder, ParameterModifier[]? modifiers,
-	                                               params Type[] argumentTypes)
+	public static Delegate MakeConstructorDelegate(Type type, Binder? binder, ParameterModifier[]? modifiers, params Type[] argumentTypes)
 	{
-		ConstructorInfo ctorInfo = type.GetConstructor(BindingFlags.NonPublic |
-		                                               BindingFlags.Public    |
-		                                               BindingFlags.Instance,
+		ConstructorInfo ctorInfo = type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance,
 		                                               binder, argumentTypes, modifiers)
-		                           ?? throw new TypeLoadException(
-			                           $"{type.Name} does not define any .ctor({String.Join(", ", argumentTypes.Select(x => x.Name))})");
+		                           ?? throw new TypeLoadException($"{type.Name} does not define any .ctor({String.Join(", ", argumentTypes.Select(x => x.Name))})");
 
 		var         dynamicMethod = new DynamicMethod(String.Empty, type, argumentTypes);
 		ILGenerator il            = dynamicMethod.GetILGenerator();
 
+		il.EmitLoadArguments(argumentTypes);
+
+		il.Emit(OpCodes.Newobj, ctorInfo);
+		il.Emit(OpCodes.Ret);
+
+		return dynamicMethod.CreateDelegate(MakeNewDelegateType(type, argumentTypes));
+	}
+
+	private static void EmitLoadArguments(this ILGenerator il, Type[] argumentTypes)
+	{
 		for (int i = 0; i < argumentTypes.Length; ++i) {
 			switch (i) {
 				case 0:
@@ -112,13 +116,6 @@ public sealed class DelegateFactory
 					break;
 			}
 		}
-
-		il.Emit(OpCodes.Newobj, ctorInfo);
-		il.Emit(OpCodes.Ret);
-
-		return dynamicMethod.CreateDelegate(
-			MakeNewDelegateType(type, argumentTypes)
-		);
 	}
 
 	/// <summary>
@@ -134,36 +131,12 @@ public sealed class DelegateFactory
 		var         dynamicMethod = new DynamicMethod(String.Empty, type, argumentTypes);
 		ILGenerator il            = dynamicMethod.GetILGenerator();
 
-		for (int i = 0; i < argumentTypes.Length; ++i) {
-			switch (i) {
-				case 0:
-					il.Emit(OpCodes.Ldarg_0);
-					break;
-
-				case 1:
-					il.Emit(OpCodes.Ldarg_1);
-					break;
-
-				case 2:
-					il.Emit(OpCodes.Ldarg_2);
-					break;
-
-				case 3:
-					il.Emit(OpCodes.Ldarg_3);
-					break;
-
-				default:
-					il.Emit(OpCodes.Ldarg, i);
-					break;
-			}
-		}
+		il.EmitLoadArguments(argumentTypes);
 
 		il.Emit(OpCodes.Newobj, ctorInfo);
 		il.Emit(OpCodes.Ret);
 
-		return dynamicMethod.CreateDelegate(
-			MakeNewDelegateType(type, argumentTypes)
-		);
+		return dynamicMethod.CreateDelegate(MakeNewDelegateType(type, argumentTypes));
 	}
 
 	/// <summary>
@@ -227,8 +200,7 @@ public sealed class DelegateFactory
 	/// <param name="instance">The instance that the new Delegate will invoke on.</param>
 	/// <param name="throwOnFailure">Whether to throw an exception on failure.</param>
 	/// <returns>A delegate representing the provided MethodInfo.</returns>
-	public static Delegate MakeDelegate(Type delegateType, MI methodInfo, object? instance,
-	                                    bool throwOnFailure = true)
+	public static Delegate MakeDelegate(Type delegateType, MI methodInfo, object? instance, bool throwOnFailure = true)
 		=> Delegate.CreateDelegate(delegateType, instance, methodInfo, throwOnFailure)!;
 
 }

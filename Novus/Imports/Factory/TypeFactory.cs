@@ -4,6 +4,7 @@
 #nullable enable
 using System.Reflection;
 using System.Reflection.Emit;
+using JetBrains.Annotations;
 
 namespace Novus.Imports.Factory;
 
@@ -12,13 +13,14 @@ namespace Novus.Imports.Factory;
 /// </summary>
 public static class TypeFactory
 {
+
 	/// <summary>
 	/// <em>Novus</em> &amp; <em>Cassowary</em>
 	/// </summary>
 	public const string NovusCassowary = "Novowary";
 
 
-	#region
+#region
 
 	private static readonly Assembly[] _assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
@@ -35,7 +37,7 @@ public static class TypeFactory
 		typeof(nint)
 	];
 
-	#endregion
+#endregion
 
 	/// <summary>
 	///     Defines a delegate type dynamically.
@@ -47,25 +49,16 @@ public static class TypeFactory
 	[MImpl(MImplO.AggressiveOptimization | MImplO.AggressiveInlining)]
 	internal static TypeBuilder DefineDelegateType(string name, Type returnType, Type[] parameterTypes)
 	{
-		TypeBuilder typeBuilder = _moduleBuilder.DefineType(name + $"%{_count++}%",
-		                                                    TypeAttributes.Public |
-		                                                    TypeAttributes.Sealed |
-		                                                    TypeAttributes.AutoClass,
+		TypeBuilder typeBuilder = _moduleBuilder.DefineType(name + $"%{_count++}%", TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.AutoClass,
 		                                                    typeof(MulticastDelegate));
 
-		typeBuilder.DefineConstructor(MethodAttributes.FamANDAssem
-		                              | MethodAttributes.Family
-		                              | MethodAttributes.HideBySig
-		                              | MethodAttributes.RTSpecialName,
-		                              CallingConventions.Standard,
-		                              _ctorTypes)
-			.SetImplementationFlags(MethodImplAttributes.CodeTypeMask);
+		typeBuilder.DefineConstructor(MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.HideBySig | MethodAttributes.RTSpecialName,
+		                              CallingConventions.Standard, _ctorTypes)
+		           .SetImplementationFlags(MethodImplAttributes.CodeTypeMask);
 
-		typeBuilder.DefineMethod("Invoke",
-		                         MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.Virtual
-		                         | MethodAttributes.HideBySig | MethodAttributes.VtableLayoutMask, returnType,
-		                         parameterTypes)
-			.SetImplementationFlags(MethodImplAttributes.CodeTypeMask);
+		typeBuilder.DefineMethod("Invoke", MethodAttributes.FamANDAssem | MethodAttributes.Family | MethodAttributes.Virtual
+		                                   | MethodAttributes.HideBySig | MethodAttributes.VtableLayoutMask, returnType, parameterTypes)
+		           .SetImplementationFlags(MethodImplAttributes.CodeTypeMask);
 
 		return typeBuilder;
 	}
@@ -87,7 +80,8 @@ public static class TypeFactory
 	/// <param name="typeName">The fully qualified name of the type.</param>
 	/// <returns>The resolved Type, or null if not found.</returns>
 	[MImpl(MImplO.AggressiveOptimization)]
-	internal static Type? ResolveType(string typeName, bool throwOnNull = false)
+	[CA($"{nameof(throwOnNull)}:true => halt; {nameof(throwOnNull)}:false => null")]
+	internal static Type? ResolveType(string typeName, [AsrtCnd(AssertionConditionType.IS_TRUE)] bool throwOnNull = false)
 	{
 		Type? type;
 
@@ -96,10 +90,8 @@ public static class TypeFactory
 				return type;
 		}
 
-		if (throwOnNull)
-			throw new TypeLoadException($"Cannot find Type of name {typeName}");
+		return throwOnNull ? throw new TypeLoadException($"Cannot find Type of name {typeName}") : null;
 
-		return null;
 	}
 
 }

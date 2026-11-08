@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using Kantan.Diagnostics;
 using Novus.Imports.Attributes;
@@ -44,7 +45,7 @@ public static unsafe class GCHeap
 	public static bool IsLargeObject(Pointer<byte> obj)
 		=> Func_IsLargeObject(GlobalHeap.ToPointer(), obj.ToPointer());
 
-	public static Pointer<byte> Alloc(ulong size, GCAllocFlags flags)
+	public static Pointer<byte> Alloc(ulong size, GCAllocFlags flags = GCAllocFlags.GC_ALLOC_NO_FLAGS)
 		=> Func_Alloc(size, flags);
 
 	/// <summary>
@@ -65,9 +66,25 @@ public static unsafe class GCHeap
 	[field: ImportClr("Sym_IsLargeObj", ImportType.Symbol)]
 	private static delegate* unmanaged[Thiscall]<void*, void*, bool> Func_IsLargeObject { get; }
 
-	/// <summary>
+
+	///<code>
+	/// There are only two ways to allocate an object.
+	///	    * Call optimized helpers that were generated on the fly. This is how JIT compiled code does most
+	///	        allocations, however they fall back code:Alloc, when for all but the most common code paths. These
+	///	        helpers are NOT used if profiler has asked to track GC allocation (see code:TrackAllocations)
+	///     * Call code:Alloc - When the jit helpers fall back, or we do allocations within the runtime code
+	///	        itself, we ultimately call here.
+	/// 
+	///	While this is a choke point into allocating an object, it is primitive (it does not want to know about
+	///	MethodTable and thus does not initialize that pointer. It also does not know if the object is finalizable
+	///	or contains pointers. Thus we quickly wrap this function in more user-friendly ones that know about
+	///	MethodTables etc. (see code:AllocateSzArray code:AllocateArrayEx code:AllocateObject)
+	///
+	/// You can get an exhaustive list of code sites that allocate GC objects by finding all calls to
+	/// code:ProfilerObjectAllocatedCallback (since the profiler has to hook them all).
+	/// </code>
 	/// <see cref="Alloc"/>
-	/// </summary>
+	/// <a href="https://github.com/dotnet/runtime/blob/main/src/coreclr/vm/gchelpers.cpp#L366">Source</a>
 	[field: ImportClr("Sym_Alloc", ImportType.Symbol, Ordinal = 0, AbsoluteMatch = true)]
 	private static delegate* unmanaged<ulong, GCAllocFlags, void*> Func_Alloc { get; }
 

@@ -53,9 +53,6 @@ public sealed class SymbolHandler : IDisposable
 
 	private bool m_disposed;
 
-	private static readonly Func<Symbol, bool> AnyPredicate  = static _ => true;
-	
-
 	public bool AllLoaded => ModBase != 0 && !Symbols.IsEmpty;
 
 	public ImageHelpModule64 ImageModule { get; private set; }
@@ -74,13 +71,18 @@ public sealed class SymbolHandler : IDisposable
 	// private const string MASK_ALL = "*!*";
 	public const string MASK_ALL = "*";
 
+	[CBN]
+	public static string SymbolPath => Environment.GetEnvironmentVariable(ENV_VAR_NT_SYMBOL_PATH, EnvironmentVariableTarget.Machine);
+
+	public const string ENV_VAR_NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
+
 	public SymbolHandler(nint handle, string image, bool loadAll = true)
 	{
 		// Require.FileExists(image);
 		Handle = handle;
 		Image  = image;
 
-		var ok = LoadModule();
+		var ok = InitLoadModule();
 
 		m_disposed = false;
 
@@ -98,7 +100,7 @@ public sealed class SymbolHandler : IDisposable
 	public IEnumerable<Symbol> GetSymbols(string name, [CBN] Func<Symbol, bool> pred = null)
 	{
 		ObjectDisposedException.ThrowIf(m_disposed, this);
-		pred ??= AnyPredicate;
+		pred ??= symbol => symbol.Name.Contains(name);
 
 		/*
 		 * https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/ns-dbghelp-symbol_info
@@ -115,31 +117,12 @@ public sealed class SymbolHandler : IDisposable
 		 * https://github.com/moyix/pdbparse
 		 */
 
-
-		var sym = Symbols.Where(s => s.Name.Contains(name) && pred(s));
-
-		//todo: SymFromName...
-		/*var d = new DebugSymbol();
-		d.SizeOfStruct = (uint)Marshal.SizeOf<DebugSymbol>();
-		d.MaxNameLen = 1000;
-
-		if (!SymFromName(hProc, name, new IntPtr(&d)))
-		{
-			Debug.WriteLine("ERROR");
-		}
-
-		var sym = new Symbol(&d);*/
-
-		return sym;
+		return Symbols.Where(pred);
 	}
 
 	[CBN]
 	public Symbol GetSymbol(string name, [CBN] Func<Symbol, bool> pred = null)
-	{
-		pred ??= AnyPredicate;
-
-		return GetSymbols(name).FirstOrDefault(pred);
-	}
+		=> GetSymbols(name, pred).FirstOrDefault();
 
 	public bool LoadAllSymbols(string mask = MASK_ALL)
 	{
@@ -172,7 +155,7 @@ public sealed class SymbolHandler : IDisposable
 		return true;
 	}
 
-	public bool LoadModule()
+	public bool InitLoadModule()
 	{
 		bool ok = Native.SymInitialize(Handle);
 
@@ -190,7 +173,7 @@ public sealed class SymbolHandler : IDisposable
 		ok |= Native.SymGetModuleInfoW64(Handle, modBase, ref im);
 
 		ImageModule = im;
-		ModBase   = effectiveBase;
+		ModBase     = effectiveBase;
 
 		return ok;
 	}
@@ -205,11 +188,6 @@ public sealed class SymbolHandler : IDisposable
 	 * symchk "input" /s SRV*output*http://msdl.microsoft.com/download/symbols
 	 *
 	 */
-
-	[CBN]
-	public static string SymbolPath => Environment.GetEnvironmentVariable(ENV_VAR_NT_SYMBOL_PATH, EnvironmentVariableTarget.Machine);
-
-	public const string ENV_VAR_NT_SYMBOL_PATH = "_NT_SYMBOL_PATH";
 
 	[ICBN]
 	public static async Task<string> SymchkSymbolFileAsync(string fname, [CBN] string o = null)
@@ -280,10 +258,10 @@ public sealed class SymbolHandler : IDisposable
 		using var peReader = new PEReader(File.OpenRead(fname));
 
 		var codeViewEntry = peReader.ReadDebugDirectory()
-		                            .First(entry => entry.Type == DebugDirectoryEntryType.CodeView);
-		
+		                            .First(static entry => entry.Type == DebugDirectoryEntryType.CodeView);
+
 		var pdbData = peReader.ReadCodeViewDebugDirectoryData(codeViewEntry);
-		
+
 		// var cacheDirectoryPath = Global.ProgramData;
 
 		IFlurlResponse res = null;
@@ -357,7 +335,7 @@ public sealed class SymbolHandler : IDisposable
 		Native.SymCleanup(Handle);
 		Native.SymUnloadModule64(Handle, ModBase);
 		Symbols.Clear();
-		ModBase  = 0;
+		ModBase    = 0;
 		m_disposed = true;
 	}
 

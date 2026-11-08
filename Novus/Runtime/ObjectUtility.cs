@@ -495,42 +495,48 @@ public static unsafe class ObjectUtility
 		return Unsafe.Read<T>(p2);
 	}
 
-	/// <summary>
-	/// Reads a value of type <typeparamref name="T"/> previously returned by <see cref="GetBytes{T}(T)"/>.
-	/// </summary>
-	/// <seealso cref="Streams.StreamExtensions.ReadAny{T}(Stream)"/>
+	
 	public static object ReadFromBytes(byte[] rg)
 		=> ReadFromBytes<object>(rg);
 
+	[MURV]
+	public static ref T New<T>(IAllocator allocator = null, object[] ctorArgs = null) where T : class
+	{
+		allocator ??= AllocManager.Allocator;
+
+		var refSize    = (nuint) Mem.SizeOf<T>();
+		var destRefPtr = allocator.Alloc(refSize).Cast<T>();
+
+		var instSize    = (nuint) Mem.SizeOf<T>(SizeOfOption.BaseInstance);
+		var destInstPtr = allocator.Alloc(instSize);
+
+		ref var inst = ref New(ref destRefPtr.Reference, destInstPtr, ctorArgs);
+
+		return ref inst;
+	}
+
+	public static ref T New<T>(Pointer<T> destRefPtr, Pointer<byte> destInstPtr = default, object[] ctorArgs = null) where T : class
+		=> ref New(ref destRefPtr.Reference, destInstPtr, ctorArgs);
+
 	/// <summary>
-	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="ptr"/>.
-	/// The pre-allocated memory <paramref name="ptr"/> size must be at least &gt;= value returned by
+	/// Initializes an instance of type <typeparamref name="T"/> in the memory pointed by <paramref name="destInstPtr"/>.
+	/// The pre-allocated memory <paramref name="destInstPtr"/> size must be at least &gt;= value returned by
 	/// <see cref="SizeOfOption.BaseInstance"/> (<see cref="Mem.SizeOf{T}()"/>)
 	/// <seealso cref="PreInitInstanceInitInstance"/>
 	/// </summary>
 	/// <typeparam name="T">Type to initialize</typeparam>
-	/// <param name="ptr">Memory within which to initialize the instance</param>
+	/// <param name="destInstPtr">Memory within which to initialize the instance</param>
 	/// <param name="ctorArgs"></param>
-	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="ptr"/></returns>
+	/// <returns>An instance of type <typeparamref name="T"/> initialized within <paramref name="destInstPtr"/></returns>
 	/// <remarks>This function is analogous to <em>placement <c>new</c></em> in C++</remarks>
-	[MURV]
-	public static ref T New<T>(Pointer<byte> ptr = default, object[] ctorArgs = null) where T : class
-	{
-		var destRefPtr = AllocManager.Alloc((nuint) Mem.SizeOf<T>()).Cast<T>();
-
-		if (ptr == Mem.Nullptr) {
-			RuntimeHelpers.GetUninitializedObject(typeof(T), out var ptrObj);
-			ptr = ptrObj - ObjHeaderSize;
-		}
-
-		// ref var refDestPtr = ref Unsafe.NullRef<T>();
-		ref var refDestPtr = ref destRefPtr.Reference;
-		return ref New(ref refDestPtr, ptr, ctorArgs);
-	}
-
 	public static ref T New<T>(ref T destRef, Pointer<byte> destInstPtr = default, object[] ctorArgs = null) where T : class
 	{
 		ctorArgs ??= [];
+
+		if (destInstPtr == Mem.Nullptr) {
+			RuntimeHelpers.GetUninitializedObject(typeof(T), out var ptrObj);
+			destInstPtr = ptrObj - ObjHeaderSize;
+		}
 
 		// var mt = typeof(T).AsMetaType();
 
@@ -544,9 +550,6 @@ public static unsafe class ObjectUtility
 		var typeHandle = GetTypeHandle<T>();
 		Unsafe.Write(destInstPtr, typeHandle); // Write type handle
 
-		// var destRefPtr = (void**) Unsafe.AsPointer(ref destRef);
-		// *destRefPtrPtr = (nint*) destInstPtr.Address;
-		// Unsafe.Write(destRefPtr, destInstPtr.Address);
 		Unsafe.Write(Unsafe.AsPointer(ref destRef), destInstPtr);
 
 		// destRef = Unsafe.AsRef<T>(destInstPtr);
@@ -590,8 +593,8 @@ public static unsafe class ObjectUtility
 
 	}
 
-	public static readonly MethodInfo s_newFunc = typeof(ObjectUtility).GetMethod(nameof(New), BindingFlags.Static | BindingFlags.Public,
-	                                                                              [typeof(Pointer<byte>), typeof(Pointer<byte>)]);
+	private static readonly MethodInfo s_newFunc = typeof(ObjectUtility).GetMethod(nameof(New), BindingFlags.Static | BindingFlags.Public,
+	                                                                               [typeof(Pointer<byte>), typeof(Pointer<byte>)]);
 
 #endregion
 

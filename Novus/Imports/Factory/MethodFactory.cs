@@ -10,7 +10,7 @@ public static class MethodFactory
 
 	static MethodFactory()
 	{
-		s_throwingFunctions = new ConcurrentDictionary<Type, DynamicMethod>();
+		s_throwingFunctions = [];
 	}
 
 	public static DynamicMethod GetOrGenerateThrowingFunction(Type fieldType)

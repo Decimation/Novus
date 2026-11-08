@@ -77,7 +77,6 @@ public unsafe struct Pointer<T> : IAdditionOperators<Pointer<T>, Pointer<T>, Poi
 	/// <summary>
 	///     Indexes <see cref="Address" /> as a reference.
 	/// </summary>
-	[UnscopedRef]
 	public ref T this[nint index]
 	{
 		[method: MImpl(IMPL_OPTIONS)]
@@ -87,7 +86,6 @@ public unsafe struct Pointer<T> : IAdditionOperators<Pointer<T>, Pointer<T>, Poi
 	/// <summary>
 	///     Returns the current value as a reference.
 	/// </summary>
-	[UnscopedRef]
 	public ref T Reference
 	{
 		[method: MImpl(IMPL_OPTIONS)]
@@ -236,7 +234,7 @@ public unsafe struct Pointer<T> : IAdditionOperators<Pointer<T>, Pointer<T>, Poi
 	public readonly bool Equals(Pointer<T> other)
 		=> Address == other.Address;
 
-	public readonly override bool Equals([CanBeNull] object obj)
+	public readonly override bool Equals(object obj)
 		=> obj is Pointer<T> pointer && Equals(pointer);
 
 	public readonly override int GetHashCode()
@@ -435,7 +433,6 @@ public unsafe struct Pointer<T> : IAdditionOperators<Pointer<T>, Pointer<T>, Poi
 	/// <param name="elemOffset">Element offset (in terms of type <typeparamref name="T" />).</param>
 	/// <returns>A reference to a value of type <typeparamref name="T" />.</returns>
 	[Pure]
-	[UnscopedRef]
 	[method: MImpl(IMPL_OPTIONS)]
 	public ref T AsRef(nint elemOffset = Mem.OFFSET)
 		=> ref Unsafe.AsRef<T>(Offset(elemOffset));

@@ -27,8 +27,10 @@ global using DAM = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembersAtt
 global using DAMT = System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 global using Opt = System.Runtime.InteropServices.OptionalAttribute;
 global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
+global using AsrtCnd = JetBrains.Annotations.AssertionConditionAttribute;
 global using EnuCan = System.Runtime.CompilerServices.EnumeratorCancellationAttribute;
 global using MImpl = System.Runtime.CompilerServices.MethodImplAttribute;
+global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
 
 #endregion
 
